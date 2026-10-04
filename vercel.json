@@ -46,34 +46,10 @@
     { "source": "/ai/:path*", "destination": "/dist/ai-pages/:path*" },
     { "source": "/portfolio", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
     { "source": "/portfolio.html", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio/:project" },
-    { "source": "/portfolio/:project", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio/:project.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio/:project" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/portfolio" },
-    { "source": "/portfolio", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio" },
-    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/portfolio" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/contact" },
-    { "source": "/contact", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/contact" },
-    { "source": "/contact.html", "has": [{ "type": "query", "key": "mode", "value": "(professional|work|career|analytics)" }], "destination": "/pages/professional/analytics/contact" },
     { "source": "/contact",           "destination": "/pages/contact" },
     { "source": "/contact.html",      "destination": "/pages/contact" },
     { "source": "/solutions",         "destination": "/pages/solutions" },
@@ -84,12 +60,6 @@
     { "source": "/job-application-copilot.html", "destination": "/pages/job-application-copilot" },
     { "source": "/job-application-copilot/privacy", "destination": "/pages/job-application-copilot-privacy" },
     { "source": "/job-application-copilot/privacy.html", "destination": "/pages/job-application-copilot-privacy" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "analytics" }], "destination": "/pages/professional/analytics/search" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "data-science" }], "destination": "/pages/professional/data-science/search" },
-    { "source": "/search", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/search" },
-    { "source": "/search.html", "has": [{ "type": "query", "key": "audience", "value": "tourism" }], "destination": "/pages/professional/tourism/search" },
     { "source": "/search",            "destination": "/pages/search" },
     { "source": "/search.html",       "destination": "/pages/search" },
     { "source": "/sitemap",           "destination": "/pages/sitemap" },
@@ -157,29 +127,6 @@
     { "source": "/games",             "destination": "/pages/games" },
     { "source": "/games.html",        "destination": "/pages/games" },
 
-    { "source": "/analytics", "destination": "/pages/analytics" },
-    { "source": "/analytics.html", "destination": "/pages/analytics" },
-    { "source": "/data-science", "destination": "/pages/data-science" },
-    { "source": "/data-science.html", "destination": "/pages/data-science" },
-    { "source": "/tourism", "destination": "/pages/tourism" },
-    { "source": "/tourism.html", "destination": "/pages/tourism" },
-    { "source": "/resume", "destination": "/pages/resume" },
-    { "source": "/resume.html", "destination": "/pages/resume" },
-    { "source": "/resume-pdf", "destination": "/pages/resume-pdf" },
-    { "source": "/resume-pdf.html", "destination": "/pages/resume-pdf" },
-    { "source": "/resume-analytics", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-analytics.html", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-analytics-pdf", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-analytics-pdf.html", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-data-science", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-data-science.html", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-data-science-pdf", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-data-science-pdf.html", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-tourism", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-tourism.html", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-tourism-pdf", "destination": "/pages/resume-tourism-pdf" },
-    { "source": "/resume-tourism-pdf.html", "destination": "/pages/resume-tourism-pdf" },
-
     { "source": "/chatbot-demo",      "destination": "/pages/demos/chatbot-demo" },
     { "source": "/chatbot-demo.html", "destination": "/pages/demos/chatbot-demo" },
     { "source": "/shape-demo",        "destination": "/pages/demos/shape-demo" },
@@ -210,15 +157,39 @@
     { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/:path*", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/:path*", "permanent": true },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "professional" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "work" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "career" }], "destination": "/analytics", "permanent": false },
-    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "analytics" }], "destination": "/analytics", "permanent": false },
-    { "source": "/resume", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume.html", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/documents/Resume.pdf", "destination": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf", "permanent": true },
+    { "source": "/analytics", "destination": "/", "permanent": true },
+    { "source": "/analytics.html", "destination": "/", "permanent": true },
+    { "source": "/analytics/:path*", "destination": "/:path*", "permanent": true },
+    { "source": "/data-science", "destination": "/", "permanent": true },
+    { "source": "/data-science.html", "destination": "/", "permanent": true },
+    { "source": "/data-science/:path*", "destination": "/:path*", "permanent": true },
+    { "source": "/tourism", "destination": "/", "permanent": true },
+    { "source": "/tourism.html", "destination": "/", "permanent": true },
+    { "source": "/tourism/:path*", "destination": "/:path*", "permanent": true },
+    {"source": "/professional/:audience/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true},
+    {"source": "/professional/:audience/:page(contact|portfolio|search).html", "destination": "/:page", "permanent": true},
+    {"source": "/pages/professional/:audience/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true},
+    {"source": "/pages/professional/:audience/:page(contact|portfolio|search).html", "destination": "/:page", "permanent": true},
+    { "source": "/professional/:audience", "destination": "/", "permanent": true },
+    { "source": "/professional/:audience/:path*", "destination": "/:path*", "permanent": true },
+    { "source": "/pages/professional/:audience", "destination": "/", "permanent": true },
+    { "source": "/pages/professional/:audience/:path*", "destination": "/:path*", "permanent": true },
+    { "source": "/resume", "destination": "/", "permanent": true },
+    { "source": "/resume.html", "destination": "/", "permanent": true },
+    { "source": "/resume-pdf", "destination": "/", "permanent": true },
+    { "source": "/resume-pdf.html", "destination": "/", "permanent": true },
+    { "source": "/resume-analytics", "destination": "/", "permanent": true },
+    { "source": "/resume-analytics.html", "destination": "/", "permanent": true },
+    { "source": "/resume-analytics-pdf", "destination": "/", "permanent": true },
+    { "source": "/resume-analytics-pdf.html", "destination": "/", "permanent": true },
+    { "source": "/resume-data-science", "destination": "/", "permanent": true },
+    { "source": "/resume-data-science.html", "destination": "/", "permanent": true },
+    { "source": "/resume-data-science-pdf", "destination": "/", "permanent": true },
+    { "source": "/resume-data-science-pdf.html", "destination": "/", "permanent": true },
+    { "source": "/resume-tourism", "destination": "/", "permanent": true },
+    { "source": "/resume-tourism.html", "destination": "/", "permanent": true },
+    { "source": "/resume-tourism-pdf", "destination": "/", "permanent": true },
+    { "source": "/resume-tourism-pdf.html", "destination": "/", "permanent": true },
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
@@ -247,16 +218,77 @@
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
     { "source": "/projects/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/projects/:project", "destination": "/portfolio/:project", "permanent": true },
+    {"source": "/pages/word-frequency", "destination": "/tools/word-frequency", "permanent": true},
+    {"source": "/pages/word-frequency.html", "destination": "/tools/word-frequency", "permanent": true},
+    {"source": "/pages/text-compare", "destination": "/tools/text-compare", "permanent": true},
+    {"source": "/pages/text-compare.html", "destination": "/tools/text-compare", "permanent": true},
+    {"source": "/pages/short-links", "destination": "/tools/short-links", "permanent": true},
+    {"source": "/pages/short-links.html", "destination": "/tools/short-links", "permanent": true},
+    {"source": "/pages/point-of-view-checker", "destination": "/tools/point-of-view-checker", "permanent": true},
+    {"source": "/pages/point-of-view-checker.html", "destination": "/tools/point-of-view-checker", "permanent": true},
+    {"source": "/pages/oxford-comma-checker", "destination": "/tools/oxford-comma-checker", "permanent": true},
+    {"source": "/pages/oxford-comma-checker.html", "destination": "/tools/oxford-comma-checker", "permanent": true},
+    {"source": "/pages/background-remover", "destination": "/tools/background-remover", "permanent": true},
+    {"source": "/pages/background-remover.html", "destination": "/tools/background-remover", "permanent": true},
+    {"source": "/pages/image-optimizer", "destination": "/tools/image-optimizer", "permanent": true},
+    {"source": "/pages/image-optimizer.html", "destination": "/tools/image-optimizer", "permanent": true},
+    {"source": "/pages/qr-code-generator", "destination": "/tools/qr-code-generator", "permanent": true},
+    {"source": "/pages/qr-code-generator.html", "destination": "/tools/qr-code-generator", "permanent": true},
+    {"source": "/pages/tools-dashboard", "destination": "/tools/dashboard", "permanent": true},
+    {"source": "/pages/tools-dashboard.html", "destination": "/tools/dashboard", "permanent": true},
+    {"source": "/pages/screen-recorder", "destination": "/tools/screen-recorder", "permanent": true},
+    {"source": "/pages/screen-recorder.html", "destination": "/tools/screen-recorder", "permanent": true},
+    {"source": "/pages/job-application-tracker", "destination": "/tools/job-application-tracker", "permanent": true},
+    {"source": "/pages/job-application-tracker.html", "destination": "/tools/job-application-tracker", "permanent": true},
+    {"source": "/pages/nbsp-cleaner", "destination": "/tools/nbsp-cleaner", "permanent": true},
+    {"source": "/pages/nbsp-cleaner.html", "destination": "/tools/nbsp-cleaner", "permanent": true},
+    {"source": "/pages/utm-batch-builder", "destination": "/tools/utm-batch-builder", "permanent": true},
+    {"source": "/pages/utm-batch-builder.html", "destination": "/tools/utm-batch-builder", "permanent": true},
+    {"source": "/pages/campaign-creative-tracker", "destination": "/tools/campaign-creative-tracker", "permanent": true},
+    {"source": "/pages/campaign-creative-tracker.html", "destination": "/tools/campaign-creative-tracker", "permanent": true},
+    {"source": "/pages/ga4-utm-performance", "destination": "/tools/ga4-utm-performance", "permanent": true},
+    {"source": "/pages/ga4-utm-performance.html", "destination": "/tools/ga4-utm-performance", "permanent": true},
+    {"source": "/pages/transcribe", "destination": "/tools/transcribe", "permanent": true},
+    {"source": "/pages/transcribe.html", "destination": "/tools/transcribe", "permanent": true},
+    {"source": "/pages/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true},
+    {"source": "/pages/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true},
+    {"source": "/pages/job-application-copilot-privacy", "destination": "/job-application-copilot/privacy", "permanent": true},
+    {"source": "/pages/job-application-copilot-privacy.html", "destination": "/job-application-copilot/privacy", "permanent": true},
+    {"source": "/pages/demos/:demo.html", "destination": "/:demo", "permanent": true},
+    {"source": "/pages/demos/:demo", "destination": "/:demo", "permanent": true},
+    {"source": "/pages/analytics", "destination": "/", "permanent": true},
+    {"source": "/pages/analytics.html", "destination": "/", "permanent": true},
+    {"source": "/pages/data-science", "destination": "/", "permanent": true},
+    {"source": "/pages/data-science.html", "destination": "/", "permanent": true},
+    {"source": "/pages/tourism", "destination": "/", "permanent": true},
+    {"source": "/pages/tourism.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume", "destination": "/", "permanent": true},
+    {"source": "/pages/resume.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-pdf", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-pdf.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-analytics", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-analytics.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-analytics-pdf", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-analytics-pdf.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-data-science", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-data-science.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-data-science-pdf", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-data-science-pdf.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-tourism", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-tourism.html", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-tourism-pdf", "destination": "/", "permanent": true},
+    {"source": "/pages/resume-tourism-pdf.html", "destination": "/", "permanent": true},
+    {"source": "/pages/destination-analytics", "destination": "/", "permanent": true},
+    {"source": "/pages/destination-analytics.html", "destination": "/", "permanent": true},
+    {"source": "/pages/contributions", "destination": "/", "permanent": true},
+    {"source": "/pages/contributions.html", "destination": "/", "permanent": true},
+    {"source": "/pages/:path*.html", "destination": "/:path*", "permanent": true},
     { "source": "/pages/:path*", "destination": "/:path*", "permanent": true },
     { "source": "/dist/ai-pages/:path*", "destination": "/ai/:path*", "permanent": true },
-    { "source": "/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/destination-analytics.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics.html", "destination": "/tourism", "permanent": true },
+    { "source": "/destination-analytics", "destination": "/", "permanent": true },
+    { "source": "/destination-analytics.html", "destination": "/", "permanent": true },
     { "source": "/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/contributions.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions.html", "destination": "/tourism", "permanent": true }
+    { "source": "/contributions.html", "destination": "/tourism", "permanent": true }
   ],
   "headers": [
     {
@@ -272,222 +304,6 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
         { "key": "X-Content-Type-Options", "value": "nosniff" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "mode" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "mode" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "mode", "value": "professional" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "mode", "value": "professional" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "mode", "value": "work" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "mode", "value": "work" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "mode", "value": "career" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "mode", "value": "career" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "mode", "value": "analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "mode", "value": "analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "data-science" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "data-science" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "tourism" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "tourism" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "datascience" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "datascience" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "data_science" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "data_science" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "query", "key": "audience", "value": "tourism-analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "query", "key": "audience", "value": "tourism-analytics" }
-      ],
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
@@ -512,174 +328,6 @@
       "source": "/job-application-copilot/privacy.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, follow" }
-      ]
-    },
-    {
-      "source": "/analytics",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/analytics.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/data-science",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/data-science.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/tourism",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/tourism.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/documents/Resume.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/documents/Resume-Analytics.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/documents/Resume-Data-Science.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/documents/Resume-Tourism.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/img/resume-previews/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noimageindex" }
-      ]
-    },
-    {
-      "source": "/js/common/audience-config.js",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
@@ -716,42 +364,6 @@
       "source": "/dist/ai-pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
-      ]
-    },
-    {
-      "source": "/admin",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/admin/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/destination-analytics",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/destination-analytics.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/contributions",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/contributions.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

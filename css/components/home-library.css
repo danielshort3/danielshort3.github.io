@@ -54,13 +54,16 @@
     font: inherit;
     font-size: .8rem;
     font-weight: 700;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease;
   }
 
-  .home-library__back:is(:hover, :focus-visible) {
+  .home-library__back:hover {
     color: #ffffff;
     background: var(--panel-color);
-    outline: 3px solid color-mix(in srgb, var(--panel-color) 25%, transparent);
-    outline-offset: 2px;
+  }
+  .home-library__back:focus-visible {
+    outline: 3px solid var(--panel-color);
+    outline-offset: 3px;
   }
 
   .home-library__back > span,
@@ -96,6 +99,12 @@
     stroke-width: 1.9;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+  .home-library__back svg.site-direction-arrow,
+  .home-library__page-link svg.site-direction-arrow,
+  .home-library__arrow svg.site-direction-arrow {
+    fill: currentColor;
+    stroke: none;
   }
 
   .home-library__back--overview {
@@ -504,6 +513,7 @@
     object-fit: contain;
     mix-blend-mode: multiply;
   }
+  .home-library__arrow svg.site-direction-arrow { width: 20px; height: 20px; }
 
   .home-library__card:is(:hover, :focus-visible) .home-library__arrow {
     transform: translateX(2px);
@@ -1421,6 +1431,17 @@
       scrollbar-color: #b8c6d8 transparent;
       scrollbar-width: thin;
       -webkit-overflow-scrolling: touch;
+    }
+
+    /* Explain the horizontal row when the platform hides its scrollbar. */
+    :is(.personal-library--projects, .home-library[data-home-library-view="projects"]) .home-library__jump-links::before {
+      content: "Swipe →";
+      flex: 0 0 auto;
+      align-self: center;
+      padding-inline: 6px;
+      color: #475569;
+      font-size: 12px;
+      white-space: nowrap;
     }
 
     :is(.personal-library--projects, .home-library[data-home-library-view="projects"]) .home-library__jump-links a {

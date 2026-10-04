@@ -17,10 +17,8 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <link rel="stylesheet" href="dist/styles-demo.css" />
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <style>
@@ -124,7 +122,7 @@
 
     .demo-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       gap: 12px;
       background: #ffffff;
@@ -223,6 +221,10 @@
       background: #ffffff;
     }
 
+    .conversation-connection .warmup-button:is(.ready, .starting) {
+      display: none;
+    }
+
     .warmup-button.starting {
       background: var(--panel-soft);
     }
@@ -306,6 +308,11 @@
     .server-dot.ready {
       background: var(--success);
       border-color: var(--success);
+    }
+
+    .server-dot.error {
+      background: var(--danger);
+      border-color: var(--danger);
     }
 
     .server-copy {
@@ -448,15 +455,36 @@
     }
 
     .chat-stage {
-      width: min(860px, 100%);
+      width: 100%;
       height: var(--chat-height);
       min-height: 0;
       margin-inline: auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     html[data-embedded="true"] .chat-stage {
       height: 100%;
       width: 100%;
+    }
+
+    html[data-embedded="true"] .chatbot-workspace > .demo-toolbar {
+      display: none;
+    }
+
+    .conversation-heading h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(17px, 1.6vw, 20px);
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .conversation-heading p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     .chat-shell {
@@ -472,11 +500,46 @@
       box-shadow: var(--shadow);
     }
 
-    .chat-shell--regular { grid-template-rows: minmax(0, 1fr) auto; }
+    .chat-shell--regular { grid-template-rows: auto minmax(0, 1fr) auto; }
 
     .chat-shell--regular:has(.empty-state) {
-      grid-template-rows: minmax(0, max-content) auto;
-      align-content: start;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-content: stretch;
+    }
+
+    .conversation-header {
+      min-width: 0;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .conversation-heading {
+      min-width: 0;
+    }
+
+    .conversation-connection {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .conversation-connection .warmup-button {
+      min-height: 34px;
+      min-width: 0;
+      padding-inline: 10px;
+      font-size: 12px;
+    }
+
+    .conversation-connection .health-pill {
+      white-space: nowrap;
     }
 
     .chat-head {
@@ -527,45 +590,124 @@
     }
 
     .empty-state {
-      margin: 0 auto;
-      max-width: 520px;
+      width: 100%;
+      max-width: 940px;
       display: grid;
-      gap: 10px;
-      text-align: center;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: start;
+      gap: 12px;
       color: var(--muted);
     }
 
-    .empty-state .empty-title {
-      margin: 0;
-      color: var(--text);
-      font-size: clamp(20px, 2.5vw, 24px);
-      line-height: 1.12;
-      font-weight: 800;
-      letter-spacing: 0;
+    .greeting-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--panel-soft);
+      position: relative;
     }
 
-    .empty-state p {
+    .greeting-icon::before {
+      content: '';
+      width: 20px;
+      height: 16px;
+      border: 2px solid var(--text);
+      border-radius: 8px;
+    }
+
+    .greeting-icon::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      left: 12px;
+      top: 25px;
+      border-left: 2px solid var(--text);
+      border-bottom: 2px solid var(--text);
+      background: var(--panel-soft);
+      transform: skewY(-32deg);
+    }
+
+    .greeting-bubble {
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+      padding: clamp(14px, 2vw, 18px);
+      border-radius: 12px;
+      background: var(--panel-soft);
+    }
+
+    .greeting-bubble .empty-title {
       margin: 0;
-      line-height: 1.4;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .greeting-bubble p {
+      margin: 0;
+      line-height: 1.45;
       font-size: 14px;
     }
 
     .suggestions {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
 
     .suggestion {
-      min-height: 44px;
+      min-width: 0;
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 9px 11px;
       background: #ffffff;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       color: var(--text);
       font-weight: 700;
       font-size: 13px;
+      line-height: 1.25;
+      text-align: left;
+    }
+
+    .suggestion:is(:hover, :focus-visible) {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+    }
+
+    .suggestion-icon {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+
+    .suggestion-icon[data-icon="calendar"] {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23091f3b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M7 3v4M17 3v4M3 10h18'/%3E%3C/svg%3E");
+    }
+
+    .suggestion-icon[data-icon="food"] {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23091f3b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 3v8M8 3v8M11 3v8M8 11v10M17 3c-2.5 3-3 6-3 9h4V3h-1ZM18 12v9'/%3E%3C/svg%3E");
+    }
+
+    .suggestion-icon[data-icon="mountain"] {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23091f3b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2 19 7-10 4 5 3-4 6 9H2ZM9 9l2 3'/%3E%3C/svg%3E");
+    }
+
+    .suggestion::after {
+      content: '→';
+      color: var(--accent-strong);
+      font-size: 18px;
+      line-height: 1;
     }
 
     .suggestion:disabled {
@@ -724,6 +866,19 @@
       align-items: end;
     }
 
+    .chat-privacy {
+      margin: 8px 0 0;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .chat-privacy a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
     .chat-form textarea {
       width: 100%;
       min-height: 48px;
@@ -854,8 +1009,23 @@
       padding: 12px;
     }
 
-    .popup-window .empty-state .empty-title {
-      font-size: 23px;
+    .popup-window .empty-state {
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .popup-window .greeting-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .popup-window .greeting-icon::after {
+      left: 8px;
+      top: 20px;
+    }
+
+    .popup-window .suggestions {
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .popup-close {
@@ -916,19 +1086,148 @@
       .chat-stage, html[data-embedded="true"] .chat-stage { width: 100%; height: 100%; }
       .chat-shell { border-inline: 0; border-radius: 0; box-shadow: none; }
       .chat-messages { padding: 16px; }
-      .chat-shell--regular:has(.empty-state) { align-content: start; }
-      .empty-state { text-align: left; }
       .chat-composer { padding: 12px 12px max(12px, env(safe-area-inset-bottom)); }
       .chat-form { grid-template-columns: minmax(0, 1fr) 74px; }
       .chat-form textarea { min-height: 48px; max-height: 96px; font-size: 16px; }
       .chat-send { min-width: 0; width: 74px; }
-      .suggestions { display: grid; }
       .suggestion { width: 100%; }
       .popup-preview { border-radius: 0; }
       .popup-preview-copy { padding: 20px; text-align: center; }
       .popup-window { right: 10px; bottom: 84px; width: calc(100% - 20px); height: calc(100% - 98px); }
       .popup-window .chat-shell { border: 1px solid var(--line); border-radius: 12px; }
       .popup-launcher { right: 18px; bottom: 18px; width: 58px; height: 58px; }
+    }
+
+    @media (max-width: 760px) {
+      html,
+      body,
+      html[data-embedded="true"],
+      html[data-embedded="true"] body {
+        height: auto;
+        min-height: 100dvh;
+      }
+
+      html[data-embedded="true"] body {
+        overflow-y: auto;
+      }
+
+      .demo-root,
+      html[data-embedded="true"] .demo-root {
+        height: auto;
+        min-height: 100dvh;
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+      }
+
+      .views,
+      .view-panel.active,
+      .chat-stage,
+      html[data-embedded="true"] .views,
+      html[data-embedded="true"] #regular-view,
+      html[data-embedded="true"] .chat-stage {
+        height: auto;
+        min-height: 0;
+      }
+
+      .chat-stage {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .chatbot-workspace .chat-shell--regular {
+        height: auto;
+        min-height: 420px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .chatbot-workspace .chat-shell--regular:has(.empty-state) {
+        height: auto;
+        min-height: 420px;
+        grid-template-rows: auto auto auto;
+      }
+
+      .conversation-header {
+        min-height: 68px;
+        padding: 12px;
+      }
+
+      .conversation-heading h2 {
+        font-size: 18px;
+      }
+
+      .conversation-heading p {
+        display: none;
+      }
+
+      .chat-shell--regular .chat-messages {
+        min-height: 190px;
+        max-height: min(52dvh, 460px);
+      }
+
+      .chat-shell--regular .chat-messages:has(.empty-state) {
+        min-height: 0;
+        max-height: none;
+        overflow-y: visible;
+      }
+
+      .empty-state {
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .greeting-icon {
+        width: 34px;
+        height: 34px;
+      }
+
+      .greeting-icon::after {
+        left: 9px;
+        top: 22px;
+      }
+
+      .greeting-bubble {
+        padding: 12px;
+      }
+
+      .suggestions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .suggestion {
+        min-height: 44px;
+      }
+
+      .chat-shell--regular .chat-composer {
+        padding: 10px;
+      }
+
+      .chat-shell--regular .chat-form {
+        grid-template-columns: minmax(0, 1fr) 68px;
+      }
+
+      .chat-shell--regular .chat-send {
+        width: 68px;
+      }
+
+      .popup-preview {
+        height: min(680px, calc(100dvh - 60px));
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 350px) {
+      .conversation-header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .conversation-heading,
+      .conversation-connection {
+        width: 100%;
+      }
+
+      .conversation-connection {
+        justify-content: flex-start;
+      }
     }
 
     @media (max-height: 360px) {
@@ -992,15 +1291,6 @@
         <h1>Travel Assistant</h1>
         <p>Explore Grand Junction with a source-grounded chat. Inputs and responses are saved on AWS.</p>
       </div>
-      <div class="demo-scope-controls">
-        <button class="warmup-button" id="warmup-button" type="button">Prepare demo</button>
-      </div>
-      <div class="demo-status-actions">
-        <div class="server-control" id="server-control" role="status" aria-live="polite">
-          <span class="server-dot off" id="server-dot" aria-hidden="true" hidden></span>
-          <span class="health-pill aws-status-badge" id="chat-connection-pill" data-state="warming">AWS · Checking</span>
-        </div>
-      </div>
     </header>
 
     <dialog class="startup-notice" id="qwen-startup-notice" aria-labelledby="qwen-startup-title">
@@ -1018,12 +1308,26 @@
       <section class="view-panel active" id="regular-view" role="tabpanel" aria-labelledby="regular-view-button">
         <div class="chat-stage">
           <article class="chat-shell chat-shell--regular" aria-label="Travel conversation">
+            <header class="conversation-header">
+              <div class="conversation-heading">
+                <h2>Conversation</h2>
+                <p>Ask about Grand Junction and nearby places.</p>
+              </div>
+              <div class="conversation-connection">
+                <div class="server-control" id="server-control" role="status" aria-live="polite">
+                  <span class="server-dot off" id="server-dot" aria-hidden="true" hidden></span>
+                  <span class="health-pill aws-status-badge" id="chat-connection-pill" data-state="warming">Bedrock · Connecting</span>
+                </div>
+                <button class="warmup-button" id="warmup-button" type="button">Check connection</button>
+              </div>
+            </header>
             <section class="chat-messages" id="regular-messages" aria-live="polite"></section>
             <section class="chat-composer">
               <form class="chat-form" id="regular-form" novalidate>
-                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" rows="1" maxlength="1200" autocomplete="off" required></textarea>
+                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" aria-describedby="regular-chat-privacy" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                 <button class="chat-send" id="regular-send" type="submit">Send</button>
               </form>
+              <p class="chat-privacy" id="regular-chat-privacy">Questions and answers are logged on AWS. Avoid private information. <a href="/privacy#assistant-and-links" target="_blank" rel="noopener noreferrer">Privacy details</a></p>
             </section>
           </article>
         </div>
@@ -1057,9 +1361,10 @@
               <section class="chat-messages" id="popup-messages" aria-live="polite"></section>
               <section class="chat-composer">
                 <form class="chat-form" id="popup-form" novalidate>
-                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" rows="1" maxlength="1200" autocomplete="off" required></textarea>
+                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" aria-label="Your travel question" aria-describedby="popup-chat-privacy" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                   <button class="chat-send" id="popup-send" type="submit">Send</button>
                 </form>
+                <p class="chat-privacy" id="popup-chat-privacy">Questions and answers are logged on AWS. Avoid private information. <a href="/privacy#assistant-and-links" target="_blank" rel="noopener noreferrer">Privacy details</a></p>
               </section>
             </article>
           </aside>
@@ -1073,7 +1378,7 @@
             Backend
             <select id="backend-select" aria-label="Chat backend">
               <option value="qwen-sagemaker">Qwen / SageMaker</option>
-              <option value="bedrock">Bedrock</option>
+              <option value="bedrock" selected>Bedrock</option>
             </select>
           </label>
           <div>
@@ -1113,7 +1418,7 @@
     const DEFAULT_BACKEND_ID = 'bedrock';
     const BACKEND_STORAGE_KEY = 'demo.endpoint.chatbot.backend';
     const BACKEND_DEFAULT_VERSION_KEY = 'demo.endpoint.chatbot.backend.defaultVersion';
-    const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';
+    const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-09-27';
     const { resolveEndpoint, getJson, postJson, retryRequest } = window.DemoAws;
     const RUNTIME_CONFIG = window.VGJ_CHATBOT_CONFIG || {};
     function resolveBackendApiUrl(backendId, defaultUrl, storageKey) {
@@ -1196,6 +1501,7 @@
     let readyDeadline = 0;
     let readyDuration = 0;
     let sharedStatusTimer = null;
+    let backendStatusGeneration = 0;
 
     // Track DOM nodes: copied message markup does not retain click listeners.
     const boundMessageControls = new WeakSet();
@@ -1413,21 +1719,22 @@
     }
     // End startup status helpers
 
-    async function fetchStatusInfo() {
+    async function fetchStatusInfo(backendId = selectedBackendId) {
+      const backend = BACKENDS[backendId];
       const payload = await retryRequest(
-        () => getJson(backendUrl('/status'), { cache: 'no-store' }),
+        () => getJson(`${backend.apiUrl}/status`, { cache: 'no-store' }),
         STATUS_RETRY_OPTIONS
       );
       const info = statusInfoFromPayload(payload);
-      recordLog('status:payload', { backend: activeBackend().id, ...info });
-      updateTimerDetails(info, `${activeBackend().label} status`);
+      recordLog('status:payload', { backend: backendId, ...info });
+      if (backendId === selectedBackendId) updateTimerDetails(info, `${backend.label} status`);
       return info;
     }
 
     function setServerVisual(mode, text, stage = '') {
       serverDot.className = `server-dot ${mode}`;
-      connectionPill.dataset.state = mode === 'ready' ? 'ok' : mode === 'starting' ? 'warming' : 'idle';
-      connectionPill.textContent = `AWS · ${mode === 'ready' ? 'Ready' : mode === 'starting' ? 'Starting' : 'Standby'}`;
+      connectionPill.dataset.state = mode === 'ready' ? 'ok' : mode === 'starting' ? 'warming' : mode === 'error' ? 'err' : 'idle';
+      connectionPill.textContent = `${activeBackend().label} · ${mode === 'ready' ? 'Ready' : mode === 'starting' ? 'Connecting' : mode === 'error' ? 'Unavailable' : 'Standby'}`;
       serverText.textContent = text;
       serverStage.textContent = stage;
       if (mode === 'off') setTimerDisplay({ mode: 'idle' });
@@ -1450,7 +1757,7 @@
           button.title = serverReady ? '' : coldTitle;
         });
         [...ctx.suggestions, ...ctx.followups].forEach(button => {
-          button.disabled = !serverReady;
+          button.disabled = active || !serverReady;
           button.title = serverReady ? '' : coldTitle;
         });
       });
@@ -1505,6 +1812,29 @@
         },
         `${activeBackend().label} always live`
       );
+      updateSendButtons();
+    }
+
+    function markAlwaysLiveChecking() {
+      serverReady = false;
+      warmupActive = true;
+      stopSharedStatusPolling();
+      stopStartupTimer();
+      stopReadyTimer();
+      setTimerDisplay({ mode: 'idle' });
+      setTimerPanelVisible(false);
+      setWarmupButtonState('starting');
+      setServerVisual('starting', 'Checking connection', 'Connecting to Bedrock...');
+      updateSendButtons();
+    }
+
+    function markAlwaysLiveUnavailable(stage = 'Connection check failed. Try again.') {
+      serverReady = false;
+      warmupActive = false;
+      setTimerDisplay({ mode: 'idle' });
+      setTimerPanelVisible(false);
+      setWarmupButtonState('idle');
+      setServerVisual('error', 'Connection unavailable', stage);
       updateSendButtons();
     }
 
@@ -1688,8 +2018,14 @@
       }
     }
 
-    async function syncPassiveStatus() {
-      const status = await fetchStatusInfo();
+    async function syncPassiveStatus(backendId = selectedBackendId, generation = backendStatusGeneration) {
+      const status = await fetchStatusInfo(backendId);
+      if (backendId !== selectedBackendId || generation !== backendStatusGeneration) return;
+      if (isAlwaysLiveBackend()) {
+        if (status.online) markAlwaysLiveBackend(status.payload?.stage?.message || 'Bedrock is ready.');
+        else markAlwaysLiveUnavailable('Bedrock did not confirm availability. Try again.');
+        return;
+      }
       if (status.online) {
         markServerOnline('passive-status', status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC);
         return;
@@ -1702,18 +2038,18 @@
     }
 
     function refreshSelectedBackendStatus(reason = 'backend-status') {
+      const backendId = selectedBackendId;
+      const generation = ++backendStatusGeneration;
       if (isAlwaysLiveBackend()) {
-        markAlwaysLiveBackend(`${activeBackend().label} is ready. No startup or shutdown timer is needed.`);
-        syncPassiveStatus().catch(err => {
-          recordLog(`${reason}:error`, { backend: activeBackend().id, error: describeError(err) }, 'error');
-          markAlwaysLiveBackend(`Status check failed: ${describeError(err)}`);
-        });
-        return;
+        markAlwaysLiveChecking();
+      } else {
+        markServerCold(`Checking ${activeBackend().label} status...`);
       }
-      markServerCold(`Checking ${activeBackend().label} status...`);
-      syncPassiveStatus().catch(err => {
-        recordLog(`${reason}:error`, { backend: activeBackend().id, error: describeError(err) }, 'error');
-        markServerCold('Status check failed. Start server can try again.');
+      return syncPassiveStatus(backendId, generation).catch(err => {
+        if (backendId !== selectedBackendId || generation !== backendStatusGeneration) return;
+        recordLog(`${reason}:error`, { backend: backendId, error: describeError(err) }, 'error');
+        if (isAlwaysLiveBackend()) markAlwaysLiveUnavailable('Could not confirm the connection. Try again.');
+        else markServerCold('Status check failed. Prepare demo can try again.');
       });
     }
 
@@ -1747,18 +2083,7 @@
 
     async function checkAlwaysLiveBackend() {
       if (warmupActive) return;
-      warmupActive = true;
-      setWarmupButtonState('starting');
-      setTimerPanelVisible(false);
-      setServerVisual('ready', `${activeBackend().label} live`, 'Checking Bedrock status...');
-      try {
-        const status = await fetchStatusInfo();
-        recordLog('bedrock:status-check', { backend: activeBackend().id, status: status.payload?.status || status.payload?.state });
-        markAlwaysLiveBackend(status.payload?.stage?.message || `${activeBackend().label} is ready. No startup or shutdown timer is needed.`);
-      } catch (err) {
-        recordLog('bedrock:status-check-error', { error: describeError(err) }, 'error');
-        markAlwaysLiveBackend(`Status check failed: ${describeError(err)}`);
-      }
+      await refreshSelectedBackendStatus('bedrock:manual-check');
     }
 
     async function warmupServer() {
@@ -2753,31 +3078,39 @@
       ctx.messages.replaceChildren();
       ctx.suggestions = [];
       ctx.followups = [];
-      const node = document.createElement('div');
-      node.className = 'empty-state';
+      const node = document.createElement('article');
+      node.className = 'empty-state chat-greeting';
+      const icon = document.createElement('span');
+      icon.className = 'greeting-icon';
+      const bubble = document.createElement('div');
+      bubble.className = 'greeting-bubble';
       const title = document.createElement('p');
       title.className = 'empty-title';
-      title.textContent = 'Where would you like to explore?';
-      const copy = document.createElement('p');
-      copy.textContent = 'Choose a starting point or ask your own travel question.';
+      title.textContent = 'Hi! I can help you explore Grand Junction. What would you like to know?';
       const suggestions = document.createElement('div');
       suggestions.className = 'suggestions';
       [
-        'Plan my first day in Grand Junction',
-        'Suggest a food and riverfront weekend',
-        'Plan a day trip to Grand Mesa'
-      ].forEach(text => {
+        ['Plan a day', 'Plan my first day in Grand Junction', 'calendar'],
+        ['Find food & trails', 'Find food and trails near Grand Junction for a weekend', 'food'],
+        ['Explore Grand Mesa', 'Plan a day trip to Grand Mesa', 'mountain']
+      ].forEach(([label, prompt, iconName]) => {
         const button = document.createElement('button');
         button.className = 'suggestion';
         button.type = 'button';
-        button.textContent = text;
-        button.dataset.suggestionPrompt = text;
+        button.dataset.suggestionPrompt = prompt;
         button.disabled = !serverReady;
-        button.title = serverReady ? '' : 'Prepare the demo first.';
+        button.title = serverReady ? prompt : 'Prepare the demo first.';
+        const icon = document.createElement('span');
+        icon.className = 'suggestion-icon';
+        icon.dataset.icon = iconName;
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        button.append(icon, caption);
         ctx.suggestions.push(button);
         suggestions.appendChild(button);
       });
-      node.append(title, copy, suggestions);
+      bubble.append(title, suggestions);
+      node.append(icon, bubble);
       ctx.messages.appendChild(node);
       syncMessagesFrom(ctx);
     }

@@ -2,7 +2,6 @@
   'use strict';
 
   const TOGGLE_SELECTOR = '.pref-toggle[data-pref]';
-  const INFO_SELECTOR = '.pref-info[aria-controls]';
 
   const updateToggleUI = (button, value) => {
     if (!button) return;
@@ -10,7 +9,7 @@
     const pressed = locked ? true : Boolean(value);
     button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     const stateEl = button.querySelector('.pref-state');
-    if (stateEl) stateEl.textContent = pressed ? 'On' : 'Off';
+    if (stateEl) stateEl.textContent = locked ? 'Always on' : (pressed ? 'On' : 'Off');
   };
 
   const getCurrentPrefs = () => {
@@ -48,20 +47,6 @@
     });
   };
 
-  const bindInfoButtons = () => {
-    document.querySelectorAll(INFO_SELECTOR).forEach((button) => {
-      if (button.dataset.prefInfoBound === 'true') return;
-      button.dataset.prefInfoBound = 'true';
-      button.addEventListener('click', () => {
-        const expanded = button.getAttribute('aria-expanded') === 'true';
-        const targetId = button.getAttribute('aria-controls');
-        const target = targetId ? document.getElementById(targetId) : null;
-        button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        if (target) target.hidden = expanded;
-      });
-    });
-  };
-
   const bindSaveButton = () => {
     const saveBtn = document.getElementById('save-privacy-preferences');
     if (!saveBtn || saveBtn.dataset.prefSaveBound === 'true') return;
@@ -77,9 +62,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     bindToggleEvents();
-    bindInfoButtons();
     bindSaveButton();
     syncForm();
   });
 })();
-

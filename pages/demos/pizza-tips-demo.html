@@ -10,26 +10,102 @@
   <meta name="description" content="Pizza Tips Regression Modeling interactive demo, presented inside Daniel Short&#39;s project library.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
 
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
-  <script src="js/common/no-js.js"></script>
+
 <meta name="author" content="Daniel Short">
 
   <meta name="twitter:description" content="Pizza Tips Regression Modeling interactive demo, presented inside Daniel Short&#39;s project library.">
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:pizza-tips-demo","path":"/pizza-tips-demo","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.9380b237.css","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.c57ddd04.js","/js/navigation/project-demo-wrapper.js","/dist/site-consent.772887f4.js"],"module":"projects:pizza-tips-demo"}</script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:pizza-tips-demo","path":"/pizza-tips-demo","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.7e88cd8b.js","/js/navigation/project-demo-wrapper.js","/dist/site-consent.a6d261d1.js"],"module":"projects:pizza-tips-demo"}</script>
 </head>
 <body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="pizza-tips-demo" data-personal-fit="viewport" data-site-route-id="projects:pizza-tips-demo" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="projects:pizza-tips-demo">
   <a href="/pizza-tips-demo#main" class="skip-link">Skip to interactive demo</a>
@@ -96,7 +172,7 @@
 <header class="project-demo-wrapper-header" data-project-demo-masthead="pizza-tips-demo" data-page-masthead>
     <div class="wrapper">
       <a href="/portfolio/pizza" aria-label="Back to Pizza Tips Regression Modeling" data-page-masthead-parent>
-        <img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+        <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
         <span>Back to project</span>
       </a>
       <div data-page-masthead-intro>
@@ -134,6 +210,6 @@
 </footer>
   <script defer src="js/navigation/project-demo-wrapper.js"></script>
 
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
 'use strict';
 
+const { createSignedHeaders, getProxySecret, normalizeOrigin, validatePayload } = require('./_lib/contact-protection');
+
 const DEFAULT_UPSTREAM = 'https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact';
 const UPSTREAM_DEADLINE_MS = 20000;
 const MAX_REQUEST_BYTES = 32 * 1024;
@@ -73,6 +75,35 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const headers = req.headers || {};
+  const suppliedOrigin = normalizeOrigin(headers.origin);
+  const host = String(headers.host || headers['x-forwarded-host'] || '').split(',')[0].trim();
+  const protocol = String(headers['x-forwarded-proto'] || '').split(',')[0].trim() || (req.socket?.encrypted ? 'https' : 'http');
+  const expectedOrigin = normalizeOrigin(`${protocol}://${host}`);
+  if (!suppliedOrigin || suppliedOrigin !== expectedOrigin || String(headers['sec-fetch-site'] || '').toLowerCase() === 'cross-site') {
+    sendJson(res, 403, { ok: false, code: 'CONTACT_REJECTED', error: 'Open the website to send a message.' });
+    return;
+  }
+  const validated = validatePayload(payload);
+  if (!validated) {
+    sendJson(res, 400, { ok: false, code: 'CONTACT_REJECTED', error: 'Please provide a valid name, email, and message.' });
+    return;
+  }
+  if (validated.company) {
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  let secret;
+  try {
+    secret = getProxySecret(process.env);
+  } catch {
+    sendJson(res, 503, { ok: false, code: 'CONTACT_REJECTED', error: 'Messaging is temporarily unavailable. Please email me directly.' });
+    return;
+  }
+  const body = JSON.stringify(validated);
+  const clientIp = String(headers['x-forwarded-for'] || headers['x-real-ip'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+  const signedHeaders = createSignedHeaders({ body, clientIp, origin: suppliedOrigin }, secret);
+
   const controller = new AbortController();
   let deadline;
   let timedOut = false;
@@ -82,10 +113,8 @@ module.exports = async (req, res) => {
     const request = (async () => {
       const upstreamRes = await fetch(upstream, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload || {}),
+        headers: signedHeaders,
+        body,
         signal: controller.signal
       });
       const raw = await upstreamRes.text();
@@ -103,6 +132,12 @@ module.exports = async (req, res) => {
     const { upstreamRes, data } = await Promise.race([request, timeout]);
 
     if (!upstreamRes.ok) {
+      if (upstreamRes.status === 429) {
+        const retryAfter = Math.min(86400, Math.max(1, Number(upstreamRes.headers?.get('Retry-After')) || 60));
+        res.setHeader('Retry-After', String(Math.ceil(retryAfter)));
+        sendJson(res, 429, { ok: false, code: 'CONTACT_REJECTED', error: 'Too many messages. Please wait before trying again, or email me directly.' });
+        return;
+      }
       const rejected = upstreamRes.status >= 400 && upstreamRes.status < 500;
       sendJson(res, rejected ? upstreamRes.status : upstreamRes.status === 504 ? 504 : 502, {
         ok: false,

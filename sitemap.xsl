@@ -219,7 +219,6 @@
               <a href="/">Home</a>
               <a href="/portfolio">Portfolio</a>
               <a href="/tools">Tools</a>
-              <a href="/resume">Resume</a>
               <a href="/contact">Contact</a>
             </nav>
             <div class="filters" role="search" aria-label="Filter sitemap URLs">
@@ -230,7 +229,7 @@
                 type="search"
                 autocomplete="off"
                 spellcheck="false"
-                placeholder="Filter URLs (e.g. tools, portfolio, resume)" />
+                placeholder="Filter URLs (e.g. tools, portfolio, contact)" />
               <button id="sitemap-clear" class="filter-btn" type="button">Clear</button>
               <span class="filter-status">
                 Showing <span data-sitemap-shown=""><xsl:value-of select="count($all)" /></span> of
@@ -250,7 +249,7 @@
           <section class="card sitemap-section" id="section-site" data-sitemap-section="site">
             <header class="card-head">
               <h2>Site</h2>
-              <p>Core pages like home, resume, contact, and privacy.</p>
+              <p>Core pages like home, contact, and privacy.</p>
             </header>
             <table aria-label="Site URLs">
               <thead>

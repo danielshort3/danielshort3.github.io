@@ -4,7 +4,7 @@ Generated with the built-in `image_gen` tool on September 5, 2026. Each icon was
 
 These homepage and library icons follow the Tools Library navy, signal-blue, white, and small copper-accent palette. The artwork has a white exterior and uses project-icon-only CSS multiply blending on the pale tiles. The generated images did not provide actual alpha transparency; the selected outputs contain no painted checkerboard.
 
-All 16 published projects now have `iconImage` artwork in the full library. The homepage's four featured projects use those same icon files. Canonical project screenshots and demo previews remain in their existing `image` fields, including the Sheet Music comparison and Delivery Tip map.
+All 17 published projects now have `iconImage` artwork in the full library. The homepage's four featured projects use those same icon files. Canonical project screenshots and demo previews remain in their existing `image` fields, including the Sheet Music comparison and Delivery Tip map.
 
 The final revision adds a map-and-tip-coin icon for Delivery Tip, a music-page-and-eraser icon for Sheet Music Watermark Removal & Upscale, and replaces Baby Name Predictor's abstract name cards with a swaddled baby and a favorite name tag.
 

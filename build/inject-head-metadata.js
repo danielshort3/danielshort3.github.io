@@ -101,17 +101,14 @@ const HOME_STYLESHEET_FALLBACK = 'dist/styles-home.css';
 const WORKBENCH_STYLESHEET_FALLBACK = 'dist/styles-workbench.css';
 const TOOLS_STYLESHEET_FALLBACK = 'dist/styles-tools.css';
 const PERSONAL_ACCORDION_STYLESHEET_FALLBACK = 'dist/styles-personal-accordion.css';
-const PROFESSIONAL_STYLESHEET_FALLBACK = 'dist/styles-professional.css';
-const ANALYTICS_STYLESHEET_FALLBACK = 'dist/styles-analytics.css';
 const BASE_STYLESHEET_HREF = resolveManagedStylesheetHref(BASE_STYLESHEET_FALLBACK, CSS_MANIFEST.file);
 const HOME_STYLESHEET_HREF = resolveManagedStylesheetHref(HOME_STYLESHEET_FALLBACK, CSS_MANIFEST.homeFile);
 const WORKBENCH_STYLESHEET_HREF = resolveManagedStylesheetHref(WORKBENCH_STYLESHEET_FALLBACK, CSS_MANIFEST.workbenchFile);
 const TOOLS_STYLESHEET_HREF = resolveManagedStylesheetHref(TOOLS_STYLESHEET_FALLBACK, CSS_MANIFEST.toolsFile);
 const PERSONAL_ACCORDION_STYLESHEET_HREF = resolveManagedStylesheetHref(PERSONAL_ACCORDION_STYLESHEET_FALLBACK, CSS_MANIFEST.personalAccordionFile);
-const PROFESSIONAL_STYLESHEET_HREF = resolveManagedStylesheetHref(PROFESSIONAL_STYLESHEET_FALLBACK, CSS_MANIFEST.professionalFile);
-const ANALYTICS_STYLESHEET_HREF = resolveManagedStylesheetHref(ANALYTICS_STYLESHEET_FALLBACK, CSS_MANIFEST.analyticsFile);
 const EARLY_BOOTSTRAP_SCRIPT = '<script src="js/common/no-js.js"></script>';
 const EARLY_BOOTSTRAP_PATTERN = /<script\b[^>]*\bsrc=(["'])\/?js\/common\/no-js\.js(?:\?[^"']*)?\1[^>]*>\s*<\/script>/gi;
+const INLINE_BOOTSTRAP_PATTERN = /<script\b[^>]*\bdata-site-bootstrap(?:="[^"]*")?[^>]*>[\s\S]*?<\/script>/gi;
 
 const ROUTE_COMPONENT_STYLES_PATH = path.join(root, 'build', 'route-component-styles.json');
 const ROUTE_COMPONENT_STYLES = Object.freeze(loadRouteComponentStyles());
@@ -327,26 +324,23 @@ function normalizeEarlyBootstrap(html) {
   const head = sliceHead(source);
   if (!head) return source;
 
-  let keptBootstrap = false;
-  let headInner = head.inner.replace(EARLY_BOOTSTRAP_PATTERN, () => {
-    if (keptBootstrap) return '';
-    keptBootstrap = true;
-    return EARLY_BOOTSTRAP_SCRIPT;
-  });
+  const stripBootstrap = (value) => value.replace(EARLY_BOOTSTRAP_PATTERN, '').replace(INLINE_BOOTSTRAP_PATTERN, '');
+  let headInner = stripBootstrap(head.inner);
+  const lineBreak = headInner.includes('\r\n') ? '\r\n' : '\n';
+  // Tracker deliberately disallows inline execution in its stricter CSP.
+  const strictCsp = getHeadPathname(headInner) === '/tools/job-application-tracker';
+  const bootstrap = strictCsp ? EARLY_BOOTSTRAP_SCRIPT
+    : `<script data-site-bootstrap="early">${fs.readFileSync(path.join(root, 'js/common/no-js.js'), 'utf8').trim().replace(/<\/script/gi, '<\\/script')}</script>`;
+  // This only updates root state; it needs no stylesheet. Run before CSS so
+  // startup does not wait for the render-blocking stylesheet or another request.
+  const firstStylesheet = /<link\b[^>]*\brel="stylesheet"[^>]*>/i.exec(headInner);
+  const insertion = firstStylesheet ? firstStylesheet.index : headInner.length;
+  const prefix = headInner.slice(0, insertion).trimEnd();
+  const suffix = headInner.slice(insertion);
+  headInner = prefix + lineBreak + '  ' + bootstrap + lineBreak + (suffix ? '  ' + suffix : '');
 
-  if (!keptBootstrap) {
-    const lineBreak = headInner.includes('\r\n') ? '\r\n' : '\n';
-    const personalStylesheet = /^([ \t]*)<link\b[^>]*href="(?:\/?dist\/)?styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"[^>]*>[ \t]*$/im.exec(headInner);
-    if (personalStylesheet) {
-      const scriptLine = `${personalStylesheet[1]}${EARLY_BOOTSTRAP_SCRIPT}${lineBreak}`;
-      headInner = headInner.slice(0, personalStylesheet.index) + scriptLine + headInner.slice(personalStylesheet.index);
-    } else {
-      headInner = `${headInner.trimEnd()}${lineBreak}  ${EARLY_BOOTSTRAP_SCRIPT}${lineBreak}`;
-    }
-  }
-
-  const beforeHead = source.slice(0, head.openEnd).replace(EARLY_BOOTSTRAP_PATTERN, '');
-  const afterHead = source.slice(head.closeIndex).replace(EARLY_BOOTSTRAP_PATTERN, '');
+  const beforeHead = stripBootstrap(source.slice(0, head.openEnd));
+  const afterHead = stripBootstrap(source.slice(head.closeIndex));
   return `${beforeHead}${headInner}${afterHead}`;
 }
 
@@ -503,24 +497,19 @@ function ensureIosPwaMeta(headInner) {
 
 function ensurePerformanceAndPwa(headInner) {
   let inner = String(headInner || '');
-  if (!/<link\b[^>]*\brel="preconnect"/i.test(inner)) {
-    const preconnect = [
-      '  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>',
-      '  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>',
-      '  <link rel="dns-prefetch" href="https://www.googletagmanager.com">',
-      '  <link rel="dns-prefetch" href="https://www.google-analytics.com">'
-    ].join('\n');
-    const closeIndex = inner.lastIndexOf('</head>');
-    let anchorIndex = -1;
-    const marker = '<link rel="stylesheet"';
-    anchorIndex = inner.indexOf(marker);
-    if (anchorIndex !== -1) {
-      const lineStart = inner.lastIndexOf('\n', anchorIndex) + 1;
-      inner = inner.slice(0, lineStart) + preconnect + '\n' + inner.slice(lineStart);
-    } else if (closeIndex !== -1) {
-      inner = inner.slice(0, closeIndex) + '\n' + preconnect + inner.slice(closeIndex);
+  // Connection hints contact Google before consent just like a request does.
+  // Remove hints from previous generated heads; the CMP adds them after opt-in.
+  inner = inner.replace(/[\t ]*<link\b[^>]*>[\t ]*(?:\r?\n)?/gi, (tag) => {
+    const rel = /\brel\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1] || '';
+    const href = /\bhref\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1] || '';
+    if (!/^(?:preconnect|dns-prefetch)$/i.test(rel)) return tag;
+    try {
+      const hostname = new URL(href, 'https://www.danielshort.me').hostname;
+      return /^(?:www\.)?(?:googletagmanager|google-analytics)\.com$/i.test(hostname) ? '' : tag;
+    } catch (_) {
+      return tag;
     }
-  }
+  });
   if (!/<link\b[^>]*\brel="manifest"/i.test(inner)) {
     const manifest = '  <link rel="manifest" href="/manifest.json">';
     const closeIndex = inner.lastIndexOf('</head>');
@@ -701,9 +690,7 @@ function replaceManagedStylesheetLinks(headInner) {
     .replace(/href="dist\/styles-home(?:\.[0-9a-f]{8})?\.css"/gi, `href="${HOME_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-workbench(?:\.[0-9a-f]{8})?\.css"/gi, `href="${WORKBENCH_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-tools(?:\.[0-9a-f]{8})?\.css"/gi, `href="${TOOLS_STYLESHEET_HREF}"`)
-    .replace(/href="dist\/styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"/gi, `href="${PERSONAL_ACCORDION_STYLESHEET_HREF}"`)
-    .replace(/href="dist\/styles-professional(?:\.[0-9a-f]{8})?\.css"/gi, `href="${PROFESSIONAL_STYLESHEET_HREF}"`)
-    .replace(/href="dist\/styles-analytics(?:\.[0-9a-f]{8})?\.css"/gi, `href="${ANALYTICS_STYLESHEET_HREF}"`);
+    .replace(/href="dist\/styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"/gi, `href="${PERSONAL_ACCORDION_STYLESHEET_HREF}"`);
 }
 
 function ensureToolsStylesheet(headInner) {
@@ -729,12 +716,6 @@ function ensureRouteBundleStylesheet(headInner) {
   } else if (pathname === '/portfolio' || pathname === '/tools' || pathname === '/games') {
     href = WORKBENCH_STYLESHEET_HREF;
     fallback = WORKBENCH_STYLESHEET_FALLBACK;
-  } else if (pathname === '/analytics') {
-    href = ANALYTICS_STYLESHEET_HREF;
-    fallback = ANALYTICS_STYLESHEET_FALLBACK;
-  } else if (pathname === '/data-science' || pathname === '/tourism') {
-    href = PROFESSIONAL_STYLESHEET_HREF;
-    fallback = PROFESSIONAL_STYLESHEET_FALLBACK;
   }
 
   if (!href) return headInner;

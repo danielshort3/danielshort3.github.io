@@ -11,6 +11,11 @@
     padding: var(--frame-content-gutter, 32px);
     color: #091f3b;
   }
+  .site-frame[data-frame-audience="personal"] .home-about--story-only {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 960px;
+    margin-inline: auto;
+  }
 
   .home-about__personal { min-width: 0; }
   .home-about__profile {
@@ -97,8 +102,8 @@
     stroke-linejoin: round;
   }
   [data-home-about-connection="ai"] .home-about__interest-icon svg path { stroke: #99aabd; }
-  [data-home-about-connection="ai"] .home-about__interest-icon svg circle:last-child { stroke: #087f8c; }
-  [data-home-about-connection="family"] .home-about__interest-icon svg { stroke: #087f8c; }
+  [data-home-about-connection="ai"] .home-about__interest-icon svg circle:last-child { stroke: var(--brand-midnight, #091f3b); }
+  [data-home-about-connection="family"] .home-about__interest-icon svg { stroke: var(--brand-midnight, #091f3b); }
   [data-home-about-connection="family"] .home-about__interest-icon svg path:last-child { fill: #091f3b; stroke: none; }
   .home-about__interest-icon img {
     display: block;
@@ -136,13 +141,13 @@
     text-underline-offset: 2px;
   }
   .home-about__image-credit a[rel~="license"] { white-space: nowrap; }
+  .home-about__connector { color: var(--panel-color, #091f3b); }
   .home-about__connector svg {
     display: block;
     width: 24px;
     height: 24px;
-    fill: none;
-    stroke: #94a3b8;
-    stroke-width: 1.8;
+    fill: currentColor;
+    stroke: none;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -165,7 +170,7 @@
     text-decoration: none;
   }
   .home-about__project strong { font-weight: 650; }
-  .home-about__project-arrow { display: none; }
+  .home-about__project-arrow { display: none; color: var(--panel-color, #091f3b); }
   .home-about__project > span { color: #233d5f; }
   .home-about__current {
     display: grid;
@@ -357,6 +362,24 @@
     .site-frame[data-frame-audience="personal"] .home-about .home-timeline__entry { grid-area: 2 / 1; min-height: 28px; }
     .home-about .home-timeline__title { font-size: .875rem; }
     .home-about .home-timeline__subtitle { margin-top: 2px; font-size: .8125rem; }
+    .site-frame[data-frame-audience="personal"] .home-about--story-only {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: none;
+    }
+    .home-about--story-only .home-about__personal { display: block; }
+    .home-about--story-only .home-about__profile {
+      grid-area: auto;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+    .home-about--story-only .home-about__story {
+      grid-area: auto;
+      margin-top: var(--frame-section-gap, 24px);
+    }
+    .home-about--story-only .home-about__interests {
+      padding-top: 22px;
+      border-top: 1px solid #d1dae5;
+    }
   }
   @container site-content (max-width: 659px) {
     .site-frame[data-frame-audience="personal"] .home-about { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 24px; padding: 24px var(--frame-content-gutter, 20px); }
@@ -387,9 +410,8 @@
       display: block;
       width: 100%;
       height: 100%;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.8;
+      fill: currentColor;
+      stroke: none;
       stroke-linecap: round;
       stroke-linejoin: round;
     }

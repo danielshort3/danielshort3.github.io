@@ -19,6 +19,7 @@
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles-demo.css">
   <style>
     :root {
       --radius: 12px;
@@ -377,7 +378,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -391,22 +392,21 @@
     const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest, isRetryableError } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY, allowOverrides: false };
     const WARM_RETRY_OPTIONS = {
-      retries: 12,
+      retries: 2,
       baseDelayMs: 1000,
       factor: 1.8,
-      maxDelayMs: 10000
+      maxDelayMs: 2000,
+      timeoutMs: 20000
     };
-    const QUERY_RETRY_OPTIONS = {
-      retries: 2,
-      baseDelayMs: 500,
-      factor: 2,
-      maxDelayMs: 2000
-    };
+    const SEARCH_TIMEOUT_MS = 130000;
+    const QUERY_MAX_CHARS = 512;
     let serverReady = false;
     let submitBtn = null;
     let healthMeta = null;
     let healthCheckBtn = null;
     let healthPromise = null;
+    let activeSearchController = null;
+    let cancelSearchBtn = null;
 
     const notifyResize = (() => {
       const CHANNEL = 'sentence-demo-resize';
@@ -479,9 +479,10 @@
 
       const run = (async () => {
         try {
-          await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
+          const data = await retryRequest((attempt, { signal }) => getJson(url, { signal, timeoutMs: 7000 }), WARM_RETRY_OPTIONS);
+          if (data?.status === 'unavailable' || data?.configured === false) throw new Error('Search is not configured. Please try again later.');
           serverReady = true;
-          setHealth('ok', 'Connected', 'Ready to search.');
+          setHealth('ok', 'Connected', data?.ready === false ? 'The first search loads the model and may take up to two minutes.' : 'Ready to search.');
         } catch (e) {
           serverReady = false;
           setHealth('err', 'Unavailable', 'The demo is temporarily unavailable. Try reconnecting.');
@@ -505,6 +506,7 @@
     async function onSubmit(ev) {
       ev.preventDefault();
       const form = ev.currentTarget;
+      if (activeSearchController) return;
       if (!serverReady) {
         renderError('Server warming up. Please wait for the status to turn ready.');
         return;
@@ -520,7 +522,16 @@
         return placeholder.trim() || DEFAULT_QUERY;
       })();
       const query = rawQuery || fallback;
+      if (query.length > QUERY_MAX_CHARS) {
+        renderError('Use 512 characters or fewer.', 'Please shorten your idea and search again.', false);
+        queryInput.focus();
+        return;
+      }
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
+      const controller = new AbortController();
+      activeSearchController = controller;
+      if (cancelSearchBtn) cancelSearchBtn.hidden = false;
+      if (healthCheckBtn) healthCheckBtn.disabled = true;
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
       document.getElementById('search-feedback').replaceChildren();
@@ -528,18 +539,32 @@
       setHealth('loading', 'Searching', 'Searching the Alice in Wonderland corpus.');
       try {
         const url = joinUrl(getEndpoint(), 'rank');
-        const data = await retryRequest(() => postJson(url, { query, top }), QUERY_RETRY_OPTIONS);
+        const requestId = crypto.randomUUID();
+        const data = await postJson(url, { query, top }, {
+          signal: controller.signal,
+          timeoutMs: SEARCH_TIMEOUT_MS,
+          headers: { 'X-Request-Id': requestId }
+        });
         renderResults(data || {});
         setHealth('ok', 'Connected', 'Ready to search.');
       } catch (e) {
-        if (isRecoverableRequestError(e)) {
-          serverReady = false;
-          if (submitBtn) submitBtn.disabled = true;
-          setHealth('err', 'Request failed', 'The search could not connect. Reconnect and try again.');
+        if (e?.code === 'DEMO_REQUEST_CANCELLED') {
+          setHealth('ok', 'Cancelled', 'Search cancelled. Your idea is still here.');
+          renderError('Your idea is still here.', 'Search cancelled. You can edit your idea or search again.', false);
+        } else if (e?.status === 400 || e?.status === 422) {
+          const message = getErrorText(e);
+          setHealth('ok', 'Connected', 'Please shorten your idea and search again.');
+          renderError(message, message, false);
+          queryInput.focus();
+        } else {
+          const timedOut = e?.code === 'DEMO_REQUEST_TIMEOUT' || e?.code === 'DEMO_TIMEOUT';
+          setHealth('err', timedOut ? 'Timed out' : 'Request failed', 'Your idea is still here. Search again when you are ready.');
+          renderError(getErrorText(e), timedOut ? 'The search took too long. Your idea is still here; you can try again.' : 'The search could not finish. Please try again.', !timedOut);
         }
-        else setHealth('err', 'Request failed', 'The search could not finish. Try again.');
-        renderError(getErrorText(e));
       } finally {
+        activeSearchController = null;
+        if (cancelSearchBtn) cancelSearchBtn.hidden = true;
+        if (healthCheckBtn) healthCheckBtn.disabled = false;
         form.submitBtn.disabled = !serverReady;
         form.submitBtn.textContent = 'Search';
         document.getElementById('results').setAttribute('aria-busy', 'false');
@@ -592,7 +617,7 @@
       notifyResize();
     }
 
-    function renderError(err) {
+    function renderError(err, message = 'Could not complete the search. Reconnect and try again.', reconnect = true) {
       const out = document.getElementById('search-feedback');
       out.innerHTML = '';
       const box = document.createElement('div');
@@ -600,7 +625,7 @@
       const h = document.createElement('div');
       h.className = 'small';
       h.style.color = 'var(--danger, #e05757)';
-      h.textContent = 'Could not complete the search. Reconnect and try again.';
+      h.textContent = message;
       const retry = document.createElement('button');
       retry.type = 'button';
       retry.className = 'btn-secondary';
@@ -614,7 +639,8 @@
       pre.textContent = String(err);
       details.append(summary, pre);
       box.appendChild(h);
-      box.append(retry, details);
+      if (reconnect) box.appendChild(retry);
+      box.appendChild(details);
       out.appendChild(box);
       notifyResize();
     }
@@ -624,6 +650,9 @@
       submitBtn = form.submitBtn;
       healthMeta = document.getElementById('health-text');
       healthCheckBtn = document.getElementById('health-check');
+      cancelSearchBtn = document.getElementById('cancel-search');
+      cancelSearchBtn?.addEventListener('click', () => { activeSearchController?.abort(); });
+      window.addEventListener('pagehide', () => { activeSearchController?.abort(); });
       if (submitBtn) submitBtn.disabled = true;
       form.addEventListener('submit', onSubmit);
       if (healthCheckBtn) {
@@ -677,11 +706,13 @@
         <div class="sentence-query-row">
           <div class="sentence-query-field">
             <label for="query">Describe an idea</label>
-            <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." aria-describedby="corpus-context" />
+            <input id="query" name="query" type="text" maxlength="512" placeholder="Example: She wonders about things." data-example-query="She wonders about things." aria-describedby="corpus-context query-limit" />
           </div>
           <button type="submit" name="submitBtn" class="btn">Search</button>
+          <button id="cancel-search" type="button" class="btn-secondary" hidden>Cancel search</button>
         </div>
         <p id="corpus-context" class="small">Find passages with a similar meaning in Alice in Wonderland.</p>
+        <p id="query-limit" class="small">Use up to 512 characters. Ideas longer than 128 model tokens need to be shortened.</p>
         <div class="example-queries" aria-label="Example searches">
           <button type="button" class="btn-secondary" data-query-example="She wonders about things.">Curiosity</button>
           <button type="button" class="btn-secondary" data-query-example="A rabbit is in a hurry.">A hurried rabbit</button>

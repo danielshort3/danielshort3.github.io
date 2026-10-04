@@ -31,12 +31,94 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
-  <link rel="stylesheet" href="dist/styles-tools.52782b5f.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
+  <link rel="stylesheet" href="dist/styles-tools.ec8eac8a.css">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
@@ -44,16 +126,16 @@
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
   <script defer src="dist/site-tools-account.2e6c9ae7.js"></script>
-  <script defer src="dist/site-consent.772887f4.js"></script>
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
-  <script src="js/common/no-js.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:tools-dashboard","path":"/tools/dashboard","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.9380b237.css","/dist/styles-tools.52782b5f.css","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.772887f4.js","/dist/site-shell.c57ddd04.js","/js/common/no-js.js"],"module":"tools:tools-dashboard"}</script>
+<link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:tools-dashboard","path":"/tools/dashboard","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/dist/styles-tools.ec8eac8a.css","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.a6d261d1.js","/dist/site-shell.7e88cd8b.js"],"module":"tools:tools-dashboard"}</script>
 </head>
 <body data-page="tools-dashboard" class="tools-dashboard-page tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="tools-dashboard" data-personal-fit="viewport" data-site-route-id="tools:tools-dashboard" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:tools-dashboard">
   <a href="/tools/dashboard#main" class="skip-link">Skip to main content</a>
@@ -121,7 +203,7 @@
 <!-- personal-tool-header:start -->
 <header class="personal-tool-header tools-hero" data-personal-tool-header="tools-dashboard" data-page-masthead>
   <div class="wrapper personal-tool-header__inner">
-    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent><img src="/img/ui/site-icons/section-arrow-tools-left.webp" alt="" width="128" height="128" decoding="async" loading="lazy"><span>Tool library</span></a>
+    <a class="personal-tool-header__parent" href="/tools" aria-label="Back to tool library" data-page-masthead-parent><svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg><span>Tool library</span></a>
     <div class="personal-tool-header__intro" data-page-masthead-intro>
       <div class="personal-tool-header__copy" data-page-masthead-copy>
         <h1 id="personal-tool-title-tools-dashboard">Account</h1>

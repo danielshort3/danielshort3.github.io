@@ -5,10 +5,9 @@ const vm = require('vm');
 const { versionedImageUrl } = require('../../build/lib/versioned-image-url');
 const {
   getHomeAccordionIconDefinitions,
-  getWidgetDefinitions,
   renderVisualPageBody,
   resolveHomeAccordionIconId
-} = require('../../api/_lib/cms-widgets');
+} = require('../../build/lib/section-renderers');
 const {
   GENERATED_HOME_LIBRARY_VISUALS,
   RETAINED_GAME_PREVIEW_IDS,
@@ -446,7 +445,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const homeEntry = read('build/entries/site-home.entry.js');
   const homeStyles = read('css/styles-home.css');
   const sharedStyles = read('css/styles.css');
-  const generator = read('build/generate-cms-artifacts.js');
+  const generator = read('build/generate-content-artifacts.js');
   const visualValidator = read('build/validate-home-library-visuals.js');
   const buildSite = read('build/build-site.js');
   const copyToPublic = read('build/copy-to-public.js');
@@ -461,8 +460,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const toolsDirectoryContext = { window: {} };
   vm.runInNewContext(read('js/portfolio/tools-directory-data.js'), toolsDirectoryContext);
   const toolsDirectoryItems = toolsDirectoryContext.window.DIRECTORY_WORKBENCH?.items || [];
-  const homeAccordionWidget = getWidgetDefinitions()
-    .find((widget) => widget.type === 'home-accordion');
   const iconDefinitions = getHomeAccordionIconDefinitions();
 
   assert(section && section.variant === 'shallow-wedge',
@@ -473,10 +470,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'About should remain the fallback panel for invalid category selections');
   assert(section.props.initialView === 'closed',
     'the public homepage should initially show the fully condensed view');
-  assert(homeAccordionWidget?.defaultProps?.defaultPanel === 'about',
-    'new CMS homepage accordion widgets should also default to About');
-  assert(homeAccordionWidget?.defaultProps?.initialView === 'closed',
-    'new CMS homepage accordion widgets should initially start closed');
   assert(count(html, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
     count(html, /data-site-tab-active="true"/g) === 0 &&
     html.includes('data-site-tab-rail data-site-tab-rail-mode="closed"') &&
@@ -567,10 +560,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     purdueTimelineItem?.imageHeight === 136 &&
     purdueTimelineItem?.imageTone === 'dark',
   'Purdue should use its full-resolution logo and an authored high-contrast plaque treatment');
-  assert(about.timeline?.layout === 'resume' && html.includes('data-home-timeline-layout="resume"') &&
-    count(html, /data-home-timeline-item=/g) === timelineItems.length &&
-    !html.includes('data-home-timeline-scroller'),
-  'the personal background should opt into the resume layout and render each milestone once without a nested scroll region');
+  assert(about.timeline?.enabled === false && about.timeline.layout === 'resume' &&
+    !html.includes('data-home-timeline-layout=') && !html.includes('data-home-timeline-item='),
+  'the retained personal background data should not appear in homepage markup while disabled');
   const expectedCertificateDates = {
     'google-data-analytics': '2023-01-03',
     'ibm-data-analyst': '2023-01-11',
@@ -600,7 +592,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const contactMapFrame = contactPanel.match(/<iframe\b[^>]*>/)?.[0] || '';
   assert(contactPanel.includes('class="home-contact-layout"') &&
     contactPanel.includes('id="home-contact-location"') &&
-    contactPanel.includes('class="cms-map-shell" data-contact-map-slot') &&
+    contactPanel.includes('class="location-map-shell" data-contact-map-slot') &&
     /<iframe\b[^>]*title="Map of Delta, CO"[^>]*loading="lazy"/.test(contactPanel) &&
     contactMapFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
     !/\ssrc\s*=|\ssrcdoc\s*=/.test(contactMapFrame) &&
@@ -614,18 +606,14 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   }] });
   assert(/<iframe\b[^>]*\ssrc="https:\/\/www.google.com\/maps\?/.test(ordinaryMap) &&
     !ordinaryMap.includes('data-home-contact-map-src') && !ordinaryMap.includes('data-contact-map-slot') &&
-    ordinaryMap.includes('surface-band reveal cms-location'),
+    ordinaryMap.includes('surface-band reveal location-section'),
   'ordinary location maps should retain their existing lazy iframe loading');
-  const contactMapSection = readJson('content/pages/contact.json').sections.find((entry) => entry.type === 'map');
-  const persistentContactMap = renderVisualPageBody({ sections: [contactMapSection] });
-  const persistentContactFrame = persistentContactMap.match(/<iframe\b[^>]*>/)?.[0] || '';
-  assert(contactMapSection.props.persist === true &&
-    persistentContactMap.includes('class="cms-map-shell" data-contact-map-slot') &&
-    persistentContactFrame.includes('data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed"') &&
-    !/\ssrc\s*=|\ssrcdoc\s*=/.test(persistentContactFrame) &&
-    !persistentContactMap.includes('data-google-maps-iframe') &&
-    persistentContactMap.includes('surface-band cms-location') && !persistentContactMap.includes('reveal'),
-  'standalone Contact and its inherited professional views should defer to the same persistent map without loading another iframe');
+  const contactWorkspace = readJson('content/pages/contact.json').sections.find((entry) => entry.type === 'contact-workspace');
+  const contactDetail = renderVisualPageBody({ sections: [contactWorkspace] });
+  assert(contactDetail.includes('data-contact-inline') && contactDetail.includes('Open in Maps') &&
+    contactDetail.includes('Delta, Colorado') && contactDetail.includes('https://github.com/danielshort3') &&
+    !contactDetail.includes('<iframe') && !contactDetail.includes('id="contact-modal"'),
+  'Contact detail should share an inline form with compact Delta map link and preserve direct email/GitHub');
 
   assert(count(html, /data-home-accordion-item=/g) === 5 &&
     count(html, /data-home-accordion-trigger=/g) === 5 &&
@@ -664,7 +652,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const startHereProjectIds = ['sheetMusicUpscale', 'handwritingRating', 'babynames'];
   const connections = about.aboutStory?.connections || [];
   const expectedConnections = [
-    { id: 'ai', href: '/tools', title: /AI & machine learning/i, contentType: 'directory', contentId: 'tools' },
+    { id: 'ai', href: '/portfolio/chatbotLora', title: /AI & machine learning/i, contentType: 'project', contentId: 'chatbotLora' },
     { id: 'family', href: '/portfolio/babynames', title: /Family/i, contentType: 'project', contentId: 'babynames' },
     { id: 'french-horn', href: '/portfolio/sheetMusicUpscale', title: /French horn/i, contentType: 'project', contentId: 'sheetMusicUpscale' }
   ];
@@ -685,112 +673,25 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   });
   assert(/20\s+years/i.test(`${connections[2]?.title || ''} ${connections[2]?.description || ''}`),
     'The French horn story should retain the authored 20-year personal connection');
-  assert(aboutHtml.includes('class="home-about"') && aboutHtml.includes('class="home-about__personal"') &&
-    count(aboutHtml, /data-home-about-connection=/g) === 3 && !aboutHtml.includes('home-featured') &&
-    aboutHtml.indexOf('home-about__personal') < aboutHtml.indexOf('class="home-timeline"'),
-  'The About layout should pair its personal-story column with the timeline instead of large featured cards');
-  assert(about.timeline?.layout === 'resume' && about.timeline?.newestFirst === true && about.timeline?.collapsible === false &&
-    about.timeline?.sortBy === 'startDate' && about.timeline?.compactTitles === true &&
-    about.timeline?.dateDisplay === 'monthYear' &&
-    /<h3[^>]*>Experience &amp; learning<\/h3>/.test(aboutHtml) && !aboutHtml.includes('home-timeline__details') &&
-    !aboutHtml.includes('home-timeline__chevron'),
-  'Experience & learning should stay open beneath its static heading without a disclosure or nested scroll region');
-  const displayedTimelineIds = [...aboutHtml.matchAll(/data-home-timeline-item="([^"]+)"/g)].map((match) => match[1]);
-  assert(JSON.stringify(displayedTimelineIds) === JSON.stringify([
-    'visit-grand-junction', 'randall-reilly', 'target',
-    'eastern-ms-data-science', 'purdue-bs-data-analytics',
-    'google-advanced-data-analytics', 'google-data-analytics', 'google-analytics',
-    'ibm-machine-learning', 'ibm-data-analyst'
-  ]), 'The rendered background should group newest-first experience and education, followed by curated Google and IBM credentials');
-  assert(aboutHtml.includes('class="home-about__profile"') &&
-    /<img class="home-about__portrait" src="img\/hero\/head-avatar-384\.jpg" alt="Daniel Short"[^>]+width="384" height="384">/.test(aboutHtml),
-  'rendered About content should pair its heading with a meaningful, intrinsically sized profile image');
-  const timelineHeadingId = aboutHtml.match(/<h3[^>]+id="([^"]+)"[^>]*>Experience &amp; learning<\/h3>/)?.[1] || '';
-  assert(timelineHeadingId && aboutHtml.includes(`aria-labelledby="${timelineHeadingId}"`) &&
-    !aboutHtml.includes('home-timeline__head') &&
-    !aboutHtml.includes('My path so far') &&
-    aboutHtml.includes('class="home-background"') &&
-    count(aboutHtml, /<li class="home-background__(?:item|credential)"[^>]+data-home-timeline-item=/g) === 10 &&
-    !aboutHtml.includes('data-home-timeline-scroller') &&
-    !aboutHtml.includes('role="list"') &&
-    !aboutHtml.includes('role="listitem"'),
-  'rendered About background should be a labelled, open resume with all 10 milestones in semantic lists');
-  assert(!timelineCss.includes('.home-timeline__head') &&
-    !aboutHtml.includes('A timeline of real milestones in learning and work.'),
-  'timeline should remove its heading, subtext, and reserved heading styles at every viewport');
+  assert(aboutHtml.includes('class="home-about home-about--story-only"') &&
+    aboutHtml.includes('class="home-about__personal"') &&
+    aboutHtml.includes('class="home-about__profile"') &&
+    count(aboutHtml, /data-home-about-connection=/g) === 3 &&
+    !aboutHtml.includes('class="home-timeline"') &&
+    !aboutHtml.includes('class="home-background"') &&
+    !aboutHtml.includes('data-home-timeline-item=') &&
+    !aboutHtml.includes('Experience &amp; learning'),
+  'disabled background should leave a complete personal story without hidden resume markup');
+  assert(/<img class="home-about__portrait" src="img\/hero\/head-avatar-384\.jpg" alt="Daniel Short"[^>]+width="384" height="384">/.test(aboutHtml),
+    'rendered About content should retain the meaningful, intrinsically sized profile image');
   const milestoneHtml = (markup, id) => markup.match(new RegExp(`<li[^>]+data-home-timeline-item="${id}"[^>]*>[\\s\\S]*?<\\/li>`))?.[0] || '';
-  const milestoneIconHtml = (id) => milestoneHtml(aboutHtml, id)
-    .match(/<span class="home-background__icon" aria-hidden="true">([\s\S]*?)<\/span>/)?.[1] || '';
-  assert(/<img src="\/img\/ui\/site-icons\/about-job\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('visit-grand-junction')) &&
-    /<img src="\/img\/ui\/site-icons\/about-degree\.webp" alt="" width="128" height="128" decoding="async" loading="lazy">/.test(milestoneIconHtml('purdue-bs-data-analytics')) &&
-    !aboutHtml.includes('class="home-timeline__media"'),
-  'the resume should use accessible decorative AI category icons rather than the legacy logo plaques');
   const backgroundSectionHtml = (markup, id) => {
     const start = markup.indexOf(`data-home-background-section="${id}"`);
     const next = start >= 0 ? markup.indexOf('data-home-background-section="', start + 1) : -1;
     return start >= 0 ? markup.slice(start, next >= 0 ? next : markup.length) : '';
   };
-  const sectionIds = [...aboutHtml.matchAll(/data-home-background-section="([^"]+)"/g)].map((match) => match[1]);
-  assert(JSON.stringify(sectionIds) === JSON.stringify(['experience', 'education', 'credentials']) &&
-    /<h4[^>]*>Experience<\/h4>/.test(aboutHtml) &&
-    /<h4[^>]*>Education<\/h4>/.test(aboutHtml) &&
-    /<h4[^>]*>Credentials<\/h4>/.test(aboutHtml),
-  'the personal resume should divide experience, education, and credentials under semantic section headings');
-  const expectedSectionItems = {
-    experience: ['visit-grand-junction', 'randall-reilly', 'target'],
-    education: ['eastern-ms-data-science', 'purdue-bs-data-analytics'],
-    credentials: ['google-advanced-data-analytics', 'google-data-analytics', 'google-analytics', 'ibm-machine-learning', 'ibm-data-analyst']
-  };
-  Object.entries(expectedSectionItems).forEach(([id, expectedIds]) => {
-    const actualIds = [...backgroundSectionHtml(aboutHtml, id).matchAll(/data-home-timeline-item="([^"]+)"/g)].map((match) => match[1]);
-    assert(JSON.stringify(actualIds) === JSON.stringify(expectedIds),
-      `${id} should contain only its intended milestones in the approved order`);
-  });
-  const jobClasses = expectedSectionItems.experience.map((id) => milestoneHtml(aboutHtml, id).match(/^<li class="([^"]+)"/)?.[1]);
-  assert(jobClasses.every((value) => value === 'home-background__item') &&
-    !aboutHtml.includes('home-journey__current') && !aboutHtml.includes('home-background__current') &&
-    !aboutHtml.includes('data-home-timeline-year') && !aboutHtml.includes('home-journey__years'),
-  'every role including current work should use the same row treatment without a featured card, current badge, or large year chapters');
-  [...expectedSectionItems.experience, ...expectedSectionItems.education].forEach((id) => {
-    const itemHtml = milestoneHtml(aboutHtml, id);
-    assert(itemHtml.indexOf('home-background__title') > -1 &&
-      itemHtml.indexOf('home-background__subtitle') > itemHtml.indexOf('home-background__title') &&
-      itemHtml.indexOf('class="home-background__date"') > itemHtml.indexOf('home-background__subtitle'),
-    `${id} should lead with its role or degree and organization before the secondary date`);
-  });
-  Object.entries(expectedCertificateDates).forEach(([id, issueDate]) => {
-    const itemHtml = milestoneHtml(aboutHtml, id);
-    assert(itemHtml.includes('class="home-background__credential"') &&
-      /<span class="home-background__credential-date visually-hidden"[^>]*>Earned <time datetime="[^\"]+">/.test(itemHtml) &&
-      itemHtml.includes(`<time datetime="${issueDate}">`) &&
-      itemHtml.includes(`id="home-timeline-about-${id}-date"`) &&
-      itemHtml.includes(`aria-describedby="home-timeline-about-${id}-date"`) &&
-      /<a class="home-background__credential-link"[^>]+target="_blank" rel="noopener noreferrer"/.test(itemHtml),
-    `${id} should retain its exact earned date accessibly without a visual date label, and expose a safe external credential link`);
-    const item = timelineItems.find((entry) => entry.id === id);
-    assert(item.issuer && item.credentialLabel &&
-      itemHtml.includes(`<span class="home-background__title-full visually-hidden">${item.title}</span>`) &&
-      itemHtml.includes(`<span class="home-background__title-compact" aria-hidden="true">${item.credentialLabel}</span>`),
-    `${id} should preserve the full accessible credential title while displaying its concise authored label`);
-  });
-  const issuerNames = [...aboutHtml.matchAll(/data-home-credential-issuer="([^"]+)"/g)].map((match) => match[1]);
-  assert(JSON.stringify(issuerNames) === JSON.stringify(['Google', 'IBM']) &&
-    /<h5[^>]*>Google<\/h5>/.test(aboutHtml) && /<h5[^>]*>IBM<\/h5>/.test(aboutHtml) &&
-    new Set(displayedTimelineIds).size === timelineItems.length,
-  'credentials should be visibly grouped by Google and IBM without dropping or duplicating milestones');
-  timelineItems.forEach((item) => {
-    assert(count(aboutHtml, new RegExp(`data-home-timeline-item="${item.id}"`, 'g')) === 1 &&
-      aboutHtml.includes(`<time datetime="${item.date}">`),
-    `${item.id} should retain its exact authored start date in one semantic milestone`);
-  });
-  const backgroundLinks = [...aboutHtml.matchAll(/<a class="home-background__(?:entry|credential-link)"[^>]*href="([^"]+)"[^>]*>/g)];
-  const linkedMilestones = timelineItems.filter((item) => item.href);
-  assert(backgroundLinks.length === linkedMilestones.length && linkedMilestones
-    .every((item) => backgroundLinks.some((match) => match[1] === item.href)),
-  'all five certificate destinations and the degree credential link should remain available from the personal resume');
-  assert(backgroundLinks.every((match) => match[0].includes('target="_blank" rel="noopener noreferrer"')),
-    'every external degree and certificate destination should preserve its safe new-tab behavior');
-
+  const sectionHeadingHtml = (markup, id) => backgroundSectionHtml(markup, id)
+    .match(/<h4[^>]*>[\s\S]*?<\/h4>/)?.[0] || '';
   const renderTimelineFixture = (timeline) => renderVisualPageBody({
     sections: [{
       id: 'timeline-fixture',
@@ -798,6 +699,21 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       props: { categories: [{ id: 'about', label: 'About', title: 'About', timeline }] }
     }]
   });
+  const restoredAboutHtml = renderVisualPageBody({
+    sections: [{
+      id: 'about-restoration',
+      type: 'home-accordion',
+      props: { categories: [{ ...about, timeline: { ...about.timeline, enabled: true } }] }
+    }]
+  });
+  assert(restoredAboutHtml.includes('data-home-timeline-layout="resume"') &&
+    count(restoredAboutHtml, /data-home-timeline-item=/g) === timelineItems.length &&
+    restoredAboutHtml.includes('data-home-background-section="experience"') &&
+    restoredAboutHtml.includes('data-home-background-section="education"') &&
+    restoredAboutHtml.includes('data-home-background-section="credentials"') &&
+    ['experience', 'education', 'credentials'].every((id) => sectionHeadingHtml(restoredAboutHtml, id).includes('home-background__section-icon')) &&
+    !restoredAboutHtml.includes('class="home-background__icon"'),
+  'switching the authored background flag back on should restore all three About sections');
   const fixtureTimeline = {
     layout: 'resume',
     title: 'Learning & work <together>',
@@ -826,6 +742,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   };
   const fixtureSnapshot = JSON.stringify(fixtureTimeline);
   const fixtureHtml = renderTimelineFixture(fixtureTimeline);
+  const disabledFixtureHtml = renderTimelineFixture({ ...fixtureTimeline, enabled: false });
+  assert(!disabledFixtureHtml.includes('data-home-timeline') &&
+    !disabledFixtureHtml.includes('Learning &amp; work'),
+  'disabled timeline content should not leave a hidden heading or content in homepage markup');
   const fixtureIds = [...fixtureHtml.matchAll(/data-home-timeline-item="([^"]+)"/g)].map((match) => match[1]);
   const fixtureSections = [...fixtureHtml.matchAll(/data-home-background-section="([^"]+)"/g)].map((match) => match[1]);
   assert(JSON.stringify(fixtureTimeline) === fixtureSnapshot &&
@@ -848,7 +768,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     fixtureIds.indexOf('certificate-unordered-one') < fixtureIds.indexOf('certificate-unordered-two'),
   'experience and education should sort newest first with undated work last, while credentials use curated order or stable authored order');
   const otherFixtureHtml = backgroundSectionHtml(fixtureHtml, 'other');
-  assert(otherFixtureHtml.includes('>Other milestones</h4>') &&
+  assert(sectionHeadingHtml(fixtureHtml, 'other').endsWith('Other milestones</h4>') &&
+    count(fixtureHtml, /class="home-background__section-icon"/g) === 4 &&
     ['missing-date', 'invalid-date', 'future-type', 'current-project'].every((id) => otherFixtureHtml.includes(`data-home-timeline-item="${id}"`)) &&
     !fixtureHtml.includes('datetime="2023-02-30"') && !fixtureHtml.includes('datetime="undefined"'),
   'unknown milestone types and missing or invalid dates should remain available without invalid semantic time values');
@@ -917,8 +838,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       count(html, new RegExp(`data-home-icon="${item.icon}"`, 'g')) === 0,
     `${id} should render its selected image once, with its SVG glyph reserved as a fallback`);
   });
-  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="\/img\/ui\/site-icons\/action-external\.webp" alt="" width="128" height="128" decoding="async" loading="lazy"><\/span>/g) === 1,
-    'the external GitHub card should use one dedicated external-link arrow');
+  assert(count(getItemHtml('contact'), /<span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><svg class="site-external-arrow"[^>]*><path[^>]*><\/path><\/svg><\/span>/g) === 1 &&
+    /\.home-accordion__card-arrow\s*\{[^}]*color:\s*var\(--panel-color\);/s.test(css),
+  'homepage card arrows, including external links, should inherit their tab color');
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');
   const welcomeHtml = html.match(/<div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>([\s\S]*?)<\/div>/)?.[1] || '';
@@ -932,7 +854,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'closed homepage should contain a visible authored introduction before hidden panels');
   assert(personal.page.sections[0].props.welcome.summary === personal.brandTagline &&
     browseLink.href === '/portfolio' && browseLink.label === 'Browse all projects' &&
-    welcomeHtml.includes(`<a class="site-frame__welcome-browse" href="${browseLink.href}">${browseLink.label} <span aria-hidden="true">→</span></a>`) &&
+    welcomeHtml.includes(`<a class="site-frame__welcome-browse" href="${browseLink.href}">${browseLink.label} <span aria-hidden="true"><svg class="site-direction-arrow"`) &&
     !welcomeHtml.includes('site-frame__welcome-links') && !welcomeHtml.includes('Start exploring') &&
     html.includes('<noscript><nav class="home-accordion__noscript" aria-label="Explore the site">'),
   'closed homepage should use the canonical tagline, one project link, and no-script library navigation');
@@ -1005,13 +927,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       `homepage should not expose hidden tool ${toolId}`);
   });
   const expectedLibraryCounts = {
-    projects: 16,
+    projects: 17,
     tools: 10,
     games: 7
   };
   assert(JSON.stringify(Object.fromEntries(Object.entries(homeLibraryData)
     .map(([id, library]) => [id, library.items?.length || 0]))) === JSON.stringify(expectedLibraryCounts),
-  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 7 games');
+  'generated HOME_LIBRARY_DATA should expose all 17 projects, 10 public tools, and 7 games');
   const projectGroupNames = [...new Set(homeLibraryData.projects.items.map((item) => item.group))];
   assert(JSON.stringify(projectGroupNames) === JSON.stringify(['Start here', 'Machine learning', 'Data stories', 'Practical applications']) &&
     JSON.stringify(homeLibraryData.projects.items.filter((item) => item.group === 'Start here').map((item) => item.id)) === JSON.stringify(startHereProjectIds),
@@ -1090,7 +1012,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       item.image === versionedImageUrl(`/img/projects/${item.id}-640.webp`) &&
       item.imageAlt === '';
   }),
-  'all 16 project library records should retain their original optimized screenshot independently from optional icons');
+  'all 17 project library records should retain their original optimized screenshot independently from optional icons');
   assert(homeLibraryData.projects.items.filter((item) => item.iconImage).length === expectedLibraryCounts.projects &&
     homeLibraryData.projects.items.every((item) => {
       const project = publishedProjectsById.get(item.id);
@@ -1176,7 +1098,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     toolIconPaths.length === expectedLibraryCounts.tools &&
     generatedPreviewPaths.length === expectedLibraryCounts.games &&
     new Set([...projectPreviewPaths, ...toolIconPaths, ...generatedPreviewPaths]).size ===
-      Object.values(expectedLibraryCounts).reduce((sum, count) => sum + count, 0),
+      Object.values(expectedLibraryCounts).reduce((total, count) => total + count, 0),
   'all public library preview paths should remain unique');
   assert(projectPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
@@ -1194,7 +1116,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(new Set(previewHashes).size === generatedPreviewPaths.length,
   'all public game preview files should have unique visual content');
 
-  const cmsPreviewMappings = [
+  const contentPreviewMappings = [
     'image: projectLibraryPreviewAsset(project.image)',
     'image: tool.iconImage',
     "image: homeLibraryPreviewAsset('games', game.id)"
@@ -1206,7 +1128,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const publicVisualBuildIndex = buildSite.indexOf("{ verbose, args: ['--public'] }");
   assert(generator.includes('function homeLibraryPreviewAsset(category, id)') &&
     generator.includes('function projectLibraryPreviewAsset(image)') &&
-    cmsPreviewMappings.every((mapping) => generator.includes(mapping)) &&
+    contentPreviewMappings.every((mapping) => generator.includes(mapping)) &&
     count(generator, /imageAlt: '',/g) >= 3 &&
     visualValidator.includes("const sharp = require('sharp');") &&
     visualValidator.includes('const GENERATED_HOME_LIBRARY_VISUALS = {') &&
@@ -1229,7 +1151,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     buildSite.includes('const scriptArgs = Array.isArray(options.args) ? options.args : [];') &&
     visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex && publicVisualBuildIndex > publicCopyIndex &&
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
-  'CMS generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
+  'content generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 
   assert(js.includes('HOME_LIBRARY_DATA') &&
     js.includes('createLibraryMedia') &&
@@ -1835,10 +1757,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !navigation.includes('const isHomeSearch ='),
   'homepage search should use the same compact, explicitly expandable desktop behavior as the rest of the site');
 
-  assert(navigation.includes('setupMobileSectionNavigation') && !navigation.includes('setupMobileSiteDock') &&
+  assert(navigation.includes('setupMobileSiteMasthead') && navigation.includes('setupMobileScrollChrome(masthead, config)') &&
+    !navigation.includes('setupMobileSectionNavigation') && !navigation.includes('data-mobile-section-nav') &&
     css.includes('.mobile-site-dock {') &&
     css.includes('display: none !important;'),
-  'homepage should share the personal section navigation while keeping the retired floating dock disabled');
+  'homepage should retain Explore in the masthead without a five-button bottom navigation');
   assert(count(css, /var\(--personal-footer-block-size, 0px\)/g) === 3 &&
     css.includes('min-height: min(540px, calc(100svh') &&
     !css.includes('.footer.footer-classic'),

@@ -586,39 +586,24 @@ async function run(){
     assert(!/frame-ancestors [^;]*https?:/i.test(policy), 'frame-ancestors should not allow external origins');
   }
 
-  const staticResumePreviewSources = [
-    'content/resumes/analytics.json',
-    'content/resumes/data-science.json',
-    'content/resumes/tourism.json'
-  ];
-  const staticManagedResumePreviews = [
-    'pages/resume-analytics-pdf.html',
-    'pages/resume-data-science-pdf.html',
-    'pages/resume-tourism-pdf.html'
-  ];
   listManagedHtmlFiles().forEach((file) => {
     const html = fs.readFileSync(file, 'utf8');
     assert(!/<(?:object|embed)\b/i.test(html), `${file} should not contain CSP-blocked object/embed markup`);
   });
   [
+    'content/pages/resume-directory.json',
     'content/pages/resume-pdf-directory.json',
-    'pages/resume-pdf.html'
+    'pages/resume.html',
+    'pages/resume-pdf.html',
+    'pages/resume-analytics-pdf.html',
+    'pages/resume-data-science-pdf.html',
+    'pages/resume-tourism-pdf.html',
+    'content/resumes/analytics.json',
+    'content/resumes/data-science.json',
+    'content/resumes/tourism.json'
   ].forEach((file) => {
-    const html = fs.readFileSync(file, 'utf8');
-    assert(html.includes('title=\\"Resume PDF preview\\"') || html.includes('title="Resume PDF preview"'),
-      `${file} should include a titled PDF iframe`);
-    assert(html.includes('resume-pdf-fallback'), `${file} should keep an always-visible PDF fallback link`);
+    assert(!fs.existsSync(file), `${file} should remain retired`);
   });
-  [...staticResumePreviewSources, ...staticManagedResumePreviews].forEach((file) => {
-    const html = fs.readFileSync(file, 'utf8');
-    assert(!/<iframe\b/i.test(html), `${file} should use a static first-page preview instead of a PDF iframe`);
-    assert(html.includes('resume-pdf-preview') && html.includes('View digital resume') && html.includes('Download PDF'),
-      `${file} should include a linked static preview plus two focused resume actions`);
-    assert(!html.includes('>Open PDF</a>') && !html.includes('resume-pdf-fallback'),
-      `${file} should not duplicate the preview link with redundant open and fallback actions`);
-  });
-  const analyticsPreview = fs.readFileSync('pages/resume-analytics-pdf.html', 'utf8');
-  assert(analyticsPreview.includes('src="img/resume-previews/resume-analytics-preview.png"'));
 
   const devServer = require('../../build/dev');
   const localHeaders = {};

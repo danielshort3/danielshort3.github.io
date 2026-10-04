@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-// The native app consumes public data, never rendered pages or executable CMS
-// content. Keep this projection explicit: adding a CMS field does not publish it.
+// The native app consumes public data, never rendered pages or executable
+// content. Keep this projection explicit: adding a source field does not publish it.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -108,8 +108,17 @@ function createMobileContent(content, options = {}) {
   const home = personal.page || {};
   const about = (home.sections || []).filter((section) => section.enabled !== false)
     .flatMap((section) => section.props?.categories || []).find((category) => category.id === 'about') || {};
-  const timeline = (about.timeline?.items || []).filter(isPublic).slice()
+  const backgroundVisible = about.timeline?.enabled !== false && Array.isArray(about.timeline?.items) && about.timeline.items.length > 0;
+  const timeline = (backgroundVisible ? about.timeline.items : []).filter(isPublic).slice()
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''), 'en'));
+  const publishedProjectIds = new Set(ordered(content.projects).map((project) => identifier(project.id)).filter(Boolean));
+  const interestProject = (interest) => {
+    const projectId = identifier(interest.project?.contentId);
+    const href = publicHttpsUrl(interest.project?.href, origin);
+    if (!projectId || !publishedProjectIds.has(projectId) || interest.project?.contentType !== 'project' ||
+      href !== `${origin}/portfolio/${projectId}`) return {};
+    return { projectId, projectLabel: plainText(interest.project.title) };
+  };
   const entries = (type, withUrl) => timeline.filter((entry) => entry.type === type).map((entry) => ({
     title: plainText(entry.title),
     organization: plainText(entry.subtitle || entry.issuer),
@@ -139,12 +148,14 @@ function createMobileContent(content, options = {}) {
       privacyUrl: `${origin}/privacy`
     },
     about: {
+      backgroundVisible,
       greeting: plainText(about.title),
       location: plainText(about.context),
       intro: plainText(about.lead),
       portraitUrl: imageUrl(about.profile?.image || settings.profileImage, root, origin),
       interests: (about.aboutStory?.connections || []).filter(isPublic).map((interest) => ({
-        title: plainText(interest.title), body: plainText(interest.description), imageUrl: imageUrl(interest.image, root, origin)
+        title: plainText(interest.title), body: plainText(interest.description), imageUrl: imageUrl(interest.image, root, origin),
+        ...interestProject(interest)
       })),
       experience: entries('job', false),
       education: entries('degree', true),

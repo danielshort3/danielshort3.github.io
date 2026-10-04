@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
-  Minimal CSS bundler: resolves @import url("...") lines in css/styles.css
-  and writes a single minified bundle with a content hash to ./dist.
+  Minimal CSS bundler: resolves @import url("...") lines in css/styles*.css
+  and writes each minified bundle with a content hash to ./dist.
   No external deps.
 */
 const fs = require('fs');
@@ -13,12 +13,11 @@ const cssDir = path.join(root, 'css');
 const outDir = path.join(root, 'dist');
 const entries = [
   { entry: path.join(cssDir, 'styles.css'), baseName: 'styles', manifestKey: 'file' },
+  { entry: path.join(cssDir, 'styles-demo.css'), baseName: 'styles-demo', manifestKey: 'demoFile' },
   { entry: path.join(cssDir, 'styles-home.css'), baseName: 'styles-home', manifestKey: 'homeFile' },
   { entry: path.join(cssDir, 'styles-workbench.css'), baseName: 'styles-workbench', manifestKey: 'workbenchFile' },
   { entry: path.join(cssDir, 'styles-tools.css'), baseName: 'styles-tools', manifestKey: 'toolsFile' },
-  { entry: path.join(cssDir, 'styles-personal-accordion.css'), baseName: 'styles-personal-accordion', manifestKey: 'personalAccordionFile' },
-  { entry: path.join(cssDir, 'styles-professional.css'), baseName: 'styles-professional', manifestKey: 'professionalFile' },
-  { entry: path.join(cssDir, 'styles-analytics.css'), baseName: 'styles-analytics', manifestKey: 'analyticsFile' }
+  { entry: path.join(cssDir, 'styles-personal-accordion.css'), baseName: 'styles-personal-accordion', manifestKey: 'personalAccordionFile' }
 ];
 
 function inline(file, seen = new Set()){
@@ -72,23 +71,28 @@ function buildBundle({ entry: entryPath, baseName }){
   return hashedName;
 }
 
-fs.mkdirSync(outDir, { recursive: true });
-fs.readdirSync(outDir).forEach(file => {
-  const shouldRemove = entries.some(({ baseName }) => {
-    const pattern = new RegExp(`^${baseName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\.[0-9a-f]{8}\\.css$`, 'i');
-    return pattern.test(file);
+function main() {
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.readdirSync(outDir).forEach(file => {
+    const shouldRemove = entries.some(({ baseName }) => {
+      const pattern = new RegExp(`^${baseName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\.[0-9a-f]{8}\\.css$`, 'i');
+      return pattern.test(file);
+    });
+    if (shouldRemove) {
+      fs.rmSync(path.join(outDir, file), { force: true });
+    }
   });
-  if (shouldRemove) {
-    fs.rmSync(path.join(outDir, file), { force: true });
-  }
-});
-const manifest = path.join(outDir, 'styles-manifest.json');
-const outputs = {};
+  const manifest = path.join(outDir, 'styles-manifest.json');
+  const outputs = {};
 
-entries.forEach((entryConfig) => {
-  const hashedName = buildBundle(entryConfig);
-  outputs[entryConfig.manifestKey] = hashedName;
-  console.log(`Bundled CSS written to dist/${hashedName}`);
-});
+  entries.forEach((entryConfig) => {
+    const hashedName = buildBundle(entryConfig);
+    outputs[entryConfig.manifestKey] = hashedName;
+    console.log(`Bundled CSS written to dist/${hashedName}`);
+  });
 
-writeManifest(manifest, outputs);
+  writeManifest(manifest, outputs);
+}
+
+if (require.main === module) main();
+module.exports = { entries, inline, minify };

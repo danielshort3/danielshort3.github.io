@@ -7,10 +7,10 @@
   <base href="/">
   <title>Privacy &amp; Your Data | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/privacy">
-  <meta name="description" content="How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices.">
+  <meta name="description" content="How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices.">
   <meta property="og:title" content="Privacy &amp; Your Data | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
-  <meta property="og:description" content="How the site handles analytics, local tools, saved sessions, contact messages, and your data choices.">
+  <meta property="og:description" content="How the website and Android app handle local data, analytics, saved work, recordings, and your choices.">
   <meta property="og:url" content="https://www.danielshort.me/privacy">
   <meta property="og:image" content="https://www.danielshort.me/img/brand/personal-social-card.png">
   <meta property="og:image:width" content="1200">
@@ -20,7 +20,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="Privacy &amp; Your Data | Daniel Short">
-  <meta name="twitter:description" content="How the site handles analytics, local tools, saved sessions, contact messages, and your data choices.">
+  <meta name="twitter:description" content="How the website and Android app handle local data, analytics, saved work, recordings, and your choices.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/personal-social-card.png">
   <meta name="twitter:image:alt" content="Daniel Short — Solving everyday problems with data and thoughtful tools. Navy and blue DS logo beside five colored website tabs.">
   <meta name="theme-color" content="#0D1117">
@@ -30,12 +30,94 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
-  <link rel="stylesheet" href="css/components/privacy-page.css?v=3867078bb877">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
+  <link rel="stylesheet" href="css/components/privacy-page.css?v=735c1692913a">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
@@ -43,20 +125,20 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
-  <script src="js/common/no-js.js"></script>
+
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
+<link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
   <script type="application/ld+json" id="site-jsonld">
-    {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/privacy#webpage","url":"https://www.danielshort.me/privacy","name":"Privacy & Your Data | Daniel Short","description":"How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"breadcrumb":{"@id":"https://www.danielshort.me/privacy#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/privacy#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Privacy & Your Data","item":"https://www.danielshort.me/privacy"}]}]}
+    {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/privacy#webpage","url":"https://www.danielshort.me/privacy","name":"Privacy & Your Data | Daniel Short","description":"How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"breadcrumb":{"@id":"https://www.danielshort.me/privacy#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/privacy#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Privacy & Your Data","item":"https://www.danielshort.me/privacy"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.9380b237.css","/css/components/privacy-page.css?v=3867078bb877","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.c57ddd04.js","/dist/site-consent.772887f4.js","/dist/site-privacy.e394a51f.js"],"module":"about:privacy"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/css/components/privacy-page.css?v=735c1692913a","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.7e88cd8b.js","/dist/site-consent.a6d261d1.js","/dist/site-privacy.b6327493.js"],"module":"about:privacy"}</script>
 </head>
 <body data-page="privacy" class="policy-page privacy-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="privacy" data-personal-fit="viewport" data-site-route-id="about:privacy" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="about:privacy">
   <a href="/privacy#main" class="skip-link">Skip to main content</a>
@@ -126,9 +208,10 @@
       <div data-page-masthead-intro>
         <div data-page-masthead-copy>
           <h1 id="policy-title">Privacy &amp; Your Data</h1>
-          <p class="policy-lead">What stays in your browser, what is shared, and how to manage your data.</p>
+          <p class="policy-lead">What stays on your device, what is shared, and how to manage your data.</p>
         </div>
         <div data-page-masthead-actions>
+          <a class="privacy-preferences-jump privacy-account-jump" href="/privacy#account-deletion">Request account deletion <span aria-hidden="true">↓</span></a>
           <a class="privacy-preferences-jump" href="/privacy#prefs-title">Manage preferences <span aria-hidden="true">↓</span></a>
         </div>
       </div>
@@ -159,13 +242,36 @@
         <h2>Accounts, uploads &amp; messages</h2>
         <p>Amazon Cognito handles sign-in; accounts can store your name, email, account ID, saved work, and activity. Cloud features send required inputs or files to their processing service. The application tracker also stores records and attachments.</p>
         <p>Contact forms send your name, email, and message through Amazon SES to my inbox. Providers including Vercel and AWS process requests and operational data to run and protect the site.</p>
+        <p>Contact abuse protection stores hashed request identifiers and counters scheduled to expire after two days, with no message text, email address or raw IP address in these quota records. AWS may take additional time to delete expired records.</p>
+      </div>
+
+      <div class="policy-section" id="android-app">
+        <h2>Android app</h2>
+        <p>The Android app downloads public catalog content and images. Google Play provides app updates for the Play version; the separate sideload review version can check and download updates from the first-party update feed. The app stores settings, saved project bookmarks, native game progress, and downloaded content in app storage. Native text, QR code, and image tools process your inputs on your device. Image tools read only the photo you select and save the result to a location you choose. Background Remover uses Google Play services to download an ML Kit model when needed; the selected photo is processed on your device. <a href="https://developers.google.com/ml-kit/android-data-disclosure">Google says ML Kit collects</a> device and app information, identifiers, performance measurements, and feature events or errors for diagnostics and usage analytics.</p>
+        <p>The native Screen Recorder asks for Android screen capture approval each time you start it. Microphone audio is optional and requires separate permission; device audio is not recorded. Recordings remain in the app until you delete them or clear the app's storage. Saving or sharing a recording sends a copy to the location or app you choose. The app does not automatically upload native recordings.</p>
+        <p>Project pages, some games, and demos can load the website inside the app. The Google Play version offers its native tools without sign-in and does not launch website tools account features. The separate sideload review version can open website tools in your browser, where optional account features remain available. Website pages follow the website practices described here, including cookie choices, optional analytics, and cloud features; account session storage applies only when you use website account features. Some native AI demo alternatives also contact the website's inference services and send the text, drawing, or generation settings needed for a requested result; some fetch examples when opened. Website data and native game progress are stored separately.</p>
+        <p>In the app, you can clear cached images and remove saved project bookmarks. Delete native recordings in Screen Recorder. Android's app storage controls remove remaining app data, including native game progress and settings; uninstalling the app also removes its app storage. Files you exported, data saved in a browser, and website account records must be removed separately. For data requests, email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a>.</p>
+      </div>
+
+      <div class="policy-section" id="account-deletion">
+        <h2>Request account and data deletion</h2>
+        <p>You can request deletion without signing in or opening the Android app. Email <a href="mailto:daniel@danielshort.me?subject=Delete%20my%20Daniel%20Short%20Tools%20account">daniel@danielshort.me</a> with the subject <strong>Delete my Daniel Short Tools account</strong>. Send it from the email address used for your website Tools account if possible. If you no longer have access to that address, include it in your message and ask for another way to verify ownership.</p>
+        <p>Say whether you want full account closure or deletion of specific data only. For full closure, request deletion of your Amazon Cognito login and all associated saved tool sessions, activity, cloud-tool records, and attachments. Mention any contact messages you also want reviewed. I will verify account ownership, handle the request, and reply with the outcome and any data that must be retained. This is a request by email, not automatic deletion.</p>
+        <p>If you can sign in, <strong>Account → Privacy &amp; data → Delete saved account data</strong> deletes saved tool sessions and activity. That control does not close your Amazon Cognito login or remove separate cloud-tool records, attachments, or contact emails. Use the email request above for full account closure.</p>
       </div>
 
       <div class="policy-section" id="stored-data">
         <h2>Storage &amp; deletion</h2>
         <p>Clear this site's browser data to remove local preferences, sign-in state, tool settings, and game progress. Saved-work retention varies by service; download anything you need to keep.</p>
         <p>Signed-out tool text, settings, and contact drafts stay in this tab's session storage for recovery after navigation or refresh, expiring after two hours of inactivity. Clearing or discarding the draft removes it; confirmed delivery clears a contact draft. Passwords, files, recordings and binary previews are excluded. Unsynced account drafts use separate local storage until synced or deleted.</p>
-        <p>Open <strong>Account</strong> and select <strong>Continue</strong> to reopen saved work. Under <strong>Privacy &amp; data</strong>, <strong>Delete saved account data</strong> removes your saved tool sessions and activity, but not your Cognito login, contact emails, or separate cloud-tool records. Use those tools' deletion controls or email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a> for account closure, retention details, or other data requests.</p>
+        <p>Open <strong>Account</strong> and select <strong>Continue</strong> to reopen saved work. Under <strong>Privacy &amp; data</strong>, <strong>Delete saved account data</strong> removes your saved tool sessions and activity, but not your Cognito login, contact emails, or separate cloud-tool records. For full closure, follow the <a href="/privacy#account-deletion">account deletion request steps</a>.</p>
+      </div>
+
+      <div class="policy-section" id="assistant-and-links">
+        <h2>Chatbot &amp; short links</h2>
+        <p>The site chatbot and Travel Assistant send your question and conversation context to AWS for an answer. Questions, answers, conversation identifiers, the referring site, country, page context and processing details are logged in AWS for troubleshooting and abuse prevention. Chat logs use a configurable retention period, with a 30-day default; AWS may take additional time to remove expired records. Avoid sending private or sensitive information.</p>
+        <p>Opening a short link records the link, time, link or QR channel, destination without query parameters, referring site and country. Click history and aggregate totals are retained until the site owner removes them; older records may also contain browser details and a region, city or time zone. These operational records are separate from optional Google Analytics.</p>
+        <p>Clearing a conversation, deleting browser data or turning off optional cookies does not remove these server records. Email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a> for a data request. Provider request logs and protected backups can have separate retention periods.</p>
       </div>
 
       <div class="policy-section" id="your-choices">
@@ -183,58 +289,42 @@
         <form id="privacy-preferences-form">
           <div class="pref-grid" role="list">
             <div class="pref-option" data-pref="necessary" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="necessary" aria-pressed="true" data-locked="true" disabled>
+              <button type="button" class="pref-toggle" data-pref="necessary" aria-pressed="true" data-locked="true" disabled aria-describedby="pref-desc-necessary">
                 <span class="pref-label">Strictly necessary</span>
-                <span class="pref-state" aria-hidden="true">On</span>
+                <span class="pref-state" aria-hidden="true">Always on</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-necessary">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Strictly necessary cookies do</span>
-              </button>
-              <p id="pref-desc-necessary" class="pref-description" hidden>
-                Required for core site features and remembering your privacy choices.
+              <p id="pref-desc-necessary" class="pref-description">
+                Saves your privacy choice. Core tool storage works independently of optional choices.
               </p>
             </div>
 
             <div class="pref-option" data-pref="analytics" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="analytics" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="analytics" aria-pressed="false" aria-describedby="pref-desc-analytics">
                 <span class="pref-label">Analytics</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-analytics">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Analytics cookies do</span>
-              </button>
-              <p id="pref-desc-analytics" class="pref-description" hidden>
-                Measure visits and interactions to help improve the site.
+              <p id="pref-desc-analytics" class="pref-description">
+                Google Analytics measures visits, interactions and page performance to help improve the site.
               </p>
             </div>
 
             <div class="pref-option" data-pref="functional" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="functional" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="functional" aria-pressed="false" aria-describedby="pref-desc-functional">
                 <span class="pref-label">Functional</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-functional">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Functional cookies do</span>
-              </button>
-              <p id="pref-desc-functional" class="pref-description" hidden>
-                Remember optional settings, such as filters, where supported.
+              <p id="pref-desc-functional" class="pref-description">
+                No extra service is enabled today. Core tool settings and drafts work when this is off.
               </p>
             </div>
 
             <div class="pref-option" data-pref="advertising" role="listitem">
-              <button type="button" class="pref-toggle" data-pref="advertising" aria-pressed="false">
+              <button type="button" class="pref-toggle" data-pref="advertising" aria-pressed="false" aria-describedby="pref-desc-advertising">
                 <span class="pref-label">Advertising</span>
                 <span class="pref-state" aria-hidden="true">Off</span>
               </button>
-              <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-advertising">
-                <span aria-hidden="true">?</span>
-                <span class="visually-hidden">Read what Advertising cookies do</span>
-              </button>
-              <p id="pref-desc-advertising" class="pref-description" hidden>
-                Allow advertising measurement or personalization where used.
+              <p id="pref-desc-advertising" class="pref-description">
+                Allows Google ad storage, data use and personalization when Analytics is on. No separate ad service is loaded.
               </p>
             </div>
           </div>
@@ -248,7 +338,10 @@
           <li><a href="/privacy#optional-analytics">Analytics</a></li>
           <li><a href="/privacy#local-tools">Tools and saved work</a></li>
           <li><a href="/privacy#accounts-and-messages">Accounts, uploads and messages</a></li>
+          <li><a href="/privacy#android-app">Android app</a></li>
+          <li><a href="/privacy#account-deletion">Request account deletion</a></li>
           <li><a href="/privacy#stored-data">Storage and deletion</a></li>
+          <li><a href="/privacy#assistant-and-links">Chatbot and short links</a></li>
           <li><a href="/privacy#your-choices">Your choices</a></li>
           <li><a href="/privacy#prefs-title">Manage preferences</a></li>
         </ul>
@@ -274,7 +367,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-consent.772887f4.js"></script>
-  <script defer src="dist/site-privacy.e394a51f.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
+  <script defer src="dist/site-privacy.b6327493.js"></script>
 </body>
 </html>

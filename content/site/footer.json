@@ -44,26 +44,6 @@
             }
           }
         ]
-      },
-      "professional": {
-        "name": "Daniel Short",
-        "summary": "Data analyst | BI, reporting, automation",
-        "links": [
-          {
-            "label": "Resume",
-            "href": "resume",
-            "dataAttributes": {
-              "data-resume-home-link": "true"
-            }
-          },
-          {
-            "label": "Contact",
-            "href": "contact#contact-modal",
-            "dataAttributes": {
-              "data-contact-modal-link": "true"
-            }
-          }
-        ]
       }
     }
   },
@@ -102,59 +82,6 @@
         "id": "connect",
         "title": "Connect",
         "links": [
-          {
-            "label": "GitHub",
-            "href": "https://github.com/danielshort3",
-            "target": "_blank",
-            "rel": "noopener noreferrer"
-          },
-          {
-            "label": "Email",
-            "href": "mailto:daniel@danielshort.me"
-          }
-        ]
-      }
-    ],
-    "professional": [
-      {
-        "id": "work",
-        "title": "Work",
-        "links": [
-          {
-            "label": "Portfolio",
-            "href": "portfolio?audience=analytics",
-            "dataAttributes": {
-              "data-portfolio-home-link": "true"
-            }
-          },
-          {
-            "label": "Resume",
-            "href": "resume",
-            "dataAttributes": {
-              "data-resume-home-link": "true"
-            }
-          },
-          {
-            "label": "Analytics",
-            "href": "analytics"
-          },
-          {
-            "label": "Data science",
-            "href": "data-science"
-          }
-        ]
-      },
-      {
-        "id": "connect",
-        "title": "Connect",
-        "links": [
-          {
-            "label": "Contact",
-            "href": "contact#contact-modal",
-            "dataAttributes": {
-              "data-contact-modal-link": "true"
-            }
-          },
           {
             "label": "GitHub",
             "href": "https://github.com/danielshort3",

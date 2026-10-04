@@ -90,7 +90,6 @@ Resources:
                   - dynamodb:GetItem
                   - dynamodb:PutItem
                   - dynamodb:Query
-                  - dynamodb:TransactWriteItems
                   - dynamodb:UpdateItem
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ToolsTableName}'
@@ -133,7 +132,6 @@ Resources:
                   - dynamodb:PutItem
                   - dynamodb:Query
                   - dynamodb:Scan
-                  - dynamodb:TransactWriteItems
                   - dynamodb:UpdateItem
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksTableName}'
@@ -197,7 +195,6 @@ Resources:
                   - dynamodb:GetItem
                   - dynamodb:PutItem
                   - dynamodb:Query
-                  - dynamodb:TransactWriteItems
                   - dynamodb:UpdateItem
                 Resource: !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ToolsTableName}'
       Tags:

@@ -18,7 +18,6 @@ async function checkMobilePlacement(page, label, { atTop = true } = {}) {
     const banner = document.querySelector('#pcz-banner');
     const masthead = document.querySelector('[data-mobile-site-masthead]');
     const main = document.querySelector('main');
-    const dock = document.querySelector('[data-mobile-section-nav]');
     let content = main;
     while (content && content.parentElement !== document.body) content = content.parentElement;
     const rect = element => element?.getBoundingClientRect();
@@ -27,13 +26,13 @@ async function checkMobilePlacement(page, label, { atTop = true } = {}) {
       banner: rect(banner),
       masthead: rect(masthead),
       content: rect(content),
-      dock: dock && !dock.hidden ? rect(dock) : null,
+      bottomNav: Boolean(document.querySelector('[data-mobile-section-nav]')),
       beforeContent: !!content && !!(banner.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING),
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: innerWidth
     };
   });
-  assert(geometry.masthead && geometry.content && geometry.dock, `${label}: mobile shell exists`);
+  assert(geometry.masthead && geometry.content && !geometry.bottomNav, `${label}: top-only mobile shell exists`);
   assert(['relative', 'static'].includes(geometry.position), `${label}: banner participates in layout`);
   assert(geometry.beforeContent, `${label}: banner precedes main content in focus order`);
   if (atTop) {
@@ -42,8 +41,6 @@ async function checkMobilePlacement(page, label, { atTop = true } = {}) {
   }
   assert(geometry.content.top >= geometry.banner.bottom - 2,
     `${label}: content starts after the banner: ${JSON.stringify(geometry)}`);
-  assert(geometry.banner.bottom <= geometry.dock.top - 2,
-    `${label}: banner does not cover bottom navigation: ${JSON.stringify(geometry)}`);
   assert(geometry.banner.left >= -1 && geometry.banner.right <= geometry.viewportWidth + 1,
     `${label}: banner is fully inside the narrow viewport: ${JSON.stringify(geometry)}`);
   assert(geometry.documentWidth <= geometry.viewportWidth + 1,
@@ -95,11 +92,13 @@ async function run() {
         await page.locator('#pcz-modal').waitFor({ state: 'hidden' });
         await checkMobilePlacement(page, `Home after settings ${viewport.width}`);
 
-        await page.locator('[data-mobile-section-nav] [data-mobile-section="tools"]').click();
+        await page.locator('[data-mobile-explore] > button').click();
+        await page.locator('[data-mobile-explore-category="tools"]').click();
         await page.waitForFunction(() => document.body.dataset.siteRouteCategory === 'tools');
         await settle(page);
         await checkMobilePlacement(page, `Tools route ${viewport.width}`, { atTop: false });
-        await page.locator('[data-mobile-section-nav] [data-mobile-section="projects"]').click();
+        await page.locator('[data-mobile-explore] > button').click();
+        await page.locator('[data-mobile-explore-category="projects"]').click();
         await page.waitForFunction(() => document.body.dataset.siteRouteCategory === 'projects');
         await settle(page);
         await checkMobilePlacement(page, `Projects route ${viewport.width}`, { atTop: false });
@@ -144,17 +143,16 @@ async function run() {
       await landscape.locator('#pcz-banner.pcz-visible').waitFor();
       const placement = await landscape.evaluate(() => {
         const banner = document.querySelector('#pcz-banner');
-        const dock = document.querySelector('[data-mobile-section-nav]');
         return {
           position: getComputedStyle(banner).position,
           bannerBottom: banner.getBoundingClientRect().bottom,
-          dockTop: dock.getBoundingClientRect().top,
-          dockHidden: dock.hidden
+          viewportHeight: innerHeight,
+          bottomNavCount: document.querySelectorAll('[data-mobile-section-nav]').length
         };
       });
       assert.equal(placement.position, 'fixed', 'Short landscape keeps the existing floating banner.');
-      assert(!placement.dockHidden && placement.bannerBottom <= placement.dockTop - 1,
-        `Short landscape banner stays above its bottom navigation: ${JSON.stringify(placement)}`);
+      assert(placement.bottomNavCount === 0 && placement.bannerBottom <= placement.viewportHeight,
+        `Short landscape banner stays within the viewport without bottom navigation: ${JSON.stringify(placement)}`);
       await landscape.screenshot({ path: path.join(artifactDir, 'landscape-first-visit-844.png') });
     } finally {
       await landscapeContext.close();

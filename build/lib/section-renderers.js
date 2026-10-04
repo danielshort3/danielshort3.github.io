@@ -1,0 +1,1038 @@
+'use strict';
+
+const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
+const { render: renderContactForm } = require('../../js/forms/contact-markup');
+
+const {
+  renderPersonalLibraryHeader
+} = require('./personal-accordion-shell');
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function attrsToString(attrs) {
+  return Object.entries(attrs || {})
+    .filter(([, value]) => value !== false && value != null && value !== '')
+    .map(([key, value]) => value === true ? key : `${key}="${escapeHtml(value)}"`)
+    .join(' ');
+}
+
+function normalizeHref(value, fallback = '#') {
+  const raw = String(value || '').trim();
+  return raw || fallback;
+}
+
+function normalizeMapAddress(value) {
+  const raw = String(value || '').trim();
+  return raw || 'Grand Junction, CO';
+}
+
+function normalizeMapZoom(value) {
+  const zoom = Number(value);
+  if (!Number.isFinite(zoom)) return 10;
+  return Math.max(0, Math.min(21, Math.round(zoom)));
+}
+
+function isTruthy(value) {
+  if (value === true) return true;
+  return /^(1|true|yes)$/i.test(String(value || '').trim());
+}
+
+function googleMapsSearchUrl(address) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function googleMapsFallbackEmbedUrl(address) {
+  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+}
+
+function classAttr(className) {
+  return ` class="${escapeHtml(className)}"`;
+}
+
+function paragraphLines(value) {
+  return String(value || '')
+    .split(/\n{2,}/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
+    .join('\n');
+}
+
+function renderHero(section) {
+  const props = section.props || {};
+  const primaryLabel = String(props.primaryLabel || '').trim();
+  const secondaryLabel = String(props.secondaryLabel || '').trim();
+  const actions = [
+    primaryLabel ? `<a href="${escapeHtml(normalizeHref(props.primaryHref))}" class="btn-primary hero-cta">${escapeHtml(primaryLabel)}</a>` : '',
+    secondaryLabel ? `<a href="${escapeHtml(normalizeHref(props.secondaryHref))}" class="btn-secondary hero-cta">${escapeHtml(secondaryLabel)}</a>` : ''
+  ].filter(Boolean).join('\n        ');
+
+  return [
+    `<section${classAttr(`hero hero--default${props.altBand ? ' alt-band' : ''}`)}>`,
+    '  <div class="wrapper">',
+    props.eyebrow ? `    <p class="hero-eyebrow">${escapeHtml(props.eyebrow)}</p>` : '',
+    `    <h1>${escapeHtml(props.title || 'New Page')}</h1>`,
+    props.lead ? `    <p class="hero-tagline">${escapeHtml(props.lead)}</p>` : '',
+    actions ? `    <div class="cta-group">\n        ${actions}\n    </div>` : '',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderRichText(section) {
+  const props = section.props || {};
+  const body = paragraphLines(props.body || 'Add body copy.');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
+    props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
+    `    <div class="content-rich-text">\n${body.split('\n').map((line) => `      ${line}`).join('\n')}\n    </div>`,
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderCta(section) {
+  const props = section.props || {};
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    '    <div id="cta-link" role="group" aria-label="Contact call to action">',
+    `      <h2 class="section-title">${escapeHtml(props.title || 'Call to Action')}</h2>`,
+    props.body ? `      <p>${escapeHtml(props.body)}</p>` : '',
+    props.label ? `      <div><a href="${escapeHtml(normalizeHref(props.href))}" class="btn-primary">${escapeHtml(props.label)}</a></div>` : '',
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderImageGallery(section) {
+  const props = section.props || {};
+  const images = Array.isArray(props.images) && props.images.length
+    ? props.images
+    : [{ src: 'img/hero/head.png', alt: 'Gallery image', caption: 'Gallery image' }];
+  const cards = images.map((image) => [
+    '      <figure class="project-card">',
+    `        <img src="${escapeHtml(image.src || '')}" alt="${escapeHtml(image.alt || '')}" loading="lazy" decoding="async">`,
+    image.caption ? `        <figcaption class="project-text"><span class="project-title">${escapeHtml(image.caption)}</span></figcaption>` : '',
+    '      </figure>'
+  ].filter(Boolean).join('\n')).join('\n');
+
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
+    '    <div class="project-examples-grid" role="list">',
+    cards,
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderDocumentList(section) {
+  const props = section.props || {};
+  const documents = Array.isArray(props.documents) && props.documents.length
+    ? props.documents
+    : [{ label: 'Document', href: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf' }];
+  const links = documents.map((doc) => {
+    return `      <li><a href="${escapeHtml(normalizeHref(doc.href))}">${escapeHtml(doc.label || doc.href || 'Document')}</a></li>`;
+  }).join('\n');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    `    <h2 class="section-title">${escapeHtml(props.title || 'Documents')}</h2>`,
+    '    <ul class="content-document-links">',
+    links,
+    '    </ul>',
+    '  </div>',
+    '</section>'
+  ].join('\n');
+}
+
+function renderMap(section, options = {}) {
+  const props = section.props || {};
+  const address = normalizeMapAddress(props.address);
+  const zoom = normalizeMapZoom(props.zoom);
+  const shouldEmbed = isTruthy(props.embed);
+  const persistentMap = options.deferUntilSelected || isTruthy(props.persist);
+  const mapHref = googleMapsSearchUrl(address);
+  const iframeTitle = String(props.iframeTitle || `Map of ${address}`).trim();
+  const anchorId = String(props.anchorId || section.id || '').trim();
+  const frameAttrs = {
+    class: 'location-map-iframe',
+    title: iframeTitle,
+    [persistentMap ? 'data-home-contact-map-src' : 'src']: googleMapsFallbackEmbedUrl(address),
+    loading: 'lazy',
+    allowfullscreen: true,
+    referrerpolicy: 'strict-origin-when-cross-origin',
+    ...(shouldEmbed ? {
+      'data-google-maps-iframe': !persistentMap && props.useEmbedApi !== false,
+      'data-google-maps-address': address,
+      'data-google-maps-zoom': zoom
+    } : {})
+  };
+  return [
+    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${classAttr(persistentMap ? 'surface-band location-section' : 'surface-band reveal location-section')}>`,
+    '  <div class="wrapper location-section-inner">',
+    '    <div class="location-section-copy">',
+    `      <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
+    props.body ? `      <p class="section-subtitle">${escapeHtml(props.body)}</p>` : '',
+    props.showLink !== false ? `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>` : '',
+    '    </div>',
+    `    <div class="location-map-shell"${persistentMap ? ' data-contact-map-slot' : ''}>`,
+    `      <iframe${attrsToString(frameAttrs) ? ` ${attrsToString(frameAttrs)}` : ''}></iframe>`,
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderContactWorkspace(section) {
+  const props = section.props || {};
+  return [
+    '<section class="contact-workspace" aria-label="Contact Daniel Short">',
+    '  <div class="contact-direct" id="contact-options">',
+    `    <h2>${escapeHtml(props.title || 'Other ways to connect')}</h2>`,
+    '    <div class="contact-grid">',
+    `      <a href="mailto:${escapeHtml(props.email || 'daniel@danielshort.me')}" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/contact-email-v2.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>Email me directly</strong><small>${escapeHtml(props.email || 'daniel@danielshort.me')}</small></span><span class="contact-card__arrow" aria-hidden="true">${sectionArrowImage('contact')}</span></a>`,
+    '      <a href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" class="contact-card"><span class="contact-card__icon" aria-hidden="true"><img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async"></span><span class="contact-card__copy"><strong>GitHub</strong><small>github.com/danielshort3</small></span><span class="contact-card__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="20" height="20" decoding="async"></span></a>',
+    '    </div>',
+    `    <p class="contact-location"><span>${escapeHtml(props.location || 'Delta, Colorado')}</span><a href="${escapeHtml(googleMapsSearchUrl(props.address || 'Delta, CO'))}" target="_blank" rel="noopener noreferrer">Open in Maps <span aria-hidden="true">↗</span></a></p>`,
+    '  </div>',
+    renderContactForm({ inline: true }),
+    '</section>'
+  ].join('\n');
+}
+
+function renderEmbed(section) {
+  const props = section.props || {};
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
+    '    <div class="video-shell">',
+    `      <iframe src="${escapeHtml(normalizeHref(props.src, 'about:blank'))}" title="${escapeHtml(props.title || 'Embedded content')}" loading="lazy"></iframe>`,
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderKpiBand(section) {
+  const props = section.props || {};
+  const items = Array.isArray(props.items) && props.items.length
+    ? props.items
+    : [{ value: '99%', label: 'Faster reporting' }, { value: '200+', label: 'Hours saved' }, { value: '$13.1M', label: 'Measured impact' }];
+  const cards = items.map((item) => [
+    '      <div class="resume-highlight">',
+    `        <div class="resume-highlight-value">${escapeHtml(item.value || '')}</div>`,
+    `        <div class="resume-highlight-label">${escapeHtml(item.label || '')}</div>`,
+    '      </div>'
+  ].join('\n')).join('\n');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
+    props.title ? `    <h2 class="section-title">${escapeHtml(props.title)}</h2>` : '',
+    '    <div class="resume-highlights" aria-label="Key metrics">',
+    cards,
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderProofBlock(section) {
+  const props = section.props || {};
+  const bullets = Array.isArray(props.bullets) && props.bullets.length
+    ? props.bullets
+    : ['Describe the evidence, result, or decision this supports.'];
+  const items = bullets.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
+    `    <h2 class="section-title">${escapeHtml(props.title || 'Proof point')}</h2>`,
+    props.lead ? `    <p class="section-lead">${escapeHtml(props.lead)}</p>` : '',
+    '    <ul class="content-proof-list">',
+    items,
+    '    </ul>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderProjectGrid(section) {
+  const props = section.props || {};
+  const projects = Array.isArray(props.projects) && props.projects.length
+    ? props.projects
+    : [{ title: 'Project title', href: 'portfolio', summary: 'Add the project outcome or audience fit.' }];
+  const cards = projects.map((project) => [
+    `      <a class="project-card" role="listitem" href="${escapeHtml(normalizeHref(project.href, 'portfolio'))}">`,
+    '        <span class="project-text">',
+    `          <span class="project-title">${escapeHtml(project.title || 'Project title')}</span>`,
+    project.summary ? `          <span>${escapeHtml(project.summary)}</span>` : '',
+    '        </span>',
+    '      </a>'
+  ].filter(Boolean).join('\n')).join('\n');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
+    `    <h2 class="section-title">${escapeHtml(props.title || 'Selected projects')}</h2>`,
+    '    <div class="project-examples-grid" role="list">',
+    cards,
+    '    </div>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderCertificationStrip(section) {
+  const props = section.props || {};
+  const certifications = Array.isArray(props.certifications) && props.certifications.length
+    ? props.certifications
+    : [{ title: 'Certification', issuer: 'Issuer', icon: 'img/cert_logos/google-48.png', href: '#' }];
+  const items = certifications.map((certification) => [
+    '      <li class="resume-cert">',
+    `        <a href="${escapeHtml(normalizeHref(certification.href))}">`,
+    certification.icon ? `          <img src="${escapeHtml(certification.icon)}" width="24" height="24" loading="lazy" decoding="async" alt="">` : '',
+    `          <span class="resume-cert-title">${escapeHtml(certification.title || 'Certification')}</span>`,
+    certification.issuer ? `          <span class="resume-cert-meta">${escapeHtml(certification.issuer)}</span>` : '',
+    '        </a>',
+    '      </li>'
+  ].filter(Boolean).join('\n')).join('\n');
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    `    <h2 class="section-title">${escapeHtml(props.title || 'Certifications')}</h2>`,
+    '    <ul class="resume-cert-grid">',
+    items,
+    '    </ul>',
+    '  </div>',
+    '</section>'
+  ].join('\n');
+}
+
+function renderResumeHighlight(section) {
+  const props = section.props || {};
+  const bullets = Array.isArray(props.bullets) && props.bullets.length
+    ? props.bullets
+    : ['Add an accomplishment with a metric, audience, and business result.'];
+  const items = bullets.map((item) => `      <li>${escapeHtml(item)}</li>`).join('\n');
+  return [
+    `<section${classAttr('surface-band resume-section')}>`,
+    '  <div class="wrapper">',
+    '    <article class="resume-block">',
+    `      <h2 class="resume-block-title">${escapeHtml(props.title || 'Resume highlight')}</h2>`,
+    props.meta ? `      <p class="resume-education-meta">${escapeHtml(props.meta)}</p>` : '',
+    '      <ul class="resume-role-list">',
+    items,
+    '      </ul>',
+    '    </article>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderMediaShowcase(section) {
+  const props = section.props || {};
+  return [
+    `<section${classAttr('surface-band reveal')}>`,
+    '  <div class="wrapper">',
+    props.kicker ? `    <p class="section-kicker">${escapeHtml(props.kicker)}</p>` : '',
+    `    <h2 class="section-title">${escapeHtml(props.title || 'Media showcase')}</h2>`,
+    props.lead ? `    <p class="section-lead">${escapeHtml(props.lead)}</p>` : '',
+    '    <figure class="project-card">',
+    `      <img src="${escapeHtml(props.src || 'img/hero/head.png')}" alt="${escapeHtml(props.alt || '')}" loading="lazy" decoding="async">`,
+    props.caption ? `      <figcaption class="project-text"><span>${escapeHtml(props.caption)}</span></figcaption>` : '',
+    '    </figure>',
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+function workDateRank(value) {
+  const text = String(value || '').trim();
+  if (/present/i.test(text)) return Number.MAX_SAFE_INTEGER;
+  const matches = [...text.matchAll(/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}\b/gi)];
+  const last = matches.length ? matches[matches.length - 1][0] : '';
+  const parsed = last ? Date.parse(`1 ${last}`) : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sortLegacyWorkCards(html) {
+  const source = String(html || '');
+  if (!source.includes('id="work-experience"')) return source;
+
+  const cardPattern = /<article\b[^>]*class="[^"]*\bwork-card\b[^"]*"[^>]*>[\s\S]*?<\/article>/gi;
+  const cards = [...source.matchAll(cardPattern)].map((match, index) => {
+    const cardHtml = match[0];
+    const timeframe = /class="[^"]*\bwork-timeframe\b[^"]*"[^>]*>([\s\S]*?)<\//i.exec(cardHtml);
+    return {
+      html: cardHtml,
+      index,
+      rank: workDateRank(timeframe ? timeframe[1].replace(/<[^>]+>/g, ' ') : '')
+    };
+  });
+  if (cards.length < 2) return source;
+
+  const sorted = cards
+    .slice()
+    .sort((a, b) => (a.rank - b.rank) || (a.index - b.index));
+  let replacementIndex = 0;
+  return source.replace(cardPattern, () => sorted[replacementIndex++].html);
+}
+
+function renderLegacyHtml(section) {
+  const html = String(section && section.props && section.props.html ? section.props.html : '');
+  return sortLegacyWorkCards(html).replace(
+    /(<a\b[^>]*class=")btn-secondary("[^>]*\bdownload>Download PDF<\/a>)/gi,
+    '$1btn-primary$2'
+  );
+}
+
+const siteIconImage = (name) => `<img src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
+const sectionArrowImage = (_categoryId, direction = 'right') =>
+  `<svg class="site-direction-arrow${direction === 'left' ? ' site-direction-arrow--left' : ''}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>`;
+const externalArrowImage = '<svg class="site-external-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM19 13h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6v2H5v14h14v-6z"></path></svg>';
+const homeLinkArrowImage = (external, categoryId) => external
+  ? externalArrowImage
+  : sectionArrowImage(categoryId);
+
+const HOME_ACCORDION_ICONS = {
+  about: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg>',
+  projects: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg>',
+  tools: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg>',
+  games: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg>',
+  contact: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg>',
+  playground: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><path d="M17.5 14v7M14 17.5h7"></path></svg>',
+  stormbreak: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13h6l-1 9 9-13h-6z"></path><path d="M4 5h5M15 19h5"></path></svg>',
+  'stellar-dogfight': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path><circle cx="12" cy="12" r="2.2"></circle><path d="M3 5h3M18 19h3"></path></svg>',
+  probability: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M9 5v14M15 5v14"></path><circle cx="6" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="18" cy="12" r="1.4"></circle></svg>',
+  roulette: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="18.5" cy="7" r="1"></circle><path d="M12 3v7M12 14v7M3 12h7M14 12h7M5.6 5.6l4.9 4.9M13.5 13.5l4.9 4.9M18.4 5.6l-4.9 4.9M10.5 13.5l-4.9 4.9"></path></svg>',
+  wave: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5 0 2.5-3 5-3s2.5 3 5 3 2.5-3 5-3 2.5 3 5 3M2 16c2.5 0 2.5-3 5-3s2.5 3 5 3 2.5-3 5-3 2.5 3 5 3"></path></svg>',
+  message: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"></path><path d="M22 2 11 13"></path></svg>',
+  email: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg>',
+  github: '<img src="/img/icons/github-icon.png" alt="" width="256" height="256" decoding="async">',
+  spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2zM5 15v4M3 17h4M19 14v3M17.5 15.5h3"></path></svg>',
+  timeline: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M5 7h7M5 12h11M5 17h8"></path><circle cx="5" cy="7" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle><circle cx="5" cy="17" r="1.5"></circle></svg>',
+  'external-arrow': externalArrowImage
+};
+
+function resolveHomeAccordionIconId(id) {
+  const key = String(id || '').trim();
+  return Object.prototype.hasOwnProperty.call(HOME_ACCORDION_ICONS, key) ? key : 'spark';
+}
+
+function homeAccordionIcon(id) {
+  return HOME_ACCORDION_ICONS[resolveHomeAccordionIconId(id)];
+}
+
+function getHomeAccordionIconDefinitions() {
+  return { ...HOME_ACCORDION_ICONS };
+}
+
+function renderHomeAccordionCard(item, categoryId) {
+  const href = String(item && item.href || '').trim();
+  const normalizedHref = href ? normalizeHref(href) : '';
+  const tag = href ? 'a' : 'article';
+  const iconId = resolveHomeAccordionIconId(item && item.icon || categoryId);
+  const presentation = ['featured', 'tertiary'].includes(String(item && item.presentation || '').trim())
+    ? String(item.presentation).trim()
+    : '';
+  const iconImage = String(item && item.iconImage || '').trim();
+  const image = iconImage || String(item && item.image || '').trim();
+  const mediaType = iconImage ? 'icon' : image ? 'image' : 'glyph';
+  const imageWidth = iconImage ? 256 : item && item.imageWidth;
+  const imageHeight = iconImage ? 256 : item && item.imageHeight;
+  const media = image
+    ? renderCatalogIcon(`<img src="${escapeHtml(image)}" alt="${iconImage ? '' : escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${imageWidth ? ` width="${escapeHtml(imageWidth)}"` : ''}${imageHeight ? ` height="${escapeHtml(imageHeight)}"` : ''}>`)
+    : `<span class="home-accordion__card-glyph" data-home-icon="${escapeHtml(iconId)}" aria-hidden="true">${homeAccordionIcon(iconId)}</span>`;
+  const contentType = String(item && item.contentType || '').trim();
+  const contentId = String(item && item.contentId || item && item.id || '').trim();
+  const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const analytics = href && contentType && contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_category_accordion"`
+    : '';
+  const external = Boolean(item && item.external);
+  const contactModal = normalizedHref === '/contact#contact-modal'
+    ? ' data-contact-modal-link'
+    : '';
+  const linkAttrs = href
+    ? ` href="${escapeHtml(normalizedHref)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}${contactModal}`
+    : '';
+
+  return [
+    '            <li class="home-accordion__card-item">',
+    `              <${tag} class="home-accordion__card${presentation ? ` home-accordion__card--${presentation}` : ''}"${linkAttrs}>`,
+    `                <span class="home-accordion__card-media home-accordion__card-media--${mediaType}"${iconImage ? ' aria-hidden="true"' : ''}>${media}</span>`,
+    '                <span class="home-accordion__card-copy">',
+    item && item.badge ? `                  <span class="home-accordion__card-badge">${escapeHtml(item.badge)}</span>` : '',
+    `                  <strong>${escapeHtml(item && item.title || 'Explore')}</strong>`,
+    item && item.summary ? `                  <span>${escapeHtml(item.summary)}</span>` : '',
+    '                </span>',
+    href ? `                <span class="home-accordion__card-arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
+    `              </${tag}>`,
+    '            </li>'
+  ].filter(Boolean).join('\n');
+}
+
+const HOME_TIMELINE_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+];
+
+const HOME_TIMELINE_TYPE_LABELS = {
+  certification: 'Certification',
+  degree: 'Degree',
+  job: 'Work',
+  personal: 'Personal',
+  project: 'Project'
+};
+
+function parseHomeTimelineDate(value) {
+  const text = String(value || '').trim();
+  const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(text);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = match[2] ? Number(match[2]) : null;
+  const day = match[3] ? Number(match[3]) : null;
+  if (month !== null && (month < 1 || month > 12)) return null;
+  if (day !== null) {
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (day < 1 || day > lastDay) return null;
+  }
+
+  const label = day !== null
+    ? `${HOME_TIMELINE_MONTHS[month - 1]} ${day}, ${year}`
+    : (month !== null ? `${HOME_TIMELINE_MONTHS[month - 1]} ${year}` : String(year));
+  return { label, value: text };
+}
+
+function renderHomeTimelineDate(item, options = {}) {
+  if (item && item.current) {
+    return '              <span class="home-timeline__current">Now</span>';
+  }
+
+  const start = parseHomeTimelineDate(item && item.date);
+  if (!start) return '';
+  const end = parseHomeTimelineDate(item && item.endDate);
+  const dateLabel = (date) => options.dateDisplay === 'monthYear'
+    ? parseHomeTimelineDate(date.value.slice(0, 7)).label
+    : date.label;
+  const startHtml = `<time datetime="${escapeHtml(start.value)}">${escapeHtml(dateLabel(start))}</time>`;
+  const endHtml = end
+    ? `<time datetime="${escapeHtml(end.value)}">${escapeHtml(dateLabel(end))}</time>`
+    : (item && item.ongoing ? '<span class="home-timeline__current">Present</span>' : '');
+  return `              ${startHtml}${endHtml ? ` <span class="home-timeline__date-separator">–</span> ${endHtml}` : ''}`;
+}
+
+function renderHomeTimelineItem(item, categoryId, options = {}) {
+  const authoredType = String(item && item.type || '').trim();
+  const type = Object.prototype.hasOwnProperty.call(HOME_TIMELINE_TYPE_LABELS, authoredType)
+    ? authoredType
+    : 'personal';
+  const href = String(item && item.href || '').trim();
+  const tag = href ? 'a' : 'article';
+  const external = Boolean(item && item.external);
+  const contentType = String(item && item.contentType || '').trim();
+  const contentId = String(item && item.contentId || item && item.id || '').trim();
+  const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const mediaTone = String(item && item.imageTone || '').trim() === 'dark' ? 'dark' : '';
+  const title = String(item && item.title || 'Milestone');
+  const compactTitle = options.compactTitles
+    ? title.replace(/\s+Professional\s+Certificate$/i, ' Certificate')
+    : (type === 'certification'
+        ? title.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '')
+        : title);
+  const titleHtml = compactTitle !== title
+    ? `<span class="home-timeline__title-full${options.compactTitles ? ' visually-hidden' : ''}">${escapeHtml(title)}</span><span class="home-timeline__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
+    : escapeHtml(title);
+  const dateId = `home-timeline-${categoryId}-${String(item && item.id || '').replace(/[^a-z0-9_-]+/gi, '-')}-date`;
+  const analytics = href && contentType && contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_timeline"`
+    : '';
+  const linkAttrs = href
+    ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
+    : '';
+  const media = item && item.image
+    ? renderCatalogIcon(`<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${item.imageWidth ? ` width="${escapeHtml(item.imageWidth)}"` : ''}${item.imageHeight ? ` height="${escapeHtml(item.imageHeight)}"` : ''}>`)
+    : '<span class="home-timeline__marker" aria-hidden="true"></span>';
+
+  return [
+    `          <li class="home-timeline__item home-timeline__item--${escapeHtml(type)}" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
+    `            <div class="home-timeline__date" id="${escapeHtml(dateId)}">`,
+    renderHomeTimelineDate(item, options),
+    '            </div>',
+    '            <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>',
+    `            <${tag} class="home-timeline__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
+    `              <span class="home-timeline__media"${mediaTone ? ` data-home-timeline-media-tone="${mediaTone}"` : ''}>${media}</span>`,
+    '              <span class="home-timeline__copy">',
+    `                <span class="home-timeline__type">${HOME_TIMELINE_TYPE_LABELS[type]}</span>`,
+    `                <strong class="home-timeline__title">${titleHtml}</strong>`,
+    item && item.subtitle ? `                <span class="home-timeline__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
+    item && item.summary ? `                <span class="home-timeline__summary">${escapeHtml(item.summary)}</span>` : '',
+    '              </span>',
+    href ? `              <span class="home-timeline__arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
+    `            </${tag}>`,
+    '          </li>'
+  ].filter(Boolean).join('\n');
+}
+
+const HOME_BACKGROUND_ICONS = Object.freeze({
+  job: siteIconImage('about-job'),
+  degree: siteIconImage('about-degree'),
+  certification: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M7 7h10M7 11h5"></path><circle cx="17" cy="15" r="3"></circle><path d="m15 17-1 5 3-2 3 2-1-5"></path></svg>',
+  personal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="m8 12 3 3 5-6"></path></svg>'
+});
+
+function renderHomeBackgroundItem(item, categoryId, options = {}) {
+  const type = String(item && item.type || '').trim();
+  const isCertification = type === 'certification';
+  const href = String(item && item.href || '').trim();
+  const tag = href ? 'a' : 'article';
+  const external = Boolean(item && item.external);
+  const contentType = String(item && item.contentType || '').trim();
+  const contentId = String(item && item.contentId || item && item.id || '').trim();
+  const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const title = String(item && item.title || 'Milestone');
+  const compactTitle = isCertification ? String(item && item.credentialLabel || title) : title;
+  const titleHtml = compactTitle !== title
+    ? `<span class="home-background__title-full visually-hidden">${escapeHtml(title)}</span><span class="home-background__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
+    : escapeHtml(title);
+  const dateId = `home-timeline-${categoryId}-${String(item && item.id || '').replace(/[^a-z0-9_-]+/gi, '-')}-date`;
+  const analytics = href && contentType && contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_timeline"`
+    : '';
+  const linkAttrs = href
+    ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
+    : '';
+  const parsedDate = parseHomeTimelineDate(item && item.date);
+  const dateHtml = parsedDate
+    ? renderHomeTimelineDate({ ...item, current: false }, isCertification ? {} : options).trim()
+    : escapeHtml(item && item.date || 'Date not specified');
+  if (isCertification) {
+    return [
+      `                    <li class="home-background__credential" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
+      `                      <${tag} class="home-background__credential-link" aria-describedby="${escapeHtml(dateId)}"${parsedDate ? ` title="Earned ${escapeHtml(parsedDate.label)}"` : ''}${linkAttrs}>`,
+      `                        <span class="home-background__credential-label">${titleHtml}</span>`,
+      href ? `                        <span class="home-background__arrow" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
+      `                      </${tag}>`,
+      `                      <span class="home-background__credential-date visually-hidden" id="${escapeHtml(dateId)}">${parsedDate ? 'Earned ' : ''}${dateHtml}</span>`,
+      '                    </li>'
+    ].filter(Boolean).join('\n');
+  }
+
+  return [
+    `                  <li class="home-background__item" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
+    `                    <${tag} class="home-background__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
+    `                      <strong class="home-background__title">${href ? `<span>${titleHtml}</span><span class="home-background__arrow" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : titleHtml}</strong>`,
+    item && item.subtitle ? `                      <span class="home-background__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
+    `                    </${tag}>`,
+    `                    <div class="home-background__date" id="${escapeHtml(dateId)}">${dateHtml}</div>`,
+    '                  </li>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeBackground(timeline, categoryId, items) {
+  const safeCategoryId = String(categoryId || 'about').trim().replace(/[^a-z0-9_-]+/gi, '-');
+  const title = String(timeline.title || 'Experience & learning').trim();
+  const titleId = `home-timeline-${safeCategoryId}-title`;
+  const dateValue = (item) => (parseHomeTimelineDate(item && item.date) || {}).value || '';
+  const newestFirst = (a, b) => dateValue(b).localeCompare(dateValue(a));
+  const experience = items.filter((item) => item && item.type === 'job').sort(newestFirst);
+  const education = items.filter((item) => item && item.type === 'degree').sort(newestFirst);
+  const credentials = items.filter((item) => item && item.type === 'certification');
+  const other = items.filter((item) => !item || !['job', 'degree', 'certification'].includes(item.type));
+  const issuers = new Map();
+  credentials.forEach((item) => {
+    const issuer = String(item.issuer || '').trim() || String(item.subtitle || '').split('/')[0].trim() || 'Other credentials';
+    if (!issuers.has(issuer)) issuers.set(issuer, []);
+    issuers.get(issuer).push(item);
+  });
+  const credentialOrder = (item) => typeof item.credentialOrder === 'number' && Number.isFinite(item.credentialOrder)
+    ? item.credentialOrder
+    : Number.MAX_SAFE_INTEGER;
+  const renderItems = (entries) => entries.map((item) => renderHomeBackgroundItem(item, safeCategoryId, timeline)).join('\n');
+  const renderSectionTitle = (id, label, icon) =>
+    `                <h4 class="home-background__section-title" id="home-timeline-${safeCategoryId}-${id}-title"><span class="home-background__section-icon" aria-hidden="true">${icon}</span>${label}</h4>`;
+  const renderSection = (id, label, entries, icon) => entries.length ? [
+    `              <section class="home-background__section" data-home-background-section="${id}" aria-labelledby="home-timeline-${safeCategoryId}-${id}-title">`,
+    renderSectionTitle(id, label, icon),
+    '                <ul class="home-background__list">',
+    renderItems(entries),
+    '                </ul>',
+    '              </section>'
+  ].join('\n') : '';
+
+  return [
+    `          <section class="home-timeline" data-home-timeline data-home-timeline-layout="resume" aria-labelledby="${escapeHtml(titleId)}">`,
+    `            <h3 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h3>`,
+    '            <div class="home-background">',
+    renderSection('experience', 'Experience', experience, HOME_BACKGROUND_ICONS.job),
+    renderSection('education', 'Education', education, HOME_BACKGROUND_ICONS.degree),
+    credentials.length ? [
+      `              <section class="home-background__section" data-home-background-section="credentials" aria-labelledby="home-timeline-${safeCategoryId}-credentials-title">`,
+      renderSectionTitle('credentials', 'Credentials', HOME_BACKGROUND_ICONS.certification),
+      '                <div class="home-background__issuers">',
+      [...issuers.entries()].map(([issuer, entries], index) => [
+        `                  <section class="home-background__issuer" data-home-credential-issuer="${escapeHtml(issuer)}" aria-labelledby="home-timeline-${safeCategoryId}-issuer-${index + 1}-title">`,
+        `                    <h5 class="home-background__issuer-title" id="home-timeline-${safeCategoryId}-issuer-${index + 1}-title">${escapeHtml(issuer)}</h5>`,
+        '                    <ul class="home-background__credential-list">',
+        renderItems([...entries].sort((a, b) => credentialOrder(a) - credentialOrder(b))),
+        '                    </ul>',
+        '                  </section>'
+      ].join('\n')).join('\n'),
+      '                </div>',
+      '              </section>'
+    ].join('\n') : '',
+    renderSection('other', 'Other milestones', other, HOME_BACKGROUND_ICONS.personal),
+    '            </div>',
+    '          </section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeTimeline(timeline, categoryId) {
+  if (!timeline || timeline.enabled === false) return '';
+  const items = Array.isArray(timeline && timeline.items) ? [...timeline.items] : [];
+  if (!items.length) return '';
+  if (timeline.layout === 'resume') return renderHomeBackground(timeline, categoryId, items);
+  if (timeline.newestFirst) {
+    const dateValue = (item) => timeline.sortBy === 'startDate'
+      ? String(item.date || '')
+      : String(item.endDate || item.date || '');
+    items.sort((a, b) => Number(Boolean(b.ongoing || b.current)) - Number(Boolean(a.ongoing || a.current)) ||
+      dateValue(b).localeCompare(dateValue(a)));
+  }
+
+  const safeCategoryId = String(categoryId || 'about').trim().replace(/[^a-z0-9_-]+/gi, '-');
+  const title = String(timeline.title || '').trim();
+  const titleId = `home-timeline-${safeCategoryId}-title`;
+  const heading = title
+    ? `${escapeHtml(title)}<span class="home-timeline__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span>`
+    : 'Work, education &amp; certifications <span>View my background</span>';
+  return [
+    `          <section class="home-timeline" data-home-timeline${title ? ` aria-labelledby="${escapeHtml(titleId)}"` : ' aria-label="Timeline"'}${timeline.compactTitles ? ' data-home-timeline-compact-titles="true"' : ''}>`,
+    timeline.collapsible ? `            <details class="home-timeline__details"${timeline.open ? ' open' : ''}><summary${title ? ` id="${escapeHtml(titleId)}"` : ''}>${heading}</summary>` : '',
+    !timeline.collapsible && title ? `            <h3 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h3>` : '',
+    '            <ol class="home-timeline__list" data-home-timeline-scroller>',
+    items.map((item) => renderHomeTimelineItem(item, safeCategoryId, timeline)).join('\n'),
+    '            </ol>',
+    timeline.collapsible ? '            </details>' : '',
+    '          </section>'
+  ].filter(Boolean).join('\n');
+}
+
+const HOME_ABOUT_ICONS = Object.freeze({
+  ai: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 10v6M7 23v-7h18v7"></path><circle cx="16" cy="6" r="4"></circle><circle cx="7" cy="27" r="4"></circle><circle cx="25" cy="27" r="4"></circle></svg>',
+  family: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 14 13-11 13 11M6 12v17h20V12"></path><path d="M16 24s-6-3.6-6-7a3.4 3.4 0 0 1 6-2.1A3.4 3.4 0 0 1 22 17c0 3.4-6 7-6 7Z"></path></svg>',
+  arrow: sectionArrowImage('about'),
+  code: siteIconImage('about-code')
+});
+
+function renderHomeAboutConnection(connection) {
+  const project = connection.project || {};
+  const credit = connection.imageCredit;
+  const id = String(connection.id || '').trim();
+  const responsiveImage = connection.imageSrcSet
+    ? ` srcset="${escapeHtml(connection.imageSrcSet)}" sizes="${escapeHtml(connection.imageSizes || '58px')}"`
+    : '';
+  const icon = connection.image
+    ? `<img src="${escapeHtml(connection.image)}"${responsiveImage} alt="" width="${escapeHtml(connection.imageWidth || 128)}" height="${escapeHtml(connection.imageHeight || 128)}" loading="lazy" decoding="async" fetchpriority="low">`
+    : (HOME_ABOUT_ICONS[connection.icon] || '');
+  const analytics = project.contentType && project.contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(project.contentId)}" data-content-type="${escapeHtml(project.contentType)}" data-resource-type="${escapeHtml(project.resourceType || project.contentType)}" data-source-surface="home_about"`
+    : '';
+  return [
+    `                <li class="home-about__connection" data-home-about-connection="${escapeHtml(id)}">`,
+    `                  <span class="home-about__interest-icon" aria-hidden="true">${icon}</span>`,
+    '                  <div class="home-about__interest">',
+    `                    <h4>${escapeHtml(connection.title || '')}</h4>`,
+    connection.description ? `                    <p>${escapeHtml(connection.description)}</p>` : '',
+    credit ? `                    <p class="home-about__image-credit" title="${escapeHtml(credit.changes || '')}">Photo: <a href="${escapeHtml(normalizeHref(credit.sourceHref))}" target="_blank" rel="noopener noreferrer">${escapeHtml(credit.authors)}</a> · <a href="${escapeHtml(normalizeHref(credit.licenseHref))}" target="_blank" rel="license noopener noreferrer">${escapeHtml(credit.license)}</a></p>` : '',
+    '                  </div>',
+    `                  <span class="home-about__connector" aria-hidden="true">${HOME_ABOUT_ICONS.arrow}</span>`,
+    `                  <a class="home-about__project" href="${escapeHtml(normalizeHref(project.href))}"${analytics}>`,
+    `                    <strong>${escapeHtml(project.title || 'Explore project')}<span class="home-about__project-arrow" aria-hidden="true">${HOME_ABOUT_ICONS.arrow}</span></strong>`,
+    project.summary ? `                    <span>${escapeHtml(project.summary)}</span>` : '',
+    '                  </a>',
+    '                </li>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeAbout(category, timelineHtml) {
+  const story = category.aboutStory;
+  const profile = category.profile;
+  if (!story || !profile?.image) return '';
+  const connections = Array.isArray(story.connections) ? story.connections : [];
+  const currentText = String(category.currentWork?.text || '');
+  const currentPrefix = 'Currently building:';
+  const currentHtml = currentText.startsWith(currentPrefix)
+    ? `<strong>${currentPrefix}</strong>${escapeHtml(currentText.slice(currentPrefix.length))}`
+    : escapeHtml(currentText);
+  return [
+    `          <div class="home-about${timelineHtml ? '' : ' home-about--story-only'}">`,
+    '            <div class="home-about__personal">',
+    '              <header class="home-about__profile">',
+    `                <img class="home-about__portrait" src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.imageAlt || '')}" loading="eager" decoding="async"${profile.imageWidth ? ` width="${escapeHtml(profile.imageWidth)}"` : ''}${profile.imageHeight ? ` height="${escapeHtml(profile.imageHeight)}"` : ''}>`,
+    '                <div class="home-about__intro">',
+    `                  <h2>${escapeHtml(category.title || 'Hi, I’m Daniel.')}</h2>`,
+    category.context ? `                  <p class="home-about__context">${escapeHtml(category.context)}</p>` : '',
+    category.lead ? `                  <p class="home-about__lead">${escapeHtml(category.lead)}</p>` : '',
+    '                </div>',
+    '              </header>',
+    '              <div class="home-about__story">',
+    '              <section class="home-about__interests" aria-labelledby="home-about-connections-title">',
+    `                <h3 id="home-about-connections-title">${escapeHtml(story.title || 'Life shapes what I build.')}</h3>`,
+    '                <ul class="home-about__connections">',
+    connections.map(renderHomeAboutConnection).join('\n'),
+    '                </ul>',
+    '              </section>',
+    currentText ? `              <div class="home-about__current"><span class="home-about__current-icon" aria-hidden="true">${HOME_ABOUT_ICONS.code}</span><a href="${escapeHtml(normalizeHref(category.currentWork.href))}">${currentHtml}</a></div>` : '',
+    '              </div>',
+    '            </div>',
+    timelineHtml,
+    '          </div>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeLibraryView(category, categoryId) {
+  const cta = category && category.cta;
+  if (!cta || !cta.href || !['projects', 'tools', 'games'].includes(categoryId)) return '';
+
+  const viewId = `home-library-view-${categoryId}`;
+  const headingId = `${viewId}-title`;
+  const header = renderPersonalLibraryHeader({
+    category: categoryId,
+    itemCount: 0,
+    containerTag: 'header',
+    headingTag: 'h2',
+    headingId,
+    headingFocusable: true,
+    includeBack: true,
+    dynamicCount: true
+  });
+  return [
+    `          <section class="home-library" id="${escapeHtml(viewId)}" data-home-library-view="${escapeHtml(categoryId)}" aria-labelledby="${escapeHtml(headingId)}" hidden inert>`,
+    header.split('\n').map((line) => `            ${line}`).join('\n'),
+    `            <div class="home-library__groups" data-home-library-list></div>`,
+    '          </section>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeAccordion(section) {
+  const props = section.props || {};
+  const categories = Array.isArray(props.categories) ? props.categories : [];
+  const welcome = props.welcome || {};
+  const browseLink = welcome.browseLink && welcome.browseLink.href && welcome.browseLink.label
+    ? welcome.browseLink : null;
+  const initialView = props.initialView === 'closed' ? 'closed' : 'overview';
+  const allowedIds = new Set(categories.map((category) => String(category && category.id || '').trim()).filter(Boolean));
+  const defaultPanel = allowedIds.has(String(props.defaultPanel || '').trim())
+    ? String(props.defaultPanel).trim()
+    : (categories[0] && categories[0].id || 'about');
+
+  const panels = categories.map((category) => {
+    const id = String(category && category.id || '').trim();
+    const label = String(category && category.label || id || 'Section').trim();
+    const isActive = initialView !== 'closed' && id === defaultPanel;
+    const items = Array.isArray(category && category.items) ? category.items : [];
+    const meta = Array.isArray(category && category.meta) ? category.meta : [];
+    const context = String(category && category.context || '').trim();
+    const triggerId = `home-accordion-trigger-${id}`;
+    const panelId = `home-accordion-panel-${id}`;
+    const categoryIconId = resolveHomeAccordionIconId(id);
+    const color = String(category && category.color || '#091f3b').trim();
+    const colorEnd = String(category && category.colorEnd || color).trim();
+    const hasInlineLibrary = ['projects', 'tools', 'games'].includes(id);
+    const cards = items.map((item) => renderHomeAccordionCard(item, id)).join('\n');
+    const timelineHtml = renderHomeTimeline(category && category.timeline, id);
+    const featuredItems = Array.isArray(category.featuredItems) ? category.featuredItems : [];
+    const featuredHtml = featuredItems.length ? [
+      '          <section class="home-featured" aria-label="Featured projects">',
+      `            <h2>${escapeHtml(category.featuredTitle || 'Featured projects')}</h2>`,
+      '            <ul class="home-accordion__cards home-featured__list">',
+      featuredItems.map((item) => renderHomeAccordionCard(item, 'projects')).join('\n'),
+      '            </ul>',
+      '            <a class="home-featured__all" href="/portfolio">Explore all projects <span aria-hidden="true">' + sectionArrowImage('projects') + '</span></a>',
+      '          </section>'
+    ].join('\n') : '';
+    const libraryHtml = renderHomeLibraryView(category, id);
+    const profile = category && category.profile && category.profile.image
+      ? category.profile
+      : null;
+    const metaHtml = meta.length
+      ? `          <ul class="home-accordion__meta" aria-label="${escapeHtml(label)} highlights">${meta.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
+      : '';
+    const contextHtml = context && !profile
+      ? `          <p class="home-accordion__context">${escapeHtml(context)}</p>`
+      : '';
+    const cta = category && category.cta && category.cta.href && category.cta.label
+      ? (hasInlineLibrary
+          ? `          <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="${escapeHtml(normalizeHref(category.cta.href))}" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>`
+          : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>`)
+      : '';
+    const hasMasthead = ['projects', 'tools', 'games', 'contact'].includes(id);
+    const panelHeader = profile
+      ? [
+          '          <header class="home-accordion__panel-head home-accordion__panel-head--profile">',
+          '            <div class="home-accordion__profile-copy">',
+          `              <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
+          '              <div class="home-accordion__title-row">',
+          `                <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
+          `                <h2>${escapeHtml(category && category.title || label)}</h2>`,
+          '              </div>',
+          category && category.lead ? `              <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
+          context ? `              <p class="home-accordion__context home-accordion__context--profile">${escapeHtml(context)}</p>` : '',
+          category.primaryAction?.href ? `              <a class="home-accordion__panel-cta home-intro__action" href="${escapeHtml(normalizeHref(category.primaryAction.href))}">${escapeHtml(category.primaryAction.label)} <span aria-hidden="true">${sectionArrowImage(id)}</span></a>` : '',
+          category.currentWork?.text ? `              <p class="home-intro__current"><a href="${escapeHtml(normalizeHref(category.currentWork.href))}">${escapeHtml(category.currentWork.text)}</a></p>` : '',
+          '            </div>',
+          '            <figure class="home-accordion__profile-portrait">',
+          `              <img src="${escapeHtml(profile.image)}" alt="${escapeHtml(profile.imageAlt || '')}" loading="eager" decoding="async"${profile.imageWidth ? ` width="${escapeHtml(profile.imageWidth)}"` : ''}${profile.imageHeight ? ` height="${escapeHtml(profile.imageHeight)}"` : ''}>`,
+          '            </figure>',
+          '          </header>'
+        ].filter(Boolean).join('\n')
+      : [
+          `          <header class="home-accordion__panel-head"${hasMasthead ? ' data-page-masthead' : ''}>`,
+          hasMasthead ? '            <div data-page-masthead-intro><div data-page-masthead-copy>' : '',
+          `            <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
+          '            <div class="home-accordion__title-row">',
+          `              <span class="home-accordion__title-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
+          `              <h2>${escapeHtml(category && category.title || label)}</h2>`,
+          '            </div>',
+          category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
+          hasMasthead ? '            </div></div>' : '',
+          '          </header>'
+        ].filter(Boolean).join('\n');
+    const aboutHtml = id === 'about' ? renderHomeAbout(category, timelineHtml) : '';
+    const cardsHtml = cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '';
+    const locationHtml = id === 'contact' && category.location
+      ? renderMap({ id: 'home-contact-location', type: 'map', props: category.location }, { deferUntilSelected: true })
+      : '';
+    const contactLayout = locationHtml ? [
+      '          <div class="home-contact-layout">',
+      cardsHtml,
+      locationHtml,
+      '          </div>'
+    ].filter(Boolean).join('\n') : '';
+    const panelContent = aboutHtml || [
+      panelHeader,
+      contextHtml,
+      metaHtml,
+      contactLayout || cardsHtml,
+      featuredHtml,
+      timelineHtml,
+      cta,
+      libraryHtml
+    ].filter(Boolean).join('\n');
+
+    return [
+      `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${hasInlineLibrary ? ' home-accordion__item--has-library' : ''}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" aria-labelledby="${escapeHtml(triggerId)}" style="--panel-color: ${escapeHtml(color)}; --panel-color-end: ${escapeHtml(colorEnd)};">`,
+      '      <h2 class="home-accordion__heading">',
+      `        <button class="home-accordion__rail" id="${escapeHtml(triggerId)}" type="button" aria-expanded="${isActive}" aria-controls="${escapeHtml(panelId)}"${isActive ? ' aria-disabled="true"' : ''} data-home-accordion-trigger="${escapeHtml(id)}" data-site-tab="${escapeHtml(id)}" data-site-tab-category="${escapeHtml(id)}"${isActive ? ' data-site-tab-active="true"' : ''}>`,
+      `          <span class="home-accordion__rail-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
+      `          <span class="home-accordion__rail-label">${escapeHtml(label)}</span>`,
+      '          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>',
+      '        </button>',
+      '      </h2>',
+      `      <section class="home-accordion__panel" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(triggerId)}" data-home-accordion-panel="${escapeHtml(id)}"${isActive ? '' : ' hidden inert'}>`,
+      `        <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="${escapeHtml(label)} content">`,
+      panelContent,
+      '        </div>',
+      '      </section>',
+      '    </article>'
+    ].filter(Boolean).join('\n');
+  }).join('\n');
+
+  const noScriptLinks = categories
+    .map((category) => category && category.cta && category.cta.href && category.cta.label
+      ? `<a href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)}</a>`
+      : '')
+    .filter(Boolean)
+    .join('');
+
+  return [
+    `<section${classAttr('home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
+    '  <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>',
+    `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow || 'WELCOME')}</p>`,
+    `    <h1 class="site-frame__welcome-title">${escapeHtml(welcome.title || 'Daniel Short.')}</h1>`,
+    `    <p class="site-frame__welcome-summary">${escapeHtml(welcome.summary || 'Solving everyday problems with data and thoughtful tools.')}</p>`,
+    welcome.detail ? `    <p class="site-frame__welcome-detail">${escapeHtml(welcome.detail)}</p>` : '',
+    browseLink ? `    <a class="site-frame__welcome-browse" href="${escapeHtml(normalizeHref(browseLink.href))}">${escapeHtml(browseLink.label)} <span aria-hidden="true">${sectionArrowImage('projects')}</span></a>` : '',
+    '  </div>',
+    `  <h2 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h2>`,
+    `  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="${initialView}">`,
+    panels,
+    '  </div>',
+    noScriptLinks ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
+const SECTION_RENDERERS = new Map([
+  ['hero', renderHero],
+  ['rich-text', renderRichText],
+  ['cta', renderCta],
+  ['image-gallery', renderImageGallery],
+  ['document-list', renderDocumentList],
+  ['map', renderMap],
+  ['contact-workspace', renderContactWorkspace],
+  ['embed', renderEmbed],
+  ['kpi-band', renderKpiBand],
+  ['proof-block', renderProofBlock],
+  ['project-grid', renderProjectGrid],
+  ['certification-strip', renderCertificationStrip],
+  ['resume-highlight', renderResumeHighlight],
+  ['media-showcase', renderMediaShowcase],
+  ['home-accordion', renderHomeAccordion],
+  ['legacy-html', renderLegacyHtml]
+]);
+
+function renderSection(section) {
+  if (!section || section.enabled === false) return '';
+  const render = SECTION_RENDERERS.get(section.type) || renderLegacyHtml;
+  return render(section);
+}
+
+function renderVisualPageBody(page) {
+  const sections = Array.isArray(page && page.sections) ? page.sections : [];
+  const requestedOrder = Array.isArray(page && page.sectionOrder) ? page.sectionOrder : [];
+  const sectionsById = new Map(sections.map((section) => [String(section && section.id || ''), section]));
+  const orderedIds = new Set(requestedOrder.map((id) => String(id || '')));
+  const orderedSections = requestedOrder
+    .map((id) => sectionsById.get(String(id || '')))
+    .filter(Boolean)
+    .concat(sections.filter((section) => !orderedIds.has(String(section && section.id || ''))));
+  const body = orderedSections
+    .map((section) => renderSection(section))
+    .filter(Boolean)
+    .join('\n\n');
+  const mainAttributes = { ...((page && page.mainAttributes) || { id: 'main' }) };
+  if (page && page.id === 'home' && page.canonicalPath === '/') {
+    mainAttributes['data-site-route-content'] = true;
+  }
+  const mainAttrs = attrsToString(mainAttributes);
+  const routeToolbar = page && page.id === 'home' && page.canonicalPath === '/'
+    ? '  <div data-site-route-toolbar hidden aria-hidden="true"></div>\n'
+    : '';
+  return `<main${mainAttrs ? ` ${mainAttrs}` : ''}>\n${routeToolbar}${body}\n</main>`;
+}
+
+module.exports = {
+  getHomeAccordionIconDefinitions,
+  renderSection,
+  renderVisualPageBody,
+  resolveHomeAccordionIconId
+};

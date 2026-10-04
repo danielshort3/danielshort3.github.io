@@ -1,5 +1,10 @@
 package me.danielshort.app.ui
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,11 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.danielshort.app.BuildConfig
-import me.danielshort.app.SiteApplication
+import me.danielshort.app.AppUpdateRuntime
 import me.danielshort.app.data.AppSettings
 import me.danielshort.app.data.ContentRepository
-import me.danielshort.app.data.appUpdateMode
-import me.danielshort.app.updates.AppUpdateState
 import java.text.DateFormat
 import java.util.Date
 
@@ -53,8 +56,6 @@ internal fun SettingsTheme(content: @Composable () -> Unit) {
 @Composable
 internal fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit, initialPage: SettingsPage = SettingsPage.OVERVIEW) {
   val options by repository.settings.state.collectAsStateWithLifecycle()
-  val application = LocalContext.current.applicationContext as SiteApplication
-  val updateState by application.appUpdates.state.collectAsStateWithLifecycle()
   var pageName by rememberSaveable(initialPage) { mutableStateOf(initialPage.name) }
   val page = SettingsPage.valueOf(pageName)
   val snackbar = remember { SnackbarHostState() }
@@ -71,7 +72,7 @@ internal fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit, i
       modifier = Modifier.fillMaxSize().safeDrawingPadding(),
       contentWindowInsets = WindowInsets(0, 0, 0, 0),
       topBar = {
-        TopAppBar(title = { Text(page.title) }, navigationIcon = {
+        TopAppBar(title = { Text(if (page == SettingsPage.UPDATES && !BuildConfig.ENABLE_SIDELOAD_UPDATES) "Website content" else page.title) }, navigationIcon = {
           IconButton(onClick = goBack, modifier = Modifier.testTag("settings-back")) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, if (page == SettingsPage.OVERVIEW) "Back to app" else "Back to settings")
           }
@@ -84,13 +85,10 @@ internal fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit, i
           .padding(horizontal = 20.dp, vertical = 12.dp).testTag("settings-body"),
           verticalArrangement = Arrangement.spacedBy(16.dp)) {
           when (page) {
-            SettingsPage.OVERVIEW -> SettingsOverview(options, settingsUpdateSummary(updateState, options),
+            SettingsPage.OVERVIEW -> SettingsOverview(options, AppUpdateRuntime.settingsSummary(options),
               onChange = repository.settings::update, onOpen = { pageName = it.name })
             SettingsPage.UPDATES -> {
-              AppUpdateSection(application.appUpdates, application.automaticAppInstaller, options.automaticAppUpdates) {
-                AppUpdatePreferences(options, repository.settings::update)
-              }
-              HorizontalDivider(Modifier.padding(vertical = 8.dp))
+              AppUpdateRuntime.settingsContent(options, repository.settings::update)
               ContentRefreshSettings(repository, onNotice = showNotice)
             }
             SettingsPage.STORAGE -> StorageSettings(onNotice = showNotice)
@@ -102,21 +100,12 @@ internal fun SettingsScreen(repository: ContentRepository, onBack: () -> Unit, i
   }
 }
 
-internal fun settingsUpdateSummary(state: AppUpdateState, options: AppSettings): String = when (state) {
-  is AppUpdateState.Available -> "Update available"
-  is AppUpdateState.Ready -> "Ready to install"
-  is AppUpdateState.Checking -> "Checking for updates…"
-  is AppUpdateState.Downloading -> "Downloading update…"
-  is AppUpdateState.UpToDate -> "You’re up to date"
-  is AppUpdateState.Error -> "Update needs attention"
-  is AppUpdateState.Idle -> appUpdateChoices.first { it.value == options.appUpdateMode }.title
-}
-
 @Composable
 internal fun SettingsOverview(options: AppSettings, updateSummary: String, onChange: (AppSettings) -> Unit, onOpen: (SettingsPage) -> Unit) {
   val systemReduceMotion = rememberSystemReduceMotion()
   Column {
-    SettingsNavigationRow("Updates", updateSummary, Modifier.testTag("settings-updates")) { onOpen(SettingsPage.UPDATES) }
+    SettingsNavigationRow(if (BuildConfig.ENABLE_SIDELOAD_UPDATES) "Updates" else "Website content", updateSummary,
+      Modifier.testTag("settings-updates")) { onOpen(SettingsPage.UPDATES) }
     HorizontalDivider()
     SettingSwitch("Reduce motion", if (systemReduceMotion) "Android is already reducing motion. Also reduce it when system animations are on." else "Fewer animations and game effects.",
       options.reduceMotion, Modifier.testTag("reduce-motion")) { onChange(options.copy(reduceMotion = it)) }
@@ -186,8 +175,17 @@ private fun StorageSettings(onNotice: (String) -> Unit) {
 
 @Composable
 private fun AppInformation() {
+  val context = LocalContext.current
   Text("Daniel Short", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
   Text("Version ${BuildConfig.VERSION_NAME}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+  HorizontalDivider()
+  SettingsHeading("Policies and help")
+  SettingsNavigationRow("Privacy policy", "How the Android app handles data", Modifier.testTag("privacy-policy")) {
+    openInformationPage(context, "android-app")
+  }
+  if (BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS) SettingsNavigationRow("Account deletion and help", "For website tools accounts", Modifier.testTag("account-deletion-help")) {
+    openInformationPage(context, "account-deletion")
+  }
   HorizontalDivider()
   SettingsHeading("On this device")
   Text("Bookmarks, native game progress, and files created by native tools stay on your device. You choose when to export or share them.",
@@ -196,8 +194,17 @@ private fun AppInformation() {
   Text("AI demos use the website’s inference services. Submitted text and drawings, or generation settings, are sent to those services. Some demos connect or load generated examples when opened. See the notice beside each submit control.",
     color = MaterialTheme.colorScheme.onSurfaceVariant)
   SettingsHeading("Content and app updates")
-  Text("Website information follows your content-refresh preference. New native features require an app update.",
+  Text(if (BuildConfig.ENABLE_SIDELOAD_UPDATES)
+    "Website information follows your content-refresh preference. New native features require an app update."
+    else "Website information follows your content-refresh preference. Google Play provides app updates for new native features.",
     color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+private fun openInformationPage(context: Context, anchor: String) {
+  val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.danielshort.me/privacy#$anchor"))
+    .addCategory(Intent.CATEGORY_BROWSABLE)
+  try { context.startActivity(intent) }
+  catch (_: ActivityNotFoundException) { Toast.makeText(context, "No browser is available for this link.", Toast.LENGTH_SHORT).show() }
 }
 
 @Composable

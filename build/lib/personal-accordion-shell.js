@@ -1,8 +1,10 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
 
-const audienceApi = require('../../js/common/audience-config');
 const framePolicy = require('../../js/navigation/site-frame-policy');
 
 const PERSONAL_SHELL_START = '<!-- personal-accordion-shell:start -->';
@@ -51,13 +53,6 @@ const CATEGORY_CONFIG = Object.freeze({
     libraryHref: '/games',
     icon: '<path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path>'
   }),
-  resume: Object.freeze({
-    label: 'Resume',
-    color: '#087f8c',
-    colorEnd: '#006973',
-    href: '/resume-analytics',
-    icon: '<path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5M9 12h6M9 16h6"></path>'
-  }),
   contact: Object.freeze({
     label: 'Contact',
     color: '#334155',
@@ -69,24 +64,6 @@ const CATEGORY_CONFIG = Object.freeze({
 });
 
 const CATEGORY_ORDER = Object.freeze(['about', 'projects', 'tools', 'games', 'contact']);
-const PROFESSIONAL_CATEGORY_ORDER = Object.freeze(['about', 'projects', 'resume', 'contact']);
-
-function getShellAudience(value) {
-  return ['analytics', 'data-science', 'tourism'].includes(value) ? value : 'personal';
-}
-
-function getShellCategory(categoryId, audience = 'personal') {
-  const category = CATEGORY_CONFIG[categoryId];
-  if (getShellAudience(audience) === 'personal') return category;
-  const config = audienceApi.getAudience(audience);
-  const href = {
-    about: config.homePath,
-    projects: config.portfolioPath,
-    resume: config.resumePath,
-    contact: config.contactPath
-  }[categoryId] || config.homePath;
-  return { ...category, href, libraryHref: href };
-}
 const LIBRARY_PRESENTATION = Object.freeze({
   projects: Object.freeze({
     title: 'Project library',
@@ -203,8 +180,7 @@ function getRouteModule(html, fallbackId) {
   if (page === 'contact') return 'contact:contact';
   if (page === 'search') return 'search:search';
   if (/\bdata-portfolio-workbench(?:[\s=>])/i.test(html)) return 'portfolio:workbench';
-  if (page === 'project' || /^resume(?:-|$)/.test(page) ||
-      ['analytics', 'data-science', 'tourism'].includes(page)) return 'page:content';
+  if (page === 'project') return 'page:content';
   return fallbackId;
 }
 
@@ -299,6 +275,11 @@ function validatePersonalRouteDocument(html) {
     if (!executable) return;
     const content = tag.replace(/^<script\b[^>]*>|<\/script>$/gi, '').trim();
     if (!content) return;
+    if (getTagAttribute(tag, 'data-site-bootstrap') === 'early') {
+      const expected = fs.readFileSync(path.join(__dirname, '../../js/common/no-js.js'), 'utf8').trim().replace(/<\/script/gi, '<\\/script');
+      if (content.replace(/\r\n/g, '\n') === expected.replace(/\r\n/g, '\n')) return;
+      throw new Error(`Soft route ${manifest.path || manifest.id} has a modified early bootstrap.`);
+    }
     throw new Error(`Soft route ${manifest.path || manifest.id} has an unclassified inline executable script.`);
   });
   return manifest;
@@ -434,14 +415,9 @@ function renderIcon(paths, className = '') {
   return `<svg${className ? ` class="${escapeHtml(className)}"` : ''} viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 }
 
-function renderSiteIcon(name, className = '') {
-  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="/img/ui/site-icons/${name}.webp" alt="" width="128" height="128" decoding="async" loading="lazy">`;
-}
-
-function renderSectionArrow(categoryId, direction) {
-  const section = categoryId === 'resume' ? 'tools' : categoryId;
-  const safeSection = CATEGORY_ORDER.includes(section) ? section : 'about';
-  return renderSiteIcon(`section-arrow-${safeSection}-${direction}`);
+function renderSectionArrow(_categoryId, direction) {
+  const orientation = direction === 'left' ? ' site-direction-arrow--left' : '';
+  return `<svg class="site-direction-arrow${orientation}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>`;
 }
 
 function renderToolsAccountBar() {
@@ -579,19 +555,15 @@ function preparePersonalToolDetailHtml(html, options = {}) {
   return `${source.slice(0, chromeStart)}${header}\n${mainHtml}${boundary}${suffix}`;
 }
 
-function renderPersonalRails(activeCategory, audience = 'personal') {
+function renderPersonalRails(activeCategory) {
   const active = normalizeCategory(activeCategory);
-  const isProfessional = getShellAudience(audience) !== 'personal';
-  const order = isProfessional ? PROFESSIONAL_CATEGORY_ORDER : CATEGORY_ORDER;
-  const rails = order.map((categoryId) => {
-    const category = getShellCategory(categoryId, audience);
+  const rails = CATEGORY_ORDER.map((categoryId) => {
+    const category = CATEGORY_CONFIG[categoryId];
     const isActive = categoryId === active;
-    const stateAttributes = isProfessional
-      ? (isActive ? 'aria-current="page" data-personal-rail-active="true" data-site-tab-active="true"' : '')
-      : isActive
+    const stateAttributes = isActive
       ? 'aria-current="page" data-personal-rail-active="true" data-site-tab-active="true" data-personal-transition="collapse"'
       : 'hidden inert aria-hidden="true" tabindex="-1"';
-    const label = isProfessional ? category.label : `Return to the ${category.label} section on the homepage`;
+    const label = `Return to the ${category.label} section on the homepage`;
     return [
       `  <a class="personal-accordion__rail personal-accordion__rail--${categoryId}${isActive ? ' is-active' : ''}" href="${escapeHtml(category.href)}" aria-label="${escapeHtml(label)}" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-site-tab="${categoryId}" data-site-tab-category="${categoryId}" ${stateAttributes}>`,
       `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
@@ -601,7 +573,7 @@ function renderPersonalRails(activeCategory, audience = 'personal') {
     ].join('\n');
   });
   return [
-    `<div class="personal-accordion__rails"${isProfessional ? ' role="navigation" aria-label="Site sections"' : ''} data-personal-category-marker="${active}" data-site-tab-rail data-site-tab-rail-mode="${isProfessional ? 'navigation' : 'expanded'}">`,
+    `<div class="personal-accordion__rails" data-personal-category-marker="${active}" data-site-tab-rail data-site-tab-rail-mode="expanded">`,
     rails.join('\n'),
     '</div>'
   ].join('\n');
@@ -813,7 +785,7 @@ function findFragmentRange(html, options = {}) {
 
 function renderPersonalAccordionShell(fragment, options = {}) {
   const categoryId = normalizeCategory(options.category);
-  const category = getShellCategory(categoryId, options.audience);
+  const category = CATEGORY_CONFIG[categoryId];
   const isLibrary = options.view === 'library';
   const itemId = String(options.itemId || categoryId).trim() || categoryId;
   const backLabel = String(options.backLabel || `Back to ${category.label}`).trim();
@@ -840,7 +812,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
     '  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>',
     `<section class="personal-accordion personal-accordion--${escapeHtml(categoryId)} personal-accordion--${isLibrary ? 'library' : 'detail'}" data-personal-accordion-shell data-personal-active-category="${escapeHtml(categoryId)}" data-site-route-content style="--panel-color: ${category.color}; --panel-color-end: ${category.colorEnd};">`,
     '  <div class="personal-accordion__shell">',
-    renderPersonalRails(categoryId, options.audience).split('\n').map((line) => `    ${line}`).join('\n'),
+    renderPersonalRails(categoryId).split('\n').map((line) => `    ${line}`).join('\n'),
     `    <div class="personal-accordion__panel" data-personal-detail-panel="${escapeHtml(categoryId)}">`,
     toolbar ? toolbar.split('\n').map((line) => `      ${line}`).join('\n') : '',
     '      <div class="personal-accordion__content" data-personal-detail-content>',
@@ -858,7 +830,6 @@ function renderPersonalAccordionShell(fragment, options = {}) {
 
 function wrapPersonalAccordionHtml(html, options = {}) {
   const category = normalizeCategory(options.category);
-  const audience = getShellAudience(options.audience);
   const unwrappedHtml = unwrapPersonalAccordionHtml(html);
   const cleanHtml = category === 'projects'
     ? stripLegacyProjectPager(unwrappedHtml)
@@ -867,12 +838,12 @@ function wrapPersonalAccordionHtml(html, options = {}) {
   const fragment = cleanHtml.slice(range.start, range.end);
   const shell = renderPersonalAccordionShell(fragment, options);
   const bodyAttributes = {
-    'data-audience': audience,
+    'data-audience': 'personal',
     'data-personal-accordion-view': options.view === 'library' ? 'library' : 'detail',
     'data-personal-category': category,
     'data-personal-item': String(options.itemId || category).trim() || category,
     'data-personal-fit': framePolicy.resolveFit(options.fit),
-    'data-site-route-id': `${audience === 'personal' ? '' : `${audience}:`}${category}:${String(options.itemId || category).trim() || category}`,
+    'data-site-route-id': `${category}:${String(options.itemId || category).trim() || category}`,
     'data-site-route-category': category,
     'data-site-route-view': options.view === 'library' ? 'library' : 'detail'
   };
@@ -888,19 +859,9 @@ function wrapPersonalAccordionHtml(html, options = {}) {
   const output = cleanHtml.slice(0, range.start) + shell + boundary + suffix;
   bodyAttributes['data-site-route-module'] = options.module || getRouteModule(cleanHtml, bodyAttributes['data-site-route-id']);
   let normalized = normalizeSkipLinkHrefs(setBodyAttributes(
-    markHardNavigationLinks(output, false, audience !== 'personal' && bodyAttributes['data-site-route-navigation'] === 'soft'),
+    markHardNavigationLinks(output, false, false),
     bodyAttributes
   ));
-  if (audience !== 'personal') {
-    const referrerTag = '<meta name="referrer" content="no-referrer">';
-    let referrerWritten = false;
-    normalized = normalized.replace(/<meta\b[^>]*\bname=["']referrer["'][^>]*>/gi, () => {
-      if (referrerWritten) return '';
-      referrerWritten = true;
-      return referrerTag;
-    });
-    if (!referrerWritten) normalized = normalized.replace(/<\/head>/i, `  ${referrerTag}\n</head>`);
-  }
   return finalizePersonalRouteDocument(normalized, {
     id: bodyAttributes['data-site-route-id'],
     path: canonicalPath,
@@ -1016,55 +977,6 @@ function renderPersonalLibraryMain(options = {}) {
   ].filter(Boolean).join('\n');
 }
 
-function markProfessionalInternalHtml(html, audience = 'analytics') {
-  const audienceKey = String(audience || 'analytics').trim() || 'analytics';
-  let output = stripPersonalStylesheet(unwrapPersonalAccordionHtml(html));
-  output = output.replace(/<body\b[^>]*>/i, (bodyTag) => {
-    let next = setTagAttribute(bodyTag, 'data-internal-professional-copy', 'true');
-    next = setTagAttribute(next, 'data-audience', audienceKey);
-    return next;
-  });
-  output = output.replace(/<a\b[^>]*>/gi, (tag) => {
-    const href = getTagAttribute(tag, 'href');
-    if (!href || /^(?:#|mailto:|tel:)/i.test(href)) return tag;
-    try {
-      const url = new URL(href.replace(/&amp;/g, '&'), 'https://www.danielshort.me/');
-      if (url.origin !== 'https://www.danielshort.me' || !/^\/(?:portfolio(?:\/[^/]+)?|contact|search)(?:\.html)?\/?$/i.test(url.pathname)) return tag;
-      url.searchParams.set('audience', audienceKey);
-      return setTagAttribute(tag, 'href', `${url.pathname}${url.search}${url.hash}`);
-    } catch (_) {
-      return tag;
-    }
-  });
-  output = output.replace(/<link\b[^>]*\brel="canonical"[^>]*>/i, (tag) => {
-    const hrefMatch = /\shref="([^"]+)"/i.exec(tag);
-    if (!hrefMatch) return tag;
-    try {
-      const url = new URL(hrefMatch[1], 'https://www.danielshort.me');
-      url.searchParams.set('audience', audienceKey);
-      return setTagAttribute(tag, 'href', url.href);
-    } catch (_) {
-      return tag;
-    }
-  });
-  output = output.replace(/<meta\b[^>]*\bproperty="og:url"[^>]*>/i, (tag) => {
-    const contentMatch = /\scontent="([^"]+)"/i.exec(tag);
-    if (!contentMatch) return tag;
-    try {
-      const url = new URL(contentMatch[1], 'https://www.danielshort.me');
-      url.searchParams.set('audience', audienceKey);
-      return setTagAttribute(tag, 'content', url.href);
-    } catch (_) {
-      return tag;
-    }
-  });
-  const robotsTag = '<meta name="robots" content="noindex, nofollow">';
-  if (/<meta\b[^>]*\bname="robots"[^>]*>/i.test(output)) {
-    return output.replace(/<meta\b[^>]*\bname="robots"[^>]*>/i, robotsTag);
-  }
-  return output.replace(/<\/head>/i, `  ${robotsTag}\n</head>`);
-}
-
 module.exports = {
   CATEGORY_CONFIG,
   CATEGORY_ORDER,
@@ -1086,7 +998,6 @@ module.exports = {
   findMainRange,
   getPersonalLibraryPresentation,
   getPersonalToolGroup,
-  markProfessionalInternalHtml,
   markHardNavigationLinks,
   normalizeSkipLinkHrefs,
   preparePersonalToolDetailHtml,

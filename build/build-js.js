@@ -23,7 +23,6 @@ const entries = [
   { entry: path.join(root, 'build', 'entries', 'site-consent.entry.js'), baseName: 'site-consent', manifestKey: 'consent' },
   { entry: path.join(root, 'build', 'entries', 'site-contact.entry.js'), baseName: 'site-contact', manifestKey: 'contact' },
   { entry: path.join(root, 'build', 'entries', 'site-search.entry.js'), baseName: 'site-search', manifestKey: 'search' },
-  { entry: path.join(root, 'build', 'entries', 'site-contributions.entry.js'), baseName: 'site-contributions', manifestKey: 'contributions' },
   { entry: path.join(root, 'build', 'entries', 'site-sitemap.entry.js'), baseName: 'site-sitemap', manifestKey: 'sitemap' },
   { entry: path.join(root, 'build', 'entries', 'site-privacy.entry.js'), baseName: 'site-privacy', manifestKey: 'privacy' },
   { entry: path.join(root, 'build', 'entries', 'site-tools-account.entry.js'), baseName: 'site-tools-account', manifestKey: 'toolsAccount' },

@@ -1,10 +1,12 @@
 # Native feature coverage
 
-The app uses the website for the published case studies and most interactive experiences. All 16 published project cards open their first-party case studies in an in-app WebView, with bookmark/share controls and a retained native offline summary. Eleven first-party demos and five games open their website routes in the app, with the existing native adaptations available as alternatives. Nine public tools open the website in the Android browser so imports, downloads, and website account flows work there; their Android versions remain available. Screen Recorder stays native. Probability Engine opens in the browser with a native alternative because its website file import/export is not supported by the in-app WebView. The alternatives below use Compose, Kotlin, Canvas, Android media APIs, and JSON data; changing website JavaScript does not change them.
+The app uses the website for the published case studies and most interactive experiences. All 17 published project cards open their first-party case studies in an in-app WebView, with bookmark/share controls and a retained native offline summary. Eleven first-party demos and five games open their website routes in the app, with the existing native adaptations available as alternatives. Nine public tools open the website in the Android browser so imports, downloads, and website account flows work there; their Android versions remain available. Screen Recorder stays native. Probability Engine opens in the browser with a native alternative because its website file import/export is not supported by the in-app WebView. The alternatives below use Compose, Kotlin, Canvas, Android media APIs, and JSON data; changing website JavaScript does not change them.
 
 ## Project case studies
 
 Opening a published project card shows its canonical website case study in the app. The app retains its own saved-project bookmark and Android share action on that screen. The **Offline summary** action opens the native text, preview, resources, and demo entry where available. The native summary comes from the cached public catalog; the website case study needs connectivity for a reliable first load. Their content can differ until both the website page and app feed are deployed and refreshed.
+
+When a case study has a paired first-party demo, its compact in-app preview loads the real interactive demo as it approaches the viewport. Drawing on the Handwriting Rating and Shape Classifier canvases and submitting to their models work directly there. The native offline summary's preview opens that same in-app demo when tapped; the summary itself remains available without a connection.
 
 ## Games
 

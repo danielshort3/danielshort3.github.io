@@ -192,6 +192,32 @@
 }
 
 @layer overrides {
+  /* Keep section actions' focus rings above the global utility-layer default. */
+  :is(.home-library__back, .home-accordion__panel-cta, .project-next-steps a, .project-question-link, .home-contact-layout .btn-secondary):focus-visible {
+    outline: 3px solid var(--panel-color, #005fed);
+    outline-offset: 3px;
+  }
+
+  .mobile-site-masthead__explore-button:focus-visible {
+    outline: 3px solid #091f3b;
+    outline-offset: 3px;
+  }
+
+  /* Navigation arrows are filled shapes whose color follows the surrounding action. */
+  svg.site-direction-arrow,
+  svg.site-external-arrow {
+    display: block;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    stroke: none;
+  }
+
+  svg.site-direction-arrow--left {
+    transform: rotate(180deg);
+  }
+
   /* Shared page actions stay still; game-specific controls keep their own styles. */
   body[data-audience="personal"] :is(.btn-primary, .btn-secondary, .btn-ghost, .btn-icon):hover {
     transform: none;

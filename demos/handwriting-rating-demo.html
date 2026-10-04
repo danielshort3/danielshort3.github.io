@@ -17,6 +17,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles-demo.css">
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -34,64 +35,66 @@
         </div>
       </header>
 
-      <div class="handwriting-workspace">
-        <div class="demo-status-actions drawing-status">
-          <button id="health-pill" class="handwriting-health health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
-        </div>
-        <section class="handwriting-input" aria-labelledby="drawing-title">
-          <div class="handwriting-input-header">
-            <h2 id="drawing-title">Your digit</h2>
-            <button id="erase" class="handwriting-clear drawing-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
+      <div class="handwriting-activity-group">
+        <div class="handwriting-workspace drawing-workspace">
+          <div class="demo-status-actions drawing-status">
+            <button id="health-pill" class="handwriting-health health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
           </div>
-          <div class="handwriting-pad-frame drawing-canvas-frame">
-            <canvas id="pad" width="256" height="256" aria-label="Draw one digit from 0 to 9, or use the sample buttons below."></canvas>
-            <span id="drawing-prompt" aria-hidden="true">Draw here</span>
-          </div>
-          <div class="handwriting-toolbar drawing-toolbar">
-            <button id="rate" class="handwriting-rate drawing-action" type="button" disabled>Rate digit</button>
-          </div>
-          <p id="status" class="handwriting-status" role="status" aria-live="polite" hidden></p>
-        </section>
-
-        <section class="handwriting-results drawing-results" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
-          <div id="prediction-output" hidden>
-            <div class="handwriting-prediction drawing-prediction">
-              <span id="result-digit" aria-label="Predicted digit"></span>
-              <div>
-                <p class="handwriting-result-label drawing-result-label">Model reads</p>
-                <p id="confidence-text"></p>
-                <p id="result-actual" hidden></p>
-              </div>
+          <section class="handwriting-input drawing-input" aria-labelledby="drawing-title">
+            <div class="handwriting-input-header drawing-input-header">
+              <h2 id="drawing-title">Your digit</h2>
+              <button id="erase" class="handwriting-clear drawing-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
             </div>
-            <div class="handwriting-confidence-meter drawing-confidence-meter" aria-hidden="true"><span id="primary-confidence"></span></div>
-            <section class="handwriting-score-details" aria-labelledby="digit-scores-title">
-              <h2 id="digit-scores-title">All digit scores</h2>
-              <ol id="confidence-list" aria-label="All ten digit scores, highest first"></ol>
-            </section>
+            <div class="handwriting-pad-frame drawing-canvas-frame">
+              <canvas id="pad" width="256" height="256" aria-label="Draw one digit from 0 to 9, or use the sample buttons below."></canvas>
+              <span id="drawing-prompt" aria-hidden="true">Draw here</span>
+            </div>
+            <div class="handwriting-toolbar drawing-toolbar drawing-primary-action">
+              <button id="rate" class="handwriting-rate drawing-action" type="button" disabled>Rate digit</button>
+            </div>
+            <p id="status" class="handwriting-status" role="status" aria-live="polite" hidden></p>
+          </section>
+
+          <section class="handwriting-results drawing-results" aria-label="Prediction result" aria-live="polite" aria-atomic="true">
+            <div id="prediction-output" hidden>
+              <div class="handwriting-prediction drawing-prediction">
+                <span id="result-digit" aria-label="Predicted digit"></span>
+                <div>
+                  <p class="handwriting-result-label drawing-result-label">Model reads</p>
+                  <p id="confidence-text"></p>
+                  <p id="result-actual" hidden></p>
+                </div>
+              </div>
+              <div class="handwriting-confidence-meter drawing-confidence-meter" aria-hidden="true"><span id="primary-confidence"></span></div>
+              <section class="handwriting-score-details" aria-labelledby="digit-scores-title">
+                <h2 id="digit-scores-title">All digit scores</h2>
+                <ol id="confidence-list" aria-label="All ten digit scores, highest first"></ol>
+              </section>
+            </div>
+            <p id="result-empty">Your result appears here.</p>
+          </section>
+        </div>
+
+        <section class="handwriting-samples" aria-labelledby="samples-title">
+          <div class="handwriting-samples-header">
+            <h2 id="samples-title">Load a sample</h2>
+            <span>Daniel’s handwriting</span>
           </div>
-          <p id="result-empty">Your result appears here.</p>
+          <div class="handwriting-sample-buttons" role="group" aria-label="Load a handwritten digit sample">
+            <button type="button" data-sample-digit="0" aria-label="Load sample 0" aria-pressed="false">0</button>
+            <button type="button" data-sample-digit="1" aria-label="Load sample 1" aria-pressed="false">1</button>
+            <button type="button" data-sample-digit="2" aria-label="Load sample 2" aria-pressed="false">2</button>
+            <button type="button" data-sample-digit="3" aria-label="Load sample 3" aria-pressed="false">3</button>
+            <button type="button" data-sample-digit="4" aria-label="Load sample 4" aria-pressed="false">4</button>
+            <button type="button" data-sample-digit="5" aria-label="Load sample 5" aria-pressed="false">5</button>
+            <button type="button" data-sample-digit="6" aria-label="Load sample 6" aria-pressed="false">6</button>
+            <button type="button" data-sample-digit="7" aria-label="Load sample 7" aria-pressed="false">7</button>
+            <button type="button" data-sample-digit="8" aria-label="Load sample 8" aria-pressed="false">8</button>
+            <button type="button" data-sample-digit="9" aria-label="Load sample 9" aria-pressed="false">9</button>
+          </div>
+          <span id="sample-status" class="visually-hidden" role="status" aria-live="polite"></span>
         </section>
       </div>
-
-      <section class="handwriting-samples" aria-labelledby="samples-title">
-        <div class="handwriting-samples-header">
-          <h2 id="samples-title">Load a sample</h2>
-          <span>Daniel’s handwriting</span>
-        </div>
-        <div class="handwriting-sample-buttons" role="group" aria-label="Load a handwritten digit sample">
-          <button type="button" data-sample-digit="0" aria-label="Load sample 0" aria-pressed="false">0</button>
-          <button type="button" data-sample-digit="1" aria-label="Load sample 1" aria-pressed="false">1</button>
-          <button type="button" data-sample-digit="2" aria-label="Load sample 2" aria-pressed="false">2</button>
-          <button type="button" data-sample-digit="3" aria-label="Load sample 3" aria-pressed="false">3</button>
-          <button type="button" data-sample-digit="4" aria-label="Load sample 4" aria-pressed="false">4</button>
-          <button type="button" data-sample-digit="5" aria-label="Load sample 5" aria-pressed="false">5</button>
-          <button type="button" data-sample-digit="6" aria-label="Load sample 6" aria-pressed="false">6</button>
-          <button type="button" data-sample-digit="7" aria-label="Load sample 7" aria-pressed="false">7</button>
-          <button type="button" data-sample-digit="8" aria-label="Load sample 8" aria-pressed="false">8</button>
-          <button type="button" data-sample-digit="9" aria-label="Load sample 9" aria-pressed="false">9</button>
-        </div>
-        <span id="sample-status" class="visually-hidden" role="status" aria-live="polite"></span>
-      </section>
       <p class="handwriting-note">Model confidence reflects digit recognition, not overall handwriting quality.</p>
     </div>
   </main>
@@ -509,6 +512,6 @@
     updateRateState();
     warmUpServer();
   </script>
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>

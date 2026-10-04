@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>  <link rel="preload" href="/css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Daniel Short for Android | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/portfolio/androidApp">
+  <meta name="description" content="Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.">
+
+  <meta property="og:title" content="Daniel Short for Android | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short">
+  <meta property="og:description" content="Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.">
+  <meta property="og:url" content="https://www.danielshort.me/portfolio/androidApp">
+  <meta property="og:image" content="https://www.danielshort.me/img/projects/androidApp.png">
+  <meta property="og:image:alt" content="Screens from the Daniel Short Android app showing its native interface.">
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="1000">
+
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:description" content="Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="twitter:title" content="Daniel Short for Android | Daniel Short">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/projects/androidApp.png">
+  <meta name="twitter:image:alt" content="Screens from the Daniel Short Android app showing its native interface.">
+  <meta name="theme-color" content="#091F3B">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
+  <link rel="stylesheet" href="css/components/project-page.css?v=4bde5a9f0e5a">
+  <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
+  <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
+
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
+
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","@id":"https://www.danielshort.me/portfolio/androidApp#project","name":"Daniel Short for Android","description":"Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.","url":"https://www.danielshort.me/portfolio/androidApp","image":"https://www.danielshort.me/img/projects/androidApp.png","mainEntityOfPage":{"@id":"https://www.danielshort.me/portfolio/androidApp#webpage"},"creator":{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/"},"keywords":"Product, Automation, Kotlin, Jetpack Compose, Android"},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/androidApp#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Daniel Short for Android","item":"https://www.danielshort.me/portfolio/androidApp"}]}]}
+  </script>
+<meta name="author" content="Daniel Short">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image:type" content="image/png">
+  <meta name="twitter:creator" content="@danielshort3">
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
+  <script type="application/ld+json" id="site-jsonld">
+    {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/portfolio/androidApp#webpage","url":"https://www.danielshort.me/portfolio/androidApp","name":"Daniel Short for Android | Daniel Short","description":"Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/projects/androidApp.png"},"mainEntity":{"@id":"https://www.danielshort.me/portfolio/androidApp#project"},"breadcrumb":{"@id":"https://www.danielshort.me/portfolio/androidApp#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/androidApp#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Daniel Short for Android","item":"https://www.danielshort.me/portfolio/androidApp"}]}]}
+  </script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:androidApp","path":"/portfolio/androidApp","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/css/components/project-page.css?v=4bde5a9f0e5a","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.7e88cd8b.js","/js/portfolio/android-app-download.js","/dist/site-consent.a6d261d1.js"],"module":"page:content"}</script>
+</head>
+<body data-page="project" class="project-page project-page--compact personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="androidApp" data-personal-fit="viewport" data-site-route-id="projects:androidApp" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
+  <a href="/portfolio/androidApp#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav" data-site-shell-header>
+    <nav class="nav" aria-label="Site header">
+      <div class="wrapper nav-wrapper">
+        <a href="/" class="brand" data-entry-home-link="true">
+          <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
+          <span class="brand-name">
+            <span class="brand-title">Daniel Short</span>
+          </span>
+        </a>
+        <nav class="header-breadcrumbs" aria-label="Breadcrumb" data-header-breadcrumbs hidden>
+          <ol class="header-breadcrumbs__list" data-header-breadcrumb-list></ol>
+        </nav>
+        <form class="nav-search" action="search" method="get" role="search" data-nav-search="collapsed">
+          <label class="visually-hidden" for="nav-search-q">Search site</label>
+          <div class="nav-search-field">
+            <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="Search…" autocomplete="off">
+            <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false" aria-label="Open search">
+              <span class="visually-hidden">Search</span>
+              <img src="/img/ui/site-icons/action-search.webp" alt="" aria-hidden="true" width="24" height="24" decoding="async">
+            </button>
+          </div>
+        </form>
+      </div>
+    </nav>
+  </header>
+
+<!-- personal-accordion-shell:start -->
+  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
+<section class="personal-accordion personal-accordion--projects personal-accordion--detail" data-personal-accordion-shell data-personal-active-category="projects" data-site-route-content style="--panel-color: #005fed; --panel-color-end: #0145c8;">
+  <div class="personal-accordion__shell">
+    <div class="personal-accordion__rails" data-personal-category-marker="projects" data-site-tab-rail data-site-tab-rail-mode="expanded">
+      <a class="personal-accordion__rail personal-accordion__rail--about" href="/#about" aria-label="Return to the About section on the homepage" style="--rail-color: #091f3b; --rail-color-end: #032b57;" data-site-tab="about" data-site-tab-category="about" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
+        <span class="personal-accordion__rail-label">About</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--projects is-active" href="/#projects" aria-label="Return to the Projects section on the homepage" style="--rail-color: #005fed; --rail-color-end: #0145c8;" data-site-tab="projects" data-site-tab-category="projects" aria-current="page" data-personal-rail-active="true" data-site-tab-active="true" data-personal-transition="collapse">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
+        <span class="personal-accordion__rail-label">Projects</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--tools" href="/#tools" aria-label="Return to the Tools section on the homepage" style="--rail-color: #087f8c; --rail-color-end: #006973;" data-site-tab="tools" data-site-tab-category="tools" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
+        <span class="personal-accordion__rail-label">Tools</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--games" href="/#games" aria-label="Return to the Games section on the homepage" style="--rail-color: #c94b0a; --rail-color-end: #e35d00;" data-site-tab="games" data-site-tab-category="games" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
+        <span class="personal-accordion__rail-label">Games</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--contact" href="/#contact" aria-label="Return to the Contact section on the homepage" style="--rail-color: #334155; --rail-color-end: #263648;" data-site-tab="contact" data-site-tab-category="contact" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg></span>
+        <span class="personal-accordion__rail-label">Contact</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+    </div>
+    <div class="personal-accordion__panel" data-personal-detail-panel="projects">
+      <div class="personal-accordion__content" data-personal-detail-content>
+        <!-- personal-accordion-content:start -->
+<main id="main" class="project-main project-main--compact">
+    <header class="project-hero project-hero--compact" data-page-masthead>
+      <div class="wrapper">
+        <a class="project-parent-link" href="/portfolio" data-page-masthead-parent aria-label="Back to project library">
+          <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
+          <span>Project library</span>
+        </a>
+        <div data-page-masthead-intro>
+          <div data-page-masthead-copy>
+            <h1>Daniel Short for Android</h1>
+        <p class="project-subtitle">A mobile companion for my projects, tools, and games.</p>
+          </div>
+          <nav data-page-masthead-actions class="project-intro-actions" aria-label="Project actions">
+        <a class="project-intro-action project-intro-action--download" href="https://github.com/danielshort3/danielshort3.github.io/releases/download/android-v0.5.5-review/Daniel-Short-review-v12-288958ea3f01e5a9.apk" data-android-review-download data-release-version-code="12" data-content-open="true" data-content-id="androidApp" data-content-type="project_resource" data-resource-type="download" data-source-surface="project_intro">Download Android review APK</a>
+        <span class="project-download-meta" data-android-release-status role="status">Review build 0.5.5 · 23.7 MiB · Android 8+</span><button class="project-download-retry" type="button" data-android-release-retry hidden>Retry check</button>
+
+      </nav>
+        </div>
+      </div>
+    </header>
+
+    <section class="project-body project-body--compact">
+      <div class="wrapper">
+        <section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Project Preview</h2>
+
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <picture class="project-media">
+
+        <source srcset="img/projects/androidApp-640.webp 640w" type="image/webp">
+        <img src="img/projects/androidApp.png" alt="Screens from the Daniel Short Android app showing its native interface." loading="eager" decoding="async" width="1600" height="1000" sizes="(max-width: 960px) 92vw, 840px" fetchpriority="high">
+      </picture>
+          </div>
+        </section>
+      </div>
+    </section>
+        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">The website works on phones, but I wanted faster access to projects and useful tools in a familiar Android interface.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Build an Android companion that keeps the portfolio easy to explore while offering useful native features and a reliable update path.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Built navigation, search, bookmarks, settings, and selected tools in Kotlin and Jetpack Compose.</li>
+              <li>Added offline project summaries and native alternatives while keeping first-party website case studies, demos, and games available in the app.</li>
+              <li>Published a review APK through a versioned feed that identifies the approved file and supports verified in-app updates.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>An installable Android review build supports Android 8 and newer.</li>
+              <li>Published project content can refresh from the website feed; changes to native code arrive through a signed app update.</li>
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="androidApp-links-title">
+      <h2 class="section-title" id="androidApp-links-title">Links</h2>
+      <div class="project-links-groups project-links-groups--flat">
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/danielshort3.github.io/tree/main/mobile/android" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="/img/icons/github-icon-64.webp?v=16ea8b5855c8" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Android source on GitHub</span></a>
+      </div>
+      </div>
+    </section>
+        <nav class="project-next-steps" aria-label="Continue exploring">
+      <a class="project-next-link" href="/portfolio/smartSentence" data-content-open="true" data-content-id="smartSentence" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>Smart Sentence Retriever <svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></strong></a>
+      <a class="project-all-link" href="/portfolio">All projects</a>
+    </nav>
+      </div>
+    </section>
+    <div class="project-question-dock">
+      <a class="project-question-link" href="/contact" data-contact-modal-link="true" data-contact-message="Hi Daniel, I have a question about Daniel Short for Android:
+
+" aria-haspopup="dialog">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"></path></svg>
+        <span class="project-question-copy"><span class="project-question-label">Ask me about</span><span class="project-question-title">Daniel Short for Android</span></span>
+      </a>
+    </div>
+  </main>
+        <!-- personal-accordion-content:end -->
+      </div>
+    </div>
+  </div>
+</section>
+  <p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-site-route-announcer></p>
+<!-- personal-accordion-shell:end -->
+
+  <footer class="footer footer-classic footer--personal-compact" data-site-shell-footer>
+    <div class="wrapper footer-inner">
+      <p class="footer-meta">© 2026 Daniel Short</p>
+      <nav class="footer-utility" aria-label="Footer utility">
+        <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+        <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="privacy" class="footer-link">Privacy</a>
+        <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
+      </nav>
+    </div>
+  </footer>
+
+  <script defer src="js/portfolio/android-app-download.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
+</body>
+</html>

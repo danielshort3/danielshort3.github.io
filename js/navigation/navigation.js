@@ -260,30 +260,12 @@
     const desktopHeader = document.querySelector('#combined-header-nav');
     desktopHeader.parentNode.insertBefore(masthead, desktopHeader);
     document.body.classList.add('has-mobile-site-masthead');
-    setupMobileSectionNavigation(masthead, config);
+    setupMobileScrollChrome(masthead, config);
   }
 
-  function setupMobileSectionNavigation(masthead, initialContext) {
-    const icons = {
-      about: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
-      projects: '<path d="M3 7h7l2-3h9v16H3z"/><path d="M3 9h18"/>',
-      tools: '<path d="M14.5 6.5a5 5 0 0 0-6.1 6.1L3 18l3 3 5.4-5.4a5 5 0 0 0 6.1-6.1L14 13l-3-3z"/>',
-      games: '<path d="M7 7h10c3 0 5 10 3 11-2 1-4-3-5-3H9c-1 0-3 4-5 3C2 17 4 7 7 7Z"/><path d="M8 9v5m-2.5-2.5h5M16 10h.01M18 12h.01"/>',
-      contact: '<path d="M4 4h16v12H9l-5 4z"/><path d="M8 8h8M8 12h5"/>'
-    };
-    const nav = document.createElement('nav');
-    nav.className = 'mobile-section-nav';
-    nav.dataset.mobileSectionNav = '';
-    nav.setAttribute('aria-label', 'Site sections');
-    nav.innerHTML = Object.entries(icons).map(([category, icon]) => `
-      <a class="mobile-section-nav__link" href="/#${category}" data-mobile-section="${category}">
-        <svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>
-        <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
-      </a>`).join('');
-    document.body.append(nav);
-
+  function setupMobileScrollChrome(masthead, initialContext) {
     const media = window.matchMedia(MOBILE_CHROME_QUERY);
-    const chromeSurfaces = () => [masthead, nav, ...document.querySelectorAll('.site-frame__slot-content > .project-question-dock')];
+    const chromeSurfaces = () => [masthead, ...document.querySelectorAll('.site-frame__slot-content > .project-question-dock')];
     const scrollPositions = new WeakMap();
     const preservedAccessibility = new Map();
     let enabled = false;
@@ -345,23 +327,11 @@
       userScrollUntil = 0;
       show();
     };
-    const syncHeight = () => {
-      const height = Math.ceil(nav.getBoundingClientRect().height);
-      if (enabled && height > 0) document.documentElement.style.setProperty('--mobile-section-nav-height', `${height}px`);
-    };
     const sync = (context = getNavigationContext()) => {
       const wasEnabled = enabled;
       enabled = media.matches && context.activeAudience.key === 'personal';
-      nav.hidden = !enabled;
       document.body.classList.toggle('has-mobile-scroll-chrome', enabled);
-      const state = window.SiteFrame?.current();
-      const category = state?.view === 'closed' ? '' : state?.category || document.body.dataset.siteRouteCategory || location.hash.slice(1) || 'about';
-      nav.querySelectorAll('[data-mobile-section]').forEach(link => {
-        if (link.dataset.mobileSection === category) link.setAttribute('aria-current', 'page');
-        else link.removeAttribute('aria-current');
-      });
       resetScroll();
-      syncHeight();
       if (wasEnabled !== enabled) window.SiteFrame?.refresh?.();
     };
     const pageScroller = (target) => {
@@ -393,13 +363,6 @@
       else if (direction < 0 && distance >= 18) show();
     }, { capture: true, passive: true });
 
-    nav.addEventListener('click', (event) => {
-      const link = event.target.closest('[data-mobile-section]');
-      if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.button > 0) return;
-      show();
-      const request = new CustomEvent('home:category-select', { cancelable: true, detail: { category: link.dataset.mobileSection } });
-      if (window.SiteFrame?.root()?.dispatchEvent(request) === false) event.preventDefault();
-    });
     document.addEventListener('keydown', (event) => {
       // Reveal synchronously before Tab computes its next focusable control.
       keyboardNavigation = true;
@@ -434,42 +397,10 @@
         if (!hidden) releaseAccessibility();
       });
     }).observe(document.body, { attributes: true, attributeFilter: ['class', 'data-consent-banner'] });
-    if (typeof ResizeObserver === 'function') new ResizeObserver(syncHeight).observe(nav);
     sync(initialContext);
   }
 
   function getNavigationContext() {
-    const audienceApi = window.SITE_AUDIENCE_CONFIG || null;
-    const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
-      ? audienceApi.normalizeAudience
-      : (() => 'personal');
-    const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
-      ? audienceApi.getAudience
-      : (() => ({
-          key: 'personal',
-          homePath: '/',
-          portfolioPath: '/portfolio',
-          portfolioAllPath: '/portfolio'
-        }));
-    const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
-      ? audienceApi.detectAudienceFromPath
-      : (() => null);
-
-    const AUDIENCE_KEY = 'siteAudience';
-    const ENTRY_HOME_KEY = 'entryHome';
-    const readSession = (key) => {
-      try {
-        return window.sessionStorage.getItem(key);
-      } catch {
-        return null;
-      }
-    };
-    const writeSession = (key, value) => {
-      try {
-        window.sessionStorage.setItem(key, value);
-      } catch {}
-    };
-
     const normalizePath = (value) => {
       if (!value) return '/';
       let next = value;
@@ -497,57 +428,15 @@
         return variants;
       })
     )];
-    const queryAudience = (() => {
-      try {
-        const params = new URLSearchParams(window.location.search || '');
-        return params.get('audience');
-      } catch {
-        return null;
-      }
-    })();
-    const bodyAudience = document.body && document.body.dataset
-      ? document.body.dataset.audience
-      : '';
-    const siteRealm = document.body && document.body.dataset
-      ? String(document.body.dataset.siteRealm || '').trim().toLowerCase()
-      : '';
-    const pathAudience = currentPathVariants
-      .map((path) => detectAudienceFromPath(path))
-      .find(Boolean);
-    const explicitAudienceCandidates = [queryAudience, pathAudience, bodyAudience].filter(Boolean);
-    const explicitProfessionalAudience = explicitAudienceCandidates
-      .find((audience) => normalizeAudience(audience) !== 'personal');
-    const explicitAudience = explicitProfessionalAudience || explicitAudienceCandidates[0] || '';
-    const realmAudience = siteRealm === 'professional'
-      ? 'analytics'
-      : (siteRealm === 'personal' ? 'personal' : '');
-    const storedAudience = readSession(AUDIENCE_KEY);
-    const activeAudience = getAudience(explicitAudience || realmAudience || storedAudience);
-    const activeAudienceKey = normalizeAudience(activeAudience && activeAudience.key);
-    const isRootHome = currentPathVariants.includes('/');
-    const entryHome = isRootHome ? '/' : String(activeAudience.homePath || '/');
-
-    writeSession(AUDIENCE_KEY, activeAudienceKey);
-    writeSession(ENTRY_HOME_KEY, entryHome);
-
-    return { activeAudience, currentPathVariants, entryHome };
+    return {
+      activeAudience: { key: 'personal', homePath: '/', portfolioPath: '/portfolio', portfolioAllPath: '/portfolio' },
+      currentPathVariants,
+      entryHome: '/'
+    };
   }
 
   function syncSearchAudience(form, audience) {
-    if (!form || !audience) return;
-    let input = form.querySelector('[data-search-audience]');
-    if (!audience.key || audience.key === 'personal') {
-      if (input) input.remove();
-      return;
-    }
-    if (!input) {
-      input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'audience';
-      input.dataset.searchAudience = '';
-      form.appendChild(input);
-    }
-    input.value = audience.key;
+    form?.querySelector('[data-search-audience]')?.remove();
   }
 
   function syncHeaderContext() {

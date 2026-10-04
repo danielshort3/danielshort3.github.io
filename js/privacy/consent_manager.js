@@ -29,14 +29,13 @@
 
   const STYLE_ID = 'pcz-consent-styles';
   const CRITICAL_STYLE_ID = 'pcz-consent-critical-styles';
-  const CSS_VERSION = 'v14';
+  const CSS_VERSION = 'v15';
 
   function loadStyles() {
     if (!document.getElementById(CRITICAL_STYLE_ID)) {
       const critical = document.createElement('style');
       critical.id = CRITICAL_STYLE_ID;
       critical.textContent = [
-        '#pcz-banner,#pcz-modal{--modal-accent:#091f3b;--modal-radius:12px;--modal-radius-mobile:12px;--modal-border:#091f3b;--modal-surface:#fff;--pcz-accent:#091f3b;--pcz-link:#091f3b;--cta-blue:#091f3b;--cta-blue-gradient:#091f3b;--cta-blue-shadow:none;--cta-blue-shadow-hover:none;font:16px/1.5 var(--font-sans,"Inter","Segoe UI",Arial,sans-serif);color:#091f3b;}',
         '#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58));-webkit-backdrop-filter:var(--modal-backdrop-filter,blur(4px));backdrop-filter:var(--modal-backdrop-filter,blur(4px));}',
         'body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;-webkit-backdrop-filter:none;backdrop-filter:none;}',
         '#pcz-banner .pcz-card{background:#fff;color:#091f3b;border:1px solid rgba(9,31,59,.14);box-shadow:0 10px 26px rgba(9,31,59,.1);border-radius:10px;}',
@@ -44,11 +43,35 @@
         '@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}',
         '#pcz-modal .pcz-panel:before{display:none;}',
         '#pcz-banner .pcz-body,#pcz-modal .policy-lead,#pcz-modal .pref-description{color:#334155;}',
-        '#pcz-banner .pcz-primary,#pcz-modal .pcz-save-preferences{background:var(--cta-blue-gradient,#091f3b)!important;color:var(--cta-blue-text,#fff)!important;border-color:var(--cta-blue,#091f3b)!important;border-radius:10px;min-height:44px;}',
-        '#pcz-banner .pcz-secondary{background:var(--interactive-bg,#fff)!important;color:var(--interactive-text,#091f3b)!important;border-color:var(--interactive-border,rgba(9,31,59,.2))!important;border-radius:10px;min-height:44px;}',
+        '#pcz-modal .pcz-save-preferences{background:#091f3b;color:#fff;border-color:#091f3b;border-radius:10px;min-height:44px;}',
+        '#pcz-banner .pcz-primary,#pcz-banner .pcz-secondary{background:#fff;color:#091f3b;border-color:#091f3b;border-radius:10px;min-height:44px;box-shadow:none;}',
         '#pcz-banner .pcz-link{color:#091f3b!important;}',
         '#pcz-banner .pcz-close{background:#fff;color:#334155;border-color:rgba(9,31,59,.16);}',
-        '#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;background:var(--surface-accent,#eef2f7);color:#334155;border-color:var(--border-1,#cbd5e1);font-size:28px;line-height:1;}'
+        '#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;background:var(--surface-accent,#eef2f7);color:#334155;border-color:var(--border-1,#cbd5e1);font-size:28px;line-height:1;}',
+        // Match the banner's geometry before its optional stylesheet arrives.
+        // Mobile replaces the space reserved by no-js.js in the same frame.
+        '#pcz-banner,#pcz-modal{--modal-accent:#091f3b;--modal-radius:12px;--modal-radius-mobile:12px;--modal-border:#091f3b;--modal-surface:#fff;--pcz-accent:#091f3b;--pcz-link:#091f3b;--cta-blue:#091f3b;--cta-blue-gradient:#091f3b;--cta-blue-shadow:none;--cta-blue-shadow-hover:none;font:16px/1.5 var(--font-sans,"Inter","Segoe UI",Arial,sans-serif);color:#091f3b;}',
+        '#pcz-banner *,#pcz-modal *{box-sizing:border-box;}#pcz-banner :is(button,a),#pcz-modal :is(button,a){font:inherit;}',
+        '.pcz-hidden{display:none!important;}',
+        '#pcz-banner{position:fixed;inset-inline:0;bottom:0;z-index:99999;padding:10px max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:transparent;transform:translateY(140%);opacity:0;pointer-events:none;}',
+        '#pcz-banner.pcz-visible{transform:translateY(0);opacity:1;}#pcz-banner.pcz-exit{opacity:0;transform:translateY(140%);}',
+        '#pcz-banner .pcz-card{position:relative;width:min(920px,100%);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:center;padding:10px 52px 10px 14px;pointer-events:auto;}',
+        '#pcz-banner .pcz-copy{min-width:0;}#pcz-banner .pcz-body{margin:0;max-width:66ch;font-size:.86rem;line-height:1.36;}',
+        '#pcz-banner .pcz-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center;}',
+        '#pcz-banner :is(.pcz-btn,.pcz-close,.pcz-link){appearance:none;border:1px solid transparent;cursor:pointer;}#pcz-banner .pcz-btn{min-height:44px;padding:8px 12px;border-radius:10px;font-size:.92rem;font-weight:600;line-height:1.2;text-decoration:none;white-space:normal;}',
+        '#pcz-banner .pcz-link{padding:0;border:0;background:transparent;text-decoration:underline;}#pcz-banner .pcz-inline-link{display:inline;max-width:100%;font-weight:600;white-space:normal;}',
+        '#pcz-banner .pcz-close{position:absolute;top:50%;right:14px;width:32px;height:32px;display:grid;place-items:center;border-radius:999px;transform:translateY(-50%);}',
+        '#pcz-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));opacity:0;pointer-events:none;}#pcz-modal.pcz-visible{opacity:1;pointer-events:auto;}',
+        '#pcz-modal .pcz-panel{width:min(640px,100%);max-height:calc(100svh - 36px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:16px;overflow:hidden;margin:0;padding:20px;}',
+        '#pcz-modal .pcz-panel-head{position:relative;min-height:44px;margin:0;padding-right:56px;}#pcz-modal .pcz-panel-head h2{margin:0;font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.2;}#pcz-modal .pcz-panel-close{position:absolute;top:0;right:0;}#pcz-modal .pcz-panel-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:3px;}#pcz-modal .pcz-panel-actions{padding-top:12px;border-top:1px solid #cbd5e1;}#pcz-modal .pcz-save-preferences{width:100%;margin:0;padding:12px 16px;}',
+        '#pcz-modal .policy-lead{margin:0 0 14px;font-size:.97rem;line-height:1.6;}#pcz-modal .pref-grid{display:grid;gap:12px;}#pcz-modal .pref-option{display:grid;gap:6px;padding:12px;border:1px solid #cbd5e1;border-radius:10px;background:#eef2f7;}#pcz-modal .pref-toggle,#pcz-modal .pref-status-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:44px;padding:6px 8px;border:1px solid transparent;border-radius:10px;background:transparent;color:#091f3b;text-align:left;}#pcz-modal .pref-label-group{display:grid;gap:4px;min-width:0;}#pcz-modal .pref-label{font-size:1rem;font-weight:600;line-height:1.35;overflow-wrap:anywhere;}#pcz-modal .pref-helper{font-size:.82rem;line-height:1.45;}#pcz-modal .pref-description{margin:0;padding:0 8px;font-size:.92rem;line-height:1.55;}#pcz-modal .pref-state{padding:4px 10px;font-size:.76rem;font-weight:700;}#pcz-modal .pref-toggle[aria-pressed="true"]{background:#091f3b;color:#fff;}',
+        '#pcz-modal .pref-status-row{display:flex;flex-wrap:wrap;}#pcz-modal .pref-status-row .pref-label-group{flex:1 1 8rem;}#pcz-modal .pref-status-row .pref-state{flex:0 0 auto;}',
+        '@media(max-width:900px){#pcz-banner .pcz-card{grid-template-columns:1fr;align-items:start;gap:8px;padding:10px 46px 10px 12px;}#pcz-banner .pcz-actions{justify-content:flex-start;}#pcz-banner .pcz-btn{min-height:44px;}}',
+        '@media(max-width:640px){#pcz-banner{padding:6px max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));}#pcz-banner .pcz-card{border-radius:8px;gap:8px;padding:10px;}#pcz-banner .pcz-body{max-width:none;font-size:.8rem;line-height:1.32;}#pcz-banner .pcz-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:6px;}#pcz-banner .pcz-btn{width:100%;min-height:44px;padding:6px 8px;font-size:.8rem;justify-content:center;text-align:center;}#pcz-banner .pcz-close{right:8px;}#pcz-modal{align-items:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}#pcz-modal .pcz-panel{max-height:calc(100svh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));gap:12px;padding:16px;}}',
+        '@media(max-width:768px){body.has-mobile-site-masthead #pcz-banner{box-sizing:border-box;position:static;top:auto;bottom:auto;inset-inline:auto;width:auto;z-index:auto;padding:8px max(8px,env(safe-area-inset-right)) 0 max(8px,env(safe-area-inset-left));transform:none;}body.has-mobile-site-masthead #pcz-banner:is(.pcz-visible,.pcz-exit){transform:none;}body.has-mobile-site-masthead #pcz-banner .pcz-card{width:min(100%,430px);margin-inline:auto;}body.has-mobile-site-masthead #pcz-banner .pcz-body{font-size:.78rem;line-height:1.28;}body.has-mobile-site-masthead #pcz-banner .pcz-btn{padding:5px 8px;font-size:.76rem;}}',
+        '@media(max-width:768px),(pointer:coarse){#pcz-banner .pcz-card{padding:10px;}#pcz-banner .pcz-copy{padding-right:52px;}#pcz-banner .pcz-btn,body.has-mobile-site-dock #pcz-banner .pcz-btn,#pcz-banner .pcz-inline-link{min-height:44px;}#pcz-banner .pcz-inline-link{display:inline-flex;align-items:center;}#pcz-banner .pcz-close{top:8px;right:8px;width:44px;height:44px;transform:none;}}',
+        '@media(min-width:941px){body[data-page="home"].home-pattern-page #pcz-banner{padding-right:calc(300px + max(16px,env(safe-area-inset-right)));}body[data-page="home"].home-pattern-page #pcz-banner .pcz-card{width:min(760px,100%);}}'
+
       ].join('\n');
       document.head.appendChild(critical);
     }
@@ -71,36 +94,35 @@
       en: {
         bannerTitle: 'I value your privacy.',
         bannerDesc: 'Optional cookies help me improve this site. You choose what to allow.',
-        acceptAll: 'Allow all',
-        rejectAll: 'Essential only',
-        managePrefs: 'Manage settings',
+        acceptAll: 'Accept optional',
+        rejectAll: 'Reject optional',
+        managePrefs: 'Manage preferences',
         privacyPolicy: 'Privacy Policy',
         close: 'Close banner and use essential cookies only',
-        modalTitle: 'Manage Your Privacy Settings',
-        modalLead: 'Adjust your preferences below and click “Save preferences” to apply the changes. Necessary cookies are always enabled.',
+        modalTitle: 'Manage your privacy settings',
+        modalLead: 'Choose optional services, then save. Necessary storage stays on.',
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
         closePrefs: 'Close',
         stateOn: 'On',
         stateOff: 'Off',
         stateAlwaysOn: 'Always on',
-        requiredLabel: 'Required for site operation',
         categories: {
           necessary: {
             label: 'Strictly necessary',
-            description: 'These cookies are required for the site to run: navigation, basic interactions, and honoring your privacy choices. They cannot be disabled.'
+            description: 'Saves your privacy choice. Core tool storage works independently of optional choices.'
           },
           analytics: {
             label: 'Analytics',
-            description: 'Analytics cookies help me understand which pages are viewed most often and how visitors move around the site so I can improve the experience.'
+            description: 'Google Analytics measures visits, interactions and page performance to help improve the site.'
           },
           functional: {
             label: 'Functional',
-            description: 'Functional cookies remember your settings (like language or filters) so features feel more tailored to you.'
+            description: 'No extra service is enabled today. Core tool settings and drafts work when this is off.'
           },
           advertising: {
             label: 'Advertising',
-            description: 'Advertising cookies make it possible to personalize or measure marketing efforts. They are only used if you opt in.'
+            description: 'Allows Google ad storage, data use and personalization when Analytics is on. No separate ad service is loaded.'
           }
         },
         doNotSell: 'Do Not Sell/Share My Personal Information',
@@ -109,36 +131,35 @@
       es: {
         bannerTitle: 'Valoro tu privacidad',
         bannerDesc: 'Utilizo cookies opcionales para entender el tráfico y mejorar el sitio. Elige el nivel con el que te sientas cómodo.',
-        acceptAll: 'Permitir todas',
-        rejectAll: 'Solo esenciales',
-        managePrefs: 'Administrar ajustes',
+        acceptAll: 'Aceptar opcionales',
+        rejectAll: 'Rechazar opcionales',
+        managePrefs: 'Administrar preferencias',
         privacyPolicy: 'Política de privacidad',
         close: 'Cerrar y usar solo cookies esenciales',
         modalTitle: 'Preferencias de privacidad',
-        modalLead: 'Ajusta tus preferencias y pulsa “Guardar preferencias” para aplicar los cambios. Las cookies necesarias siempre están activadas.',
+        modalLead: 'Elige los servicios opcionales y guarda. El almacenamiento necesario sigue activo.',
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
         closePrefs: 'Cerrar',
         stateOn: 'Sí',
         stateOff: 'No',
         stateAlwaysOn: 'Siempre activas',
-        requiredLabel: 'Necesarias para el funcionamiento del sitio',
         categories: {
           necessary: {
             label: 'Estrictamente necesarias',
-            description: 'Estas cookies son necesarias para funciones básicas del sitio web como la navegación y el acceso a áreas seguras. No se pueden desactivar.'
+            description: 'Guarda tu elección de privacidad. El almacenamiento básico de las herramientas es independiente de las opciones siguientes.'
           },
           analytics: {
             label: 'Analíticas',
-            description: 'Las cookies de análisis nos ayudan a entender cómo interactúan los visitantes con nuestro sitio y mejorar su rendimiento.'
+            description: 'Google Analytics mide visitas, interacciones y el rendimiento de las páginas para ayudar a mejorar el sitio.'
           },
           functional: {
             label: 'Funcionales',
-            description: 'Las cookies funcionales permiten que el sitio recuerde sus elecciones y ofrezca funciones mejoradas y más personales.'
+            description: 'Actualmente no activa ningún servicio adicional. Los ajustes y borradores de las herramientas funcionan aunque esté desactivada.'
           },
           advertising: {
             label: 'Publicidad',
-            description: 'Las cookies de publicidad se usan para ofrecer anuncios relevantes y medir la eficacia de las campañas de marketing.'
+            description: 'Permite el almacenamiento publicitario, uso de datos y personalización de Google si Analíticas está activada. No carga otro servicio publicitario.'
           }
         },
         doNotSell: 'No vender/compartir mi información personal',
@@ -389,12 +410,36 @@
   }
 
   /**
+   * Google connection hints share the vendor's consent and environment gate.
+   */
+  function setAnalyticsConnectionHints(enabled) {
+    ['https://www.googletagmanager.com', 'https://www.google-analytics.com'].forEach(function (origin, index) {
+      ['preconnect', 'dns-prefetch'].forEach(function (rel) {
+        const id = 'pcz-analytics-' + rel + '-' + index;
+        const existing = document.getElementById(id);
+        if (!enabled) {
+          if (existing) existing.remove();
+          return;
+        }
+        if (existing) return;
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = rel;
+        link.href = origin;
+        if (rel === 'preconnect') link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+      });
+    });
+  }
+
+  /**
    * Dynamically load or unload a vendor script based on consent.
    */
   function enableVendor(vendorKey, enabled) {
     const vendor = CONFIG.vendors[vendorKey];
     if (!vendor) return;
     if (vendorKey === 'gtm' && window.SiteAnalyticsEnvironment?.enabled === false) enabled = false;
+    if (vendorKey === 'gtm' && !enabled) setAnalyticsConnectionHints(false);
     vendor._consentGranted = !!enabled;
     if (enabled && !vendor.enabled) {
       if (vendorKey === 'gtm') {
@@ -405,6 +450,7 @@
         }
         const scriptId = 'gtm-src';
         const loadGtm = () => {
+          setAnalyticsConnectionHints(true);
           if (document.getElementById(scriptId)) return;
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
@@ -485,8 +531,8 @@
           '</p>' +
         '</div>' +
         '<div class="pcz-actions">' +
-          '<button id="pcz-accept" type="button" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
           '<button id="pcz-reject" type="button" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
+          '<button id="pcz-accept" type="button" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
         '</div>' +
         '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
       '</div>';
@@ -501,7 +547,8 @@
     overlay.id = 'pcz-modal';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', localeStrings.modalTitle);
+    overlay.setAttribute('aria-labelledby', 'pcz-modal-title');
+    overlay.setAttribute('aria-describedby', 'pcz-modal-lead');
     const panel = document.createElement('div');
     panel.className = 'pcz-panel policy-card';
     panel.setAttribute('tabindex', '-1');
@@ -509,7 +556,6 @@
     const stateOnLabel = localeStrings.stateOn || 'On';
     const stateOffLabel = localeStrings.stateOff || 'Off';
     const stateAlwaysOnLabel = localeStrings.stateAlwaysOn || 'Always on';
-    const requiredLabel = localeStrings.requiredLabel || 'Required for site operation';
     ['necessary','analytics','functional','advertising'].forEach(function (key) {
       const cat = localeStrings.categories[key];
       const descId = 'pcz-pref-desc-' + key;
@@ -524,41 +570,34 @@
               ? '<div class="pref-status-row" data-locked="true" aria-disabled="true">' +
                   '<span class="pref-label-group">' +
                     '<span class="pref-label">' + cat.label + '</span>' +
-                    '<span class="pref-helper">' + requiredLabel + '</span>' +
                   '</span>' +
                   '<span class="pref-state" aria-hidden="true">' + stateAlwaysOnLabel + '</span>' +
                 '</div>'
-              : '<button type="button" class="pref-toggle" data-pref="' + key + '" aria-pressed="' + isOn + '">' +
+              : '<button type="button" class="pref-toggle" data-pref="' + key + '" aria-pressed="' + isOn + '" aria-label="' + cat.label + '" aria-describedby="' + descId + '">' +
                   '<span class="pref-label-group">' +
                     '<span class="pref-label">' + cat.label + '</span>' +
                   '</span>' +
                   '<span class="pref-state" aria-hidden="true">' + stateLabel + '</span>' +
                 '</button>') +
-            '<button type="button" class="pref-info" aria-expanded="false" aria-controls="' + descId + '">' +
-              '<span aria-hidden="true">?</span>' +
-              '<span class="visually-hidden">Read what ' + cat.label + ' cookies do</span>' +
-            '</button>' +
           '</div>' +
-          '<div id="' + descId + '" class="pref-disclosure" aria-hidden="true">' +
-            '<div class="pref-disclosure-inner">' +
-              '<p class="pref-description">' + cat.description + '</p>' +
-            '</div>' +
-          '</div>' +
+          '<p id="' + descId + '" class="pref-description">' + cat.description + '</p>' +
         '</div>';
     });
-    const lead = localeStrings.modalLead ? '<p class="policy-lead">' + localeStrings.modalLead + '</p>' : '';
+    const lead = '<p class="policy-lead" id="pcz-modal-lead">' + localeStrings.modalLead + '</p>';
     const gpcNotice = hasGPC() ? '<p class="policy-lead pcz-gpc-notice">' + localeStrings.gpcHonoured + '</p>' : '';
     panel.innerHTML =
       '<div class="pcz-panel-head">' +
-        '<h2>' + localeStrings.modalTitle + '</h2>' +
+        '<h2 id="pcz-modal-title">' + localeStrings.modalTitle + '</h2>' +
         '<button type="button" class="pcz-panel-close" id="pcz-close-modal" aria-label="' + localeStrings.closePrefs + '">' +
           '<span aria-hidden="true">&times;</span>' +
         '</button>' +
       '</div>' +
-      lead +
-      gpcNotice +
-      '<div class="pref-grid" role="list">' + categoriesHTML + '</div>' +
-      '<button type="button" id="pcz-save" class="pcz-save-preferences">' + localeStrings.savePrefs + '</button>';
+      '<div class="pcz-panel-body">' + lead + gpcNotice +
+        '<div class="pref-grid" role="list">' + categoriesHTML + '</div>' +
+      '</div>' +
+      '<div class="pcz-panel-actions">' +
+        '<button type="button" id="pcz-save" class="pcz-save-preferences">' + localeStrings.savePrefs + '</button>' +
+      '</div>';
     overlay.appendChild(panel);
     return overlay;
   }
@@ -593,13 +632,7 @@
       if (content) content.before(banner);
       else document.body.appendChild(banner);
     }
-    const stylesheet = document.getElementById(STYLE_ID);
-    if (stylesheet && !stylesheet.sheet) {
-      stylesheet.addEventListener('load', releaseReservedBannerSpace, { once: true });
-      stylesheet.addEventListener('error', releaseReservedBannerSpace, { once: true });
-    } else {
-      releaseReservedBannerSpace();
-    }
+    releaseReservedBannerSpace();
     setBannerUiState(true);
     if (window.SiteMotion) window.SiteMotion.presence(banner, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
     else banner.classList.add('pcz-visible');
@@ -617,6 +650,7 @@
       setBannerUiState(false);
       const cleanup = () => {
         banner.remove();
+        window.dispatchEvent(new CustomEvent('consent-ui-closed'));
       };
       if (window.SiteMotion) window.SiteMotion.presence(banner, false, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false, onFinish: cleanup });
       else cleanup();
@@ -657,7 +691,7 @@
   /**
    * Show the preferences modal and handle focus and save logic.
    */
-  function openPreferences(localeStrings, currentState, blocking) {
+  function openPreferences(localeStrings, currentState, blocking, opener) {
     const existingModal = document.getElementById('pcz-modal');
     if (existingModal) {
       if (existingModal.dataset.state === 'closing' && window.SiteMotion) {
@@ -667,9 +701,11 @@
       }
       return;
     }
-    const returnFocus = document.activeElement && document.activeElement !== document.body
+    // Safari does not focus buttons on pointer activation. Keep the actual
+    // opener so closing still returns to the control that opened preferences.
+    const returnFocus = opener || (document.activeElement && document.activeElement !== document.body
       ? document.activeElement
-      : null;
+      : null);
     if (blocking) {
       try { document.body.classList.add('consent-blocked'); } catch (err) {}
     }
@@ -727,19 +763,6 @@
         if (stateEl) stateEl.textContent = current ? stateOffLabel : stateOnLabel;
       });
     });
-    modal.querySelectorAll('.pref-info[aria-controls]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        const expanded = button.getAttribute('aria-expanded') === 'true';
-        const targetId = button.getAttribute('aria-controls');
-        const target = targetId ? document.getElementById(targetId) : null;
-        const row = button.closest('.pref-option');
-        const nextExpanded = !expanded;
-        button.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
-        if (row) row.classList.toggle('is-expanded', nextExpanded);
-        if (target) target.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
-      });
-    });
-
     modal.querySelector('#pcz-save').addEventListener('click', function () {
       const newState = {
         necessary: true,
@@ -777,6 +800,7 @@
       const target = returnFocus && returnFocus.isConnected ? returnFocus : fallback;
       if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
       try { modal.remove(); } catch (err) {}
+      window.dispatchEvent(new CustomEvent('consent-ui-closed'));
     };
     if (window.SiteMotion) window.SiteMotion.presence(modal, false, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false, onFinish: cleanup });
     else cleanup();
@@ -810,7 +834,7 @@
           event.preventDefault();
           const saved = loadConsent();
           const currentState = saved && saved.categories ? saved.categories : getDefaultState();
-          openPreferences(localeStrings, currentState, false);
+          openPreferences(localeStrings, currentState, false, event.currentTarget);
         });
       });
     }

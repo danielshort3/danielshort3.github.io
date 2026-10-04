@@ -131,9 +131,9 @@ function main() {
   log('Starting site build');
 
   try {
-    // 1) Managed CMS content (content/ -> authored site sources)
-    const cmsStep = runNodeScript(path.join('build', 'generate-cms-artifacts.js'), { verbose });
-    logStep('cms-content', cmsStep.durationMs, 'content/ -> pages/, js/, build/templates/');
+    // 1) Managed content (content/ -> authored site sources)
+    const contentStep = runNodeScript(path.join('build', 'generate-content-artifacts.js'), { verbose });
+    logStep('content', contentStep.durationMs, 'content/ -> pages/, js/, build/templates/');
 
     // 2) High-impact image variants (PNG sources -> AVIF/WebP)
     const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });
@@ -147,7 +147,7 @@ function main() {
     // 3) Branded homepage library previews (authored WebP cards)
     const homeVisualsStep = runNodeScript(path.join('build', 'validate-home-library-visuals.js'), { verbose });
     logStep('home-previews', homeVisualsStep.durationMs,
-      '16 projects + 10 tools + 6 games');
+      '17 projects + 10 tools + 6 games');
 
     // 4) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
@@ -155,12 +155,11 @@ function main() {
     const manifest = readJson(cssManifestPath);
     const cssOutputs = [
       ['base', manifest && manifest.file],
+      ['demo', manifest && manifest.demoFile],
       ['home', manifest && manifest.homeFile],
       ['workbench', manifest && manifest.workbenchFile],
       ['tools', manifest && manifest.toolsFile],
-      ['personal-accordion', manifest && manifest.personalAccordionFile],
-      ['professional', manifest && manifest.professionalFile],
-      ['analytics', manifest && manifest.analyticsFile]
+      ['personal-accordion', manifest && manifest.personalAccordionFile]
     ].filter(([, fileName]) => typeof fileName === 'string');
     const cssDetail = cssOutputs.length
       ? cssOutputs.map(([label, fileName]) => {
@@ -196,8 +195,7 @@ function main() {
       : 0;
     logStep('projects', projectsStep.durationMs, `pages/portfolio (${projectPages} pages), sitemap.xml`);
 
-    // Personal library/detail routes share one isolated-category accordion shell while
-    // audience-specific professional copies retain the original workbench.
+    // Personal library/detail routes share one isolated-category accordion shell.
     const personalAccordionStep = runNodeScript(path.join('build', 'generate-personal-accordion-pages.js'), { verbose });
     logStep('personal-accordion', personalAccordionStep.durationMs, 'personal libraries + detail routes');
 

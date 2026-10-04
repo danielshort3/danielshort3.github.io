@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { preparePersonalProjectDetailHtml, renderProjectPage } = require('../../build/generate-project-pages');
-const { markProfessionalInternalHtml, wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
+const { wrapPersonalAccordionHtml } = require('../../build/lib/personal-accordion-shell');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -39,8 +39,6 @@ function runProjectPrivacyLayoutTests({ assert }) {
   assert(babyNames.includes('<nav class="project-next-steps" aria-label="Continue exploring">')
     && babyNames.includes('<a class="project-all-link" href="/portfolio">All projects</a>'),
   'Every project keeps a library return at the end, even without a next-project suggestion.');
-  assert(markProfessionalInternalHtml(babyNames, 'analytics').includes('<a class="project-all-link" href="/portfolio?audience=analytics">All projects</a>'),
-  'Professional project copies keep their audience when returning to the library.');
   for (const id of ['handwritingRating', 'shapeClassifier']) {
     const drawing = renderProjectPage(project(id));
     assert(drawing.includes('project-main--drawing') && !drawing.includes('class="project-demo-header"'),
@@ -112,7 +110,15 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const match of privacyMain.matchAll(/\bid="([^"]+)"/g)) idCounts.set(match[1], (idCounts.get(match[1]) || 0) + 1);
   assert([...idCounts.values()].every((count) => count === 1), 'Moving preferences creates no duplicate IDs.');
   const shortcuts = [...privacyMain.matchAll(/href="(\/privacy#[^"]+)"/g)].map((match) => match[1]);
-  assert(shortcuts.length === 7, 'Privacy has an early preferences jump and six section shortcuts.');
+  assert(shortcuts.length === 12, 'Privacy has two early actions, nine section shortcuts, and an inline account deletion link.');
+  assert(privacyMain.includes('id="assistant-and-links"') && shortcuts.includes('/privacy#assistant-and-links')
+    && privacyMain.includes('configurable retention period, with a 30-day default'),
+  'Assistant notices reach a real policy section that distinguishes configurable log retention from a universal promise.');
+  assert(privacyMain.includes('id="android-app"') && shortcuts.includes('/privacy#android-app'),
+    'The Android policy has a direct section shortcut.');
+  assert(privacyMain.includes('id="account-deletion"') && shortcuts.filter((href) => href === '/privacy#account-deletion').length === 3
+    && privacyMain.includes('mailto:daniel@danielshort.me?subject=Delete%20my%20Daniel%20Short%20Tools%20account'),
+  'Account deletion has a public anchor, visible navigation, and a direct email request.');
   for (const href of shortcuts) {
     const url = new URL(href, 'https://www.danielshort.me/');
     assert(url.pathname === '/privacy' && idCounts.get(url.hash.slice(1)) === 1,
@@ -124,8 +130,9 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const pref of ['necessary', 'analytics', 'functional', 'advertising']) {
     assert((privacyMain.match(new RegExp(`class="pref-toggle" data-pref="${pref}"`, 'g')) || []).length === 1,
       `${pref} has exactly one actual preference toggle.`);
-    assert(idCounts.get(`pref-desc-${pref}`) === 1 && privacyMain.includes(`aria-controls="pref-desc-${pref}"`),
-      `${pref} keeps its existing expandable explanation.`);
+    assert(idCounts.get(`pref-desc-${pref}`) === 1 && privacyMain.includes(`aria-describedby="pref-desc-${pref}"`) &&
+      !new RegExp(`id="pref-desc-${pref}"[^>]* hidden`).test(privacyMain),
+      `${pref} keeps its purpose visible and associates it with the control.`);
   }
   assert(/data-pref="necessary"[^>]*data-locked="true" disabled/.test(privacyMain),
     'Necessary cookies remain locked on.');

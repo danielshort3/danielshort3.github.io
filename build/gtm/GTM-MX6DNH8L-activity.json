@@ -1,6 +1,6 @@
 {
   "exportFormatVersion": 2,
-  "exportTime": "2026-09-20 01:15:50",
+  "exportTime": "2026-09-28 06:56:59",
   "containerVersion": {
     "path": "accounts/6221119580/containers/179683921/versions/0",
     "accountId": "6221119580",
@@ -693,7 +693,7 @@
         "accountId": "6221119580",
         "containerId": "179683921",
         "tagId": "41",
-        "name": "GA4 - Event - Content & Contributions",
+        "name": "GA4 - Event - Content",
         "type": "gaawe",
         "parameter": [
           {
@@ -1165,7 +1165,7 @@
         "accountId": "6221119580",
         "containerId": "179683921",
         "triggerId": "27",
-        "name": "CE - Content & Contributions",
+        "name": "CE - Content",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
@@ -1179,7 +1179,7 @@
               {
                 "type": "TEMPLATE",
                 "key": "arg1",
-                "value": "^(see_more_toggle|scroll_depth|contrib_doc_click|contrib_timeline_toggle)$"
+                "value": "^(see_more_toggle|scroll_depth)$"
               }
             ]
           }

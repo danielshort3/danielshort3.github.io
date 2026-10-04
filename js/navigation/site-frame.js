@@ -121,6 +121,15 @@
       nextBody.classList.add('personal-accordion__content');
       nextBody.setAttribute('data-personal-detail-content', '');
     }
+    // Keep existing embedded documents connected during the initial shell
+    // adoption. Ordinary DOM reparenting reloads an iframe and its assets.
+    const preserveInitialState = original && source.isConnected && viewport.isConnected &&
+      typeof nextBody.moveBefore === 'function';
+    if (preserveInitialState) viewport.append(nextBody);
+    const appendOriginal = (nodes) => {
+      if (preserveInitialState) nodes.forEach((node) => nextBody.moveBefore(node, null));
+      else nextBody.append(...nodes);
+    };
     if (description.home) {
       nextBody.id = 'main';
       const items = new Map();
@@ -147,11 +156,11 @@
         result.heading.textContent = sourceHeading.textContent;
         nextBody.append(result.heading);
       }
-      nextBody.append(items.get(result.category) || items.values().next().value);
+      appendOriginal([items.get(result.category) || items.values().next().value]);
     } else {
       const content = source.querySelector('[data-personal-detail-content]');
       if (!content) throw new Error('The destination content is unavailable.');
-      nextBody.append(...content.childNodes);
+      appendOriginal([...content.childNodes]);
     }
     result.body = nextBody;
     return result;
@@ -160,11 +169,13 @@
   function configure(description) {
     const closed = description.home && description.view === 'closed';
     const gamePresentation = description.presentation === 'game';
-    const railFree = gamePresentation || (description.audience === 'personal' && mobileDockQuery.matches &&
-      (!description.home || description.view === 'library'));
+    const singleSectionRail = description.audience === 'personal' && mobileDockQuery.matches &&
+      (!description.home || description.view === 'library');
+    // The Android WebView supplies its own native navigation after loading.
+    const railFree = gamePresentation || singleSectionRail && Boolean(document.getElementById?.('android-feature-chrome'));
     description.fit = framePolicy.resolveFit(description.fit);
     frame.dataset.frameAudience = description.audience;
-    frame.dataset.frameNavigation = railFree ? 'dock' : 'rails';
+    frame.dataset.frameNavigation = railFree ? 'dock' : (singleSectionRail ? 'section' : 'rails');
     frame.dataset.frameView = description.view;
     frame.dataset.frameHome = String(description.home);
     frame.dataset.frameFit = description.fit;
@@ -193,7 +204,8 @@
     const order = description.audience === 'personal' ? personalOrder : professionalOrder;
     const overview = description.home && description.view === 'overview';
     const compact = compactQuery.matches;
-    const visible = railFree ? [] : (closed || overview || description.audience !== 'personal' || compact ? order : [description.category]);
+    const visible = railFree ? [] : (singleSectionRail ? [description.category] :
+      (closed || overview || description.audience !== 'personal' || compact ? order : [description.category]));
     visible.forEach((id) => ensureTab(id));
     tabs.forEach((link, id) => {
       const active = id === description.category;
@@ -245,6 +257,11 @@
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = 'auto';
       slot.style.gridArea = '1 / 1';
+    } else if (singleSectionRail) {
+      stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
+      stage.style.gridTemplateRows = 'minmax(48px, auto) auto';
+      tabs.get(description.category).style.gridArea = '1 / 1';
+      slot.style.gridArea = '2 / 1';
     } else if (compact && overview) {
       stage.style.gridTemplateColumns = 'minmax(0, 1fr)';
       stage.style.gridTemplateRows = visible.flatMap((id) => id === description.category ? ['minmax(54px, auto)', 'auto'] : ['minmax(48px, auto)']).join(' ');
@@ -1100,8 +1117,9 @@
     stage.append(panel);
     frame.append(welcome, stage);
     description.tabSources.forEach((source) => ensureTab(source.dataset.siteTab || source.dataset.homeAccordionTrigger, source));
-    outlet.replaceWith(frame);
+    outlet.before(frame);
     commit(description, { original: true, animate: false });
+    outlet.remove();
     lastWidth = frame.clientWidth;
     return frame;
   }

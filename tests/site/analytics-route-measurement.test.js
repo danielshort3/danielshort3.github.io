@@ -106,6 +106,8 @@ async function run() {
   assert.equal(env.pageviews().length, 1, 'query filters and hashes do not duplicate semantic routes');
   env.window.gaEvent('select_content', { item_id: 'project' });
   assert.equal(env.window.dataLayer.at(-1).page_id, 'portfolio', 'custom events use the same route-aware context');
+  env.window.gaEvent('see_more_toggle', { expanded: true });
+  assert.equal(env.window.dataLayer.at(-1).activity_category, 'content', 'remaining content interactions keep their analytics category');
   env.window.gaEvent('game_milestone', { game_id: 'stormbreak', milestone_id: 'first_victory', input_type: 'keyboard', private_detail: 'private' });
   assert.equal(env.window.dataLayer.at(-1).activity_label, 'stormbreak');
   assert.equal(env.window.dataLayer.at(-1).activity_detail, 'first_victory', 'GTM curated activity fields retain the milestone identifier');

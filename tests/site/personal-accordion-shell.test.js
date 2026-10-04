@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const runEarlyBootstrapTests = require('./early-bootstrap.test');
 const {
   CATEGORY_CONFIG,
   HARD_NAVIGATION_PATHS,
@@ -60,8 +61,8 @@ function assertTransitionBootstrap(assert, relativePath, html) {
   const source = String(html || '');
   const headEnd = source.search(/<\/head>/i);
   const bodyStart = source.search(/<body\b/i);
-  const scriptTags = source.match(/<script\b[^>]*><\/script>/gi) || [];
-  const noJsTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?js\/common\/no-js\.js"/i.test(tag));
+  const scriptTags = source.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || [];
+  const noJsTags = scriptTags.filter((tag) => /\bdata-site-bootstrap="early"|\bsrc="(?:\/)?js\/common\/no-js\.js"/i.test(tag));
   const shellTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?dist\/site-shell\.[^"/]+\.js"/i.test(tag));
   const noJsIndex = noJsTags.length === 1 ? source.indexOf(noJsTags[0]) : -1;
   const shellIndex = shellTags.length === 1 ? source.indexOf(shellTags[0]) : -1;
@@ -75,8 +76,11 @@ function assertTransitionBootstrap(assert, relativePath, html) {
     /\bdefer\b/i.test(shellTags[0]),
   `${relativePath} should load one deferred site shell from the document head`);
   const stylesheetIndex = source.search(/<link\b[^>]*\brel="stylesheet"[^>]*>/i);
-  assert(stylesheetIndex >= 0 && stylesheetIndex < noJsIndex,
-    `${relativePath} should declare its transition styles before the synchronous preload bootstrap`);
+  assert(stylesheetIndex >= 0 && noJsIndex < stylesheetIndex,
+    `${relativePath} should set its initial root state before waiting for stylesheets`);
+  const tracker = /(?:\/|^)job-application-tracker\.html$/.test(relativePath);
+  assert(tracker ? /\bsrc=/.test(noJsTags[0] || '') : /\bdata-site-bootstrap="early"/.test(noJsTags[0] || ''),
+    `${relativePath} should avoid a blocking bootstrap request where its CSP permits inline execution`);
 }
 
 function walkHtml(relativeDir) {
@@ -96,6 +100,7 @@ function walkHtml(relativeDir) {
 }
 
 function runPersonalAccordionShellTests({ assert }) {
+  runEarlyBootstrapTests({ assert });
   const sample = [
     '<!doctype html>',
     '<html><head><base href="/"><link rel="canonical" href="https://www.danielshort.me/contact"></head>',
@@ -416,8 +421,8 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 52,
-    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 16 projects, 18 tools, and seven games');
+  assert(uniqueManagedPages.length === 53,
+    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 17 projects, 18 tools, and seven games');
   assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
@@ -559,9 +564,9 @@ function runPersonalAccordionShellTests({ assert }) {
   'Homepage should expose its five collapsed tabs, persistent chrome, and closed route manifest');
   assert(read('build/templates/header.partial.html').includes('data-site-shell-header') &&
     read('build/templates/footer.partial.html').includes('data-site-shell-footer') &&
-    read('build/lib/cms-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&
-    read('build/lib/cms-renderers.js').includes("'<footer class=\"footer footer-classic footer--personal-compact\" data-site-shell-footer>'"),
-  'CMS rendering and generated personal templates should preserve both persistent chrome hooks');
+    read('build/lib/site-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&
+    read('build/lib/site-renderers.js').includes("'<footer class=\"footer footer-classic footer--personal-compact\" data-site-shell-footer>'"),
+  'content rendering and generated personal templates should preserve both persistent chrome hooks');
 
   const finalizedHome = finalizePersonalRouteDocument(homeHtml, { home: true });
   assert(count(finalizedHome, /id="site-route-manifest"/g) === 1 &&
@@ -595,52 +600,12 @@ function runPersonalAccordionShellTests({ assert }) {
     oceanWaveHtml.indexOf('ocean-wave-hero') < oceanWaveHtml.indexOf('<main id="main">'),
   'Ocean Wave Simulation should keep its page hero inside the selected Games panel');
 
-  const professionalFiles = walkHtml('pages/professional');
-  assert(professionalFiles.length > 0, 'Build should generate internal professional portfolio/contact copies');
-  professionalFiles.forEach((filePath) => {
-    const html = fs.readFileSync(filePath, 'utf8');
-    const relativePath = path.relative(ROOT, filePath).replace(/\\/g, '/');
-    assertTransitionBootstrap(assert, relativePath, html);
-    assertTransitionBootstrap(assert, `public/${relativePath}`, read(path.join('public', relativePath)));
-    const audience = relativePath.split('/')[2];
-    const canonical = getTagAttribute(html, /<link\b[^>]*\brel="canonical"[^>]*>/i, 'href');
-    const ogUrl = getTagAttribute(html, /<meta\b[^>]*\bproperty="og:url"[^>]*>/i, 'content');
-    assert(html.includes('data-personal-accordion-shell'), `${relativePath} should use the shared tab shell`);
-    assert(new RegExp(`<body[^>]*data-audience="${audience}"`, 'i').test(html), `${relativePath} should retain its audience`);
-    assert(/<body[^>]*data-personal-fit="viewport"/i.test(html),
-      `${relativePath} should share the standard bounded frame across audiences`);
-    assert(count(html, /<meta\b[^>]*\bname="robots"[^>]*\bcontent="noindex, nofollow"[^>]*>/gi) === 1,
-      `${relativePath} should contain one noindex directive`);
-    assert(canonical.includes(`?audience=${audience}`), `${relativePath} should canonicalize to its visible audience URL`);
-    assert(canonical === ogUrl, `${relativePath} canonical and og:url should match`);
-    assert(!canonical.includes('/pages/professional/'), `${relativePath} should not expose its internal storage URL`);
-    assert(html.includes('footer--personal-compact'), relativePath + ' should use the shared compact footer');
-    assert(html.includes('data-site-tab-rail-mode="navigation"') && !html.includes('id="primary-menu"'), relativePath + ' should use audience tabs without header menus');
-  });
-
+  assert(!fs.existsSync(path.join(ROOT, 'pages/professional')) &&
+    !fs.existsSync(path.join(ROOT, 'public/pages/professional')),
+  'The build must not publish retired audience-specific copies');
   const vercel = readJson('vercel.json');
-  const hasRewrite = (source, key, value, destination) => vercel.rewrites.some((rule) => (
-    rule.source === source &&
-    rule.destination === destination &&
-    Array.isArray(rule.has) &&
-    rule.has.some((condition) => condition.type === 'query' && condition.key === key && condition.value === value)
-  ));
-  assert(hasRewrite('/portfolio/:project', 'audience', 'data-science', '/pages/professional/data-science/portfolio/:project'),
-    'Project audience deep links should route to a professional copy with the shared tab shell');
-  assert(hasRewrite('/portfolio', 'audience', 'tourism', '/pages/professional/tourism/portfolio'),
-    'Portfolio audience links should route to a professional copy with the shared tab shell');
-  assert(hasRewrite('/contact', 'audience', 'analytics', '/pages/professional/analytics/contact'),
-    'Contact audience links should route to a professional copy with the shared tab shell');
-  assert(hasRewrite('/portfolio/:project', 'mode', '(professional|work|career|analytics)', '/pages/professional/analytics/portfolio/:project'),
-    'Legacy professional mode deep links should retain the professional project layout');
-
-  const searchIndex = read('build/generate-search-index.js');
-  const chatbotKnowledge = read('build/generate-chatbot-knowledge.js');
-  const aiDigests = read('build/generate-ai-digests.js');
-  [searchIndex, chatbotKnowledge, aiDigests].forEach((source) => {
-    assert(source.includes("startsWith('pages/professional/')"),
-      'Recursive public discovery should exclude internal professional copies by source path');
-  });
+  assert(!vercel.rewrites.some((rule) => /\/pages\/professional\//.test(rule.destination || '')),
+    'No clean route may rewrite to retired audience-specific copies');
 
   const probabilityApp = read('js/games/probability-engine/app.js');
   assert(probabilityApp.includes('window.createModalAccessibility(dom.offlineModal)') &&

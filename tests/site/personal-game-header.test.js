@@ -36,7 +36,7 @@ function runPersonalGameHeaderTests({ assert }) {
       `${itemId} gets exactly one shared game masthead.`);
     assert(header.includes('href="/games" data-page-masthead-parent') && header.includes('<span>Game library</span>')
       && header.includes('data-page-masthead-copy') && header.includes('data-page-masthead-intro')
-      && header.includes('section-arrow-games-left.webp'),
+      && header.includes('class="site-direction-arrow site-direction-arrow--left"'),
     `${itemId} places its library parent and introduction above the shared divider.`);
     assert((prepared.match(/<h1\b/g) || []).length === 1,
       `${itemId} moves its authored title without duplicating the page heading.`);
@@ -49,8 +49,8 @@ function runPersonalGameHeaderTests({ assert }) {
     assert(preparePersonalGameDetailHtml(prepared, metadata) === prepared,
       `${itemId} preparation is idempotent.`);
     const legacyHeader = prepared.replace(
-      /<img src="\/img\/ui\/site-icons\/section-arrow-games-left\.webp"[^>]*>/,
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>'
+      /<svg class="site-direction-arrow site-direction-arrow--left"[\s\S]*?<\/svg>/,
+      '<img src="/img/ui/site-icons/section-arrow-games-left.webp" alt="" width="20" height="20">'
     );
     assert(preparePersonalGameDetailHtml(legacyHeader, metadata) === prepared,
       `${itemId} upgrades a previously generated game back arrow.`);

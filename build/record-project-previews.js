@@ -158,7 +158,7 @@ const PREVIEWS = [
   },
   {
     id: 'website',
-    url: '/analytics',
+    url: '/',
     width: 1464,
     height: 1464,
     durationMs: 7000,

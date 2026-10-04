@@ -6,8 +6,10 @@
   const originalEl = $('#textcompare-original');
   const revisedEl = $('#textcompare-revised');
   const outputEl = $('#textcompare-output');
+  const comparisonEl = $('#textcompare-view-comparison');
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
+  const returnBtn = $('#textcompare-return');
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
@@ -39,11 +41,70 @@
   let refreshTimer = 0;
   let comparisonStarted = false;
   const legendEl = $('.textcompare-legend');
+  const editors = [originalEl, revisedEl];
+  const editorMeasure = document.createElement('textarea');
+  editorMeasure.setAttribute('aria-hidden', 'true');
+  editorMeasure.tabIndex = -1;
+  editorMeasure.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none;box-sizing:border-box;height:0;min-height:0;max-height:none;overflow:hidden;resize:none;';
+  document.body.appendChild(editorMeasure);
+  let editorSizingFrame = 0;
+  let editorSizingDisposed = false;
+  const resizeEditors = ({ allowShrink = false } = {}) => {
+    if (editorSizingDisposed) return;
+    editors.forEach((field) => {
+      const style = getComputedStyle(field);
+      if (style.getPropertyValue('--textcompare-auto-size').trim() !== '1') {
+        if (field.dataset.autoSized) {
+          field.style.removeProperty('height');
+          delete field.dataset.autoSized;
+        }
+        return;
+      }
+      const bounds = field.getBoundingClientRect();
+      if (!bounds.width) return;
+      // Measure off-screen so deleting text never briefly collapses the active editor.
+      ['font', 'lineHeight', 'letterSpacing', 'padding', 'border', 'wordBreak', 'overflowWrap', 'tabSize'].forEach((property) => {
+        editorMeasure.style[property] = style[property];
+      });
+      editorMeasure.style.width = `${bounds.width}px`;
+      editorMeasure.value = field.value || field.placeholder;
+      const borderHeight = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      const contentHeight = Math.max(parseFloat(style.minHeight), editorMeasure.scrollHeight + borderHeight);
+      const keepActiveHeight = !allowShrink && document.activeElement === field;
+      field.style.height = `${Math.ceil(keepActiveHeight ? Math.max(bounds.height, contentHeight) : contentHeight)}px`;
+      field.dataset.autoSized = 'true';
+    });
+  };
+  const queueEditorSizing = () => {
+    cancelAnimationFrame(editorSizingFrame);
+    editorSizingFrame = requestAnimationFrame(() => resizeEditors());
+  };
+  const editorGrid = originalEl.closest('.textcompare-grid');
+  let editorGridWidth = 0;
+  const editorResizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(([entry]) => {
+    // Editor height changes must not feed back into their own sizing observer.
+    if (entry.contentRect.width === editorGridWidth) return;
+    editorGridWidth = entry.contentRect.width;
+    queueEditorSizing();
+  }) : null;
+  if (editorGrid) editorResizeObserver?.observe(editorGrid);
+  editors.forEach((field) => field.addEventListener('blur', () => resizeEditors()));
+  document.fonts?.ready.then(queueEditorSizing);
+  window.SiteRoutes?.addCleanup?.(() => {
+    editorSizingDisposed = true;
+    cancelAnimationFrame(editorSizingFrame);
+    editorResizeObserver?.disconnect();
+    editorMeasure.remove();
+  });
   const hasUserText = () => originalEl.value.length > 0 || revisedEl.value.length > 0;
-  const updateExamplePreview = () => {
+  const updateExamplePreview = (sizingOptions) => {
     const showingExample = !hasUserText();
     originalEl.placeholder = showingExample ? ORIGINAL_EXAMPLE : 'Paste the text before changes';
     revisedEl.placeholder = showingExample ? REVISED_EXAMPLE : 'Paste the text after changes';
+    // A single multiline paste may emit one input event per line. Measure once
+    // on the next frame instead of laying out the full draft for every event.
+    if (sizingOptions?.deferSizing) queueEditorSizing();
+    else resizeEditors(sizingOptions);
   };
   updateExamplePreview();
 
@@ -387,10 +448,19 @@
     }
   };
 
-  window.SiteRoutes?.addCleanup?.(() => {
+  const cancelPendingComparison = ({ stopWorker = false } = {}) => {
     latestCompareRequestId += 1;
     window.clearTimeout(refreshTimer);
-  });
+    if (stopWorker || compareRequests.size) {
+      const worker = compareWorker;
+      compareWorker = null;
+      try { worker?.terminate(); } catch {}
+    }
+    compareRequests.forEach((pending) => pending.reject(new Error('Comparison cancelled.')));
+    compareRequests.clear();
+    comparisonEl?.setAttribute('aria-busy', 'false');
+  };
+  window.SiteRoutes?.addCleanup?.(() => cancelPendingComparison({ stopWorker: true }));
 
   const getSelectedMode = () => {
     const selected = modeInputs.find((input) => input.checked);
@@ -414,8 +484,10 @@
     if (workerUnavailable || typeof Worker !== 'function') return null;
     if (compareWorker) return compareWorker;
     try {
-      compareWorker = new Worker(COMPARE_WORKER_PATH);
-      compareWorker.addEventListener('message', (event) => {
+      const worker = new Worker(COMPARE_WORKER_PATH);
+      compareWorker = worker;
+      worker.addEventListener('message', (event) => {
+        if (compareWorker !== worker) return;
         const data = event?.data || {};
         const pending = compareRequests.get(data.requestId);
         if (!pending) return;
@@ -426,7 +498,8 @@
         }
         pending.resolve(data);
       });
-      compareWorker.addEventListener('error', (event) => {
+      worker.addEventListener('error', (event) => {
+        if (compareWorker !== worker) return;
         workerUnavailable = true;
         const error = new Error(event?.message || 'Background compare failed.');
         compareRequests.forEach((pending) => pending.reject(error));
@@ -478,12 +551,33 @@
     if (legendEl) legendEl.hidden = !result?.counts?.hasChanges;
     outputEl.innerHTML = renderOutput(lastRuns) || '<p class="textcompare-empty">No output.</p>';
     summaryEl.textContent = formatCompareSummary(result?.counts);
+    comparisonEl?.setAttribute('aria-busy', 'false');
     setWarningStatus(warnings.join(' '), warnings.length ? 'info' : '');
     markSessionDirty();
   };
 
+  const scrollToWorkspacePart = (element) => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    element?.scrollIntoView?.({ block: 'start', behavior: reduceMotion ? 'instant' : 'smooth' });
+  };
+
+  const revealExplicitComparison = () => {
+    if (typeof comparisonEl?.getBoundingClientRect !== 'function' || typeof outputEl.getBoundingClientRect !== 'function') return;
+    const viewport = comparisonEl.closest('[data-site-frame-viewport]');
+    const masthead = document.querySelector('[data-mobile-site-masthead]');
+    const visibleTop = Math.max(viewport?.getBoundingClientRect().top || 0, masthead?.getBoundingClientRect().bottom || 0);
+    const visibleBottom = Math.min(viewport?.getBoundingClientRect().bottom || window.innerHeight, window.innerHeight);
+    const dock = document.querySelector('.mobile-section-nav:not([hidden]), .mobile-site-dock:not([hidden])');
+    const dockTop = dock?.getClientRects().length ? dock.getBoundingClientRect().top : null;
+    const limit = Number.isFinite(dockTop) && dockTop > 0 ? Math.min(visibleBottom, dockTop) : visibleBottom;
+    if (comparisonEl.getBoundingClientRect().top >= visibleTop && outputEl.getBoundingClientRect().top < limit - 120) return;
+    // Start at the result heading, even when a long diff is taller than the viewport.
+    scrollToWorkspacePart(comparisonEl);
+  };
+
   const runCompare = ({ reportOutcome = false } = {}) => {
-    window.clearTimeout(refreshTimer);
+    if (editorSizingDisposed) return;
+    cancelPendingComparison();
     comparisonStarted = true;
     lastRuns = null;
     if (copyBtn) copyBtn.disabled = true;
@@ -503,12 +597,17 @@
       lastRevisedText = '';
       latestCompareRequestId += 1;
       setWarningStatus('', '');
+      comparisonEl?.setAttribute('aria-busy', 'false');
       markSessionDirty();
-      if (reportOutcome) reportRunError('validation');
+      if (reportOutcome) {
+        revealExplicitComparison();
+        reportRunError('validation');
+      }
       return;
     }
 
     summaryEl.textContent = 'Comparing…';
+    comparisonEl?.setAttribute('aria-busy', 'true');
     setEmpty('Comparing…');
     const requestId = latestCompareRequestId + 1;
     latestCompareRequestId = requestId;
@@ -538,8 +637,12 @@
               lastRuns = null;
               lastRevisedText = '';
               setWarningStatus('', '');
+              comparisonEl?.setAttribute('aria-busy', 'false');
               markSessionDirty();
-              if (reportOutcome) reportRunError('validation');
+              if (reportOutcome) {
+                revealExplicitComparison();
+                reportRunError('validation');
+              }
               return;
             }
           }
@@ -560,6 +663,7 @@
           if (requestId !== latestCompareRequestId) return;
           renderCompareResult(result, revised, payload.modeOverride, fallbackWarning);
           if (reportOutcome) {
+            revealExplicitComparison();
             reportRunComplete(result?.counts?.hasChanges ? 'with_changes' : 'no_changes');
           }
         } catch {
@@ -567,7 +671,9 @@
             summaryEl.textContent = 'Unable to compare these drafts.';
             setEmpty('Comparison failed. Please try smaller sections.');
             setWarningStatus('The comparison could not be completed.', 'error');
+            comparisonEl?.setAttribute('aria-busy', 'false');
             markSessionDirty();
+            if (reportOutcome) revealExplicitComparison();
           }
           if (reportOutcome) reportRunError('processing');
         }
@@ -591,14 +697,13 @@
   });
 
   clearBtn?.addEventListener('click', () => {
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison({ stopWorker: true });
     comparisonStarted = false;
     if (copyBtn) copyBtn.disabled = true;
     if (legendEl) legendEl.hidden = true;
-    latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
-    updateExamplePreview();
+    updateExamplePreview({ allowShrink: true });
     summaryEl.textContent = 'Changes appear here.';
     setEmpty('Compare the example, or enter your own text.');
     lastRuns = null;
@@ -607,6 +712,11 @@
     setWarningStatus('', '');
     markSessionDirty();
     originalEl.focus();
+  });
+
+  returnBtn?.addEventListener('click', () => {
+    originalEl.focus({ preventScroll: true });
+    scrollToWorkspacePart(originalEl.closest('.textcompare-field') || originalEl);
   });
 
   swapBtn?.addEventListener('click', () => {
@@ -619,14 +729,14 @@
 
   copyBtn?.addEventListener('click', copyFormatted);
   const queueComparison = () => {
-    latestCompareRequestId += 1;
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison();
     lastRuns = null;
     lastRevisedText = '';
     if (copyBtn) copyBtn.disabled = true;
     if (legendEl) legendEl.hidden = true;
     setCopyStatus('');
     setWarningStatus('', '');
+    comparisonEl?.setAttribute('aria-busy', 'false');
     if (!comparisonStarted) {
       setEmpty(hasUserText() ? 'Click Compare to see the changes.' : 'Compare the example, or enter your own text.');
       return;
@@ -636,7 +746,7 @@
     refreshTimer = window.setTimeout(() => runCompare(), 450);
   };
   [originalEl, revisedEl].forEach(field => field.addEventListener('input', () => {
-    updateExamplePreview();
+    updateExamplePreview({ deferSizing: true });
     queueComparison();
   }));
   modeInputs.forEach((input) => input.addEventListener('change', queueComparison));
@@ -664,7 +774,7 @@
     ].includes(text);
   };
 
-  document.addEventListener('tools:session-capture', (event) => {
+  const captureSession = (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
     const payload = detail?.payload;
@@ -681,19 +791,18 @@
     const content = String(outputEl?.textContent || '').trim();
     const { text, truncated } = clampText(content, MAX_SAVED_OUTPUT_TEXT_CHARS);
     payload.output = { kind: 'text', text, summary, truncated };
-  });
+  };
 
-  document.addEventListener('tools:session-applied', (event) => {
+  const applySession = (event) => {
     const detail = event?.detail;
     if (detail?.toolId !== TOOL_ID) return;
     const snapshot = detail?.snapshot;
     const output = snapshot?.output;
     // Legacy view preferences no longer hide drafts or results.
     updateExamplePreview();
-    window.clearTimeout(refreshTimer);
+    cancelPendingComparison();
     setCopyStatus('');
     setWarningStatus('', '');
-    latestCompareRequestId += 1;
     lastRuns = null;
     lastRevisedText = '';
     if (copyBtn) copyBtn.disabled = true;
@@ -723,5 +832,11 @@
         ? `<pre>${escapeHtml(raw)}</pre>`
         : '<p class="textcompare-empty">No output.</p>';
     }
+  };
+  document.addEventListener('tools:session-capture', captureSession);
+  document.addEventListener('tools:session-applied', applySession);
+  window.SiteRoutes?.addCleanup?.(() => {
+    document.removeEventListener('tools:session-capture', captureSession);
+    document.removeEventListener('tools:session-applied', applySession);
   });
 })();
