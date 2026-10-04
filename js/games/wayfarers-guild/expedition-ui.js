@@ -265,14 +265,73 @@
     function stationRequirement(requirement) {
       return typeof requirement==='string' ? requirement : requirement.label || requirement.text || requirement.description || '';
     }
+    function stationStarters(station) {
+      if(station?.legacy)return visible(station.skills || []);
+      return visible(station?.skills || []).filter(row=>!row.technique && row.kind!=='technique' && row.slot!=='technique' && (row.order ?? 0)<3);
+    }
+    function stationSkillGlyph(row) {
+      const track=row.trackId || (row.action?.type==='expedition-buy' ? row.action.id : null);
+      return track && root.WayfarersIcons.TRACK_ART[row.areaId || selectedAreaId()]?.includes(track) ? icon('track-'+(row.areaId || selectedAreaId())+'-'+track) : stationArtIcon(row.artId || row.icon || row.id,row.icon || track);
+    }
+    function renderInlineSkills(entry, station) {
+      const rows=stationStarters(station),strip=entry.node.querySelector('.wx-station-controls');
+      strip.setAttribute('aria-label',station.name+' core upgrades');
+      for(const node of Array.from(strip.children))if(!rows.some(row=>row.id===node.dataset.wxInlineSkill))node.remove();
+      for(const row of rows) {
+        let cell=Array.from(strip.children).find(node=>node.dataset.wxInlineSkill===row.id);
+        if(!cell) {
+          cell=document.createElement('article');cell.className='wx-inline-upgrade';cell.dataset.wxInlineSkill=row.id;
+          cell.innerHTML='<button type="button" class="wx-inline-info"></button><button type="button" class="wx-inline-buy"></button>';
+          strip.append(cell);
+        }
+        const state=row.status || row.state || (row.locked ? 'locked' : row.ready && row.unlockAction ? 'ready' : 'learned');
+        const locked=state==='locked',ready=state==='ready',rank=Number(row.rank ?? row.level ?? 0),complete=rank>=(row.maxRank ?? row.maxLevel ?? Infinity);
+        const label=row.name || row.label || row.id,requirement=(row.requirements || row.dependencies || []).find(item=>!item.met);
+        const requirementText=(requirement && stationRequirement(requirement)) || row.reason || 'Keep developing';
+        const quantity=row.quantity || stationModel().batch || 1,price=(row.cost || []).map(item=>item.text).join(', ');
+        const info=cell.querySelector('.wx-inline-info'),buy=cell.querySelector('.wx-inline-buy');
+        cell.dataset.state=state;cell.dataset.ready=String(ready);cell.dataset.complete=String(complete);
+        info.dataset.wxDo='inline-detail:'+row.id;commands.set(info.dataset.wxDo,()=>inspectStationRow(row.id));
+        info.setAttribute('aria-label','Inspect '+label+', '+(locked ? 'locked: '+requirementText : 'rank '+rank)+'. '+(row.comparison?.text || row.comparison || row.effectText || ''));
+        markup(info,stationSkillGlyph(row)+'<strong>'+esc(label)+'</strong><small class="wx-inline-rank">'+(locked ? icon('lock') : 'R'+compact(rank))+'</small>');
+        buy.dataset.wxDo=(ready ? 'inline-unlock:' : 'inline-buy:')+row.id;
+        commands.set(buy.dataset.wxDo,locked ? ()=>inspectStationRow(row.id) : ()=>{selectedStation=station.id;execute(ready ? row.unlockAction : row.action);});
+        buy.disabled=!locked && !ready && (row.disabled || complete) || currentContext.saveFailure || currentContext.awaitingWallet;
+        buy.setAttribute('aria-label',locked ? 'Requirements for '+label+': '+requirementText : ready ? 'Unlock '+label : complete ? label+' is at its current rank cap' : 'Buy '+quantity+' ranks of '+label+', '+price+'. '+(row.comparison?.text || row.comparison || ''));
+        buy.title=locked ? requirementText : row.comparison?.text || row.comparison || row.effectText || '';
+        const cost=(row.cost || []).map(item=>'<span>'+icon(item.resource)+esc(compact(item.amount))+'</span>').join('');
+        markup(buy,locked ? '<span class="wx-inline-lock">'+icon('lock')+(requirement?.icon ? icon(requirement.icon) : '')+'</span><small>'+esc(requirementText)+'</small>' : ready ? '<b>Unlock</b>' : complete ? '<b>✓</b>' : (quantity>1 ? '<small class="wx-inline-count">×'+quantity+'</small>' : '')+'<span class="wx-inline-price">'+cost+'</span><b>+</b>');
+        const previous=stationBoughtRanks.get(row.id),purchased=previous!=null && previous<rank;
+        if(purchased){cell.classList.remove('wx-purchased');void cell.offsetWidth;cell.classList.add('wx-purchased');}
+        stationBoughtRanks.set(row.id,rank);
+      }
+    }
+    function placeWorldInteractions() {
+      const focus=q('[data-wx-focus]'),available=screen==='expedition' && stationDrawer.hidden;
+      const nodes=[focus,cacheButton].filter(node=>available && !node.hidden);
+      if(!nodes.length){focus.style.visibility='hidden';return;}
+      const bounds=stationWorld.getBoundingClientRect(),height=bounds.height;
+      const blocked=Array.from(stationWorld.querySelectorAll('.wx-station-controls')).map(node=>node.getBoundingClientRect()).map(rect=>({top:Math.max(0,rect.top-bounds.top-6),bottom:Math.min(height,rect.bottom-bounds.top+6)})).filter(rect=>rect.bottom>0 && rect.top<height && rect.bottom>rect.top).sort((a,b)=>a.top-b.top);
+      const free=[];let cursor=0;
+      for(const rect of blocked){if(rect.top>cursor)free.push({top:cursor,bottom:rect.top});cursor=Math.max(cursor,rect.bottom);}
+      if(cursor<height)free.push({top:cursor,bottom:height});
+      const buttonHeight=Math.max(...nodes.map(node=>node.offsetHeight || 62));
+      const slot=free.reverse().find(rect=>rect.bottom-rect.top>=buttonHeight+12);
+      for(const node of nodes)node.style.visibility=slot ? '' : 'hidden';
+      if(!slot)return;
+      const top=slot.bottom-buttonHeight-6;
+      for(const node of nodes){node.style.top=(top+buttonHeight-node.offsetHeight)+'px';node.style.bottom='auto';}
+      focus.style.right='10px';cacheButton.style.right=(nodes.includes(focus) ? 18+focus.offsetWidth : 10)+'px';
+      if(!boostChip.hidden){boostChip.style.top=(slot.top+6)+'px';boostChip.style.right='auto';boostChip.style.left='10px';}
+      cacheReward.style.top=Math.max(slot.top+6,top-30)+'px';cacheReward.style.bottom='auto';
+    }
     function stationRow(row) {
       stationRowsById.set(row.id,row);
       const state=row.status || row.state || (row.locked ? 'locked' : row.ready && row.unlockAction ? 'ready' : 'learned');
       const locked=state==='locked',ready=state==='ready',complete=(row.rank ?? row.level ?? 0)>=(row.maxRank ?? row.maxLevel ?? Infinity);
       const track=row.trackId || (row.action?.type==='expedition-buy' ? row.action.id : null);
       const label=row.name || row.label || row.id;
-      const artId=row.artId || row.icon;
-      const glyph=track && root.WayfarersIcons.TRACK_ART[row.areaId || selectedAreaId()]?.includes(track) ? icon('track-'+(row.areaId || selectedAreaId())+'-'+track) : stationArtIcon(artId || row.id,row.icon || track);
+      const glyph=stationSkillGlyph(row);
       const requirement=(row.requirements || row.dependencies || []).find(item=>!item.met);
       const effect=locked ? (requirement && stationRequirement(requirement)) || row.reason || 'Keep developing this station' : row.comparison?.text || row.comparison || row.effectText || gainLabel(row) || '';
       const info=button(glyph+'<span><strong>'+esc(label)+'</strong><small>'+(locked ? icon('lock')+' '+(requirement?.icon ? icon(requirement.icon) : '')+esc(effect) : 'Rank '+(row.rank ?? row.level ?? 0))+'</small>'+(!locked ? '<span class="wx-station-effect">'+esc(effect)+'</span>' : '')+'</span>',()=>inspectStationRow(row.id),{key:'station-detail:'+row.id,className:'wx-upgrade-info',aria:label+(locked ? ', locked: '+effect : ', rank '+(row.rank ?? row.level ?? 0))});
@@ -311,6 +370,9 @@
       const model=stationModel(),area=model.currentArea || model.areas?.find(item=>item.id===selectedAreaId());
       if(!area)return;
       const built=(area.stations || []).filter(item=>item.status==='built');
+      stationRowsById=new Map();
+      for(const station of built)for(const row of station.skills || [])stationRowsById.set(row.id,row);
+      for(const row of area.areaUpgrades || [])stationRowsById.set(row.id,row);
       if(stationWorldArea!==area.id) {
         if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);
         for(const entry of stationScenes.values())entry.scene.dispose();stationScenes.clear();stationWorld.replaceChildren();
@@ -321,14 +383,18 @@
         let entry=stationScenes.get(station.id);
         if(!entry) {
           const segment=document.createElement('section');segment.className='wx-station-segment'+(!index ? ' wx-station-surface' : '');segment.dataset.wxStation=station.id;
-          segment.innerHTML='<canvas role="img" aria-label="'+esc(station.name)+' working"></canvas><button class="wx-station-badge"></button><span class="wx-station-rate"></span>';
+          segment.innerHTML='<div class="wx-station-illustration"><canvas role="img" aria-label="'+esc(station.name)+' working"></canvas><div class="wx-station-heading"><button class="wx-station-badge"></button><button type="button" class="wx-inline-quantity" hidden></button></div><span class="wx-station-rate"></span></div><div class="wx-station-controls" role="group"></div>';
           stationWorld.insertBefore(segment,stationWorld.querySelector('.wx-world-continuation'));
           const canvas=segment.querySelector('canvas');
           const renderer=root.WayfarersStationScene ? root.WayfarersStationScene.create(canvas,{areaId:area.id,stationId:station.id,surface:index===0,scrollRoot:stationWorld,quiet:currentContext.quiet}) : root.WayfarersExpeditionScene.create(canvas,{quiet:currentContext.quiet});
           entry={node:segment,scene:renderer};stationScenes.set(station.id,entry);
         }
         const badge=entry.node.querySelector('.wx-station-badge');
-        markup(badge,stationGlyph(station)+'<span>'+esc(station.name)+'</span>');badge.dataset.wxStationOpen=station.id;badge.setAttribute('aria-label','Open '+station.name+' upgrades');badge.setAttribute('aria-pressed',String(station.id===selectedStation));
+        markup(badge,stationGlyph(station)+'<span>'+esc(station.name)+'</span>');badge.dataset.wxStationOpen=station.id;badge.setAttribute('aria-label','Open '+station.name+' techniques and station expansion');badge.setAttribute('aria-pressed',String(station.id===selectedStation));
+        const quantity=entry.node.querySelector('.wx-inline-quantity');
+        quantity.hidden=!batchAvailable();quantity.dataset.wxDo='inline-quantity:'+station.id;commands.set(quantity.dataset.wxDo,()=>open({kind:'batch'}));
+        text(quantity,'×'+(model.batch || view.expedition.batch?.selected || 1)+' ▾');quantity.setAttribute('aria-label','Purchase quantity: '+(model.batch || view.expedition.batch?.selected || 1)+'. Change exact quantity for all stations.');
+        renderInlineSkills(entry,station);
         text(entry.node.querySelector('.wx-station-rate'),station.outputText || '');
         entry.scene.setQuiet(currentContext.quiet);entry.scene.update(Object.assign({},station,{areaId:area.id,rate:station.rate ?? station.output,working:station.working ?? Number(station.output)>0,scene:view.expedition.scene}));
       });
@@ -336,14 +402,15 @@
       if(!continuation){continuation=document.createElement('div');continuation.className='wx-world-continuation';continuation.setAttribute('aria-hidden','true');stationWorld.append(continuation);}
       const depth=root.WayfarersStationArt?.areas?.[area.id]?.underground;
       continuation.style.backgroundImage=depth ? 'linear-gradient(#102b4600,#071e3575),url("img/wayfarers-guild/'+depth+'")' : '';
-      continuation.style.setProperty('--wx-built-height',String((built.length ? 320+(built.length-1)*208 : 0)/384*100)+'cqw');
+      continuation.style.setProperty('--wx-built-height','calc('+String((built.length ? 320+(built.length-1)*208 : 0)/384*100)+'cqw + '+(built.length*104)+'px)');
       if(!selectedStation || !built.some(item=>item.id===selectedStation))selectedStation=model.selectedStation || built[0]?.id;
-      const jumps=built.length>2;
+      const jumps=false;
       stationJumps.hidden=!jumps;
       markup(stationJumps,jumps ? built.map(item=>button(stationGlyph(item),()=>jumpStation(item.id,true),{key:'station-jump:'+item.id,className:'wx-station-jump',aria:'Go to '+item.name,selected:item.id===selectedStation})).join('') : '');
       if(stationScroll.has(area.id) && stationWorld.dataset.restoredArea!==area.id){stationWorld.scrollTop=stationScroll.get(area.id);stationWorld.dataset.restoredArea=area.id;}
       const drawerOpen=screen==='upgrades';
       stationDrawer.hidden=!drawerOpen;shell.dataset.drawerOpen=String(drawerOpen);
+      stationWorld.inert=drawerOpen || screen!=='expedition';
       q('.wx-play').hidden=!['expedition','upgrades'].includes(screen);q('[data-wx-destination]').hidden=['expedition','upgrades'].includes(screen);
       q('[data-wx-nav="upgrades"]').hidden=false;
       const encounter=model.encounter;
@@ -353,6 +420,7 @@
       if(!boostChip.hidden)text(boostChip,'×2 output · '+Math.ceil(encounter.boost.remaining)+'s');
       if(cacheSequence!=null && encounter?.sequence>cacheSequence && encounter.lastReward?.areaId===area.id){text(cacheReward,'+'+compact(encounter.lastReward.amount)+' '+encounter.lastReward.resource);cacheReward.hidden=false;cacheReward.classList.remove('wx-reward-burst');void cacheReward.offsetWidth;cacheReward.classList.add('wx-reward-burst');root.setTimeout(()=>{if(!disposed)cacheReward.hidden=true;},1600);}
       if(encounter)cacheSequence=encounter.sequence;
+      placeWorldInteractions();
       const globalRows=visible(view.globalUpgrades || []).filter(item=>(item.scope || item.catalogScope)==='global');
       const knownGlobal=globalRows.length>0;
       const projects=areaProjects(area.id);
@@ -372,14 +440,13 @@
       if(availableModes.length>1)toolbar+='<div class="wx-station-quantities" role="group" aria-label="Purchase quantity">'+modes.map(mode=>{const count=typeof mode==='number' ? mode : mode.count || mode.value;return button('×'+count,mode.action || {type:'expedition-batch',count},{key:'station-quantity:'+count,selected:count===quantity,className:'wx-station-quantity',aria:'Purchase '+count+' ranks'});}).join('')+button('⌄',()=>open({kind:'batch'}),{key:'batch',className:'wx-station-quantity',aria:'All purchase quantities and requirements'})+'</div>';
       markup(q('[data-wx-station-toolbar]'),toolbar);
       stationDrawer.dataset.toolbarEmpty=String(built.length===1 && stationScope==='station' && availableModes.length===1);
-      stationRowsById=new Map();
       let content='';
       if(stationScope==='global') {
         content=upgradeRows(globalRows);
       } else {
         const rows=visible(stationScope==='area' ? area.areaUpgrades : station?.skills || []);
-        const core=rows.filter(row=>!row.technique && row.kind!=='technique' && row.slot!=='technique' && (row.order ?? 0)<3),later=rows.filter(row=>!core.includes(row));
-        content='<div class="wx-station-rows">'+core.map(stationRow).join('')+'</div>'+(later.length ? '<h3 class="wx-techniques-title">Techniques</h3><div class="wx-station-rows">'+later.map(stationRow).join('')+'</div>' : '');
+        const starters=stationScope==='station' ? stationStarters(station) : [],later=rows.filter(row=>!starters.includes(row));
+        content=(stationScope==='station' ? '<div class="wx-core-location">'+button(stationGlyph(station)+'<span>Core upgrades are on '+esc(station?.name || 'the station')+'</span><b>›</b>',()=>{closeStationDrawer();jumpStation(station.id,true);},{key:'station-core:'+station?.id,className:'wx-operation-button',aria:'Go to '+station?.name+' core upgrades'})+'</div>' : '')+(later.length ? '<h3 class="wx-techniques-title">'+(stationScope==='area' ? 'Shared improvements' : 'Techniques')+'</h3><div class="wx-station-rows">'+later.map(stationRow).join('')+'</div>' : '');
         const planRows=visible(view.expedition.choices || []);
         const plans=model.legacy || planRows.some(group=>(group.options || []).length>1) || planRows.filter(row=>!row.options).length>1 || visible(view.expedition.configurations || []).length || (view.expedition.specializations || []).length>1;
         if(plans && stationScope==='station')content+='<div class="wx-station-operation">'+button(icon(area.id==='quarry' ? 'forge' : 'compass')+'<span>'+esc(area.id==='quarry' ? 'Processing' : 'Operations')+'</span><b>›</b>',()=>open({kind:'choice'}),{key:'world-choice',className:'wx-operation-button',aria:'Inspect current production and area plans'}).replace('<button ','<button data-wx-plans ')+'</div>';
@@ -434,6 +501,7 @@
         if(item.kind==='card')mark(practiceCommand('card:'+item.itemId,shell),item.id);
         if(item.kind==='gear')mark(practiceCommand('gear:'+item.itemId,shell),item.id);
         if(item.kind==='upgrade') {
+          mark(practiceCommand('inline-detail:'+item.itemId,shell),item.id);
           mark(practiceCommand('station-detail:'+item.itemId,shell),item.id);
           mark(practiceCommand('upgrade-detail:'+item.itemId,shell),item.id);
           if(item.areaId===selectedAreaId() && item.destination?.upgradeId)mark(q('[data-upgrade="'+item.destination.upgradeId+'"] .wx-upgrade-info'),item.id);
@@ -450,7 +518,7 @@
       if(attention)for(const selector of ['[data-wx-attention]','[data-wx-tier-attention]','[data-wx-guild-attention]'])q(selector).hidden=true;
       const stationReady=stationModel().ready || [];
       if(stationReady.length)mark(q('[data-wx-nav="upgrades"]'),'station-ready');
-      for(const item of stationReady){mark(practiceCommand('station-unlock:'+item.id,shell),'station-ready:'+item.id);if(item.stationId){const badge=Array.from(stationWorld.querySelectorAll('[data-wx-station-open]')).find(node=>node.dataset.wxStationOpen===item.stationId);mark(badge,'station-ready:'+item.id);}}
+      for(const item of stationReady){mark(practiceCommand('inline-unlock:'+item.id,shell),'station-ready:'+item.id);mark(practiceCommand('station-unlock:'+item.id,shell),'station-ready:'+item.id);if(item.stationId){const badge=Array.from(stationWorld.querySelectorAll('[data-wx-station-open]')).find(node=>node.dataset.wxStationOpen===item.stationId);mark(badge,'station-ready:'+item.id);}}
     }
     function currencyOverflow() {
       const rail=q('[data-wx-currencies]'),more=q('[data-wx-currency-more]');
@@ -803,7 +871,7 @@
       node.dataset.wxPractice=model.token;
       if (model.suppliesText || model.costCoverage==='guild') {
         node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
-        if(['rank','cost'].includes(model.supply) && model.practicePreview) node.innerHTML=node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
+        if(['rank','cost'].includes(model.supply) && model.practicePreview) node.innerHTML=node.classList.contains('wx-inline-buy') ? '<span class="wx-inline-price">'+(model.practicePreview.quantity>1 ? '<small>×'+model.practicePreview.quantity+'</small>' : '')+costs(model.practicePreview)+'</span><b>+</b>' : node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
         if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
       }
       return node;
@@ -865,9 +933,16 @@
       const stationArea=stationModel().currentArea;
       const stationCandidates=(stationArea?.stations || []).flatMap(station=>(station.skills || []).map(row=>({station,row}))).concat((stationArea?.areaUpgrades || []).map(row=>({station:null,row})));
       const stationTarget=stationCandidates.find(entry=>entry.row.id===data.skillId || entry.row.id===data.catalogId || entry.row.id===model.requiredAction?.id || data.trackId && (entry.row.action?.id===data.trackId || entry.row.trackId===data.trackId || entry.row.alias===data.trackId) || samePracticeAction(entry.row.action,model) || samePracticeAction(entry.row.unlockAction,model));
+      if((target==='focus-action' || target==='currency-info' && model.currencyInfo?.id==='focus') && q('[data-wx-focus]')?.style.visibility==='hidden' && screen==='expedition') {stationWorld.scrollTop=0;placeWorldInteractions();}
+      const inlineStation=stationTarget?.station && stationStarters(stationTarget.station).some(row=>row.id===stationTarget.row.id);
       if(inSheet && sheet?.kind==='station-detail' && stationTarget?.row.id===sheet.id){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
       if(inSheet && sheet?.kind==='station-proposal' && target==='station-build'){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
-      if(!inSheet && (stationTarget || /^station-|^area-(upgrade|infrastructure)/.test(target))) {
+      if(inSheet && inlineStation && (sheet?.kind==='station-detail' && stationTarget.row.id===sheet.id || sheet?.kind==='local' && (stationTarget.row.trackId || stationTarget.row.action?.id)===sheet.id)){node=closeButton();finalAction=false;}
+      if(!inSheet && inlineStation) {
+        if(screen==='upgrades')node=q('[data-wx-drawer-close]');
+        else if(screen!=='expedition')node=q('[data-wx-nav="expedition"]');
+        else {node=q('[data-wx-inline-skill="'+stationTarget.row.id+'"] '+(model.mode==='action' ? '.wx-inline-buy' : '.wx-inline-info'));finalAction=model.mode==='action';}
+      } else if(!inSheet && (stationTarget || /^station-|^area-(upgrade|infrastructure)/.test(target))) {
         if(screen!=='upgrades')node=q('[data-wx-nav="upgrades"]');
         else {
           const wanted=stationTarget?.station ? 'station' : data.scope || (target.includes('infrastructure') ? 'area' : stationScope);
@@ -1237,7 +1312,10 @@
       if (destination.screen === 'cards' || destination.screen === 'equipment') showGuildPage(destination.screen);
       else if (destination.screen === 'guild') showGuildPage('overview');
       else if (destination.screen === 'upgrades') {
-        if(destination.areaId){showUpgrades(destination.areaId);if(destination.stationId)selectedStation=destination.stationId;if(destination.scope)stationScope=destination.scope;renderStationLayout();if(destination.skillId)revealControl(q('[data-wx-station-skill="'+destination.skillId+'"] .wx-upgrade-info'),q('[data-wx-station-content]'));}
+        const area=stationModel().areas?.find(row=>row.id===destination.areaId),station=area?.stations?.find(row=>row.id===destination.stationId || (row.skills || []).some(skill=>skill.id===destination.skillId));
+        const starter=stationStarters(station).find(row=>row.id===destination.skillId);
+        if(starter){if(destination.areaId!==selectedAreaId())selectArea(destination.areaId);screen='expedition';update(view);jumpStation(station.id,true);revealControl(q('[data-wx-inline-skill="'+starter.id+'"] .wx-inline-info'),stationWorld);}
+        else if(destination.areaId){showUpgrades(destination.areaId);if(destination.stationId)selectedStation=destination.stationId;if(destination.scope)stationScope=destination.scope;renderStationLayout();if(destination.skillId)revealControl(q('[data-wx-station-skill="'+destination.skillId+'"] .wx-upgrade-info'),q('[data-wx-station-content]'));}
         else showUpgrades();
         const item=(view.globalUpgrades || []).find(row => destination.purchase && row.action?.type === destination.purchase.type && row.action?.id === destination.purchase.id);
         if (item) revealControl(Array.from(q('[data-wx-destination]').querySelectorAll('[data-wx-upgrade]')).find(row => row.dataset.wxUpgrade === item.id)?.querySelector('button'),q('[data-wx-destination]'));
@@ -1245,9 +1323,9 @@
         if (destination.areaId) selectArea(destination.areaId); else {screen='expedition';update(view);}
         if (destination.upgradeId) {
           const station=stationModel().currentArea?.stations?.find(entry=>(entry.skills || []).some(row=>row.trackId===destination.upgradeId || row.action?.id===destination.upgradeId || row.id===destination.upgradeId));
-          if(station)openStation(station.id);
-          const node=q('[data-wx-station-content] [data-upgrade="'+destination.upgradeId+'"] .wx-upgrade-info');
-          if (!revealControl(node,q('[data-wx-station-content]')) && destination.control === 'upgrade-tier') showReadyTiers(readyTiers().find(tier => tier.areaId === destination.areaId)?.id);
+          const starter=stationStarters(station).find(row=>row.trackId===destination.upgradeId || row.action?.id===destination.upgradeId || row.id===destination.upgradeId);
+          if(starter){screen='expedition';update(view);jumpStation(station.id,true);revealControl(q('[data-wx-inline-skill="'+starter.id+'"] .wx-inline-info'),stationWorld);}
+          else {if(station)openStation(station.id);const node=q('[data-wx-station-content] [data-upgrade="'+destination.upgradeId+'"] .wx-upgrade-info');if(!revealControl(node,q('[data-wx-station-content]')) && destination.control==='upgrade-tier')showReadyTiers(readyTiers().find(tier=>tier.areaId===destination.areaId)?.id);}
         } else if (destination.control === 'batch') open({kind:'batch'});
         else if (destination.control === 'focus') open({kind:'focus'});
         else if (destination.control === 'plans') open({kind:'choice'});
@@ -2081,7 +2159,7 @@
     root.addEventListener('resize', () => {cancelSwipe();motion?.finish();currencyOverflow();}, {signal:controller.signal});
     q('.wx-world').addEventListener('keydown', event => { if (event.target.closest('button') || dialog.open) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepArea(event.key === 'ArrowLeft' ? -1 : 1); } }, {signal:controller.signal});
     function saveStationScroll() {try {root.localStorage?.setItem('wayfarers-world-scroll-v1',JSON.stringify({identity:onboardingIdentity,areas:Object.fromEntries(stationScroll)}));}catch(_){} }
-    stationWorld.addEventListener('scroll',()=>{if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);root.clearTimeout(stationScrollTimer);stationScrollTimer=root.setTimeout(saveStationScroll,150);},{passive:true,signal:controller.signal});
+    stationWorld.addEventListener('scroll',()=>{placeWorldInteractions();if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);root.clearTimeout(stationScrollTimer);stationScrollTimer=root.setTimeout(saveStationScroll,150);},{passive:true,signal:controller.signal});
     shell.addEventListener('input', event => { if (event.target.hasAttribute('data-wx-search')) { upgradeSearch = event.target.value; markup(q('[data-wx-destination]'), destinationBody()); } }, { signal:controller.signal });
     dialog.addEventListener('click', click, { signal:controller.signal });
     dialog.addEventListener('input',()=>guide?.refresh(),{signal:controller.signal});

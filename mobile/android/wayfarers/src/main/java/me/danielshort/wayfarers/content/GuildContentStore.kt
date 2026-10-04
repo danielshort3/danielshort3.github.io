@@ -60,6 +60,18 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
       writeJournal(journal)
     }
     journal = readJournal()
+    val superseded = optional(journal, "active")?.takeIf { id ->
+      (versionFromId(id) ?: Long.MAX_VALUE) < bundledVersion && runCatching { loadSession(id) }.isSuccess
+    }
+    if (superseded != null) {
+      // An APK's newer verified baseline must supply its accompanying UI/native
+      // contract. Keep the old content for recovery without changing guild data.
+      journal.put("appUpgradeBackup", superseded)
+      journal.remove("active")
+      journal.remove("previous")
+      journal.put("notice", "The updated game included with this app is active. Your guild was kept.")
+      writeJournal(journal)
+    }
     pruneUnreferencedBundles(journal)
     return recovery(journal)
   }

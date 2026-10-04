@@ -9,8 +9,8 @@ const { bundle } = require('../../../build/bundle-wayfarers-android.cjs');
 
 const ROOT = path.resolve(__dirname, '../../..');
 const PACKAGE_NAME = 'me.danielshort.wayfarers';
-const BUNDLED_CONTENT_VERSION = 3;
-const MIN_APP_VERSION_CODE = 17;
+const BUNDLED_CONTENT_VERSION = 5;
+const MIN_APP_VERSION_CODE = 18;
 const SAVE_SCHEMA = 8;
 const MAX_ARCHIVE_BYTES = 32 * 1024 * 1024;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -51,7 +51,8 @@ function validateAssetUrl(value) {
 
 function validateManifest(manifest, { allowPrevious = false } = {}) {
   const current = manifest?.minAppVersionCode === MIN_APP_VERSION_CODE && manifest?.saveSchema === SAVE_SCHEMA && manifest?.contentVersion > BUNDLED_CONTENT_VERSION;
-  const previous = allowPrevious && manifest?.minAppVersionCode === 16 && manifest?.saveSchema === 7 && manifest?.contentVersion >= 2;
+  const previous = allowPrevious && (manifest?.minAppVersionCode === 16 && manifest?.saveSchema === 7 && manifest?.contentVersion >= 2 ||
+    manifest?.minAppVersionCode === 17 && manifest?.saveSchema === 8 && manifest?.contentVersion >= 4);
   if (!manifest || Object.keys(manifest).length !== 9 || manifest.schemaVersion !== 1 || manifest.packageName !== PACKAGE_NAME ||
       !Number.isSafeInteger(manifest.contentVersion) || manifest.contentVersion < 2 || manifest.contentVersion > 2147483647 ||
       typeof manifest.label !== 'string' || !manifest.label.trim() || manifest.label.length > 80 || /[\u0000-\u001f\u007f-\u009f]/.test(manifest.label) ||

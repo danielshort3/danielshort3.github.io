@@ -51,7 +51,7 @@ The manifest payload is:
 }
 ```
 
-`contentVersion` is a strictly increasing integer independent of the APK version. `label` is a readable release label. The example above documents the historical APK-16/schema-7 content protocol. APK 17 bundles baseline content version 3 and accepts schema 8 under native API 1. New signed content must have version greater than 3, minimum APK code 17 and save schema 8. Ship this compatible APK before updating the signed content pointer. APK 16 authenticates the manifest then rejects schema-8 content without activating it. Do not relabel a schema-changing release as schema 7.
+`contentVersion` is a strictly increasing integer independent of the APK version. `label` is a readable release label. The example above documents the historical APK-16/schema-7 content protocol; APK 17 introduced schema 8 with baseline 3 and signed content 4. APK 18 bundles baseline 5 and retains schema 8/native API 1. New signed content must have version greater than 5, minimum APK code 18 and save schema 8. Ship the compatible APK before updating the signed content pointer. APK 16 authenticates the manifest then rejects schema-8 content; APK 17 rejects the APK-18 minimum. Do not relabel an incompatible release to bypass those checks. The builder accepts authenticated prior APK-16/schema-7 and APK-17/schema-8 envelopes only as monotonicity evidence, never as newly published current content.
 
 Only HTTPS assets under this repository's GitHub release-download path are allowed. The fixed signed channel pointer is `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json`. Android package updates continue using `latest.json` on the same channel release; keep these two independent manifests distinct.
 
@@ -59,16 +59,16 @@ Only HTTPS assets under this repository's GitHub release-download path are allow
 
 Keep the private signing key outside every checkout, cloud upload, release asset and Android source tree. Preserve it securely across releases; changing the embedded public key requires an APK update. A synthetic interoperability fixture under `mobile/android/scripts/guild-content-protocol-fixture.json` has its own discarded test key and must never be used as a production release identity.
 
-From the repository root, prepare into a fresh directory outside the checkout. Supply the prior published signed envelope, including when moving from historical content 2 to schema-8 content 4:
+From the repository root, prepare into a fresh directory outside the checkout. Supply the prior published signed envelope, including when moving from content 4 to content 6:
 
 ```powershell
 node mobile/android/scripts/prepare-guild-content.cjs `
   --key C:\Guild-Signing\content-p256.pem `
-  --output C:\Guild-Releases\content-v4 `
-  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v4/ `
-  --version 4 `
-  --label 0.13.0.1 `
-  --previous-envelope C:\Guild-Releases\published-content-v2.json
+  --output C:\Guild-Releases\content-v6 `
+  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v6/ `
+  --version 6 `
+  --label 0.14.0.1 `
+  --previous-envelope C:\Guild-Releases\published-content-v4.json
 ```
 
 The builder rejects a different signing curve, an in-repository private key, a non-increasing signed version, unsafe paths, changed canonical bytes and incompatible protocol fields. It generates a deterministic ZIP with stored entries and fixed timestamps using only Node's standard library. ECDSA signatures are randomized, so independently preparing the same release can produce a different envelope signature. Archive bytes remain deterministic. Retain the original staged release when retrying publication; do not regenerate and overwrite immutable envelopes.
@@ -98,3 +98,5 @@ Java tests must verify the shared fixture's SPKI key, DER signature, exact decod
 On a disposable Android installation, preserve a guild checkpoint and settings, install the compatible native shell normally, then apply a publicly signed newer content version through the game's update controls. Verify the APK package/version is unchanged by the content update, the activity stays open, progress/settings remain intact, and the content persists through an offline cold launch. Exercise the previous-content rollback after a failed candidate boot. A locally generated archive or passing JVM suite alone does not prove a released in-app update works.
 
 The application must finish the normal durable checkpoint before switching the WebView's active snapshot. Activation briefly pauses the game and reloads it inside the same native activity. An interrupted download leaves the running version intact. A failed candidate must fall back to its previously verified snapshot or packaged baseline. Normal game reset clears the guild; it must not silently clear content versions or app-update preferences.
+
+APK 18's optional **Reset after successful updates** debugging setting is off by default. Native code sends a one-shot document-scoped committed receipt containing the installed APK code and actual selected content version only after successful initialization/checkpoint/commit. The game waits for pending commerce, writes and verifies an exact pre-reset backup, and performs the canonical testing reset. Settings, shop keepsakes, paid wallet/account purchases and verified reward receipts plus daily cooldowns are retained. The same-Activity reload resumes the first lesson. First installation, routine launches, failed candidates and paired rollback never initiate a wipe. An already authorized durable reset journal resumes the same seed if interrupted; matching native/JS update receipts fence retries and lost acknowledgments. Test both enabled and disabled behavior, downloaded backup bytes and offline/process-death recovery before release.

@@ -10,8 +10,8 @@ val websiteRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val gameAssets = layout.buildDirectory.dir("generated/gameAssets")
 val updaterSources = layout.buildDirectory.dir("generated/sharedUpdater/main")
 val updaterTests = layout.buildDirectory.dir("generated/sharedUpdater/test")
-val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("17").get()
-val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.13.0").get()
+val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("18").get()
+val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.14.0").get()
 val gameVersionCode = versionCodeProperty.toIntOrNull()
   ?: error("wayfarersVersionCode must be a positive Android version code.")
 require(gameVersionCode > 0) { "wayfarersVersionCode must be positive." }
@@ -81,7 +81,7 @@ android {
     buildConfigField("String", "CONTENT_PUBLIC_KEY", "\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpUTtzoHygvJxs6Ebk2CETcgdJUNA87hHeteq3FM7DMWdNga3Cx3n6N03cb9xc/U0Azks22zwDNYF9dCS9D2nLA==\"")
     buildConfigField("int", "CONTENT_NATIVE_API", "1")
     buildConfigField("int", "CONTENT_SAVE_SCHEMA", "8")
-    buildConfigField("long", "BUNDLED_CONTENT_VERSION", "3L")
+    buildConfigField("long", "BUNDLED_CONTENT_VERSION", "5L")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
   signingConfigs.getByName("debug") {
