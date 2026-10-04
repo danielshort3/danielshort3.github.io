@@ -380,7 +380,8 @@
         const rows=visible(stationScope==='area' ? area.areaUpgrades : station?.skills || []);
         const core=rows.filter(row=>!row.technique && row.kind!=='technique' && row.slot!=='technique' && (row.order ?? 0)<3),later=rows.filter(row=>!core.includes(row));
         content='<div class="wx-station-rows">'+core.map(stationRow).join('')+'</div>'+(later.length ? '<h3 class="wx-techniques-title">Techniques</h3><div class="wx-station-rows">'+later.map(stationRow).join('')+'</div>' : '');
-        const plans=model.legacy || visible(view.expedition.choices || []).some(group=>(group.options || []).length>1) || visible(view.expedition.configurations || []).length || (view.expedition.specializations || []).length>1;
+        const planRows=visible(view.expedition.choices || []);
+        const plans=model.legacy || planRows.some(group=>(group.options || []).length>1) || planRows.filter(row=>!row.options).length>1 || visible(view.expedition.configurations || []).length || (view.expedition.specializations || []).length>1;
         if(plans && stationScope==='station')content+='<div class="wx-station-operation">'+button(icon(area.id==='quarry' ? 'forge' : 'compass')+'<span>'+esc(area.id==='quarry' ? 'Processing' : 'Operations')+'</span><b>›</b>',()=>open({kind:'choice'}),{key:'world-choice',className:'wx-operation-button',aria:'Inspect current production and area plans'}).replace('<button ','<button data-wx-plans ')+'</div>';
         if(projects.length && (stationScope==='area' || !knownArea && stationScope==='station'))content+='<h3 class="wx-techniques-title">Area projects</h3>'+upgradeRows(projects);
         const next=area.nextStation;
@@ -694,9 +695,10 @@
     function skillGrid(items) { return '<div class="wx-skill-grid">' + items.map(item=>skillTile(item,false)).join('') + '</div>'; }
     function operationBody() {
       const operation = view.expedition.operation;
-      const stages = operation?.stages || view.expedition.stations || [];
-      let html = '<div class="wx-operation-chain">' + stages.map(stage=>'<article><span>' + icon(stage.icon || stage.id) + '</span><strong>' + esc(stage.label) + '</strong>' + (stage.rateText ? '<small>' + esc(stage.rateText) + '</small>' : '') + (stage.bufferText ? '<small>' + esc(stage.bufferText) + '</small>' : '') + (stage.buffer != null && stage.capacity ? '<progress value="'+esc(stage.buffer)+'" max="'+esc(stage.capacity)+'" aria-label="'+esc(stage.label+' queue')+'"></progress>' : '') + '</article>').join('') + '</div>';
-      const status = operation?.status || view.expedition.areas?.find(area=>area.selected)?.status || view.expedition.stage.objective;
+      const active=stationModel().active;
+      const stages = active ? (stationModel().currentArea?.stations || []).filter(station=>station.status==='built').map(station=>({id:station.id,label:station.name,art:stationGlyph(station),rateText:station.outputText})) : operation?.stages || view.expedition.stations || [];
+      let html = '<div class="wx-operation-chain">' + stages.map(stage=>'<article'+(active ? ' data-wx-operation-station="'+esc(stage.id)+'"' : '')+'><span>' + (stage.art || icon(stage.icon || stage.id)) + '</span><strong>' + esc(stage.label) + '</strong>' + (stage.rateText ? '<small>' + esc(stage.rateText) + '</small>' : '') + (stage.bufferText ? '<small>' + esc(stage.bufferText) + '</small>' : '') + (stage.buffer != null && stage.capacity ? '<progress value="'+esc(stage.buffer)+'" max="'+esc(stage.capacity)+'" aria-label="'+esc(stage.label+' queue')+'"></progress>' : '') + '</article>').join('') + '</div>';
+      const status = active ? null : operation?.status || view.expedition.areas?.find(area=>area.selected)?.status || view.expedition.stage.objective;
       if (status) html += '<p class="wx-operation-status">' + esc(status) + '</p>';
       const skills = visible(allUpgrades()).filter(item=>item.areaId===selectedAreaId() && item.owned && item.configuration);
       if (skills.length) html += section('Skill plans',skills.map(item=>menu(item.name,item.configuration.dormant ? 'Rebuild to activate saved plan' : item.configuration.options.find(option=>option.selected)?.label || 'Choose a plan',item.icon,{kind:'upgrade',id:item.id})).join(''));
@@ -1736,6 +1738,7 @@
         if (e.stage.index > 2) html += '<ul class="wx-muted">' + (e.guildLinks || []).map(link => '<li>' + esc(link) + '</li>').join('') + '</ul>';
         if (e.choice?.visible) html += menu('Current approach', e.choice.options.find(c => c.selected)?.label, 'compass', { kind:'choice' });
         if (guideForArea(selectedAreaId())) html += button('Replay area guide',()=>replayGuide(selectedAreaId()),{key:'guide-replay:' + selectedAreaId(),className:'wx-button wx-guide-replay'});
+        if(e.next?.action && !e.next.disabled)detailFooter=button(esc(e.next.label)+' →',e.next.action,{key:'area-expand',className:'wx-confirm',aria:e.next.label,disabled:currentContext.saveFailure || currentContext.awaitingWallet});
       } else if (model.kind === 'finale') {
         title = e.stage.established || e.scene?.established ? 'Area developed' : 'Outpost established';
         const outpost = e.outposts?.find(item => item.id === e.stage.kind);

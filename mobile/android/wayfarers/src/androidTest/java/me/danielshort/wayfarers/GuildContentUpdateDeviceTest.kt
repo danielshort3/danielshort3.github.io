@@ -32,6 +32,8 @@ import me.danielshort.wayfarers.content.GuildContentManifest
 import me.danielshort.wayfarers.content.GuildContentStore
 import me.danielshort.wayfarers.content.GuildContentVerifier
 import me.danielshort.wayfarers.content.GuildContentUpdateManager
+import me.danielshort.wayfarers.content.GuildContentUpdateState
+import me.danielshort.wayfarers.content.GuildContentHttpsTransport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +44,69 @@ import kotlinx.coroutines.cancel
 class GuildContentUpdateDeviceTest {
   private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
   private val arguments get() = InstrumentationRegistry.getArguments()
+
+  @Test fun publishedSchemaEightContentCannotReplaceTheRealInstalledApkSixteenGuild() {
+    assumeTrue("Requires the actual published schema-8 feed and a backed-up APK-16 guild",
+      arguments.getString("guildOldApkIncompatibleQa") == "true")
+    val context = instrumentation.targetContext
+    assertEquals(16L, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    val exported = File(context.getExternalFilesDir(null), "release-qa/guild.json")
+    assertTrue("Export the real older guild before checking the incompatible feed", exported.isFile)
+    assertEquals(7, JSONObject(exported.readText()).getInt("version"))
+    val envelope = GuildContentHttpsTransport().manifest(
+      "https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json")
+    val published = GuildContentVerifier(me.danielshort.app.BuildConfig.CONTENT_PUBLIC_KEY,
+      "me.danielshort.wayfarers", 1, 17, 8).verify(envelope)
+    val payload = JSONObject(String(Base64.getDecoder().decode(JSONObject(envelope).getString("payload")), Charsets.UTF_8))
+    assertEquals("This gate must read the actual new published signed content", 4L, published.contentVersion)
+    assertEquals(8, payload.getInt("saveSchema"))
+    assertEquals(17, published.minAppVersionCode)
+    val app = context.applicationContext as WayfarersApplication
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val before = awaitReady(scenario, 2)
+      assertEquals(JSONObject(exported.readText()).getJSONObject("state").getLong("createdAt"),
+        before.getJSONObject("state").getLong("createdAt"))
+      val settings = nativeSettings()
+      val pid = Process.myPid()
+      var activity: MainActivity? = null
+      scenario.onActivity { activity = it }
+      exportEvidence("before-public-incompatible-check", before)
+      openUpdates(scenario)
+      clickNativeButton("Check game updates")
+      awaitCondition("The real APK-16 update manager must reject the incompatible public feed") {
+        app.contentUpdates.state.value is GuildContentUpdateState.Error
+      }
+      val failure = app.contentUpdates.state.value as GuildContentUpdateState.Error
+      assertTrue("Show the actual compatibility error", failure.message.isNotBlank())
+      assertNotNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
+        it.text?.toString() == failure.message && it.isVisibleToUser
+      })
+      assertNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
+        it.text?.toString() in listOf("Apply game update", "Download game update") && it.isVisibleToUser && it.isEnabled
+      })
+      assertEquals(2L, app.contentStore.currentVersion())
+      assertNull(app.contentStore.stagedManifest())
+      val output = File(context.getExternalFilesDir(null), "content-update-qa").apply { mkdirs() }
+      File(output, "public-incompatible-envelope.json").writeText(envelope)
+      File(output, "public-incompatible-result.json").writeText(JSONObject().put("installedApk", 16)
+        .put("publishedContent", published.contentVersion).put("saveSchema", payload.getInt("saveSchema"))
+        .put("minimumApk", published.minAppVersionCode).put("error", failure.message).toString(2))
+      File(output, "public-incompatible-ui.png").outputStream().use { stream ->
+        check(instrumentation.uiAutomation.takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream))
+      }
+      clickNativeButton("Back to guild")
+      val after = awaitReady(scenario, 2)
+      assertEquals(pid, Process.myPid())
+      scenario.onActivity { assertSame(activity, it) }
+      assertGuildRetained(before.getJSONObject("state"), after.getJSONObject("state"))
+      assertEquals(settings, nativeSettings())
+      val checkpoint = GuildCheckpointStore(File(context.filesDir, "guild-checkpoint.json")).read()
+      assertNotNull(checkpoint)
+      assertEquals(7, JSONObject(checkpoint!!.text).getInt("version"))
+      assertGuildRetained(after.getJSONObject("state"), JSONObject(checkpoint.text).getJSONObject("state"))
+      exportEvidence("after-public-incompatible-check", after)
+    }
+  }
 
   @Test fun installedApkUpgradePreservesTheRealRetainedGuildAndSettings() {
     assumeTrue("Requires the actual installed APK-16 to APK-17 upgrade and an exported baseline",
