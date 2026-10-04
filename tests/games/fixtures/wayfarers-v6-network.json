@@ -1,0 +1,944 @@
+{
+  "schemaVersion": 6,
+  "createdAt": 0,
+  "lastUpdate": 1920000,
+  "resources": {
+    "coins": {
+      "m": 9.999999890337506,
+      "e": 13
+    },
+    "ore": {
+      "m": 1,
+      "e": 14
+    },
+    "herbs": {
+      "m": 1,
+      "e": 14
+    },
+    "provisions": {
+      "m": 1,
+      "e": 14
+    },
+    "knowledge": {
+      "m": 1,
+      "e": 14
+    },
+    "maps": {
+      "m": 1,
+      "e": 14
+    },
+    "notes": {
+      "m": 0,
+      "e": 0
+    },
+    "crests": {
+      "m": 0,
+      "e": 0
+    },
+    "starshards": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "upgrades": {
+    "boots": 0,
+    "preparation": 0,
+    "miners": 0,
+    "forge": 0,
+    "foragers": 0,
+    "cooks": 0,
+    "scholars": 0,
+    "surveyors": 0,
+    "mentors": 0,
+    "gear-tools": 0,
+    "gear-boots": 0,
+    "gear-instruments": 0
+  },
+  "research": [],
+  "refitUpgrades": {
+    "pace": 0,
+    "supply": 0,
+    "insight": 0
+  },
+  "legacy": {
+    "foundations": 0,
+    "curriculum": 0,
+    "waystones": 0
+  },
+  "rooms": [
+    "trail",
+    "mine",
+    "forge",
+    "forage",
+    "hall"
+  ],
+  "mastery": {
+    "trail": {
+      "m": 5.759999999999997,
+      "e": 2
+    },
+    "mine": {
+      "m": 5.413110426440872,
+      "e": 2
+    },
+    "forge": {
+      "m": 3.956886970681267,
+      "e": 2
+    },
+    "forage": {
+      "m": 1.0637256454737072,
+      "e": 1
+    },
+    "kitchen": {
+      "m": 0,
+      "e": 0
+    },
+    "study": {
+      "m": 0,
+      "e": 0
+    },
+    "hall": {
+      "m": 1.0637256454737072,
+      "e": 1
+    },
+    "cartography": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "ranks": {
+    "trail": 1,
+    "mine": 1,
+    "forge": 1,
+    "forage": 0,
+    "kitchen": 0,
+    "study": 0,
+    "hall": 0,
+    "cartography": 0
+  },
+  "route": {
+    "index": 3,
+    "progress": {
+      "m": 0,
+      "e": 0
+    },
+    "mode": "frontier"
+  },
+  "run": {
+    "id": 1,
+    "completed": 2,
+    "work": {
+      "m": 3.057,
+      "e": 4
+    },
+    "elapsed": 1920.0000000000002
+  },
+  "chapter": {
+    "work": {
+      "m": 3.057,
+      "e": 4
+    },
+    "refits": 0
+  },
+  "lifetime": {
+    "work": {
+      "m": 3.057,
+      "e": 4
+    },
+    "coins": {
+      "m": 7.7779317460841355,
+      "e": 4
+    },
+    "refits": 10,
+    "charters": 1,
+    "highestRoute": 2,
+    "frontier": 0
+  },
+  "crew": {
+    "owned": [
+      "scout",
+      "prospector",
+      "quartermaster"
+    ],
+    "specialists": [
+      "scout",
+      null
+    ],
+    "companions": [],
+    "companion": null
+  },
+  "meal": "meal-none",
+  "doctrine": "balanced",
+  "automations": {
+    "operations": false,
+    "equipment": false,
+    "routes": false
+  },
+  "challenges": {
+    "active": null,
+    "completed": []
+  },
+  "collections": [
+    "greenway"
+  ],
+  "planner": 0,
+  "events": [
+    "Old Footpath completed.",
+    "Mine discovered: Mine ore. Stronger picks and deeper routes improve its quality.",
+    "Trail establishment expedition completed. Its outpost keeps working.",
+    "Copper Quarry completed.",
+    "Forge built by the quarry expedition. Its equipment strengthens the whole guild.",
+    "Quarry establishment expedition completed. Its outpost keeps working.",
+    "Watchtower Road completed.",
+    "Forager's Camp discovered: Gather herbs for provisions and research instruments.",
+    "Greenway landmark added to the guild collection.",
+    "Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.",
+    "Tower establishment expedition completed. Its outpost keeps working."
+  ],
+  "premium": {
+    "rng": 3806652160,
+    "eligibleSeconds": 1318.962,
+    "untilDrop": 13164.299,
+    "drops": 0,
+    "claimedMilestones": [
+      "first-refit",
+      "first-charter"
+    ],
+    "owned": [],
+    "equipped": null
+  },
+  "luck": {
+    "rng": 2787866157,
+    "commonRemainingMs": 90832.85785304208,
+    "relicRemainingMs": 301767,
+    "pitySeconds": 0,
+    "owned": [],
+    "active": null,
+    "duplicateProgress": {
+      "golden-pickaxe": 0,
+      "surveyors-lens": 0,
+      "living-crucible": 0,
+      "marsh-lantern": 0,
+      "frost-compass": 0,
+      "archive-quill": 0,
+      "starsteel-anvil": 0,
+      "wayfarer-standard": 0
+    },
+    "hunt": "balanced",
+    "scheduledHunt": "balanced",
+    "research": [],
+    "kit": {
+      "prepared": null,
+      "active": null,
+      "remainingSeconds": 0
+    },
+    "ledger": {
+      "seq": 2,
+      "seen": 0,
+      "recent": [
+        {
+          "seq": 1,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+607 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 706845.8578530422
+        },
+        {
+          "seq": 2,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+44.29 ore",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 1375048.8578530422
+        }
+      ]
+    },
+    "collectionBanner": false,
+    "commonFinds": 2,
+    "relicFinds": 0
+  },
+  "caravan": {
+    "rng": 1760403615,
+    "remainingMs": 4337776,
+    "offer": null,
+    "sequence": 0,
+    "completed": [],
+    "receipts": [],
+    "pendingQuote": null,
+    "surge": {
+      "resource": null,
+      "remainingSeconds": 0
+    }
+  },
+  "guild": {
+    "grandfathered": false,
+    "projects": [],
+    "capabilities": [],
+    "supply": "steady",
+    "prepared": {
+      "index": -1,
+      "kinds": []
+    },
+    "chapterProject": {
+      "number": 1,
+      "choice": null
+    },
+    "plan": {
+      "reserves": {
+        "coins": {
+          "m": 0,
+          "e": 0
+        },
+        "ore": {
+          "m": 0,
+          "e": 0
+        },
+        "herbs": {
+          "m": 0,
+          "e": 0
+        },
+        "provisions": {
+          "m": 0,
+          "e": 0
+        },
+        "knowledge": {
+          "m": 0,
+          "e": 0
+        },
+        "maps": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "goal": null,
+      "priorities": {
+        "operations": "balanced",
+        "equipment": "balanced"
+      },
+      "queue": [],
+      "kit": "off",
+      "preparation": "off"
+    },
+    "loadouts": [],
+    "audit": []
+  },
+  "introductions": {
+    "seen": []
+  },
+  "expedition": {
+    "version": 3,
+    "index": 2,
+    "cleared": 2,
+    "completed": true,
+    "renewed": false,
+    "selectedArea": "watchtower",
+    "projectArea": "watchtower",
+    "work": 8500,
+    "finaleWork": 1500,
+    "areas": {
+      "greenway": {
+        "ranks": {
+          "boots": 25,
+          "porters": 25,
+          "scouts": 25,
+          "caravans": 25,
+          "waystations": 25,
+          "railways": 0
+        },
+        "highRanks": {
+          "boots": 25,
+          "porters": 25,
+          "scouts": 25,
+          "caravans": 25,
+          "waystations": 25,
+          "railways": 0
+        },
+        "learned": [
+          "boots",
+          "porters",
+          "scouts",
+          "caravans",
+          "waystations"
+        ],
+        "cap": 100,
+        "choice": "trade",
+        "specialization": null,
+        "plans": {
+          "assignments": [
+            "survey"
+          ],
+          "templates": [
+            "supplies"
+          ],
+          "target": "near",
+          "discovery": "botanical",
+          "loadouts": [
+            "industry"
+          ],
+          "port": "coast"
+        },
+        "voyages": [],
+        "discoveryWork": 0,
+        "discoveries": {
+          "botanical": 0,
+          "metallic": 0,
+          "inscribed": 0
+        },
+        "buffers": {
+          "input": 0,
+          "output": 0
+        },
+        "elapsed": 2014.3472995923346,
+        "purchases": 125,
+        "seen": 0
+      },
+      "quarry": {
+        "ranks": {
+          "picks": 25,
+          "carts": 25,
+          "furnace": 25,
+          "geology": 25,
+          "recovery": 0,
+          "deepworks": 0
+        },
+        "highRanks": {
+          "picks": 25,
+          "carts": 25,
+          "furnace": 25,
+          "geology": 25,
+          "recovery": 0,
+          "deepworks": 0
+        },
+        "learned": [
+          "picks",
+          "carts",
+          "furnace",
+          "geology"
+        ],
+        "cap": 100,
+        "choice": "balanced",
+        "specialization": null,
+        "plans": {
+          "assignments": [
+            "survey"
+          ],
+          "templates": [
+            "supplies"
+          ],
+          "target": "near",
+          "discovery": "botanical",
+          "loadouts": [
+            "industry"
+          ],
+          "port": "coast"
+        },
+        "voyages": [],
+        "discoveryWork": 0,
+        "discoveries": {
+          "botanical": 0,
+          "metallic": 0,
+          "inscribed": 0
+        },
+        "buffers": {
+          "input": 0,
+          "output": 23
+        },
+        "elapsed": 1898.7174417392919,
+        "purchases": 100,
+        "seen": 0
+      },
+      "watchtower": {
+        "ranks": {
+          "beacon": 25,
+          "signals": 25,
+          "crew": 25,
+          "optics": 0,
+          "forecasting": 0,
+          "relay-grid": 0
+        },
+        "highRanks": {
+          "beacon": 25,
+          "signals": 25,
+          "crew": 25,
+          "optics": 0,
+          "forecasting": 0,
+          "relay-grid": 0
+        },
+        "learned": [
+          "beacon",
+          "signals",
+          "crew"
+        ],
+        "cap": 100,
+        "choice": "survey",
+        "specialization": null,
+        "plans": {
+          "assignments": [
+            "survey"
+          ],
+          "templates": [
+            "supplies"
+          ],
+          "target": "near",
+          "discovery": "botanical",
+          "loadouts": [
+            "industry"
+          ],
+          "port": "coast"
+        },
+        "voyages": [],
+        "discoveryWork": 0,
+        "discoveries": {
+          "botanical": 0,
+          "metallic": 0,
+          "inscribed": 0
+        },
+        "buffers": {
+          "input": 0,
+          "output": 0
+        },
+        "elapsed": 1413.3096231527566,
+        "purchases": 75,
+        "seen": 0
+      }
+    },
+    "projects": [
+      "wheelworks",
+      "tower-surveys",
+      "deposit-maps"
+    ],
+    "commission": null,
+    "batch": 1,
+    "revision": 340,
+    "focus": {
+      "charges": 3,
+      "recharge": 0,
+      "active": null,
+      "remaining": 0,
+      "unlocked": true
+    },
+    "automation": {
+      "enabled": false,
+      "priority": "balanced",
+      "dispatch": false,
+      "clock": 60
+    },
+    "sequence": 42,
+    "seen": 0,
+    "recent": [
+      {
+        "sequence": 31,
+        "kind": "milestone",
+        "title": "Waystations 3",
+        "text": "+8% extra rank capacity at this milestone.",
+        "stage": 2,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 32,
+        "kind": "milestone",
+        "title": "Waystations 10",
+        "text": "+6% extra rank capacity at this milestone.",
+        "stage": 2,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 33,
+        "kind": "milestone",
+        "title": "Waystations 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 34,
+        "kind": "milestone",
+        "title": "Excavation 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 35,
+        "kind": "milestone",
+        "title": "Haulage 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 36,
+        "kind": "milestone",
+        "title": "Refining 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 37,
+        "kind": "milestone",
+        "title": "Geology 3",
+        "text": "+8% extra rank capacity at this milestone.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 38,
+        "kind": "milestone",
+        "title": "Geology 10",
+        "text": "+6% extra rank capacity at this milestone.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 39,
+        "kind": "milestone",
+        "title": "Geology 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 40,
+        "kind": "milestone",
+        "title": "Surveying 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "watchtower"
+      },
+      {
+        "sequence": 41,
+        "kind": "milestone",
+        "title": "Signals 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "watchtower"
+      },
+      {
+        "sequence": 42,
+        "kind": "milestone",
+        "title": "Command 25",
+        "text": "A specialist plan is now learned permanently.",
+        "stage": 2,
+        "areaId": "watchtower"
+      }
+    ],
+    "purchases": 300,
+    "blueprints": [],
+    "mastery": {
+      "greenway": 0,
+      "quarry": 0,
+      "watchtower": 0
+    },
+    "legacyDevelopments": []
+  },
+  "collection": {
+    "version": 1,
+    "cardsUnlocked": false,
+    "equipmentUnlocked": false,
+    "cards": {},
+    "gear": {},
+    "decks": [
+      {
+        "id": "deck-1",
+        "name": "Travel",
+        "slots": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "deck-2",
+        "name": "Industry",
+        "slots": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "deck-3",
+        "name": "Discovery",
+        "slots": [
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "activeDeck": "deck-1",
+    "equipped": {
+      "tool": null,
+      "head": null,
+      "coat": null,
+      "boots": null
+    },
+    "scrolls": {
+      "steady": 0,
+      "bold": 0,
+      "brilliant": 0,
+      "restoration": 0
+    },
+    "ink": 0,
+    "lootRng": 1370766377,
+    "scrollRng": 2720810568,
+    "cardRemainingMs": 900000,
+    "scrollRemainingMs": 3600000,
+    "cardEligibleMs": 0,
+    "scrollEligibleMs": 0,
+    "cardFinds": 0,
+    "scrollFinds": 0,
+    "sinceEpic": 0,
+    "sinceLegendary": 0,
+    "revision": 0,
+    "sequence": 0,
+    "seen": 0,
+    "slotsAnnounced": 2,
+    "recent": []
+  },
+  "upgradeTiers": {
+    "version": 1,
+    "claimed": [
+      "area:greenway:boots",
+      "area:quarry:picks",
+      "area:greenway:porters",
+      "guild:trail:0",
+      "guild:mine:0",
+      "development:p:wheelworks",
+      "area:greenway:scouts",
+      "area:quarry:carts",
+      "area:quarry:furnace",
+      "area:watchtower:beacon",
+      "guild:trail:2",
+      "guild:forge:0",
+      "development:p:tower-surveys",
+      "development:p:deposit-maps",
+      "area:watchtower:signals",
+      "area:watchtower:crew",
+      "guild:forage:0",
+      "guild:hall:0",
+      "area:greenway:caravans",
+      "area:greenway:waystations",
+      "development:p:workshop-foundation",
+      "area:quarry:geology",
+      "notes",
+      "crests",
+      "planning:notes:0",
+      "planning:crests:1"
+    ],
+    "pending": [],
+    "prompted": []
+  },
+  "onboarding": {
+    "version": 1,
+    "progress": {
+      "greenway": 0,
+      "quarry": 0,
+      "cards": 0,
+      "watchtower": 0,
+      "equipment": 0
+    },
+    "active": null,
+    "entries": [
+      "area:greenway",
+      "ready:area:greenway:porters",
+      "area:quarry",
+      "feature:cards",
+      "feature:upgrades",
+      "ready:guild:trail:0",
+      "ready:guild:mine:0",
+      "ready:development:p:wheelworks",
+      "tier:area:greenway:porters",
+      "tier:guild:trail:0",
+      "tier:guild:mine:0",
+      "tier:development:p:wheelworks",
+      "ready:area:greenway:scouts",
+      "ready:area:quarry:carts",
+      "tier:area:greenway:scouts",
+      "tier:area:quarry:carts",
+      "ready:area:quarry:furnace",
+      "tier:area:quarry:furnace",
+      "area:watchtower",
+      "feature:equipment",
+      "feature:guild",
+      "ready:guild:trail:2",
+      "ready:guild:forge:0",
+      "ready:development:p:tower-surveys",
+      "ready:development:p:deposit-maps",
+      "ready:area:watchtower:beacon",
+      "tier:area:watchtower:beacon",
+      "tier:guild:trail:2",
+      "tier:guild:forge:0",
+      "tier:development:p:tower-surveys",
+      "tier:development:p:deposit-maps",
+      "ready:area:watchtower:signals",
+      "tier:area:watchtower:signals",
+      "ready:area:watchtower:crew",
+      "tier:area:watchtower:crew",
+      "ready:guild:forage:0",
+      "ready:guild:hall:0",
+      "tier:guild:forage:0",
+      "tier:guild:hall:0",
+      "ready:area:greenway:caravans",
+      "tier:area:greenway:caravans",
+      "project:wheelworks",
+      "ready:area:greenway:waystations",
+      "ready:development:p:workshop-foundation",
+      "tier:area:greenway:waystations",
+      "project:tower-surveys",
+      "tier:development:p:workshop-foundation",
+      "ready:area:quarry:geology",
+      "tier:area:quarry:geology",
+      "project:deposit-maps",
+      "feature:focus",
+      "batch:5",
+      "batch:10",
+      "batch:25",
+      "batch:100",
+      "ready:notes",
+      "ready:crests",
+      "ready:planning:notes:0",
+      "ready:planning:crests:1",
+      "tier:notes",
+      "tier:crests",
+      "tier:planning:notes:0",
+      "tier:planning:crests:1"
+    ],
+    "announced": [
+      "area:greenway",
+      "ready:area:greenway:porters",
+      "ready:guild:trail:0",
+      "ready:guild:mine:0",
+      "ready:development:p:wheelworks",
+      "ready:area:greenway:scouts",
+      "ready:area:quarry:carts",
+      "ready:area:quarry:furnace",
+      "ready:area:watchtower:beacon",
+      "tier:area:watchtower:beacon",
+      "ready:guild:trail:2",
+      "ready:guild:forge:0",
+      "ready:development:p:tower-surveys",
+      "ready:development:p:deposit-maps",
+      "ready:area:watchtower:signals",
+      "ready:area:watchtower:crew",
+      "ready:guild:forage:0",
+      "ready:guild:hall:0",
+      "ready:area:greenway:caravans",
+      "ready:area:greenway:waystations",
+      "ready:development:p:workshop-foundation",
+      "ready:area:quarry:geology",
+      "ready:notes",
+      "ready:crests",
+      "ready:planning:notes:0",
+      "ready:planning:crests:1"
+    ],
+    "read": [
+      "area:greenway",
+      "ready:area:greenway:porters",
+      "ready:guild:trail:0",
+      "ready:guild:mine:0",
+      "ready:development:p:wheelworks",
+      "ready:area:greenway:scouts",
+      "ready:area:quarry:carts",
+      "ready:area:quarry:furnace",
+      "ready:area:watchtower:beacon",
+      "tier:area:watchtower:beacon",
+      "ready:guild:trail:2",
+      "ready:guild:forge:0",
+      "ready:development:p:tower-surveys",
+      "ready:development:p:deposit-maps",
+      "ready:area:watchtower:signals",
+      "ready:area:watchtower:crew",
+      "ready:guild:forage:0",
+      "ready:guild:hall:0",
+      "ready:area:greenway:caravans",
+      "ready:area:greenway:waystations",
+      "ready:development:p:workshop-foundation",
+      "ready:area:quarry:geology",
+      "ready:notes",
+      "ready:crests",
+      "ready:planning:notes:0",
+      "ready:planning:crests:1"
+    ],
+    "rewardClaims": [],
+    "practice": {
+      "version": 1,
+      "progress": {
+        "greenway": 0,
+        "tiers": 0,
+        "quarry": 0,
+        "expansion": 0,
+        "plans": 0,
+        "guild-upgrades": 0,
+        "shop": 0,
+        "watchtower": 0,
+        "projects": 0,
+        "configuration": 0,
+        "refit": 0,
+        "crew": 0,
+        "companions": 0,
+        "bulk": 0,
+        "focus": 0,
+        "automation": 0,
+        "reserves": 0,
+        "planner": 0,
+        "charter": 0,
+        "specialization": 0
+      },
+      "active": null,
+      "bindings": {},
+      "intentions": {},
+      "proofs": [],
+      "supplies": [],
+      "rewards": [],
+      "helpRewards": [],
+      "currencyRead": []
+    },
+    "attention": {
+      "version": 1,
+      "seen": [],
+      "currencies": [
+        "coins",
+        "ore",
+        "starshards",
+        "knowledge",
+        "maps",
+        "herbs",
+        "notes",
+        "crests"
+      ],
+      "finds": {},
+      "findSequence": 0
+    }
+  },
+  "trailDeliveries": {
+    "version": 1,
+    "phase": "travel",
+    "work": 10.684355575516717,
+    "hold": 0,
+    "cargo": {
+      "m": 9.772474371241639,
+      "e": 1
+    },
+    "deliveries": 147,
+    "lifetimeCoins": {
+      "m": 2.0338326519814878,
+      "e": 4
+    },
+    "lastReward": {
+      "m": 2.7439580147356777,
+      "e": 2
+    },
+    "sequence": 148,
+    "lastKind": "delivery",
+    "landmarkRunId": 1,
+    "landmarkIndex": 0
+  }
+}

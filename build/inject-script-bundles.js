@@ -30,6 +30,7 @@ const managedHrefs = {
   privacy: resolveHref('site-privacy.js', manifest.privacy),
   toolsAccount: resolveHref('site-tools-account.js', manifest.toolsAccount),
   toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding),
+  wayfarersGuild: resolveHref('wayfarers-guild.js', manifest.wayfarersGuild),
   projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall),
   projectStarfallHurtboxes: resolveHref('project-starfall-hurtboxes.js', manifest.projectStarfallHurtboxes)
 };
@@ -220,14 +221,27 @@ function processHtml(html, relPath) {
   let consentInserted = false;
   let toolsInserted = false;
   let projectStarfallInserted = false;
+  let wayfarersGuildInserted = false;
 
   const isToolsLanding = relPath === 'pages/tools.html';
+  const isWayfarersGuild = relPath === 'pages/games/wayfarers-guild.html';
   const isProjectStarfall = relPath === 'pages/games/project-starfall.html';
   const isIsolatedCaptureSurface = relPath === 'pages/job-application-tracker.html';
 
   lines.forEach((line) => {
     const trimmed = line.trim();
     const indent = lineIndent(line);
+
+    if (isWayfarersGuild && (
+      /^<script\s+defer\s+src="\/?js\/games\/wayfarers-guild\/(?:numbers|content|expeditions|core|persistence|billing|rewarded|icons|scene|expedition-scene|expedition-ui|app)\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
+      || isManagedLine(trimmed, 'wayfarers-guild')
+    )) {
+      if (!wayfarersGuildInserted) {
+        out.push(`${indent}<script defer src="${managedHrefs.wayfarersGuild}"></script>`);
+        wayfarersGuildInserted = true;
+      }
+      return;
+    }
 
     if (isProjectStarfall && (
       /^<script\s+defer\s+src="js\/games\/project-starfall\/.+\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
@@ -389,6 +403,14 @@ function processHtml(html, relPath) {
       normalized,
       `<script defer src="${managedHrefs.projectStarfall}"></script>`,
       (trimmed) => isManagedLine(trimmed, 'site-shell') || isManagedLine(trimmed, 'site-consent')
+    );
+  }
+
+  if (isWayfarersGuild && !wayfarersGuildInserted) {
+    normalized = insertManagedScriptBefore(
+      normalized,
+      `<script defer src="${managedHrefs.wayfarersGuild}"></script>`,
+      (trimmed) => isManagedLine(trimmed, 'site-consent')
     );
   }
 

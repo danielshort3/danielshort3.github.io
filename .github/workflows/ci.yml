@@ -90,6 +90,45 @@ jobs:
           path: ${{ runner.temp }}/site-browser-smoke
           if-no-files-found: ignore
 
+      - name: Verify stacked Guild scenes and taught actions
+        run: npm run test:wayfarers-guild:stations:browser
+        timeout-minutes: 8
+        env:
+          WAYFARERS_QA_DIR: ${{ runner.temp }}/wayfarers-stations
+
+      - name: Upload Guild scene and tutorial evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfarers-stations
+          path: |
+            ${{ runner.temp }}/wayfarers-stations/*.png
+            ${{ runner.temp }}/wayfarers-stations/report.json
+          if-no-files-found: ignore
+
+      - name: Verify fresh Guild play inside the website shell
+        timeout-minutes: 4
+        env:
+          WAYFARERS_BASE_URL: http://127.0.0.1:4224
+          WAYFARERS_QA_DIR: ${{ runner.temp }}/wayfarers-website
+        run: |
+          node build/dev.js --port 4224 --skip-build --no-watch > "$RUNNER_TEMP/guild-website-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          node -e "(async()=>{for(let i=0;i<60;i++){try{if((await fetch(process.env.WAYFARERS_BASE_URL+'/games/wayfarers-guild')).ok)return;}catch{}await new Promise(r=>setTimeout(r,500));}throw Error('Guild preview did not start');})().catch(e=>{console.error(e);process.exit(1)});"
+          node tests/games/wayfarers-guild-website.browser.cjs
+
+      - name: Upload Guild website-shell evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfarers-website
+          path: |
+            ${{ runner.temp }}/wayfarers-website/*.png
+            ${{ runner.temp }}/wayfarers-website/report.json
+            ${{ runner.temp }}/guild-website-server.log
+          if-no-files-found: ignore
+
   release-quality:
     runs-on: ubuntu-24.04
     timeout-minutes: 30

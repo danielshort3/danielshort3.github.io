@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+  <!-- A simple guild crest follows the game's navy, cream, and gold palette. -->
+  <path android:fillColor="#F6C447" android:pathData="M27,28H81V67L72,78L54,88L36,78L27,67Z" />
+  <path android:fillColor="#142B43" android:pathData="M33,34H75V65L68,73L54,81L40,73L33,65Z" />
+  <path android:fillColor="#FFF9E9" android:pathData="M38,48L54,35L70,48V53H65V70H43V53H38ZM48,54V64H60V54Z" />
+  <path android:fillColor="#F6C447" android:pathData="M50,57H58V72H50Z" />
+</vector>

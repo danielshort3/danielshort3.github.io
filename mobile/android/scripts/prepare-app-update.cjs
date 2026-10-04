@@ -8,7 +8,7 @@ const { execFileSync } = require('node:child_process');
 const { MAX_APK_BYTES, sha256, encodePatch, applyPatch } = require('./app-update-format.cjs');
 
 const HASH = /^[a-f0-9]{64}$/;
-const CHANNEL_PACKAGES = { review: 'me.danielshort.app.debug', stable: 'me.danielshort.app' };
+const CHANNEL_PACKAGES = { review: 'me.danielshort.app.debug', stable: 'me.danielshort.app', wayfarers: 'me.danielshort.wayfarers' };
 
 function validateAssetUrl(value) {
   if (typeof value !== 'string' || value.length > 8192 || !value.startsWith('https://') || /[\\\u0000-\u0020\u007f-\u009f]/.test(value)) throw new Error('Invalid update URL');
@@ -30,14 +30,14 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 2) {
     const name = argv[i]?.replace(/^--/, '');
     if (!argv[i]?.startsWith('--') || !known.has(name) || !argv[i + 1] || argv[i + 1].startsWith('--')) {
-      throw new Error('Usage: --apk FILE [--base FILE ...] [--previous-manifest FILE] --output DIR --base-url HTTPS_URL --channel review|stable');
+      throw new Error('Usage: --apk FILE [--base FILE ...] [--previous-manifest FILE] --output DIR --base-url HTTPS_URL --channel review|stable|wayfarers');
     }
     if (name === 'base') result.base.push(argv[i + 1]);
     else if (result[name]) throw new Error(`Duplicate --${name}`);
     else result[name] = argv[i + 1];
   }
   for (const name of ['apk', 'output', 'base-url', 'channel']) if (!result[name]) throw new Error(`Missing --${name}`);
-  if (!CHANNEL_PACKAGES[result.channel]) throw new Error('Channel must be review or stable');
+  if (!CHANNEL_PACKAGES[result.channel]) throw new Error('Channel must be review, stable or wayfarers');
   result['base-url'] = validateAssetUrl(result['base-url']);
   if (!result['base-url'].endsWith('/')) throw new Error('--base-url must end with /');
   return result;
@@ -155,7 +155,8 @@ function prepareBundle(options, inspect = inspectApk) {
     }
   }
   const artifacts = new Map();
-  const apkName = `Daniel-Short-${options.channel}-v${target.versionCode}-${target.sha256.slice(0, 16)}.apk`;
+  const productName = options.channel === 'wayfarers' ? 'Wayfarers-Guild' : `Daniel-Short-${options.channel}`;
+  const apkName = `${productName}-v${target.versionCode}-${target.sha256.slice(0, 16)}.apk`;
   artifacts.set(apkName, target.bytes);
   manifest.latest.apk = { url: new URL(apkName, baseUrl).href, sha256: target.sha256, size: target.size };
   for (const filename of options.base || []) {

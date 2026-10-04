@@ -1,0 +1,679 @@
+{
+  "version": 1,
+  "tool": "built-in image_gen",
+  "direction": "C Living production chain",
+  "entries": [
+    {
+      "id": "track-greenway-boots",
+      "file": "c-track-greenway-boots.webp",
+      "source": "greenway.png",
+      "cell": 0,
+      "sha256": "b525057a5115a26d21fc88f94973e0d020a3958adaf7b0b993bf177875dfaba1"
+    },
+    {
+      "id": "track-greenway-porters",
+      "file": "c-track-greenway-porters.webp",
+      "source": "greenway.png",
+      "cell": 1,
+      "sha256": "d03364071d39f9a34b8261423eb3e769b91a476ec2622a3791fe43b72b44d412"
+    },
+    {
+      "id": "track-greenway-scouts",
+      "file": "c-track-greenway-scouts.webp",
+      "source": "greenway.png",
+      "cell": 2,
+      "sha256": "b7031cc35bbddcb1555caa0ab61a756182ce6df972f4165ad0b1499da4ac074a"
+    },
+    {
+      "id": "track-greenway-caravans",
+      "file": "c-track-greenway-caravans.webp",
+      "source": "greenway.png",
+      "cell": 3,
+      "sha256": "f3d3a9fa6667c5f1187c33aa798657351a53077ce77c83ac569c5f5000b6b186"
+    },
+    {
+      "id": "track-greenway-waystations",
+      "file": "c-track-greenway-waystations.webp",
+      "source": "greenway.png",
+      "cell": 4,
+      "sha256": "decf6c541d6398dd7f97467df12b341d4931c26f474e4fb91c08cd09b0bb20ab"
+    },
+    {
+      "id": "track-greenway-railways",
+      "file": "c-track-greenway-railways.webp",
+      "source": "greenway.png",
+      "cell": 5,
+      "sha256": "02fdb6d5de2d0cbbbd88a773d146a61aee04a17fe0fc494f8c4fd4b24d217d8f"
+    },
+    {
+      "id": "skill-express-routes",
+      "file": "c-skill-express-routes.webp",
+      "source": "greenway.png",
+      "cell": 6,
+      "sha256": "7d8204b351485f97518b05f85d56da544cb78c0fb80034602b1c21fbcb48b5ec"
+    },
+    {
+      "id": "skill-cargo-lashing",
+      "file": "c-skill-cargo-lashing.webp",
+      "source": "greenway.png",
+      "cell": 7,
+      "sha256": "772fb74d6a41afefc9e12089472735fef832cd0094dcd3613197dcb837ff96b2"
+    },
+    {
+      "id": "skill-field-journals",
+      "file": "c-skill-field-journals.webp",
+      "source": "greenway.png",
+      "cell": 8,
+      "sha256": "eb9f3024b62a0a47f3c8e2903ddf20f8be49d81233024fc2b6384987d227aa0d"
+    },
+    {
+      "id": "skill-caravan-escorts",
+      "file": "c-skill-caravan-escorts.webp",
+      "source": "greenway.png",
+      "cell": 9,
+      "sha256": "682404a706559f84d13ca53ceac7f7d50e07adf306814cb122c1f18ec0099a33"
+    },
+    {
+      "id": "skill-supply-depots",
+      "file": "c-skill-supply-depots.webp",
+      "source": "greenway.png",
+      "cell": 10,
+      "sha256": "4d3dae1d8c405be0358a529c9b211581fea7fc5ac53d4c1b6e441127928d7032"
+    },
+    {
+      "id": "skill-relay-runners",
+      "file": "c-skill-relay-runners.webp",
+      "source": "greenway.png",
+      "cell": 11,
+      "sha256": "24ae63c20ef427cae89c8814acd3a46f781aafbe07f7e8271f5cff9b74775e1b"
+    },
+    {
+      "id": "skill-return-cargo",
+      "file": "c-skill-return-cargo.webp",
+      "source": "greenway.png",
+      "cell": 12,
+      "sha256": "ad3ec59d001d54a57e41c8cf3ac3e4efafb7bb73959502bdb151debe4c09cb0f"
+    },
+    {
+      "id": "skill-bonded-routes",
+      "file": "c-skill-bonded-routes.webp",
+      "source": "greenway.png",
+      "cell": 13,
+      "sha256": "c8ad9f3ca29f8509e4e18ec795f19834e0a09a057b74ea483952239005a4b20f"
+    },
+    {
+      "id": "skill-continental-logistics",
+      "file": "c-skill-continental-logistics.webp",
+      "source": "greenway.png",
+      "cell": 14,
+      "sha256": "fc307a66fa1efeb18fa7c51ab9ec91b3e6b9c97547299dc73727b4d4334e72f9"
+    },
+    {
+      "id": "track-quarry-picks",
+      "file": "c-track-quarry-picks.webp",
+      "source": "quarry.png",
+      "cell": 0,
+      "sha256": "ff4c10da124f0d13164055bac72cddc15e04d95ed3bdde88ea059246892dd7de"
+    },
+    {
+      "id": "track-quarry-carts",
+      "file": "c-track-quarry-carts.webp",
+      "source": "quarry.png",
+      "cell": 1,
+      "sha256": "470ebe130dd9a7969961e54286382378a4c9e07d4d1e77f1d0af3c43bcd61ca1"
+    },
+    {
+      "id": "track-quarry-furnace",
+      "file": "c-track-quarry-furnace.webp",
+      "source": "quarry.png",
+      "cell": 2,
+      "sha256": "3999640eb6870be09b7e0a98abe01b93489ec915b358475f6cc346d590ac4a59"
+    },
+    {
+      "id": "track-quarry-geology",
+      "file": "c-track-quarry-geology.webp",
+      "source": "quarry.png",
+      "cell": 3,
+      "sha256": "49e1feaae2d7aaebc0ab37e13f37ea48e8b47ebf6a85841f4e443b9c584d9a87"
+    },
+    {
+      "id": "track-quarry-recovery",
+      "file": "c-track-quarry-recovery.webp",
+      "source": "quarry.png",
+      "cell": 4,
+      "sha256": "ee17226bc30f5872758f08206c5bc731d06022700f1af9c19a403dd66d4b3945"
+    },
+    {
+      "id": "track-quarry-deepworks",
+      "file": "c-track-quarry-deepworks.webp",
+      "source": "quarry.png",
+      "cell": 5,
+      "sha256": "e3d5476f02ad44be479c70ebfb232dca8609a6521cb470b2ab224e5f99c6f55f"
+    },
+    {
+      "id": "skill-stockpiles",
+      "file": "c-skill-stockpiles.webp",
+      "source": "quarry.png",
+      "cell": 6,
+      "sha256": "27b18a5003bd2b5c52ee7617c8baad0c63d4e9fab303714ecea5466d89c4e338"
+    },
+    {
+      "id": "skill-ore-sorting",
+      "file": "c-skill-ore-sorting.webp",
+      "source": "quarry.png",
+      "cell": 7,
+      "sha256": "4bbfd5c9f46c29edf78c682f3dbbeb9f434b2f5a198dc55d7b024804f79d21ba"
+    },
+    {
+      "id": "skill-batch-kilns",
+      "file": "c-skill-batch-kilns.webp",
+      "source": "quarry.png",
+      "cell": 8,
+      "sha256": "3b9f3260a7c8f54bda5cfb65128042077d2350994a06a830eb262de0722ed79b"
+    },
+    {
+      "id": "skill-reinforced-shafts",
+      "file": "c-skill-reinforced-shafts.webp",
+      "source": "quarry.png",
+      "cell": 9,
+      "sha256": "eb440a0dbe3250e0e1b9bc34729d164efde5e55cf002c9d998ef8ec0ec913907"
+    },
+    {
+      "id": "skill-rail-transfer",
+      "file": "c-skill-rail-transfer.webp",
+      "source": "quarry.png",
+      "cell": 10,
+      "sha256": "ac5f6e1d9df734c59f2414e4dae494e80bfde00950f8e9d2f93627e9650e2a46"
+    },
+    {
+      "id": "skill-slag-processing",
+      "file": "c-skill-slag-processing.webp",
+      "source": "quarry.png",
+      "cell": 11,
+      "sha256": "f212db53e1f76ff3568af48048dae270dcff8f1875d3188ecab71cff7fa3e64b"
+    },
+    {
+      "id": "skill-shift-planning",
+      "file": "c-skill-shift-planning.webp",
+      "source": "quarry.png",
+      "cell": 12,
+      "sha256": "120ae6370ae50da890d3fd90e68b7fe77abbd012d6725ce5fd6a35bc5253d85a"
+    },
+    {
+      "id": "skill-resonant-drills",
+      "file": "c-skill-resonant-drills.webp",
+      "source": "quarry.png",
+      "cell": 13,
+      "sha256": "940e1b65e1c6985460339ac19a4fe24d7ab46174b0615b6c6d85fa8026378d03"
+    },
+    {
+      "id": "skill-parallel-furnaces",
+      "file": "c-skill-parallel-furnaces.webp",
+      "source": "quarry.png",
+      "cell": 14,
+      "sha256": "c84b0d1b4dcb9f6ce1a5cf7e3d279c8a38dd9c921cc7fbff7cf73d1c00bb2fc8"
+    },
+    {
+      "id": "track-watchtower-beacon",
+      "file": "c-track-watchtower-beacon.webp",
+      "source": "watchtower.png",
+      "cell": 0,
+      "sha256": "0eda53f0a080aeaf79cdab17f9308865eb7396d64b6bd4057de486519894418f"
+    },
+    {
+      "id": "track-watchtower-signals",
+      "file": "c-track-watchtower-signals.webp",
+      "source": "watchtower.png",
+      "cell": 1,
+      "sha256": "8e736d232e39cbd31070bde4135aeb3e363101f4d09202db4ac78d9d12cbb85a"
+    },
+    {
+      "id": "track-watchtower-crew",
+      "file": "c-track-watchtower-crew.webp",
+      "source": "watchtower.png",
+      "cell": 2,
+      "sha256": "a63aff092294ff9328823063d6811954e254fb66d58148dd83a54bd30e9562d2"
+    },
+    {
+      "id": "track-watchtower-optics",
+      "file": "c-track-watchtower-optics.webp",
+      "source": "watchtower.png",
+      "cell": 3,
+      "sha256": "9240066eca8bd7d34c1bb5fc30819fe25992939fa75d7b544b65206cc507c2ba"
+    },
+    {
+      "id": "track-watchtower-forecasting",
+      "file": "c-track-watchtower-forecasting.webp",
+      "source": "watchtower.png",
+      "cell": 4,
+      "sha256": "1de2af86ec63a75c70ebbf776db733cc597c8dbac422bd4170e96b678cc0dbfc"
+    },
+    {
+      "id": "track-watchtower-relay-grid",
+      "file": "c-track-watchtower-relay-grid.webp",
+      "source": "watchtower.png",
+      "cell": 5,
+      "sha256": "e5921c7a6b65809b2bbceef4db8bfd2634bd688d98a5bdaaf6f409526ac88d77"
+    },
+    {
+      "id": "skill-field-notebooks",
+      "file": "c-skill-field-notebooks.webp",
+      "source": "watchtower.png",
+      "cell": 6,
+      "sha256": "082c1a85699422296502a23ac34e7b533ae1692084b10fca5ef27459ba94a893"
+    },
+    {
+      "id": "skill-triangulation",
+      "file": "c-skill-triangulation.webp",
+      "source": "watchtower.png",
+      "cell": 7,
+      "sha256": "a790d214ddb9d7ce25fb892c45ea03cef0f4a182e2bd60c1e9d6dae7af528f21"
+    },
+    {
+      "id": "skill-dispatch-codes",
+      "file": "c-skill-dispatch-codes.webp",
+      "source": "watchtower.png",
+      "cell": 8,
+      "sha256": "7635c9de4d1a7efcbaa0c5859fc7e2f567a873c778b850677f40134a87093da3"
+    },
+    {
+      "id": "skill-mineral-cartography",
+      "file": "c-skill-mineral-cartography.webp",
+      "source": "watchtower.png",
+      "cell": 9,
+      "sha256": "c135147c6c9c37b8fe81e9835a8d613e11c068214f2c9fe6155f1d09d5dbd2d5"
+    },
+    {
+      "id": "skill-logistics-charts",
+      "file": "c-skill-logistics-charts.webp",
+      "source": "watchtower.png",
+      "cell": 10,
+      "sha256": "d5ae9b63f2745ad09c339130cdcaca6583d8fa1c15f32dbb3fa208cd6a905c6e"
+    },
+    {
+      "id": "skill-weather-stations",
+      "file": "c-skill-weather-stations.webp",
+      "source": "watchtower.png",
+      "cell": 11,
+      "sha256": "0256dd2f9dcaa46baf2b9353eea5d786ace686c413a39a069307fafaad2478b4"
+    },
+    {
+      "id": "skill-research-exchanges",
+      "file": "c-skill-research-exchanges.webp",
+      "source": "watchtower.png",
+      "cell": 12,
+      "sha256": "4f52f010712aabfbe6cfe20cf566fc4ae3e7ca6d25aa27fd8352cb86679e6700"
+    },
+    {
+      "id": "skill-long-signals",
+      "file": "c-skill-long-signals.webp",
+      "source": "watchtower.png",
+      "cell": 13,
+      "sha256": "5940a6bc0816f2728c716453c0b9643d8010264f9b164e9e8961d389e1fe4213"
+    },
+    {
+      "id": "skill-celestial-calendar",
+      "file": "c-skill-celestial-calendar.webp",
+      "source": "watchtower.png",
+      "cell": 14,
+      "sha256": "5b54bbe967bd9847c9d1aae82cbb62379c818a28278d0e2e5dc0812f1b735070"
+    },
+    {
+      "id": "track-workshop-assembly",
+      "file": "c-track-workshop-assembly.webp",
+      "source": "workshop.png",
+      "cell": 0,
+      "sha256": "4e0eaff67bc5326eba78e3f9a5cc066e8bf53c4b2de4937d1958d0b8aa53fa03"
+    },
+    {
+      "id": "track-workshop-toolmaking",
+      "file": "c-track-workshop-toolmaking.webp",
+      "source": "workshop.png",
+      "cell": 1,
+      "sha256": "9ab912b1c9efb1b21e6746f1c1495becb5f279e1eec4dd1df740ec06f6caa607"
+    },
+    {
+      "id": "track-workshop-metallurgy",
+      "file": "c-track-workshop-metallurgy.webp",
+      "source": "workshop.png",
+      "cell": 2,
+      "sha256": "ef4d8710bca80d18242893a8076cc2bedd51820334757111e5df0c995a941b92"
+    },
+    {
+      "id": "track-workshop-mechanisms",
+      "file": "c-track-workshop-mechanisms.webp",
+      "source": "workshop.png",
+      "cell": 3,
+      "sha256": "a7dbf61c25ac423ba5b56b6495bf152fd40b0df48059e9793b7db7731d927ae0"
+    },
+    {
+      "id": "track-workshop-precision",
+      "file": "c-track-workshop-precision.webp",
+      "source": "workshop.png",
+      "cell": 4,
+      "sha256": "dc5b1a17a2d67f24f9c61334618e46eff927ed994d50f28e4795ea6224b21402"
+    },
+    {
+      "id": "track-workshop-replication",
+      "file": "c-track-workshop-replication.webp",
+      "source": "workshop.png",
+      "cell": 5,
+      "sha256": "94db7db9912ed23654b842c1a0ae13f438827e24da43592207ae187e48f647ec"
+    },
+    {
+      "id": "skill-material-hoppers",
+      "file": "c-skill-material-hoppers.webp",
+      "source": "workshop.png",
+      "cell": 6,
+      "sha256": "5f1d6d61d146f96035d0558924bc1c34746dd39319de4dba8ac4f497b24518c4"
+    },
+    {
+      "id": "skill-template-queue",
+      "file": "c-skill-template-queue.webp",
+      "source": "workshop.png",
+      "cell": 7,
+      "sha256": "83f5c8b8d9c258519b15187043cf3433bb202070c3c79479b46b5bd3b5578a2c"
+    },
+    {
+      "id": "skill-offcut-recovery",
+      "file": "c-skill-offcut-recovery.webp",
+      "source": "workshop.png",
+      "cell": 8,
+      "sha256": "f514cf4276f5f0436990074dd17cfa56b50233f401b59815e26d584d4e7e5787"
+    },
+    {
+      "id": "skill-standard-tools",
+      "file": "c-skill-standard-tools.webp",
+      "source": "workshop.png",
+      "cell": 9,
+      "sha256": "58f042117bedc0caae0bab8ffcfb65bf9508b32ee0506b47751687d5cfab5bc1"
+    },
+    {
+      "id": "skill-spare-parts",
+      "file": "c-skill-spare-parts.webp",
+      "source": "workshop.png",
+      "cell": 10,
+      "sha256": "166c456beb1ca4fe9e1bc7702684f7391bdd82a98f96efa6f905848036d262ce"
+    },
+    {
+      "id": "skill-instrument-cases",
+      "file": "c-skill-instrument-cases.webp",
+      "source": "workshop.png",
+      "cell": 11,
+      "sha256": "8146f8e08127633517e21545efd1a5fa98cb7ebb8fc9ef4212e3e13d6ceddc3a"
+    },
+    {
+      "id": "skill-precision-fixtures",
+      "file": "c-skill-precision-fixtures.webp",
+      "source": "workshop.png",
+      "cell": 12,
+      "sha256": "1e0b687c8d1bff8bcf808c710e72d425efdb383d9513c5eca888c9fb7fcdd843"
+    },
+    {
+      "id": "skill-modular-frames",
+      "file": "c-skill-modular-frames.webp",
+      "source": "workshop.png",
+      "cell": 13,
+      "sha256": "e8393865d55205a22a367a4a20bbbd956e1475b25205cddd215752ac5cba5825"
+    },
+    {
+      "id": "skill-export-crates",
+      "file": "c-skill-export-crates.webp",
+      "source": "workshop.png",
+      "cell": 14,
+      "sha256": "993434863c70ef4e3eb325c59106fa0043e339a88d536d704f836e99b837559c"
+    },
+    {
+      "id": "track-ruins-delving",
+      "file": "c-track-ruins-delving.webp",
+      "source": "ruins.png",
+      "cell": 0,
+      "sha256": "00412d3837ab213ebba358217bc8c51749a984a1986648e4e8c569316c0c6f77"
+    },
+    {
+      "id": "track-ruins-archaeology",
+      "file": "c-track-ruins-archaeology.webp",
+      "source": "ruins.png",
+      "cell": 1,
+      "sha256": "42e076def1a061c722a207e51d5af4ee8291562a4a401faa3838d7885c728d07"
+    },
+    {
+      "id": "track-ruins-recovery-teams",
+      "file": "c-track-ruins-recovery-teams.webp",
+      "source": "ruins.png",
+      "cell": 2,
+      "sha256": "7d4024b1bfd606f86df1198c46a082c30985f5509a0109587027ea639debb241"
+    },
+    {
+      "id": "track-ruins-restoration",
+      "file": "c-track-ruins-restoration.webp",
+      "source": "ruins.png",
+      "cell": 3,
+      "sha256": "5515cd0cb8f4fe3d08e85e109aafc28607a9f426610a145698aae18bde64e44d"
+    },
+    {
+      "id": "track-ruins-attunement",
+      "file": "c-track-ruins-attunement.webp",
+      "source": "ruins.png",
+      "cell": 4,
+      "sha256": "fbbd2001334dae7923b08e269f3f344164f489403908a37eb2fd2e5dc895c490"
+    },
+    {
+      "id": "track-ruins-resonance",
+      "file": "c-track-ruins-resonance.webp",
+      "source": "ruins.png",
+      "cell": 5,
+      "sha256": "72f4588ee0bd836ea1975c903be4e3d6ccbc62411045922b4561fcaa2915676d"
+    },
+    {
+      "id": "skill-field-camps",
+      "file": "c-skill-field-camps.webp",
+      "source": "ruins.png",
+      "cell": 6,
+      "sha256": "c5faec3dcd01b43e498d32c55d63f695a72a513b76b516f46f214b697467f967"
+    },
+    {
+      "id": "skill-careful-recovery",
+      "file": "c-skill-careful-recovery.webp",
+      "source": "ruins.png",
+      "cell": 7,
+      "sha256": "e14622dfbdffe27e71d18f24ba30e6545738d1254a377bd5e047b8a9b2feac97"
+    },
+    {
+      "id": "skill-site-catalogues",
+      "file": "c-skill-site-catalogues.webp",
+      "source": "ruins.png",
+      "cell": 8,
+      "sha256": "21da7ff30c40da7fdadad4253aaa1cbf493434efe0877172ac5e6f22070b4612"
+    },
+    {
+      "id": "skill-survey-tablets",
+      "file": "c-skill-survey-tablets.webp",
+      "source": "ruins.png",
+      "cell": 9,
+      "sha256": "d9799108a6bd40d454ccf9769510c98d4f96fe58e16369a3b12f1f8cd526744c"
+    },
+    {
+      "id": "skill-botanical-remedies",
+      "file": "c-skill-botanical-remedies.webp",
+      "source": "ruins.png",
+      "cell": 10,
+      "sha256": "196f8b75c35c234f901e3dbb3f12f09a4f29bdb1030d1cbaeb9b5c2422fc2b5a"
+    },
+    {
+      "id": "skill-reclaimed-alloys",
+      "file": "c-skill-reclaimed-alloys.webp",
+      "source": "ruins.png",
+      "cell": 11,
+      "sha256": "799853e42b0e6774434b3e5bbf1b06f7e5e8b12933345cf5ff91dc3a81d892b1"
+    },
+    {
+      "id": "skill-expedition-rigs",
+      "file": "c-skill-expedition-rigs.webp",
+      "source": "ruins.png",
+      "cell": 12,
+      "sha256": "d3e8f6cce6fee273e86117bb8e9e7a105b5186ad89f57195cabae0dcf22a4665"
+    },
+    {
+      "id": "skill-resonant-pairings",
+      "file": "c-skill-resonant-pairings.webp",
+      "source": "ruins.png",
+      "cell": 13,
+      "sha256": "49094a4bf3b55bded47e3a1ee58768e084af5e473b9821aa5c8621b9ea49c245"
+    },
+    {
+      "id": "skill-archive-network",
+      "file": "c-skill-archive-network.webp",
+      "source": "ruins.png",
+      "cell": 14,
+      "sha256": "aec2269f13d9f8a3988671a2c4cad0de3a925b50d984f28a149966db2d20ac80"
+    },
+    {
+      "id": "track-harbor-shipbuilding",
+      "file": "c-track-harbor-shipbuilding.webp",
+      "source": "harbor.png",
+      "cell": 0,
+      "sha256": "90f65846cc4aa142a925c64adf1b4c9a1ab1eaa8787d5b32291ab0fadd31b826"
+    },
+    {
+      "id": "track-harbor-seamanship",
+      "file": "c-track-harbor-seamanship.webp",
+      "source": "harbor.png",
+      "cell": 1,
+      "sha256": "7171fe96888598451aeb3887975351382c961d6f27c57c3b57b658481969a618"
+    },
+    {
+      "id": "track-harbor-stowage",
+      "file": "c-track-harbor-stowage.webp",
+      "source": "harbor.png",
+      "cell": 2,
+      "sha256": "cef4160f99c8bd94cfe31c98540f0d3b0ab7a8fce45795433c8bba239250e325"
+    },
+    {
+      "id": "track-harbor-contracts",
+      "file": "c-track-harbor-contracts.webp",
+      "source": "harbor.png",
+      "cell": 3,
+      "sha256": "099a4541c7294e2cd1d4382d28cd5e695fa10f4eb8efecf5d0b3fa5dc08e31df"
+    },
+    {
+      "id": "track-harbor-navigation",
+      "file": "c-track-harbor-navigation.webp",
+      "source": "harbor.png",
+      "cell": 4,
+      "sha256": "b46b3228fd489afa46e64be98ada54be423cd5a3f2547403b1eba4bb6a47650a"
+    },
+    {
+      "id": "track-harbor-fleet-command",
+      "file": "c-track-harbor-fleet-command.webp",
+      "source": "harbor.png",
+      "cell": 5,
+      "sha256": "5fc443f686698b8d66c068073161875441b49c6240b18b8ead69d307563bed46"
+    },
+    {
+      "id": "skill-provision-packing",
+      "file": "c-skill-provision-packing.webp",
+      "source": "harbor.png",
+      "cell": 6,
+      "sha256": "4f3d87e0b54fecb8996c448990469b361a0e8a74c7e20b4e106482377282403b"
+    },
+    {
+      "id": "skill-coastal-tenders",
+      "file": "c-skill-coastal-tenders.webp",
+      "source": "harbor.png",
+      "cell": 7,
+      "sha256": "f37f6b8135cb228b6f2d88a75024d0e06dfcfe706976bef46aec1d8143f2f64c"
+    },
+    {
+      "id": "skill-mixed-holds",
+      "file": "c-skill-mixed-holds.webp",
+      "source": "harbor.png",
+      "cell": 8,
+      "sha256": "3798886662fd923e52365ffd7793f69442653abfbe9fadbd13bf387515e4a404"
+    },
+    {
+      "id": "skill-scheduled-convoys",
+      "file": "c-skill-scheduled-convoys.webp",
+      "source": "harbor.png",
+      "cell": 9,
+      "sha256": "d7f874211d5d7f5a152bb73cd2c91591aba984f191b97d8cdd5b57f5790390bf"
+    },
+    {
+      "id": "skill-salvage-nets",
+      "file": "c-skill-salvage-nets.webp",
+      "source": "harbor.png",
+      "cell": 10,
+      "sha256": "2c0e1bbb66e80005b2094345323921c85c6f07e2cb2f3a65912564b18afdf1d6"
+    },
+    {
+      "id": "skill-weather-routing",
+      "file": "c-skill-weather-routing.webp",
+      "source": "harbor.png",
+      "cell": 11,
+      "sha256": "83fa2ed339f1071b8aecf9f756261a3c9c2f69f44e1451d08c4ef2c3ed02e867"
+    },
+    {
+      "id": "skill-deepwater-holds",
+      "file": "c-skill-deepwater-holds.webp",
+      "source": "harbor.png",
+      "cell": 12,
+      "sha256": "f798105f23e95718f8f395a882748bca301b938bfb28b7fab8a3d0b529b3cb86"
+    },
+    {
+      "id": "skill-twin-manifests",
+      "file": "c-skill-twin-manifests.webp",
+      "source": "harbor.png",
+      "cell": 13,
+      "sha256": "cb87926395985976a630c91fac21b670f84c8400163df7e7dbd07d8c84e1a5f9"
+    },
+    {
+      "id": "skill-exchange-houses",
+      "file": "c-skill-exchange-houses.webp",
+      "source": "harbor.png",
+      "cell": 14,
+      "sha256": "2a2f4a1458213bde7a8f9092126faeec60a27a12f34ce2e349cf889c61f1db03"
+    },
+    {
+      "id": "scene-greenway",
+      "file": "c-scene-greenway.webp",
+      "source": "scenes.png",
+      "cell": 0,
+      "sha256": "17a3d55d00520c52a095b229211fcf3936042dd69620fc00fa3ff2b51bf4c9fc"
+    },
+    {
+      "id": "scene-quarry",
+      "file": "c-scene-quarry.webp",
+      "source": "scenes.png",
+      "cell": 1,
+      "sha256": "51781c133a52a622317a2029a7db9e82a8378037b0fd498c7359a0c3a60be4a0"
+    },
+    {
+      "id": "scene-watchtower",
+      "file": "c-scene-watchtower.webp",
+      "source": "scenes.png",
+      "cell": 2,
+      "sha256": "812fecfaafb0e2f2ac61164b58f508ac87300f79075bbc3fa241affaa69ad2c0"
+    },
+    {
+      "id": "scene-workshop",
+      "file": "c-scene-workshop.webp",
+      "source": "scenes.png",
+      "cell": 3,
+      "sha256": "4e65340d6683a651086512e4c8827c91956fe689ff3b352ad1622e076339119d"
+    },
+    {
+      "id": "scene-ruins",
+      "file": "c-scene-ruins.webp",
+      "source": "scenes.png",
+      "cell": 4,
+      "sha256": "89ce1cbf0e0f1ae25580c017e77b0d2267ed59d0248bd2d41f051c4de81eebc5"
+    },
+    {
+      "id": "scene-harbor",
+      "file": "c-scene-harbor.webp",
+      "source": "scenes.png",
+      "cell": 5,
+      "sha256": "dbe861e78b4ab86ff84fa072aa5cf0609c2312709ed744e6b0025220830914d8"
+    }
+  ]
+}

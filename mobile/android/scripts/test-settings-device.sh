@@ -19,5 +19,5 @@ finish() {
 }
 trap finish EXIT
 adb logcat -c
-bash mobile/android/gradlew -p mobile/android --no-daemon --console=plain connectedDebugAndroidTest \
+bash mobile/android/gradlew -p mobile/android --no-daemon --console=plain :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=me.danielshort.app.ui.SettingsFlowTest,me.danielshort.app.ui.SettingsMenusTest,me.danielshort.app.ui.AppUpdateSectionTest,me.danielshort.app.ui.AdaptiveSiteLayoutFlowTest,me.danielshort.app.ui.ScrollChromeFlowTest

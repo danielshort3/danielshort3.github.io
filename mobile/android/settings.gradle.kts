@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "DanielShort"
 include(":app")
+include(":wayfarers")

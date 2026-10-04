@@ -21,6 +21,7 @@ try {
   fs.mkdirSync(path.join(temporaryRoot, 'img/projects'), { recursive: true });
   fs.mkdirSync(path.join(temporaryRoot, 'img/projects/icons'), { recursive: true });
   fs.mkdirSync(path.join(temporaryRoot, 'img/games/icons'), { recursive: true });
+  fs.mkdirSync(path.join(temporaryRoot, 'img/home-icons'), { recursive: true });
   const iconPath = path.join(temporaryRoot, 'img/tools/icons/text-compare.png');
   const posterPath = path.join(temporaryRoot, 'img/projects/sheetMusicUpscale.png');
   fs.writeFileSync(iconPath, 'icon first version');
@@ -43,6 +44,12 @@ try {
   assert(/\?v=[a-f0-9]{12}$/.test(gameIcon), 'game library icons use content fingerprints');
   fs.writeFileSync(gameIconPath, 'replacement game icon');
   assert.notStrictEqual(versionedImageUrl(gameIcon, options), gameIcon, 'replacing a game icon invalidates its cached URL');
+  const libraryIconPath = path.join(temporaryRoot, 'img/home-icons/wayfarers-guild.svg');
+  fs.writeFileSync(libraryIconPath, '<svg/>');
+  const libraryIcon = versionedImageUrl('/img/home-icons/wayfarers-guild.svg', options);
+  assert(/\?v=[a-f0-9]{12}$/.test(libraryIcon), 'authored library SVG icons receive content fingerprints');
+  fs.writeFileSync(libraryIconPath, '<svg><path/></svg>');
+  assert.notStrictEqual(versionedImageUrl(libraryIcon, options), libraryIcon);
   const poster = versionedImageUrl('/img/projects/sheetMusicUpscale.png', options);
   for (const variant of ['.webp', '.avif', '-640.webp', '-640.avif', '-960.webp', '-960.avif']) {
     const url = versionedImageUrl(`/img/projects/sheetMusicUpscale${variant}`, options);
@@ -109,7 +116,8 @@ const publishedGames = canonical.pagesById.games.games.filter(game => !game.hidd
 assert.strictEqual(library.games.items.length, publishedGames.length, 'game icons retain the published catalog');
 for (const game of publishedGames) {
   const item = library.games.items.find(entry => entry.id === game.id);
-  assert.strictEqual(game.iconImage, `img/games/icons/${game.id}.png`);
+  assert([`img/games/icons/${game.id}.png`, `img/home-icons/${game.id}.svg`].includes(game.iconImage),
+    'game icons use their catalog ID and a supported authored format');
   assert.strictEqual(item.iconImage, versionedImageUrl(`/${game.iconImage}`));
   assert.strictEqual(item.image, `/img/home-previews/games/${game.id}.webp`, 'game preview artwork remains available independently of library icons');
   const rendered = renderPersonalLibraryMain({ category: 'games', items: [item] });

@@ -1,0 +1,2102 @@
+(function (root) {
+  'use strict';
+  const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const iconNames = { porters:'backpack', picks:'tools', carts:'crate', furnace:'forge', lift:'equipment', beacon:'observatory', atlas:'maps' };
+  const icon = name => root.WayfarersIcons.markup(iconNames[name] || name);
+  const propCells = { boots:2, porters:3, picks:4, carts:5, furnace:6, lift:7, crew:1, beacon:9 };
+  const areaNames = { greenway:'Trail', quarry:'Quarry', watchtower:'Tower', workshop:'Workshop', ruins:'Ruins', harbor:'Harbor', guild:'Guild' };
+  const areaIcons = { greenway:'trail', quarry:'mine', watchtower:'observatory', workshop:'tools', ruins:'relic', harbor:'caravan', guild:'guild' };
+  const groupNames = { local:'Area upgrades', area:'Area upgrades', development:'Developments', developments:'Developments', research:'Research', legacy:'Guild upgrades', equipment:'Equipment', production:'Production', blueprint:'Blueprints', blueprints:'Blueprints' };
+  function localIcon(id, fallback) {
+    const cell = propCells[id];
+    return cell == null ? icon(fallback || id) : '<span class="wx-prop" aria-hidden="true" style="background-image:url(&quot;img/wayfarers-guild/expedition-props.png&quot;);background-position:' + ((cell % 4) * 100 / 3) + '% ' + (Math.floor(cell / 4) * 50) + '%"></span>';
+  }
+  function gainLabel(item) {
+    const progression = item.catalogId && item.quantity;
+    const track = item.trackId || item.id;
+    const fields = (progression ? { boots:['travel','flow'],porters:['capacity','coins'],scouts:['research','maps'],caravans:['freight'],waystations:['capacity','herbs'],railways:['freight'],picks:['picks'],carts:['carts','capacity'],furnace:['furnace','ore'],geology:['ore'],recovery:['ore'],deepworks:['picks'],beacon:['research'],signals:['coordination','maps'],crew:['coordination','capacity','maps'],optics:['research'],forecasting:['travel','duration'], 'relay-grid':['coordination','knowledge'],assembly:['flow','assembly'],toolmaking:['picks','research'],metallurgy:['provisions'],mechanisms:['picks','assembly'],precision:['demand','research'],replication:['capacity','provisions'],delving:['delving'],archaeology:['interpretation','research'],'recovery-teams':['recovery','flow'],restoration:['knowledge'],attunement:['ore','coins','research'],resonance:['capacity','research'],shipbuilding:['cargo','capacity'],seamanship:['travel','duration'],stowage:['cargo'],contracts:['coins'],navigation:['travel','duration'],'fleet-command':['capacity','cargo'] } : { boots:['exploration','travel'],porters:['coins'],scouts:['exploration','maps'],picks:['extraction','picks'],carts:['haul','carts'],furnace:['smelting','furnace','ore'],crew:['knowledge','construction'],lift:['construction','repair'],beacon:['knowledge','protection'] })[track] || [];
+    const changes = (item.impact || []).filter(change => change.current != null && change.next != null);
+    const change = fields.map(field => changes.find(candidate => String(candidate.metric).split(':').pop() === field)).find(Boolean) || changes[0];
+    if (change) {
+      const current = root.WayfarersCore.Numbers.toNumber(change.currentValue ?? change.current);
+      const next = root.WayfarersCore.Numbers.toNumber(change.nextValue ?? change.next);
+      const key = String(change.metric).split(':').pop();
+      const effect = ({ picks:'mining', carts:'haul', furnace:'smelt', flow:item.areaId === 'greenway' ? 'travel' : 'output',capacity:item.areaId === 'greenway' && track === 'porters' ? 'cargo' : 'capacity',demand:'input demand',travel:item.areaId === 'harbor' ? 'sailing speed' : 'travel',construction:item.description?.includes('Expansion') ? 'projects' : 'build' }[key] || String(change.label || '').split('·').pop().trim().toLowerCase().replace('exploration','travel').replace('extraction','mining').replace('hauling','haul').replace('smelting','smelt').replace('construction','build')).replace(' capacity','');
+      if (current > 0 && next !== current) { const delta = (next / current - 1) * 100, magnitude = Math.abs(delta); return (delta < 0 ? '−' : '+') + (magnitude < .05 ? '<0.1' : magnitude < 1 ? magnitude.toFixed(1) : Math.round(magnitude)) + '% ' + effect; }
+      if (next > 0) return change.next + ' ' + effect + (change.unit || '');
+    }
+    if (progression && !changes.length && !item.disabled) return 'Current plan unchanged';
+    const rates = String(item.comparison || '').match(/^([\d.]+) → ([\d.]+)/);
+    const label = item.effectText === 'Bridge repair capacity' ? 'repair' : { boots:'travel', porters:'coins', scouts:'travel', picks:'mining', carts:'haul', furnace:'smelt', crew:'build', lift:'build', beacon:'light' }[item.id] || 'work';
+    return rates && Number(rates[1]) > 0 ? '+' + Math.round((Number(rates[2]) / Number(rates[1]) - 1) * 100) + '% ' + label : item.effectText;
+  }
+  const labels = { boots:'Boots', preparation:'Field kit', miners:'Miners', forge:'Workshop', foragers:'Foragers', cooks:'Cooks', scholars:'Scholars', mentors:'Mentors', surveyors:'Surveyors', 'gear-tools':'Tools', 'gear-boots':'Boots', 'gear-instruments':'Instruments' };
+  const visible = items => (items || []).filter(item => item.visible !== false);
+  const name = item => labels[item.id] || item.name || item.label || item.id;
+  const percent = value => Math.max(0, Math.min(100, Number(value || 0) * 100));
+  function compact(value) {
+    const number = root.WayfarersCore.Numbers.toNumber(value);
+    if (number < 1000) return String(Math.floor(number));
+    if (!Number.isFinite(number) || number >= 1e15) return root.WayfarersCore.format(value);
+    let power = Math.floor(Math.log10(number) / 3);
+    let scaled = number / Math.pow(1000, power);
+    if (scaled >= 999.95 && power < 4) { power += 1; scaled /= 1000; }
+    return scaled.toFixed(1).replace(/\.0$/, '') + ['', 'K', 'M', 'B', 'T'][power];
+  }
+
+  function create(options) {
+    const host = options.element;
+    const controller = new AbortController();
+    const commands = new Map();
+    const descriptors = new Map();
+    const stack = [];
+    let view;
+    let screen = 'expedition';
+    let guildPage = 'overview';
+    let guildOrigin = null;
+    const guildScroll = new Map();
+    let upgradeArea = 'current';
+    let upgradeEffect = 'all';
+    let upgradeSearch = '';
+    let showOwnedUpgrades = false;
+    let currentContext = {};
+    let previousScreen = null;
+    let sheet = null;
+    let opener = null;
+    let toastTimer;
+    let previousRanks = {};
+    let previousStage = null;
+    let displayedArea = null;
+    const areaScroll = new Map();
+    const stationScenes = new Map();
+    const stationScroll = new Map();
+    let stationScope = 'station';
+    let selectedStation = null;
+    let stationWorldArea = null;
+    let stationScrollTimer = null;
+    let stationRowsById = new Map();
+    const stationBoughtRanks = new Map();
+    let cacheSequence = null;
+    const expandedSkillModules = new Set();
+    const earnedTracks = new Map();
+    const activePointers = new Set();
+    let swipe = null;
+    let suppressSceneTapUntil = 0;
+    let knownAreaCount = null;
+    let swipeTaught = false;
+    const celebrated = new Set();
+    const viewedStages = new Set();
+    let seenSequence = null;
+    let disposed = false;
+    let detailFooter = '';
+    let tierNoticeTimer = null;
+    let tierNoticeId = null;
+    let tierNoticeRunning = false;
+    let tierNoticePresented = false;
+    let tierNoticeSuppressed = new Set();
+    let onboardingTimer = null;
+    let onboardingIdentity = null;
+    let practiceReceiptToken = null;
+    let practiceControl = null;
+    let deliberateHelp = null;
+    let deliverySequence = null;
+    let pendingCollectionOutcome = null;
+    let practiceControlOriginal = null;
+    let onboardingBusy = false;
+    let onboardingReplay = null;
+    let onboardingNoticePresented = false;
+    let onboardingSuppressed = new Set();
+    let guideReturnArea = null;
+    let guideScroll = null;
+    const shell = document.createElement('section');
+    shell.className = 'wx-game';
+    shell.setAttribute('aria-label', 'Wayfarers Guild');
+    shell.innerHTML = '<header class="wx-header"><div class="wx-currency-strip"><div class="wx-currency-rail" data-wx-currencies role="group" aria-label="Earned currencies; swipe horizontally for more"></div><button class="wx-currency-more" data-wx-currency-more aria-label="Show more currencies" hidden>›</button></div><div class="wx-utilities"><button data-wx-options aria-label="Settings and app updates">' + icon('settings') + '</button></div></header>' +
+      '<div class="wx-objective"><button class="wx-area-step" data-wx-prev hidden aria-label="Previous area">‹</button><button data-wx-objective><span data-wx-stage-name></span><strong data-wx-objective-text></strong></button><button class="wx-area-step" data-wx-next hidden aria-label="Next area">›</button><progress data-wx-progress max="100" value="0" aria-label="Expedition completion"></progress></div>' +
+      '<div class="wx-play"><div class="wx-world"><canvas data-wx-canvas role="img" aria-label="Your expedition"></canvas><button class="wx-world-label" data-wx-world-label aria-label="Current area objective"></button><div class="wx-flow-strip" data-wx-flow aria-label="Current production"></div><button class="wx-network-link" data-wx-network hidden></button><button class="wx-focus-trigger" data-wx-focus hidden></button><div class="wx-hotspots" data-wx-hotspots></div></div><section class="wx-dock" aria-label="Area foundations"><div class="wx-dock-heading"><strong data-wx-upgrade-count>Foundations</strong><button data-wx-tier-ready hidden></button><button data-wx-batch hidden></button></div><div class="wx-tray" data-wx-tray aria-label="Three foundation skills"></div><div class="wx-world-actions" data-wx-world-actions></div></section></div>' +
+      '<section class="wx-destination" data-wx-destination hidden></section><nav class="wx-nav" aria-label="Game destinations"><button data-wx-nav="expedition">' + icon('maps') + '<span>Areas</span><i data-wx-attention hidden aria-label="New development"></i></button><button data-wx-nav="upgrades" hidden>' + icon('research') + '<span>Upgrades</span><i data-wx-tier-attention hidden aria-label="Upgrade tier ready"></i></button><button data-wx-nav="guild" hidden>' + icon('guild') + '<span>Guild</span><i data-wx-guild-attention hidden aria-label="Reward or collection available"></i></button></nav>' +
+      '<div class="wx-toast" data-wx-toast role="status" aria-live="polite"></div><div class="wx-sr-status" data-wx-area-status role="status" aria-live="polite"></div><button class="wx-save-alert" data-wx-save-alert hidden>Save needs attention</button>';
+    const dialog = document.createElement('dialog');
+    dialog.className = 'wx-sheet';
+    dialog.setAttribute('aria-labelledby', 'wx-sheet-title');
+    dialog.innerHTML = '<header><button data-wx-back aria-label="Back">‹</button><h2 id="wx-sheet-title"></h2><button data-wx-close aria-label="Close">×</button></header><div class="wx-sheet-content" data-wx-sheet-content></div><footer class="wx-purchase-footer" data-wx-sheet-footer hidden></footer>';
+    host.dataset.expeditionMode = 'true';
+    host.append(shell);
+    const unseenHint=document.createElement('span');unseenHint.id='wx-new-hint';unseenHint.className='wx-sr-status';unseenHint.textContent='New; not yet inspected';shell.append(unseenHint);
+    host.parentElement.append(dialog);
+    const q = selector => shell.querySelector(selector);
+    shell.dataset.stationLayout = 'true';
+    const stationWorld = document.createElement('div');
+    stationWorld.className = 'wx-station-world';
+    stationWorld.dataset.wxStationWorld = '';
+    stationWorld.setAttribute('aria-label','Your working stations');
+    q('.wx-world').append(stationWorld);
+    const stationJumps = document.createElement('nav');
+    stationJumps.className = 'wx-station-jumps';
+    stationJumps.dataset.wxStationJumps = '';
+    stationJumps.setAttribute('aria-label','Jump to station');
+    q('.wx-world').append(stationJumps);
+    const cacheButton=document.createElement('button');cacheButton.className='wx-station-cache';cacheButton.dataset.wxStationCache='';cacheButton.hidden=true;cacheButton.innerHTML=icon('chest')+'<span>Tap cache</span>';cacheButton.setAttribute('aria-label','Open cache for resources and an area boost');q('.wx-world').append(cacheButton);
+    const boostChip=document.createElement('span');boostChip.className='wx-station-boost';boostChip.dataset.wxStationBoost='';boostChip.hidden=true;boostChip.setAttribute('role','status');q('.wx-world').append(boostChip);
+    const cacheReward=document.createElement('span');cacheReward.className='wx-station-reward';cacheReward.dataset.wxStationReward='';cacheReward.hidden=true;cacheReward.setAttribute('aria-live','polite');q('.wx-world').append(cacheReward);
+    const stationDrawer = document.createElement('section');
+    stationDrawer.className = 'wx-station-drawer';
+    stationDrawer.dataset.wxStationDrawer = '';
+    stationDrawer.setAttribute('aria-label','Upgrades');
+    stationDrawer.hidden = true;
+    stationDrawer.innerHTML = '<div class="wx-drawer-handle" aria-hidden="true"></div><header><h2 data-wx-station-title></h2><button data-wx-drawer-close aria-label="Close upgrades">×</button></header><div class="wx-station-scopes" data-wx-station-scopes></div><div class="wx-station-toolbar" data-wx-station-toolbar></div><div class="wx-station-content" data-wx-station-content></div>';
+    shell.append(stationDrawer);
+    const walletButton = document.createElement('button');
+    walletButton.className = 'wx-wallet-trigger';
+    walletButton.dataset.wxWallet = '';
+    walletButton.innerHTML = icon('wallet') + '<span>Wallet</span>';
+    walletButton.setAttribute('aria-label','Wallet: view every currency');
+    q('.wx-header').insertBefore(walletButton,q('.wx-utilities'));
+    const scene = root.WayfarersStationScene ? {setQuiet(){},update(){},dispose(){}} : root.WayfarersExpeditionScene.create(q('[data-wx-canvas]'), {
+      quiet: !!options.quiet,
+      onSelect(target) { if (root.performance.now() < suppressSceneTapUntil || swipe || activePointers.size > 1 || dialog.open || options.overlayOpen()) return; if (target.kind === 'upgrade') inspectLocal(target.id); else if (target.kind === 'choice') open({ kind:'choice' }); }
+    });
+    const guide = root.WayfarersOnboardingUI?.create({
+      parent:host.parentElement, resolveTarget:resolveGuideTarget,
+      onNext:advanceGuide, onLeave:leaveGuide,
+      onBack(model) { if (model.mode && dialog.open) { back(); syncOnboarding(); } else if (model.canLeave ?? !model.mandatory) leaveGuide(model); else showGuide(); },
+      onLocate:routePractice,
+      onSettings() {guide.hide();restoreGuideScroll();open({kind:'options'});},
+      onRetry() { execute({type:'retry-save'}); syncOnboarding(); }
+    });
+    const motion=root.WayfarersAreaMotion?.create({element:q('.wx-play'),quiet:()=>!!currentContext.quiet || !!guide?.isOpen() || dialog.open || options.overlayOpen()});
+    function markup(node, html) {
+      if (node.dataset.markup === html) return;
+      const focus = node.contains(document.activeElement) && document.activeElement.dataset.wxDo;
+      const searching = node.contains(document.activeElement) && document.activeElement.hasAttribute('data-wx-search');
+      const naming = node.contains(document.activeElement) && document.activeElement.hasAttribute('data-wx-deck-name');
+      const draft = naming ? {value:document.activeElement.value,caret:document.activeElement.selectionStart} : null;
+      const caret = searching ? document.activeElement.selectionStart : null;
+      node.innerHTML = html;
+      node.dataset.markup = html;
+      if (focus) Array.from(node.querySelectorAll('[data-wx-do]')).find(button => button.dataset.wxDo === focus)?.focus({ preventScroll:true });
+      if (searching) { const input = node.querySelector('[data-wx-search]'); input?.focus({ preventScroll:true }); if (input && caret != null) input.setSelectionRange(caret, caret); }
+      if (draft) { const input=node.querySelector('[data-wx-deck-name]'); if(input) { input.value=draft.value; input.focus({preventScroll:true}); input.setSelectionRange(draft.caret,draft.caret); } }
+    }
+    function text(node, value) { if (node.textContent !== String(value)) node.textContent = value; }
+    function command(action, key) {
+      const id = key || JSON.stringify(action);
+      commands.set(id, action);
+      return ' data-wx-do="' + esc(id) + '"';
+    }
+    function button(label, action, settings) {
+      const cfg = settings || {};
+      return '<button type="button"' + command(action, cfg.key || (typeof action === 'function' ? 'callback:' + label : undefined)) + ' class="' + esc(cfg.className || 'wx-button') + '"' + (cfg.disabled ? ' disabled' : '') + (cfg.selected ? ' aria-pressed="true"' : '') + (cfg.aria ? ' aria-label="' + esc(cfg.aria) + '"' : '') + '>' + label + '</button>';
+    }
+    function costs(item) {
+      return (item.cost || []).map(cost => '<span>' + icon(cost.resource) + esc(compact(cost.amount)) + '</span>').join('');
+    }
+    function focusInput(item) {
+      return item.text || (item.resource ? item.resource[0].toUpperCase() + item.resource.slice(1) : 'Input') + ' ' + metric(item.current) + ' → ' + metric(item.next) + (item.unit || '');
+    }
+    function focusInputs(item) {
+      const changed = (item.inputs || []).filter(input => Math.abs(Number(input.next) - Number(input.current)) > Math.max(1,Math.abs(Number(input.current))) * 1e-9);
+      return changed.length ? 'Input rates: ' + changed.map(focusInput).join(' · ') : 'Input rates unchanged';
+    }
+    function purchaseLabel(item, compactRow) {
+      if (item.quantity && !(item.cost || []).length) return '<span class="wx-batch-unavailable">×' + esc(item.quantity) + '<br>Unavailable</span>';
+      return (!compactRow && item.quantity > 1 ? '<small class="wx-quantity">×' + esc(item.quantity) + '</small>' : '') + costs(item);
+    }
+    function batchAvailable() { return (view.expedition.batch?.options || []).some(item => item.unlocked && item.count > 1); }
+    function batchControl() {
+      return batchAvailable() ? button('Buy ×' + (view.expedition.batch.selected || 1) + ' ▾', () => open({ kind:'batch' }), { key:'batch', className:'wx-batch', aria:'Purchase quantity: ' + (view.expedition.batch.selected || 1) + '. Change exact quantity.' }) : '';
+    }
+    function descriptorKey(item) { return JSON.stringify(item.action || { id:item.id }); }
+    function tiles(items) {
+      return '<div class="wx-catalog">' + visible(items).map(item => {
+        const id = descriptorKey(item);
+        descriptors.set(id, item);
+        const owned = item.owned && item.maxed;
+        const caption = item.selected ? 'Active' : owned ? 'Complete' : item.owned && item.disabled && !item.quantity ? 'Owned' : (item.cost || []).length ? purchaseLabel(item) : 'Choose';
+        return '<article class="wx-card" data-ready="' + (!item.disabled && !owned) + '">' +
+          button(icon(item.icon || item.id) + '<strong>' + esc(name(item)) + '</strong>' + (item.level ? '<small>Rank ' + esc(item.level) + '</small>' : ''), () => open({ kind:'inspect', id }), { key:'inspect:' + id, className:'wx-card-info', aria:'Inspect ' + name(item) }) +
+          '<span class="wx-card-effect">' + esc(item.effectText || item.description || '') + '</span>' +
+          button(caption, item.action, { disabled: item.disabled || owned, className:'wx-price', aria:(item.selected ? 'Selected ' : item.quantity ? 'Buy ' + item.quantity + ' ranks of ' : 'Use ') + name(item) + ((item.cost || []).length ? ': ' + item.cost.map(c => c.text).join(', ') : '') }) + '</article>';
+      }).join('') + '</div>';
+    }
+    function menu(label, detail, glyph, model) {
+      return button(icon(glyph) + '<span><strong>' + esc(label) + '</strong><small>' + esc(detail || '') + '</small></span><b aria-hidden="true">›</b>', () => open(model), { key:'menu:' + JSON.stringify(model), className:'wx-menu' });
+    }
+    function showGuildPage(page) {
+      if (screen === 'guild') guildScroll.set(guildPage,q('[data-wx-destination]').scrollTop);
+      if (!guildOrigin && page !== 'overview') guildOrigin = { screen, page:guildPage, scroll:q('[data-wx-destination]').scrollTop };
+      close(); screen = 'guild'; guildPage = page; update(view);
+      q('[data-wx-destination]').scrollTop = guildScroll.get(page) || 0;
+      inspectAttention(item=>item.id==='discovery:feature:'+page);
+    }
+    function guildTabs() {
+      const collection = view.collection || {};
+      const pages = [{id:'overview',label:'Overview'},...(collection.cardsAvailable || collection.cardsUnlocked ? [{id:'cards',label:'Cards'}] : []),...(collection.equipmentAvailable || collection.equipmentUnlocked ? [{id:'equipment',label:'Equipment'}] : [])];
+      return pages.length < 2 ? '' : '<nav class="wx-guild-tabs" aria-label="Guild pages">' + pages.map(page => button(esc(page.label),()=>showGuildPage(page.id),{key:'guild-page:' + page.id,selected:guildPage === page.id,className:'wx-guild-tab',aria:page.label + (guildPage === page.id ? ', selected' : '')}).replace('<button ', '<button'+(page.id==='overview' ? '' : ' data-wx-collection="'+page.id+'"')+' ')).join('') + '</nav>';
+    }
+    function currencies() {
+      return (onboarding()?.currencies || view.currencyRail || visible(view.resources)).map(item=>{
+        if(item.id!=='starshards')return item;
+        const wallet=currentContext.premiumWallet;
+        const paid=wallet?.verified ? wallet.balance : null;
+        const value=paid==null ? item.value : root.WayfarersCore.Numbers.add(item.value,paid);
+        return Object.assign({},item,{value,formatted:root.WayfarersCore.format(value),walletText:paid==null ? wallet?.native ? 'Earned balance shown. Verified purchase wallet is loading.' : 'Earned balance shown. Purchases are unavailable in this app.' : root.WayfarersCore.format(item.earnedValue ?? item.value)+' earned + '+paid+' purchased'+(wallet.debt ? '. Purchase-wallet deficit: '+wallet.debt : '')});
+      });
+    }
+    function stationModel() {
+      if (view?.stations) return view.stations;
+      // Keeps a previous saved expedition playable while its engine mounts.
+      const areaId=selectedAreaId();
+      const roles=({greenway:['Path','Porter Camp','Scout Post'],quarry:['Mine','Hauling','Refinery'],watchtower:['Survey','Signal','Command'],workshop:['Workbench','Tool Bench','Foundry'],ruins:['Excavation','Archive','Recovery'],harbor:['Shipyard','Voyages','Cargo']})[areaId] || [];
+      const stations=(view?.expedition.cards || []).filter(item=>item.visible!==false).map((item,index)=>({id:item.id,name:roles[index] || item.label || item.name,icon:item.icon || item.id,status:'built',legacy:true,skills:[item],outputText:gainLabel(item),output:1,mastery:item.rank || 0}));
+      const currentArea={id:areaId,name:areaNames[areaId],stations,areaUpgrades:[]};
+      return {legacy:true,active:false,currentArea,currentStation:stations[0],areas:[currentArea],batch:view?.expedition.batch?.selected || 1};
+    }
+    function stationArtIcon(id, fallback) {
+      const file=root.WayfarersStationArt?.icons?.[id];
+      return file ? '<img class="wx-station-icon" src="img/wayfarers-guild/'+esc(file)+'" alt="" aria-hidden="true">' : icon(fallback || id);
+    }
+    function currentStation() {
+      const model=stationModel(),area=model.currentArea || model.areas?.find(item=>item.id===selectedAreaId());
+      return area?.stations?.find(item=>item.id===selectedStation && item.status==='built') || model.currentStation || area?.stations?.find(item=>item.status==='built');
+    }
+    function stationGlyph(station) {return stationArtIcon(station?.skills?.[0]?.icon || station?.icon,station?.icon || 'tools');}
+    function areaProjects(areaId) {return visible(view.globalUpgrades || []).filter(item=>(item.scope || item.catalogScope)==='area' && item.areaId===areaId && ['expedition-development','project','research'].includes(item.action?.type));}
+    function stationRequirement(requirement) {
+      return typeof requirement==='string' ? requirement : requirement.label || requirement.text || requirement.description || '';
+    }
+    function stationRow(row) {
+      stationRowsById.set(row.id,row);
+      const state=row.status || row.state || (row.locked ? 'locked' : row.ready && row.unlockAction ? 'ready' : 'learned');
+      const locked=state==='locked',ready=state==='ready',complete=(row.rank ?? row.level ?? 0)>=(row.maxRank ?? row.maxLevel ?? Infinity);
+      const track=row.trackId || (row.action?.type==='expedition-buy' ? row.action.id : null);
+      const label=row.name || row.label || row.id;
+      const artId=row.artId || row.icon;
+      const glyph=track && root.WayfarersIcons.TRACK_ART[row.areaId || selectedAreaId()]?.includes(track) ? icon('track-'+(row.areaId || selectedAreaId())+'-'+track) : stationArtIcon(artId || row.id,row.icon || track);
+      const requirement=(row.requirements || row.dependencies || []).find(item=>!item.met);
+      const effect=locked ? (requirement && stationRequirement(requirement)) || row.reason || 'Keep developing this station' : row.comparison?.text || row.comparison || row.effectText || gainLabel(row) || '';
+      const info=button(glyph+'<span><strong>'+esc(label)+'</strong><small>'+(locked ? icon('lock')+' '+(requirement?.icon ? icon(requirement.icon) : '')+esc(effect) : 'Rank '+(row.rank ?? row.level ?? 0))+'</small>'+(!locked ? '<span class="wx-station-effect">'+esc(effect)+'</span>' : '')+'</span>',()=>inspectStationRow(row.id),{key:'station-detail:'+row.id,className:'wx-upgrade-info',aria:label+(locked ? ', locked: '+effect : ', rank '+(row.rank ?? row.level ?? 0))});
+      const cost=(row.cost || []).map(item=>'<span>'+icon(item.resource)+esc(compact(item.amount))+'</span>').join('');
+      const control=button(locked ? icon('lock') : ready ? 'Unlock' : complete ? '✓' : '<span class="wx-station-price">'+cost+'</span><b>+</b>',locked ? ()=>inspectStationRow(row.id) : ready ? row.unlockAction : row.action,{key:ready ? 'station-unlock:'+row.id : 'station-buy:'+row.id,className:'wx-station-buy'+(ready ? ' wx-skill-unlock' : ''),disabled:!locked && !ready && (row.disabled || complete) || currentContext.saveFailure || currentContext.awaitingWallet,aria:locked ? 'Requirements for '+label : ready ? 'Unlock '+label : 'Buy '+(row.quantity || stationModel().batch || 1)+' ranks of '+label+', '+(row.cost || []).map(item=>item.text).join(', ')}).replace('<button ','<button'+(track ? ' data-wx-buy="'+esc(track)+'"' : '')+' ');
+      const rank=Number(row.rank ?? row.level ?? 0),previous=stationBoughtRanks.get(row.id),purchased=previous!=null && previous<rank;stationBoughtRanks.set(row.id,rank);
+      return '<article class="wx-upgrade wx-station-row'+(purchased ? ' wx-purchased' : '')+'" data-wx-station-skill="'+esc(row.id)+'" '+(track ? 'data-upgrade="'+esc(track)+'"' : 'data-wx-upgrade="'+esc(row.id)+'"')+' data-state="'+esc(state)+'" data-ready="'+ready+'">'+info+control+'</article>';
+    }
+    function inspectStationRow(id) {
+      const row=stationRowsById.get(id);
+      if(!row)return;
+      if(row.action?.type==='expedition-buy') {inspectLocal(row.action.id);return;}
+      const old=allUpgrades().find(item=>(item.id===row.id || item.catalogId===row.id) && !/^station-/.test(item.action?.type || ''));
+      if(old) {open({kind:old.state==='locked' || old.state==='ready' ? 'skill-state' : 'upgrade',id:old.id});return;}
+      open({kind:'station-detail',id});
+    }
+    function openStation(stationId, scope) {
+      const area=stationModel().currentArea;
+      const station=area?.stations?.find(item=>item.id===stationId && item.status==='built');
+      if(station) {selectedStation=station.id;if(station.selectAction)execute(station.selectAction);}
+      close();stationScope=scope || 'station';upgradeArea=stationScope==='global' ? 'global' : 'current';screen='upgrades';update(view);
+    }
+    function closeStationDrawer() {
+      screen='expedition';update(view);
+      q('[data-wx-nav="upgrades"]')?.focus({preventScroll:true});
+    }
+    function jumpStation(id, smooth) {
+      const element=Array.from(stationWorld.children).find(node=>node.dataset.wxStation===id);
+      if(!element)return;
+      selectedStation=id;
+      const station=stationModel().currentArea?.stations?.find(item=>item.id===id);
+      if(station?.selectAction)execute(station.selectAction);
+      stationWorld.scrollTo({top:element.offsetTop,behavior:smooth && !currentContext.quiet ? 'smooth' : 'instant'});
+    }
+    function renderStationLayout() {
+      const model=stationModel(),area=model.currentArea || model.areas?.find(item=>item.id===selectedAreaId());
+      if(!area)return;
+      const built=(area.stations || []).filter(item=>item.status==='built');
+      if(stationWorldArea!==area.id) {
+        if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);
+        for(const entry of stationScenes.values())entry.scene.dispose();stationScenes.clear();stationWorld.replaceChildren();
+        stationWorldArea=area.id;selectedStation=model.selectedStation || built[0]?.id;
+      }
+      for(const node of Array.from(stationWorld.children))if(node.dataset.wxStation && !built.some(item=>item.id===node.dataset.wxStation)){stationScenes.get(node.dataset.wxStation)?.scene.dispose();stationScenes.delete(node.dataset.wxStation);node.remove();}
+      built.forEach((station,index)=>{
+        let entry=stationScenes.get(station.id);
+        if(!entry) {
+          const segment=document.createElement('section');segment.className='wx-station-segment'+(!index ? ' wx-station-surface' : '');segment.dataset.wxStation=station.id;
+          segment.innerHTML='<canvas role="img" aria-label="'+esc(station.name)+' working"></canvas><button class="wx-station-badge"></button><span class="wx-station-rate"></span>';
+          stationWorld.insertBefore(segment,stationWorld.querySelector('.wx-world-continuation'));
+          const canvas=segment.querySelector('canvas');
+          const renderer=root.WayfarersStationScene ? root.WayfarersStationScene.create(canvas,{areaId:area.id,stationId:station.id,surface:index===0,scrollRoot:stationWorld,quiet:currentContext.quiet}) : root.WayfarersExpeditionScene.create(canvas,{quiet:currentContext.quiet});
+          entry={node:segment,scene:renderer};stationScenes.set(station.id,entry);
+        }
+        const badge=entry.node.querySelector('.wx-station-badge');
+        markup(badge,stationGlyph(station)+'<span>'+esc(station.name)+'</span>');badge.dataset.wxStationOpen=station.id;badge.setAttribute('aria-label','Open '+station.name+' upgrades');badge.setAttribute('aria-pressed',String(station.id===selectedStation));
+        text(entry.node.querySelector('.wx-station-rate'),station.outputText || '');
+        entry.scene.setQuiet(currentContext.quiet);entry.scene.update(Object.assign({},station,{areaId:area.id,rate:station.rate ?? station.output,working:station.working ?? Number(station.output)>0,scene:view.expedition.scene}));
+      });
+      let continuation=stationWorld.querySelector('.wx-world-continuation');
+      if(!continuation){continuation=document.createElement('div');continuation.className='wx-world-continuation';continuation.setAttribute('aria-hidden','true');stationWorld.append(continuation);}
+      const depth=root.WayfarersStationArt?.areas?.[area.id]?.underground;
+      continuation.style.backgroundImage=depth ? 'linear-gradient(#102b4600,#071e3575),url("img/wayfarers-guild/'+depth+'")' : '';
+      continuation.style.setProperty('--wx-built-height',String((built.length ? 320+(built.length-1)*208 : 0)/384*100)+'cqw');
+      if(!selectedStation || !built.some(item=>item.id===selectedStation))selectedStation=model.selectedStation || built[0]?.id;
+      const jumps=built.length>2;
+      stationJumps.hidden=!jumps;
+      markup(stationJumps,jumps ? built.map(item=>button(stationGlyph(item),()=>jumpStation(item.id,true),{key:'station-jump:'+item.id,className:'wx-station-jump',aria:'Go to '+item.name,selected:item.id===selectedStation})).join('') : '');
+      if(stationScroll.has(area.id) && stationWorld.dataset.restoredArea!==area.id){stationWorld.scrollTop=stationScroll.get(area.id);stationWorld.dataset.restoredArea=area.id;}
+      const drawerOpen=screen==='upgrades';
+      stationDrawer.hidden=!drawerOpen;shell.dataset.drawerOpen=String(drawerOpen);
+      q('.wx-play').hidden=!['expedition','upgrades'].includes(screen);q('[data-wx-destination]').hidden=['expedition','upgrades'].includes(screen);
+      q('[data-wx-nav="upgrades"]').hidden=false;
+      const encounter=model.encounter;
+      shell.dataset.focusVisible=String(!q('[data-wx-focus]').hidden);
+      cacheButton.hidden=!encounter?.ready || drawerOpen || screen!=='expedition';
+      boostChip.hidden=!encounter?.boost?.remaining || encounter.boost.areaId!==area.id;
+      if(!boostChip.hidden)text(boostChip,'×2 output · '+Math.ceil(encounter.boost.remaining)+'s');
+      if(cacheSequence!=null && encounter?.sequence>cacheSequence && encounter.lastReward?.areaId===area.id){text(cacheReward,'+'+compact(encounter.lastReward.amount)+' '+encounter.lastReward.resource);cacheReward.hidden=false;cacheReward.classList.remove('wx-reward-burst');void cacheReward.offsetWidth;cacheReward.classList.add('wx-reward-burst');root.setTimeout(()=>{if(!disposed)cacheReward.hidden=true;},1600);}
+      if(encounter)cacheSequence=encounter.sequence;
+      const globalRows=visible(view.globalUpgrades || []).filter(item=>(item.scope || item.catalogScope)==='global');
+      const knownGlobal=globalRows.length>0;
+      const projects=areaProjects(area.id);
+      const knownArea=!model.legacy && area.areaScopeIntroduced===true;
+      if(stationScope==='area' && !knownArea)stationScope='station';
+      if(stationScope==='global' && !knownGlobal)stationScope='station';
+      if(!drawerOpen)return;
+      const station=currentStation();
+      text(q('[data-wx-station-title]'),stationScope==='global' ? 'Guild upgrades' : stationScope==='area' ? area.name+' upgrades' : (station?.name || area.name)+' upgrades');
+      const scopes=[{id:'station',name:'Station'},...(knownArea ? [{id:'area',name:'Area'}] : []),...(knownGlobal ? [{id:'global',name:'Global'}] : [])];
+      markup(q('[data-wx-station-scopes]'),scopes.map(item=>button(esc(item.name),()=>{stationScope=item.id;upgradeArea=item.id==='global' ? 'global' : 'current';renderStationLayout();},{key:'upgrade-scope:'+ (item.id==='station' ? 'current' : item.id),className:'wx-scope-tab',selected:stationScope===item.id,aria:item.name+' upgrades'})).join(''));
+      const allModes=model.batchModes || view.expedition.batch?.options || [];
+      const availableModes=allModes.filter(mode=>typeof mode==='number' || mode.unlocked!==false);
+      const modes=availableModes.length<=3 ? availableModes : availableModes.filter(mode=>[1,Number(model.batch),availableModes[availableModes.length-1].count].includes(typeof mode==='number' ? mode : mode.count));
+      const quantity=Number(model.batch || view.expedition.batch?.selected || 1);
+      let toolbar=stationScope==='station' && built.length>1 ? button(stationGlyph(station)+'<span>'+esc(station?.name)+'</span><b>⌄</b>',()=>open({kind:'station-picker'}),{key:'station-picker',className:'wx-station-selector',aria:'Choose station: '+station?.name}) : stationScope==='area' ? '<span class="wx-area-support">Applies to all '+built.length+' '+esc(area.name)+' stations</span>' : '<span></span>';
+      if(availableModes.length>1)toolbar+='<div class="wx-station-quantities" role="group" aria-label="Purchase quantity">'+modes.map(mode=>{const count=typeof mode==='number' ? mode : mode.count || mode.value;return button('×'+count,mode.action || {type:'expedition-batch',count},{key:'station-quantity:'+count,selected:count===quantity,className:'wx-station-quantity',aria:'Purchase '+count+' ranks'});}).join('')+button('⌄',()=>open({kind:'batch'}),{key:'batch',className:'wx-station-quantity',aria:'All purchase quantities and requirements'})+'</div>';
+      markup(q('[data-wx-station-toolbar]'),toolbar);
+      stationDrawer.dataset.toolbarEmpty=String(built.length===1 && stationScope==='station' && availableModes.length===1);
+      stationRowsById=new Map();
+      let content='';
+      if(stationScope==='global') {
+        content=upgradeRows(globalRows);
+      } else {
+        const rows=visible(stationScope==='area' ? area.areaUpgrades : station?.skills || []);
+        const core=rows.filter(row=>!row.technique && row.kind!=='technique' && row.slot!=='technique' && (row.order ?? 0)<3),later=rows.filter(row=>!core.includes(row));
+        content='<div class="wx-station-rows">'+core.map(stationRow).join('')+'</div>'+(later.length ? '<h3 class="wx-techniques-title">Techniques</h3><div class="wx-station-rows">'+later.map(stationRow).join('')+'</div>' : '');
+        const planRows=visible(view.expedition.choices || []);
+        const plans=model.legacy || planRows.some(group=>(group.options || []).length>1) || planRows.filter(row=>!row.options).length>1 || visible(view.expedition.configurations || []).length || (view.expedition.specializations || []).length>1;
+        if(plans && stationScope==='station')content+='<div class="wx-station-operation">'+button(icon(area.id==='quarry' ? 'forge' : 'compass')+'<span>'+esc(area.id==='quarry' ? 'Processing' : 'Operations')+'</span><b>›</b>',()=>open({kind:'choice'}),{key:'world-choice',className:'wx-operation-button',aria:'Inspect current production and area plans'}).replace('<button ','<button data-wx-plans ')+'</div>';
+        if(projects.length && (stationScope==='area' || !knownArea && stationScope==='station'))content+='<h3 class="wx-techniques-title">Area projects</h3>'+upgradeRows(projects);
+        const next=area.nextStation;
+        if(next && stationScope==='station') {
+          content+='<section class="wx-station-next"><h3>Next station</h3>'+button(stationGlyph(next)+'<strong>'+esc(next.name)+'</strong><b>›</b>',()=>open({kind:'station-proposal',id:next.id}),{key:'station-proposal:'+next.id,className:'wx-station-next-title',aria:'Review '+next.name+' construction requirements'})+(next.requirements || []).map(req=>{const target=req.target ?? req.required,progress=req.current!=null && target!=null ? Math.max(0,Math.min(100,root.WayfarersCore.Numbers.toNumber(req.current)/Math.max(1,root.WayfarersCore.Numbers.toNumber(target))*100)) : null;return '<div class="wx-station-gate" data-met="'+!!req.met+'"><span>'+esc(stationRequirement(req))+'</span>'+(progress!=null ? '<span class="wx-station-gate-meter"><progress value="'+progress+'" max="100"></progress><small>'+esc(compact(req.current))+' / '+esc(compact(target))+'</small></span>' : '')+'</div>';}).join('')+(next.status==='ready' && next.buildAction ? button('Build '+esc(next.name),()=>{const result=execute(next.buildAction);if(result?.ok){screen='expedition';update(view);jumpStation(next.id,true);}},{key:'station-build:'+next.id,className:'wx-build-station',aria:'Build '+next.name}) : '')+'</section>';
+        }
+      }
+      const contentNode=q('[data-wx-station-content]');
+      markup(contentNode,content);
+    }
+    function unseenItems() { return (onboarding()?.attention?.items || []).filter(item=>item.unseen); }
+    function inspectAttention(matches) {
+      if(currentContext.saveFailure || currentContext.awaitingWallet) return;
+      const items=unseenItems().filter(matches);
+      for(const item of items) {
+        const current=unseenItems().find(row=>row.id===item.id);
+        if(current?.inspectAction && !onboardingAction(current.inspectAction)?.ok) break;
+      }
+    }
+    function inspectSheetAttention(model) {
+      if(!dialog.open || !dialog.getClientRects().length) return;
+      inspectAttention(item=>{
+        if(model.kind==='currency')return item.id==='currency:'+model.id;
+        if(model.kind==='collection-card' || model.kind==='card-equip')return item.id==='card:'+model.id;
+        if(model.kind==='collection-gear')return item.id==='gear:'+model.id;
+        if(model.kind==='local')return item.id==='upgrade:'+(model.catalogId || 'area:'+model.areaId+':'+model.id) || item.kind==='tier' && item.destination?.areaId===model.areaId && item.destination?.upgradeId===model.id;
+        if(model.kind==='station-detail')return item.id==='upgrade:'+model.id || item.itemId===model.id;
+        if(model.kind==='upgrade' || model.kind==='skill-state')return item.id==='upgrade:'+model.id;
+        if(model.kind==='objective')return item.id==='area:'+selectedAreaId();
+        if(model.kind==='batch')return item.kind==='batch';
+        if(model.kind==='focus')return item.id==='discovery:feature:focus';
+        if(model.kind==='tier')return item.itemId===model.id || item.itemId==='ready:'+model.id;
+        if(item.kind==='option' && item.areaId===selectedAreaId()) {
+          if(model.kind==='plan-choice' || model.kind==='configuration')return item.group===model.id || model.kind==='plan-choice' && item.group==='plan';
+          if(model.kind==='choice')return Array.from(dialog.querySelectorAll('.wx-choice')).some(node=>commands.get(node.dataset.wxDo)?.id===item.itemId);
+        }
+        return false;
+      });
+    }
+    function renderAttention() {
+      const roots=[shell,dialog],items=unseenItems(),attention=onboarding()?.attention;
+      for(const parent of roots)for(const node of parent.querySelectorAll('[data-wx-unseen]')) {
+        node.removeAttribute('data-wx-unseen');
+        const described=(node.getAttribute('aria-describedby') || '').split(' ').filter(id=>id && id!=='wx-new-hint');
+        if(described.length)node.setAttribute('aria-describedby',described.join(' '));else node.removeAttribute('aria-describedby');
+      }
+      const mark=(node,id)=>{if(!node)return;node.dataset.wxUnseen=id;const ids=new Set((node.getAttribute('aria-describedby') || '').split(' ').filter(Boolean));ids.add('wx-new-hint');node.setAttribute('aria-describedby',[...ids].join(' '));};
+      for(const item of items) {
+        if(item.kind==='currency')mark(q('[data-wx-currency="'+item.itemId+'"]'),item.id);
+        if(item.kind==='card')mark(practiceCommand('card:'+item.itemId,shell),item.id);
+        if(item.kind==='gear')mark(practiceCommand('gear:'+item.itemId,shell),item.id);
+        if(item.kind==='upgrade') {
+          mark(practiceCommand('station-detail:'+item.itemId,shell),item.id);
+          mark(practiceCommand('upgrade-detail:'+item.itemId,shell),item.id);
+          if(item.areaId===selectedAreaId() && item.destination?.upgradeId)mark(q('[data-upgrade="'+item.destination.upgradeId+'"] .wx-upgrade-info'),item.id);
+        }
+        if(item.kind==='option' && item.areaId===selectedAreaId())for(const node of dialog.querySelectorAll('.wx-choice'))if(commands.get(node.dataset.wxDo)?.id===item.itemId)mark(node,item.id);
+      }
+      for(const area of view.expedition.areas || [])if(attention?.areaIds?.[area.id])mark(dialog.querySelector('[data-wx-area="'+area.id+'"]'),'area-group:'+area.id);
+      if(attention?.areas)mark(q('[data-wx-nav="expedition"]'),'areas');
+      if(attention?.upgrades)mark(q('[data-wx-nav="upgrades"]'),'upgrades');
+      if(attention?.guild || attention?.cards || attention?.equipment)mark(q('[data-wx-nav="guild"]'),'guild');
+      if(attention?.cards)mark(practiceCommand('guild-page:cards',shell),'cards');
+      if(attention?.equipment)mark(practiceCommand('guild-page:equipment',shell),'equipment');
+      if(items.some(item=>item.kind==='option'&&item.areaId===selectedAreaId()))mark(q('[data-wx-plans]'),'plans');
+      if(attention)for(const selector of ['[data-wx-attention]','[data-wx-tier-attention]','[data-wx-guild-attention]'])q(selector).hidden=true;
+      const stationReady=stationModel().ready || [];
+      if(stationReady.length)mark(q('[data-wx-nav="upgrades"]'),'station-ready');
+      for(const item of stationReady){mark(practiceCommand('station-unlock:'+item.id,shell),'station-ready:'+item.id);if(item.stationId){const badge=Array.from(stationWorld.querySelectorAll('[data-wx-station-open]')).find(node=>node.dataset.wxStationOpen===item.stationId);mark(badge,'station-ready:'+item.id);}}
+    }
+    function currencyOverflow() {
+      const rail=q('[data-wx-currencies]'),more=q('[data-wx-currency-more]');
+      const overflow=rail.scrollWidth>rail.parentElement.clientWidth+2;
+      more.hidden=!overflow;
+      const atEnd=rail.scrollLeft+rail.clientWidth>=rail.scrollWidth-2;
+      more.textContent=atEnd ? '‹' : '›';
+      more.setAttribute('aria-label',atEnd ? 'Return to first currencies' : 'Show more currencies');
+      rail.parentElement.dataset.overflow=String(overflow);
+      rail.parentElement.dataset.atEnd=String(atEnd);
+    }
+    function renderCurrencies() {
+      const rail=q('[data-wx-currencies]');
+      const localResource=stationModel().currentArea?.resource || ({greenway:'maps',quarry:'ore',watchtower:'knowledge',workshop:'provisions',ruins:'herbs',harbor:'maps'})[selectedAreaId()];
+      const items=currencies().filter(item=>item.id==='coins' || item.id===localResource).slice(0,2);
+      for(const node of Array.from(rail.children))if(!items.some(item=>item.id===node.dataset.wxCurrency))node.remove();
+      for(const item of items) {
+        let node=Array.from(rail.children).find(button=>button.dataset.wxCurrency===item.id);
+        if(!node){node=document.createElement('button');node.type='button';node.className='wx-currency';node.dataset.wxCurrency=item.id;node.innerHTML=icon(item.icon || item.id)+'<span><strong></strong><small></small></span>';rail.append(node);}
+        text(node.querySelector('strong'),compact(item.value));text(node.querySelector('small'),item.name || item.label);
+        node.setAttribute('aria-label',(item.name || item.label)+': '+(item.formatted || compact(item.value))+'. Currency details');
+      }
+      currencyOverflow();
+    }
+    function collectionItem(kind, id) { return (kind === 'card' ? view.collection?.cards : view.collection?.equipment?.items)?.find(item => item.id === id); }
+    function collectionCost(cost) {
+      const entries = Array.isArray(cost) ? cost.map(item => [item.resource,item.amount]) : Object.entries(cost || {});
+      return entries.map(([id,amount]) => root.WayfarersCore.format(amount) + ' ' + id).join(' · ');
+    }
+    function collectionImpacts(item) {
+      return impacts({impact:(item?.impact || []).filter(change => root.WayfarersCore.Numbers.cmp(change.currentValue ?? change.current,change.nextValue ?? change.next) !== 0)});
+    }
+    function collectionHero(item, subtitle) {
+      return '<div class="wx-collection-hero" data-rarity="' + esc(item.rarity || 'common') + '">' + icon(item.artId || item.id) + '<span><strong>' + esc(item.name) + '</strong><small>' + esc(subtitle) + '</small></span></div>';
+    }
+    function collectionFooter(label, action, disabled, summary) {
+      detailFooter = '<div class="wx-purchase-summary"><strong>' + esc(summary || '') + '</strong>' + (currentContext.saveFailure ? '<small>Save recovery required. Retry save before continuing.</small>' : '') + '</div><div class="wx-purchase-controls">' + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{className:'wx-confirm'}) : button(label,action,{className:'wx-confirm',disabled:disabled || currentContext.awaitingWallet})) + '</div>';
+    }
+    function collectionIntro(kind) {
+      const intro = view.collection?.unlocks?.[kind];
+      return '<div class="wx-collection-intro">' + icon(kind === 'cards' ? 'cards' : 'equipment') + '<h3>' + (kind === 'cards' ? 'Build your first deck' : 'Your equipment satchel') + '</h3><p>' + esc(intro?.starterText || intro?.description || '') + '</p>' + button(kind === 'cards' ? 'Claim starter cards' : 'Claim starter equipment',intro?.action,{key:'collection-intro:' + kind,className:'wx-confirm',disabled:intro?.disabled || currentContext.saveFailure}) + '</div>';
+    }
+    function collectionInbox() {
+      const events = view.collection?.events || [];
+      return events.length ? button(icon('chest') + '<span><strong>' + events.length + ' collection update' + (events.length === 1 ? '' : 's') + '</strong><small>' + esc(events[events.length - 1].title) + '</small></span><b>›</b>',()=>open({kind:'collection-inbox'}),{key:'collection-inbox',className:'wx-menu wx-collection-inbox'}) : '';
+    }
+    function cardsBody() {
+      const collection = view.collection || {};
+      if (!collection.cardsUnlocked) return collectionIntro('cards');
+      const deck = collection.decks.find(item => item.selected) || collection.decks[0];
+      return '<div class="wx-collection-workbench"><section class="wx-deck-workspace"><div class="wx-deck-tabs" aria-label="Saved decks">' + collection.decks.map(item => button('<strong>' + esc(item.name) + '</strong><small>' + (item.selected ? 'Active deck' : 'Use deck') + '</small>',item.selectAction,{key:'deck:' + item.id,selected:item.selected,className:'wx-deck-tab',aria:item.name + (item.selected ? ', active deck' : ', use saved deck')})).join('') + '</div><div class="wx-deck-heading"><span>Active deck bonuses</span>' + button('Bonuses',()=>open({kind:'collection-help',section:'synergies'}),{key:'deck-bonuses',className:'wx-small-button'}) + button('Rename',()=>open({kind:'deck-name',id:deck.id}),{key:'deck-name:' + deck.id,className:'wx-small-button'}) + '</div><div class="wx-deck-slots">' + deck.slots.filter(slot => !slot.locked).map(slot => {
+        const card = collection.cards.find(item => item.id === slot.cardId);
+        return button('<span class="wx-card-portrait" data-rarity="' + esc(card?.rarity || 'empty') + '">' + (card ? icon(card.artId) : '<b aria-hidden="true">+</b>') + '</span><strong>' + esc(card?.name || 'Add card') + '</strong><small>' + (card ? 'Rank ' + card.rank : 'Slot ' + (slot.index + 1)) + '</small>',()=>open({kind:'card-slot',deckId:deck.id,slot:slot.index}),{key:'card-slot:' + deck.id + ':' + slot.index,className:'wx-deck-slot',aria:'Deck slot ' + (slot.index + 1) + ': ' + (card?.name || 'empty')});
+      }).join('') + '</div>' + collectionInbox() + '</section><section class="wx-card-library"><div class="wx-library-heading"><h3>Cards · ' + collection.cards.filter(card => card.owned).length + ' / ' + collection.cards.length + '</h3>' + button('Ink ' + collection.ink,()=>open({kind:'collection-help',section:'cards'}),{key:'card-help',className:'wx-small-button',aria:'Archive Ink ' + collection.ink + '. Card finds and crafting details'}) + '</div><div class="wx-card-grid">' + collection.cards.map(card => button('<span class="wx-card-portrait" data-rarity="' + esc(card.rarity) + '">' + icon(card.artId) + '<small>' + esc(card.rarity) + '</small>' + (card.owned ? '<b class="wx-card-rank">R' + card.rank + '</b>' : '') + '</span><strong>' + esc(card.name) + '</strong><small>' + (card.owned ? card.copies + ' duplicate' + (card.copies === 1 ? '' : 's') : esc(card.rarity)) + '</small>',()=>open({kind:'collection-card',id:card.id}),{key:'card:' + card.id,className:'wx-card-tile',aria:'Inspect ' + card.name + ', ' + card.rarity + ', ' + (card.owned ? 'rank ' + card.rank + ', ' + card.copies + ' duplicates' : 'not discovered')})).join('') + '</div></section></div>';
+    }
+    function equipmentBody() {
+      const collection = view.collection || {};
+      if (!collection.equipmentUnlocked) return collectionIntro('equipment');
+      const equipment = collection.equipment;
+      return '<div class="wx-collection-workbench"><section><div class="wx-gear-slots">' + equipment.slots.map(slot => {
+        const item = equipment.items.find(item => item.id === slot.itemId);
+        return button(icon(item?.artId || 'equipment') + '<span><small>' + esc(slot.name) + '</small><strong>' + esc(item?.name || 'Choose gear') + '</strong></span>',()=>open({kind:'gear-slot',slot:slot.id}),{key:'gear-slot:' + slot.id,className:'wx-gear-slot',aria:slot.name + ': ' + (item?.name || 'empty')});
+      }).join('') + '</div>' + collectionInbox() + button('Scrolls & recovery',()=>open({kind:'collection-help',section:'equipment'}),{key:'gear-help'}) + '</section><section><div class="wx-library-heading"><h3>Equipment</h3><span>' + equipment.items.filter(item => item.owned).length + ' / ' + equipment.items.length + '</span></div><div class="wx-gear-grid">' + equipment.items.map(item => button(icon(item.artId) + '<strong>' + esc(item.name) + '</strong><small>' + esc(item.slot) + ' · ' + (item.equipped ? 'Equipped' : item.owned ? '+' + item.points : 'Forge') + '</small>',()=>open({kind:'collection-gear',id:item.id}),{key:'gear:' + item.id,className:'wx-gear-tile',aria:'Inspect ' + item.name + ', ' + item.slot + (item.equipped ? ', equipped' : '')})).join('') + '</div></section></div>';
+    }
+    function collectionSheet(model) {
+      const collection = view.collection;
+      let title = '', html = '';
+      if (model.kind === 'deck-name') {
+        const deck = collection.decks.find(item => item.id === model.id);
+        title = 'Name your deck';
+        html = '<label class="wx-field">Deck name<input data-wx-deck-name maxlength="24" value="' + esc(deck.name) + '" aria-label="Deck name, up to 24 characters"></label>';
+        collectionFooter('Save name',()=>{ const result=execute(Object.assign({},deck.renameAction,{name:dialog.querySelector('[data-wx-deck-name]').value.trim()})); if(result?.ok) back(); },false,'Up to 24 characters');
+      } else if (model.kind === 'card-slot') {
+        const deck = collection.decks.find(item => item.id === model.deckId);
+        title = deck.name + ' · Slot ' + (model.slot + 1);
+        html = '<div class="wx-card-grid">' + collection.cards.filter(card => card.owned).map(card => button('<span class="wx-card-portrait" data-rarity="' + esc(card.rarity) + '">' + icon(card.artId) + '</span><strong>' + esc(card.name) + '</strong><small>Rank ' + card.rank + '</small>',()=>open({kind:'card-equip',id:card.id,deckId:deck.id,slot:model.slot}),{key:'choose-card:' + card.id,className:'wx-card-tile'})).join('') + '</div>';
+        if (deck.slots[model.slot].cardId) html += button('Empty this slot',()=>{ const result=execute(deck.slots[model.slot].clearAction); if(result?.ok) back(); },{key:'empty-card-slot'});
+      } else if (model.kind === 'collection-card' || model.kind === 'card-equip') {
+        const card = collectionItem('card',model.id); title = card.name;
+        html = collectionHero(card,card.rarity + ' · ' + (card.owned ? 'Rank ' + card.rank + ' / ' + card.maxRank + ' · ' + card.copies + ' duplicates' : 'Not discovered')) + '<p class="wx-effect">' + esc(card.effectText || card.description) + '</p>';
+        if (model.kind === 'card-equip') {
+          const deck = collection.decks.find(item => item.id === model.deckId), slot = deck.slots[model.slot];
+          const target = card.equipActions.find(item => item.deckId === deck.id && item.slot === model.slot);
+          const previous = collection.cards.find(item => item.id === slot.cardId);
+          html += '<p class="wx-muted">' + esc(deck.name) + ' · Slot ' + (model.slot + 1) + ': ' + esc(previous?.name || 'Empty') + ' → ' + esc(card.name) + '</p><div class="wx-impact">' + collectionImpacts(target || card) + '</div>';
+          collectionFooter(target.selected ? 'Equipped' : 'Equip card',()=>{ const result=execute(target.action); if(result?.ok) { close(); showGuildPage('cards'); } },target.disabled || target.selected,target.reason || 'Only the active deck changes production');
+        } else if (card.owned) {
+          const deck = collection.decks.find(item => item.selected);
+          html += section('Equip in ' + deck.name,'<div class="wx-segments">' + deck.slots.filter(slot => !slot.locked).map(slot => button('Slot ' + (slot.index + 1),()=>open({kind:'card-equip',id:card.id,deckId:deck.id,slot:slot.index}),{key:'equip-card-slot:' + slot.index,selected:slot.cardId === card.id})).join('') + '</div>');
+          html += menu('Fuse duplicates',card.rank >= card.maxRank ? 'Maximum rank' : card.fusion.costCopies + ' duplicates → Rank ' + card.fusion.rankAfter,'cards',{kind:'collection-transaction',entity:'card',id:card.id,operation:'fusion'});
+          html += menu('Archive Ink',card.copies + ' duplicates · ' + collection.ink + ' Ink','research',{kind:'card-ink',id:card.id});
+          const refs = collection.decks.filter(deck => deck.slots.some(slot => slot.cardId === card.id));
+          if (refs.length) html += '<p class="wx-muted">Saved in: ' + esc(refs.map(deck => deck.name).join(', ')) + '. Fusion updates this card in every deck.</p>';
+        } else html += '<p class="wx-muted">Discover this card before crafting copies.</p>';
+      } else if (model.kind === 'card-ink') {
+        const card = collectionItem('card',model.id); title = 'Archive Ink';
+        html = collectionHero(card,card.copies + ' loose duplicates · ' + collection.ink + ' Ink') + menu('Recycle one duplicate','Gain ' + card.recycle.inkGain + ' Ink; keep the owned card','research',{kind:'collection-transaction',entity:'card',id:card.id,operation:'recycle'}) + menu('Craft one duplicate',card.craft.costInk + ' Ink','cards',{kind:'collection-transaction',entity:'card',id:card.id,operation:'craft'});
+      } else if (model.kind === 'gear-slot') {
+        title = collection.equipment.slots.find(item => item.id === model.slot).name;
+        html = '<div class="wx-gear-grid">' + collection.equipment.items.filter(item => item.slot === model.slot).map(item => button(icon(item.artId) + '<strong>' + esc(item.name) + '</strong><small>' + (item.equipped ? 'Equipped' : item.owned ? '+' + item.points : 'Forge') + '</small>',()=>open({kind:'collection-gear',id:item.id}),{key:'gear-choice:' + item.id,className:'wx-gear-tile'})).join('') + '</div>';
+      } else if (model.kind === 'collection-gear') {
+        const item=collectionItem('gear',model.id); title=item.name;
+        const current=collection.equipment.items.find(gear => gear.slot === item.slot && gear.equipped);
+        html = collectionHero(item,item.slot + ' · ' + (item.equipped ? 'Equipped' : item.owned ? 'Owned' : 'Not forged')) + '<p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
+        if (item.owned) {
+          html += '<div class="wx-gear-attempts"><strong>+' + item.points + ' points</strong><span>' + (item.slotsMax-item.slotsUsed) + ' / ' + item.slotsMax + ' open slots</span><span>' + item.failedSlots + ' recoverable</span></div><p class="wx-muted">Current ' + esc(item.slot) + ': ' + esc(current?.name || 'Empty') + '</p><div class="wx-impact">' + collectionImpacts(item) + '</div>';
+          html += section('Enhance with a scroll','<div class="wx-scroll-list">' + item.scrolls.map(scroll => button('<span><strong>' + esc(scroll.name) + '</strong><small>' + (scroll.id === 'restoration' ? 'Recover 1 failed slot' : scroll.successPercent + '% success · +' + scroll.points + ' points') + '</small></span><b>' + scroll.count + '</b>',()=>open({kind:'collection-transaction',entity:'gear',id:item.id,operation:'scroll',scrollId:scroll.id}),{key:'scroll:' + scroll.id,className:'wx-menu'})).join('') + '</div>');
+          if(item.reforge?.visible) html += menu('Reforge equipment','Clear all enhancements; keep the base item','forge',{kind:'collection-transaction',entity:'gear',id:item.id,operation:'reforge'});
+          collectionFooter(item.equipped ? 'Unequip' : 'Equip ' + item.slot,item.equipped ? collection.equipment.slots.find(slot => slot.id === item.slot).clearAction : item.equipAction,false,item.equipped ? 'Returns to your satchel' : 'Replaces ' + (current?.name || 'empty slot'));
+        } else collectionFooter('Forge equipment',item.forge.action,item.forge.disabled,collectionCost(item.forge.cost) || item.forge.reason);
+      } else if (model.kind === 'collection-transaction') {
+        const item=collectionItem(model.entity,model.id);
+        const preview=model.operation === 'scroll' ? item.scrolls.find(scroll => scroll.id === model.scrollId) : item[model.operation];
+        title=model.operation === 'fusion' ? 'Fuse ' + item.name : model.operation === 'recycle' ? 'Recycle duplicate' : model.operation === 'craft' ? 'Craft duplicate' : model.operation === 'reforge' ? 'Reforge ' + item.name : preview.name;
+        html=collectionHero(item,model.entity === 'card' ? 'Rank ' + item.rank + ' · ' + item.copies + ' duplicates' : '+' + item.points + ' points · ' + (item.slotsMax-item.slotsUsed) + ' open slots');
+        let summary='';
+        if(model.operation === 'fusion') {
+          summary='Consume ' + preview.costCopies + ' duplicates';
+          html += '<p class="wx-effect">Rank ' + item.rank + ' → ' + preview.rankAfter + '</p><p>' + esc(preview.effectText || preview.nextEffectText || '') + '</p><p class="wx-muted">Keep the owned card. All saved decks using it receive the new rank.</p>';
+        } else if(model.operation === 'recycle') { summary='Consume 1 loose duplicate'; html += '<p class="wx-effect">+' + preview.inkGain + ' Archive Ink</p><p class="wx-muted">Your owned card and all deck slots stay intact.</p>'; }
+        else if(model.operation === 'craft') { summary='Consume ' + preview.costInk + ' Archive Ink'; html += '<p class="wx-effect">+1 duplicate of ' + esc(item.name) + '</p>'; }
+        else if(model.operation === 'reforge') {
+          summary='Consume ' + preview.scrollCost + ' Restoration Scrolls · ' + collectionCost(preview.cost);
+          html += '<p class="wx-effect">Lose all ' + preview.pointsLost + ' enhancement points → 0</p><div class="wx-impact"><div><span>Open attempt slots</span><strong>' + (item.slotsMax-item.slotsUsed) + ' → ' + preview.slotsAfter + '</strong></div></div><p>' + esc(preview.currentEffectText) + ' → ' + esc(preview.nextEffectText) + '</p><p class="wx-muted">Guaranteed reset. Keep this item, its base bonuses and its equipped slot. All successful enhancements and failed slots are cleared.</p>';
+        }
+        else { summary='Consume 1 ' + preview.name + (model.scrollId === 'restoration' ? '' : ' + 1 attempt slot'); html += '<div class="wx-scroll-odds"><strong>' + preview.successPercent + '%</strong><span>' + (model.scrollId === 'restoration' ? 'restore one failed slot' : 'chance of +' + preview.points + ' points') + '</span></div><p class="wx-effect">' + esc(preview.currentEffectText || item.effectText) + (preview.nextEffectText && preview.nextEffectText !== preview.currentEffectText ? ' → ' + esc(preview.nextEffectText) : '') + '</p><p class="wx-muted">' + esc(preview.failureText) + '</p><p class="wx-muted">Restoration repairs failed slots. Reforge clears all enhancements' + (item.reforge?.visible ? '.' : ' after the Workshop unlocks.') + '</p>'; }
+        const comparison=collectionImpacts(preview);
+        html += (comparison ? section(model.operation === 'scroll' ? 'On success' : 'Production change','<div class="wx-impact">' + comparison + '</div>') : '') + (preview.reason ? '<p class="wx-muted">' + esc(preview.reason) + '</p>' : '');
+        collectionFooter(model.operation === 'scroll' ? 'Use scroll' : model.operation === 'reforge' ? 'Confirm reforge' : model.operation === 'fusion' ? 'Fuse duplicates' : model.operation === 'recycle' ? 'Recycle duplicate' : 'Craft duplicate',preview.action,preview.disabled,summary);
+      } else if (model.kind === 'collection-inbox') {
+        title='Collection updates'; html=(collection.events || []).slice().reverse().map(event => menu(event.title,event.detail,event.cardId ? collectionItem('card',event.cardId)?.artId : event.itemId ? collectionItem('gear',event.itemId)?.artId : 'chest',{kind:'collection-result',id:event.id})).join('') || '<p>Every collection update has been reviewed.</p>';
+      } else if (model.kind === 'collection-result') {
+        const event=collection.events.find(event => event.id === model.id);
+        title=({failed:'Scroll did not take',restored:'Attempt restored',reforged:'Equipment reforged',fused:'Card fused',success:'Enhancement succeeded',found:'Collection find'})[event?.outcome] || 'Collection update';
+        if(event) {
+          const item=event.cardId ? collectionItem('card',event.cardId) : event.itemId ? collectionItem('gear',event.itemId) : null;
+          html=(item ? collectionHero(Object.assign({},item,{rarity:event.rarity || item.rarity}),event.outcome) : '') + '<p class="wx-effect">' + esc(event.title) + '</p><p>' + esc(event.detail) + '</p>';
+          const earlier=collection.events.filter(entry => entry.id < event.id);
+          if(earlier.length) html += '<details class="wx-collection-earlier"><summary>Also received · ' + earlier.length + '</summary>' + earlier.map(entry => '<p><strong>' + esc(entry.title) + '</strong> · ' + esc(entry.detail) + '</p>').join('') + '</details>';
+          if(event.outcome === 'failed') html += '<p class="wx-muted">Equipment and all existing points are safe. A Restoration Scroll can recover the failed slot.</p>';
+          const consumed=Object.entries(event.consumed || {}).filter(([,value]) => value && typeof value === 'number').map(([key,value]) => value + ' ' + key.replace(/([A-Z])/g,' $1').toLowerCase());
+          if(consumed.length) html += '<p class="wx-muted">Consumed: ' + esc(consumed.join(' · ')) + '</p>';
+          collectionFooter('Done',()=>{ const result=execute(event.ackAction || {type:'collection-ack',sequence:event.sequence || event.id}); if(result?.ok) close(); },false,'Saved collection result');
+        } else html='<p>This update has been reviewed.</p>';
+      } else if (model.kind === 'collection-help') {
+        title=model.section === 'synergies' ? 'Deck bonuses' : model.section === 'cards' ? 'Cards & Archive Ink' : 'Scrolls & recovery';
+        const acquisition=collection.acquisition || {};
+        html=model.section === 'synergies' ? '' : '<p>' + esc(model.section === 'cards' ? acquisition.cards : acquisition.scrolls) + '</p>';
+        if(model.section === 'synergies') html += (collection.synergies || []).map(item => '<div class="wx-gear-attempts"><strong>' + esc(item.id) + ' · ' + item.count + '</strong><span>' + esc(item.effectText) + '</span>' + (!item.active && item.nextCount ? '<span>Next bonus at ' + item.nextCount + ' matching cards</span>' : '') + '</div>').join('') + '<p class="wx-muted">Only cards in your active deck count toward these bonuses.</p>';
+        else if(model.section === 'cards') html += '<p>Only cards in your active deck give bonuses. Fusion strengthens one permanent card across every saved deck. Recycle loose duplicates for Ink; craft only previously discovered cards.</p>' + (acquisition.oddsText ? '<p>' + esc(acquisition.oddsText) + '</p>' : '') + '<p class="wx-muted">' + esc(acquisition.pity || '') + '</p>';
+        else html += '<div class="wx-scroll-list">' + collection.equipment.scrolls.map(scroll => '<div class="wx-gear-attempts"><strong>' + esc(scroll.name) + '</strong><span>' + scroll.successPercent + '% · ' + scroll.count + ' owned</span></div>').join('') + '</div><p>Restoration recovers a failed slot without changing points. Workshop Reforge clears all enhancements for a fresh set of attempts. Equipment is never destroyed.</p>';
+        if (['cards','equipment'].includes(model.section) && guideForArea(model.section)) html += button('Replay ' + model.section + ' guide',()=>replayGuide(model.section),{key:'guide-replay:' + model.section,className:'wx-button wx-guide-replay'});
+      }
+      return {title,html};
+    }
+    function section(title, html) { return html ? '<section class="wx-group"><h3>' + esc(title) + '</h3>' + html + '</section>' : ''; }
+    function catalog(title, items) { const shown = visible(items); return shown.length ? section(title, tiles(shown)) : ''; }
+    function metric(value) {
+      if (typeof value === 'string') return value;
+      if (value && typeof value === 'object') return root.WayfarersCore.format(value);
+      if (!Number.isFinite(value)) return '—';
+      return Math.abs(value) >= 10000 ? compact(value) : Number(value.toFixed(3)).toLocaleString();
+    }
+    function impacts(item) {
+      return (item.impact || []).filter(change => change.current != null && change.next != null).map(change => { const values = impactValues(change); const unit=change.unit && !values[1].includes(change.unit) ? ' <small>' + esc(change.unit) + '</small>' : ''; return '<div><span>' + esc(change.label || change.metric) + '</span><strong>' + esc(values[0]) + ' → ' + esc(values[1]) + unit + '</strong></div>'; }).join('');
+    }
+    function impactValues(change) {
+      let values = [metric(change.current),metric(change.next)];
+      if (values[0] === values[1] && change.currentValue && change.nextValue && root.WayfarersCore.Numbers.cmp(change.currentValue,change.nextValue) !== 0) {
+        for (let digits = 3; digits <= 8 && values[0] === values[1]; digits += 1) {
+          values = [change.currentValue,change.nextValue].map(value => { const number = root.WayfarersCore.Numbers.toNumber(value); return Number.isFinite(number) ? String(Number(number.toPrecision(digits))) : Number(value.m).toPrecision(digits) + 'e' + value.e; });
+        }
+      }
+      return values;
+    }
+    function areaLinks(item) {
+      let source = [...new Set(item.sourceAreas || [])];
+      const target = [...new Set(item.targetAreas || (item.areaId ? [item.areaId] : []))];
+      if (source.length === 1 && target.length === 1 && source[0] === target[0]) source = [];
+      if (!source.length && !target.length) return '';
+      const side = ids => ids.map(id => '<span title="' + esc(areaNames[id] || id) + '">' + icon(areaIcons[id] || 'guild') + '<span class="wx-link-name">' + esc(areaNames[id] || id) + '</span></span>').join('');
+      return '<span class="wx-area-links" aria-label="' + esc(source.map(id => areaNames[id] || id).join(' + ') + (source.length && target.length ? ' supports ' : '') + target.map(id => areaNames[id] || id).join(' + ')) + '">' + side(source) + (source.length && target.length ? '<b aria-hidden="true">→</b>' : '') + side(target) + '</span>';
+    }
+    function completedUpgrade(item) {
+      const cap = item.maxLevel ?? item.maxRank;
+      const level = item.level ?? item.rank ?? 0;
+      return item.maxed === true || cap != null && Number(level) >= Number(cap) || !!item.owned && !['buy','expedition-buy','area-skill-buy','station-skill-buy','station-area-buy','refit-upgrade','legacy-upgrade'].includes(item.action?.type) && !item.repeatable;
+    }
+    function allUpgrades() {
+      const extra = Array.isArray(view.areaSkills) ? view.areaSkills : view.areaSkills?.items || [];
+      const result = new Map();
+      [...(view.globalUpgrades || []),...extra].forEach(item => result.set(item.catalogId || item.id,item));
+      return [...result.values()];
+    }
+    function foundations() {
+      const rows = view.expedition.foundations || view.expedition.tiers?.foundations?.filter(item=>item.areaId === selectedAreaId()) || view.expedition.cards.slice(0,3);
+      return rows.map(item => {
+        const descriptor = item.descriptor || item.upgrade || {};
+        const id = item.trackId || descriptor.trackId || item.id;
+        const learned = view.expedition.cards.find(card => card.id === id);
+        return Object.assign({},learned,descriptor,item,{id,trackId:id,tierId:item.tierId || item.id,catalogId:learned?.catalogId || descriptor.catalogId || 'area:'+selectedAreaId()+':'+id,label:item.label || item.name || descriptor.name || learned?.label,state:item.state || item.status || (item.ready ? 'ready' : item.locked ? 'locked' : 'learned')});
+      });
+    }
+    function requirementLines(item, brief) {
+      const requirements = item.prerequisites || item.requirements || item.dependencies || [];
+      return (brief ? requirements.filter(row=>!row.met).concat(requirements.filter(row=>row.met)).slice(0,item.skillId ? 1 : 2) : requirements).map(requirement => {
+        const amount = requirement.required ?? requirement.target;
+        const progress = amount != null ? (requirement.current == null ? '' : compact(requirement.current) + ' / ') + compact(amount) : '';
+        const track=foundations().find(entry=>String(requirement.label).startsWith(entry.name || entry.label));
+        const areaId=item.areaId || selectedAreaId();
+        const outputTrack={greenway:'porters',quarry:'furnace',watchtower:'beacon',workshop:'assembly',ruins:'recovery-teams',harbor:'shipbuilding'}[areaId];
+        const isOutput=/deliveries|refined|survey work|assembled|recovered|voyages/i.test(requirement.label || '');
+        const glyph=track ? 'track-'+areaId+'-'+track.trackId : isOutput ? 'track-'+areaId+'-'+outputTrack : requirement.icon || 'mastery';
+        const label=brief ? String(requirement.shortLabel || requirement.label || requirement.name || '').replace(/ Lv\. \d+$/,'').replace(/^\d+\s+(?=deliveries|refined|survey|assembled|recovered|voyages)/,'') : requirement.shortLabel || requirement.label || requirement.name || '';
+        return '<span class="wx-skill-requirement" data-met="' + !!requirement.met + '">' + icon(glyph) + '<span>' + esc(label) + (progress ? '<b>' + (track ? 'Lv. ' : '') + esc(progress) + '</b>' : '') + '</span></span>';
+      }).join('');
+    }
+    function inspectSkill(item, foundation) {
+      if (foundation && item.state === 'ready') { open({kind:'tier',id:item.tierId}); return; }
+      if (item.state === 'locked' || item.state === 'ready') open({kind:'skill-state',id:item.catalogId || item.id,trackId:item.trackId});
+      else if (foundation) inspectLocal(item.trackId || item.id);
+      else open({kind:'upgrade',id:item.catalogId || item.id});
+    }
+    function skillTile(item, foundation) {
+      const state = item.state || (item.ready && item.unlockAction ? 'ready' : item.locked ? 'locked' : 'learned');
+      const label = item.label || item.name || item.id;
+      const level = item.rank ?? item.level ?? 0;
+      const complete = state === 'learned' && completedUpgrade(item);
+      const key = foundation ? item.trackId || item.id : item.catalogId || item.id;
+      const trackId=item.trackId || (foundation ? item.id : null);
+      const art=trackId && root.WayfarersIcons.TRACK_ART[item.areaId || selectedAreaId()]?.includes(trackId) ? icon('track-' + (item.areaId || selectedAreaId()) + '-' + trackId) : icon(item.icon || item.action?.id || item.trackId || item.id);
+      const inspect = button(art + '<strong>' + esc(label) + '</strong><small data-wx-rank>' + (state === 'locked' ? '<span class="wx-lock" aria-label="Locked">' + icon('lock') + '</span>' : 'Lv. ' + level) + '</small>',()=>inspectSkill(Object.assign({},item,{state}),foundation),{key:(foundation ? 'local:' : 'upgrade-detail:') + key,className:'wx-upgrade-info',aria:'Inspect ' + label + (state === 'locked' ? ', locked' : ', level ' + level)});
+      let control;
+      if (state === 'locked') control = button(requirementLines(item,true) || esc(item.reason || 'Requires local progress'),()=>inspectSkill(Object.assign({},item,{state}),foundation),{key:'skill-requirement:' + key,className:'wx-requirements',aria:'Requirements for ' + label + ': ' + (item.prerequisites || item.requirements || item.dependencies || []).map(requirement=>requirement.label).join('; ')});
+      else if (state === 'ready') control = button('Unlock',item.unlockAction || (()=>showReadyTiers(item.tierId)),{key:'skill-unlock:' + key,className:'wx-price wx-skill-unlock',disabled:currentContext.saveFailure || currentContext.awaitingWallet,aria:'Unlock ' + label});
+      else {
+        control = button(complete ? 'Max' : purchaseLabel(item,true),item.action,{key:'skill-buy:' + key,className:'wx-price',disabled:item.disabled || complete || currentContext.saveFailure || currentContext.awaitingWallet,aria:'Buy ' + (item.quantity || 1) + ' ranks of ' + label + ', ' + (item.cost || []).map(cost=>cost.text).join(', ')});
+        if (foundation) control = control.replace('<button ','<button data-wx-buy="' + esc(key) + '" ');
+      }
+      return '<article class="wx-upgrade wx-skill-tile" ' + (foundation ? 'data-upgrade' : 'data-wx-upgrade') + '="' + esc(key) + '" data-state="' + state + '" data-ready="' + (state === 'ready') + '">' + inspect + control + '</article>';
+    }
+    function skillGrid(items) { return '<div class="wx-skill-grid">' + items.map(item=>skillTile(item,false)).join('') + '</div>'; }
+    function operationBody() {
+      const operation = view.expedition.operation;
+      const active=stationModel().active;
+      const stages = active ? (stationModel().currentArea?.stations || []).filter(station=>station.status==='built').map(station=>({id:station.id,label:station.name,art:stationGlyph(station),rateText:station.outputText})) : operation?.stages || view.expedition.stations || [];
+      let html = '<div class="wx-operation-chain">' + stages.map(stage=>'<article'+(active ? ' data-wx-operation-station="'+esc(stage.id)+'"' : '')+'><span>' + (stage.art || icon(stage.icon || stage.id)) + '</span><strong>' + esc(stage.label) + '</strong>' + (stage.rateText ? '<small>' + esc(stage.rateText) + '</small>' : '') + (stage.bufferText ? '<small>' + esc(stage.bufferText) + '</small>' : '') + (stage.buffer != null && stage.capacity ? '<progress value="'+esc(stage.buffer)+'" max="'+esc(stage.capacity)+'" aria-label="'+esc(stage.label+' queue')+'"></progress>' : '') + '</article>').join('') + '</div>';
+      const status = active ? null : operation?.status || view.expedition.areas?.find(area=>area.selected)?.status || view.expedition.stage.objective;
+      if (status) html += '<p class="wx-operation-status">' + esc(status) + '</p>';
+      const skills = visible(allUpgrades()).filter(item=>item.areaId===selectedAreaId() && item.owned && item.configuration);
+      if (skills.length) html += section('Skill plans',skills.map(item=>menu(item.name,item.configuration.dormant ? 'Rebuild to activate saved plan' : item.configuration.options.find(option=>option.selected)?.label || 'Choose a plan',item.icon,{kind:'upgrade',id:item.id})).join(''));
+      return html;
+    }
+    function upgradeRows(items) {
+      return '<div class="wx-upgrade-list">' + items.map(item => {
+        const complete = completedUpgrade(item);
+        const running = view.expedition.commission?.id === item.action?.id && item.action?.type === 'expedition-development';
+        const level = item.level == null ? item.rank : item.level;
+        const label = name(item);
+        const change = (item.impact || []).find(entry => entry.current != null && entry.next != null && !String(entry.metric).startsWith('behavior:'));
+        const values = change ? impactValues(change) : [];
+        const effect = change ? (change.label || change.metric) + ' ' + values[0] + ' → ' + values[1] + (change.unit || '') : item.effectText || item.description || '';
+        const prerequisite = (item.dependencies || []).find(dependency => !dependency.met);
+        return '<article class="wx-research-row" data-wx-upgrade="' + esc(item.id) + '" data-ready="' + (!item.disabled && !complete) + '">' +
+          button(icon(item.icon || item.trackId || item.id) + '<span><strong>' + esc(label) + (level ? '<small> ' + level + '</small>' : '') + '</strong><span class="wx-research-effect">' + esc(effect) + '</span>' + areaLinks(item) + (prerequisite ? '<small class="wx-prerequisite">' + esc(prerequisite.label) + '</small>' : '') + '</span>', () => open({ kind:'upgrade', id:item.id }), { key:'upgrade-detail:' + item.id, className:'wx-research-info', aria:'Details: ' + label }) +
+          button(complete ? '✓' : running ? Math.floor(percent(view.expedition.commission.progress)) + '%' : (item.cost || []).length ? purchaseLabel(item) : 'Unlock', item.action, { disabled:item.disabled || complete || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-price', aria:(complete ? 'Completed ' : running ? 'Researching ' : 'Buy ' + (item.quantity || 1) + ' ranks of ') + label + (!running && (item.cost || []).length ? ', ' + item.cost.map(cost => cost.text).join(', ') : '') }) + '</article>';
+      }).join('') + '</div>';
+    }
+    function upgradesBody() {
+      const areaId = selectedAreaId();
+      const global = ['global','guild','all'].includes(upgradeArea);
+      const all = visible(allUpgrades());
+      const ownership = item => item.scope || item.catalogScope || (item.areaId ? 'area' : 'global');
+      const area = item => item.ownerAreaId || item.areaId || (item.targetAreas || [])[0];
+      const matching = all.filter(item => global ? ownership(item) === 'global' : ownership(item) !== 'global' && area(item) === areaId);
+      const search = upgradeSearch.trim().toLowerCase();
+      const filtered = matching.filter(item => (upgradeEffect === 'all' || item.effectKind === upgradeEffect) && (!search || [name(item),item.description,item.effectText].join(' ').toLowerCase().includes(search)));
+      const tab = (label, value, selected) => button(esc(label),()=>{upgradeArea=value;upgradeEffect='all';upgradeSearch='';update(view);q('[data-wx-destination]').scrollTop=0;},{key:'upgrade-scope:'+value,className:'wx-scope-tab',selected,aria:label+' upgrades'+(selected ? ', selected' : '')});
+      let html = '<div class="wx-scope-tabs" role="group" aria-label="Upgrade scope">' + tab('Global','global',global) + tab(areaNames[areaId] || areaId,'current',!global) + '</div>';
+      const effects = [...new Set(matching.map(item=>item.effectKind).filter(Boolean))];
+      html += '<div class="wx-skill-toolbar"><strong>' + (global ? 'Guild upgrades' : 'Boosts by stage') + '</strong>' + batchControl() + button(icon('settings'),()=>open({kind:'upgrade-filters',effects}),{key:'upgrade-filters',className:'wx-skill-filter',aria:'Filter upgrades'}) + '</div>';
+      if (!global) {
+        const roles = view.expedition.operation?.stages || ({greenway:[['boots','Travel'],['porters','Carry'],['scouts','Discover']],quarry:[['picks','Mine'],['carts','Move'],['furnace','Refine']],watchtower:[['beacon','Survey'],['signals','Signal'],['crew','Command']],workshop:[['tools','Assemble'],['equipment','Equip'],['alloys','Convert']],ruins:[['relic','Delve'],['knowledge','Interpret'],['crate','Recover']],harbor:[['caravan','Build'],['compass','Sail'],['crate','Stow']]}[areaId] || []).map(([icon,label])=>({icon,label}));
+        html += '<div class="wx-stage-roles" aria-label="Production stages">' + roles.slice(0,3).map(role=>'<span>'+icon(role.icon || role.id)+'<b>'+esc(role.label)+'</b></span>').join('') + '</div>';
+        const foundation = foundations();
+        const foundationIds = new Set(foundation.map(item=>item.catalogId || 'area:'+areaId+':'+item.trackId));
+        const rest = filtered.filter(item=>!foundationIds.has(item.catalogId || item.id));
+        const layout = root.WayfarersAreaSkillsContent?.TRACK_LAYOUT?.[areaId] || {};
+        const moduleOf = item => item.module ?? layout[item.trackId]?.[0] ?? 9;
+        const roleOf = item => item.role ?? layout[item.trackId]?.[1] ?? 0;
+        const front = rest.filter(item=>moduleOf(item)<=2);
+        html += '<div class="wx-role-columns">' + [0,1,2].map(role=>'<div class="wx-role-column" aria-label="'+esc(roles[role]?.label || '')+' skills">'+(foundation[role] ? skillTile(foundation[role],false) : '')+front.filter(item=>roleOf(item)===role).sort((a,b)=>moduleOf(a)-moduleOf(b) || (a.order || 0)-(b.order || 0)).map(item=>skillTile(item,false)).join('')+'</div>').join('')+'</div>';
+        const deeper = rest.filter(item=>!front.includes(item));
+        const groupOf = item => item.moduleLabel || (item.group === 'area' ? 'Area skills' : groupNames[item.group] || 'Connections');
+        const groups = [...new Set(deeper.map(groupOf))].sort((a,b)=>Math.min(...deeper.filter(item=>groupOf(item)===a).map(moduleOf))-Math.min(...deeper.filter(item=>groupOf(item)===b).map(moduleOf)));
+        html += groups.map((group,index)=>{
+          const entries = deeper.filter(item=>groupOf(item)===group);
+          const content = skillGrid(entries);
+          return '<details class="wx-skill-module" data-module="'+esc(areaId+':'+group)+'"'+(expandedSkillModules.has(areaId+':'+group) ? ' open' : '')+'><summary>'+icon(entries[0]?.icon || 'tools')+'<strong>'+esc(group)+'</strong><small>'+entries.length+' skills</small><span aria-hidden="true">⌄</span></summary>'+content+'</details>';
+        }).join('');
+      } else {
+        const groupOf = item => item.moduleLabel || item.categoryLabel || ({research:'Shared training',legacy:'Permanent',equipment:'Shared training',blueprints:'Permanent'}[item.group] || 'Guild economy');
+        const groups = [...new Set(filtered.map(groupOf))];
+        html += groups.map(group=>section(group,skillGrid(filtered.filter(item=>groupOf(item)===group)))).join('');
+        if (!filtered.length) html += '<p class="wx-empty">Guild upgrades appear as your guild grows.</p>';
+      }
+      return html;
+    }
+    function onboarding() { return view?.expedition.onboarding || view?.onboarding; }
+    function selectedAreaId() { return view?.expedition.areas?.find(area => area.selected)?.id || view?.expedition.stage.kind; }
+    function guideScopeId() { return ['expedition','upgrades'].includes(screen) ? selectedAreaId() : screen === 'guild' && ['cards','equipment'].includes(guildPage) && view.collection?.[guildPage === 'cards' ? 'cardsUnlocked' : 'equipmentUnlocked'] ? guildPage : null; }
+    function guideForArea(areaId) { return areaId ? onboarding()?.guides?.find(item => item.areaId === areaId || item.id === areaId) : null; }
+    function practice() { const active=onboarding()?.active; return active?.mode && !onboardingReplay ? active : null; }
+    function mandatoryLesson() {
+      const active=practice();
+      if(active)return active.canLeave===false || active.mandatory && active.canLeave!==true;
+      const definition=guideForArea(guideScopeId());
+      return !!definition?.mandatory && !definition.complete;
+    }
+    function practiceKey(action) {
+      const clean=value=>Array.isArray(value) ? value.map(clean) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).filter(key=>!['quote','onboardingEpoch'].includes(key)).sort().map(key=>[key,clean(value[key])])) : value;
+      return JSON.stringify(clean(action));
+    }
+    function samePracticeAction(action,model) {
+      if (!action || typeof action==='function' || !model?.requiredAction) return false;
+      const actual=Object.assign({},action),wanted=Object.assign({},model.requiredAction);
+      if (actual.type==='expedition-buy') { actual.areaId ||= selectedAreaId(); actual.count ||= view.expedition.batch?.selected || 1; if(model.supply==='rank') actual.count=wanted.count; }
+      if (actual.type==='expedition-automation' && actual.dispatch==null) actual.dispatch=view.expedition.automation?.dispatch;
+      if(['plan-goal','plan-queue'].includes(actual.type) && actual.action && wanted.action) actual.action={type:actual.action.type,id:actual.action.id};
+      return practiceKey(actual)===practiceKey(wanted);
+    }
+    function practiceCommand(key,scope) { return Array.from((scope || (dialog.open ? dialog : shell)).querySelectorAll('[data-wx-do]')).find(node=>node.dataset.wxDo===key && node.getClientRects().length); }
+    function practiceMenu(model) { return practiceCommand('menu:'+JSON.stringify(model)); }
+    function practiceActionControl(model) {
+      return Array.from((dialog.open ? dialog : shell).querySelectorAll('[data-wx-do],[data-wx-buy]')).find(node=>node.getClientRects().length && samePracticeAction(node.dataset.wxBuy ? view.expedition.cards.find(card=>card.id===node.dataset.wxBuy)?.action : commands.get(node.dataset.wxDo),model));
+    }
+    function restorePracticeControl() {
+      if (practiceControl?.isConnected && practiceControlOriginal) {
+        practiceControl.innerHTML=practiceControlOriginal.html;
+        practiceControl.disabled=practiceControlOriginal.disabled;
+        if (practiceControlOriginal.label==null) practiceControl.removeAttribute('aria-label'); else practiceControl.setAttribute('aria-label',practiceControlOriginal.label);
+        delete practiceControl.dataset.wxPractice;
+      }
+      practiceControl=null; practiceControlOriginal=null;
+    }
+    function bindPracticeControl(node,model) {
+      if (!node || model.mode!=='action' || !model.practiceAction) return node;
+      practiceControl=node;
+      practiceControlOriginal={html:node.innerHTML,disabled:node.disabled,label:node.getAttribute('aria-label')};
+      node.dataset.wxPractice=model.token;
+      if (model.suppliesText || model.costCoverage==='guild') {
+        node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
+        if(['rank','cost'].includes(model.supply) && model.practicePreview) node.innerHTML=node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
+        if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
+      }
+      return node;
+    }
+    function practiceDestinationControl(model) {
+      const destination=model.destination || {};
+      if (destination.screen==='cards' || destination.screen==='equipment') {
+        if (screen!=='guild') return q('[data-wx-nav="guild"]');
+        if(guildPage!==destination.screen)return practiceCommand('guild-page:'+destination.screen,shell);
+      } else if (destination.screen==='upgrades') {
+        if(screen!=='upgrades')return q('[data-wx-nav="upgrades"]');
+        const entry=allUpgrades().find(item=>item.id===model.targetData?.catalogId || samePracticeAction(item.action,model));
+        const global=entry ? (entry.scope || entry.catalogScope || (entry.areaId ? 'area' : 'global'))==='global' : !destination.areaId;
+        const desired=global ? 'global' : stationModel().currentArea?.areaScopeIntroduced===true && entry && ['expedition-development','project','research'].includes(entry.action?.type) ? 'area' : 'station';
+        if(stationScope!==desired)return practiceCommand('upgrade-scope:'+(desired==='station'?'current':desired),shell);
+      }
+      else if (destination.screen==='guild' && !['guild','atlas'].includes(screen)) return q('[data-wx-nav="guild"]');
+      else if (destination.screen==='expedition') {
+        const worldOnly=['area-goal','area-expand','focus-action'].includes(model.target);
+        if(screen!=='expedition' && (screen!=='upgrades' || worldOnly)) return q('[data-wx-nav="expedition"]');
+        if(destination.areaId && destination.areaId!==selectedAreaId()) return dialog.open && sheet?.kind==='areas' ? dialog.querySelector('[data-wx-area="'+destination.areaId+'"]') : q('[data-wx-objective]');
+      }
+      return null;
+    }
+    function practiceSection(model) {
+      const data=model.targetData || {},id=model.guideId;
+      if (['automation','planning'].includes(data.section)) return id==='reserves' ? {kind:'reserve',id:data.resourceId || 'ore'} : id==='playbooks' ? {kind:'loadouts'} : {kind:'planning'};
+      if(data.section==='crew') return {kind:id==='companions' ? 'companions' : 'crew'};
+      if(data.section==='discoveries') return {kind:'relics'};
+      if(['kitchen','expedition'].includes(data.section)) return {kind:'supplies'};
+      return {kind:'planning'};
+    }
+    function routePractice(model) {
+      if (!model || model.epoch && model.epoch!==onboardingIdentity) return;
+      const destination=model.destination || {};
+      if (destination.screen==='cards' || destination.screen==='equipment') showGuildPage(destination.screen);
+      else if(destination.screen==='upgrades') showUpgrades(destination.areaId || model.targetData?.areaId);
+      else if(destination.screen==='guild') { close();screen='guild';guildPage='overview';update(view); }
+      else if(destination.areaId && destination.areaId!==selectedAreaId()) selectArea(destination.areaId);
+      else { close();screen='expedition';update(view); }
+      syncOnboarding();
+    }
+    function practiceTarget(model) {
+      restorePracticeControl();
+      const data=model.targetData || {},target=model.target;
+      const catalogEntry=allUpgrades().find(item=>item.id===data.catalogId || item.id===model.destination?.catalogId || samePracticeAction(item.action,model));
+      const requiredArea=model.destination?.areaId || data.areaId || catalogEntry?.areaId;
+      if(requiredArea && requiredArea!==selectedAreaId() && target!=='currency-info') {
+        const node=dialog.open ? sheet?.kind==='areas' ? dialog.querySelector('[data-wx-area="'+requiredArea+'"]') : dialog.querySelector('[data-wx-close]') : screen==='upgrades' ? q('[data-wx-drawer-close]') : screen!=='expedition' ? q('[data-wx-nav="expedition"]') : q('[data-wx-objective]');
+        const container=node?.closest('.wx-sheet-content');
+        return {element:node,clip:container,scroll:container,allowed:dialog.open ? [dialog.querySelector('[data-wx-close]')].filter(Boolean) : [q('[data-wx-options]')].filter(Boolean)};
+      }
+      const operation=model.requiredAction ? model : (model.steps || []).find(step=>step.mode==='action' && step.target===target) || model;
+      const targetModel=model.mode==='action' && ['plan-goal','plan-queue'].includes(model.requiredAction?.type) ? Object.assign({},model,{destination:{screen:'upgrades'}}) : model;
+      let node=practiceDestinationControl(targetModel),finalAction=false;
+      const inSheet=dialog.open,footer=()=>dialog.querySelector('.wx-purchase-footer .wx-confirm');
+      const closeButton=()=>dialog.querySelector('[data-wx-close]');
+      const card=()=>practiceCommand('card:'+data.cardId,shell),gear=()=>practiceCommand('gear:'+data.itemId,shell);
+      const stationArea=stationModel().currentArea;
+      const stationCandidates=(stationArea?.stations || []).flatMap(station=>(station.skills || []).map(row=>({station,row}))).concat((stationArea?.areaUpgrades || []).map(row=>({station:null,row})));
+      const stationTarget=stationCandidates.find(entry=>entry.row.id===data.skillId || entry.row.id===data.catalogId || entry.row.id===model.requiredAction?.id || data.trackId && (entry.row.action?.id===data.trackId || entry.row.trackId===data.trackId || entry.row.alias===data.trackId) || samePracticeAction(entry.row.action,model) || samePracticeAction(entry.row.unlockAction,model));
+      if(inSheet && sheet?.kind==='station-detail' && stationTarget?.row.id===sheet.id){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
+      if(inSheet && sheet?.kind==='station-proposal' && target==='station-build'){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
+      if(!inSheet && (stationTarget || /^station-|^area-(upgrade|infrastructure)/.test(target))) {
+        if(screen!=='upgrades')node=q('[data-wx-nav="upgrades"]');
+        else {
+          const wanted=stationTarget?.station ? 'station' : data.scope || (target.includes('infrastructure') ? 'area' : stationScope);
+          if(stationScope!==wanted || stationTarget?.station && selectedStation!==stationTarget.station.id) {
+            stationScope=wanted;if(stationTarget?.station)selectedStation=stationTarget.station.id;renderStationLayout();
+          }
+          if(stationTarget) {
+            const action=model.mode==='action';
+            node=q('[data-wx-station-skill="'+stationTarget.row.id+'"] '+(action ? '.wx-station-buy' : '.wx-upgrade-info'));
+            finalAction=action;
+          } else if(target==='station-build') {node=practiceCommand((model.mode==='action' ? 'station-build:' : 'station-proposal:')+data.stationId,shell);finalAction=model.mode==='action';}
+          else if(target==='station-select')node=practiceCommand('station-picker',shell);
+        }
+      }
+      if(target==='currency-info') {
+        const id=model.currencyInfo?.id;
+        node=q('[data-wx-currency="'+id+'"]') || (id==='copies' ? card() : id==='focus' ? q('[data-wx-focus]') : gear()) || node;
+        if(!node?.getClientRects().length || node.closest('[hidden]'))node=q('[data-wx-wallet]');
+      }
+      if (!node && model.mode==='action') { node=practiceActionControl(model);finalAction=!!node; }
+      if (!node && ['area-upgrades','area-buy'].includes(target)) {
+        if(inSheet && sheet?.kind==='local' && sheet.id===data.trackId) { node=target==='area-buy' ? footer() : closeButton();finalAction=target==='area-buy'; }
+        else node=q('[data-upgrade="'+data.trackId+'"] '+(target==='area-buy' ? '[data-wx-buy]' : '.wx-upgrade-info'));
+        if(target==='area-buy' && node) finalAction=true;
+      }
+      if (!node && ['area-plans','area-plan-option','area-configuration','area-specialization'].includes(target)) {
+        if(!inSheet) node=screen==='upgrades' ? q('[data-wx-station-content] [data-wx-plans]') : q('[data-wx-nav="upgrades"]');
+        else if (sheet?.kind==='choice') {
+          const choices=visible(view.expedition.choices || []),configs=visible(view.expedition.configurations || []);
+          const group=choices.find(item=>(item.options || []).some(option=>samePracticeAction(option.action,operation)));
+          const config=configs.find(item=>(item.slotOptions || [{options:item.options}]).some(slot=>(slot.options || []).some(option=>samePracticeAction(option.action,operation))));
+          node=target==='area-specialization' ? practiceMenu({kind:'specialization'}) : group ? practiceMenu({kind:'plan-choice',id:group.id}) : config ? practiceMenu({kind:'configuration',id:config.id,slot:0}) : closeButton();
+        } else if(sheet?.kind==='configuration' && operation.requiredAction?.slot!=null && sheet.slot!==operation.requiredAction.slot)node=practiceCommand('config-slot:'+operation.requiredAction.slot);
+        else node=closeButton();
+      }
+      if(!node && target==='area-goal') node=inSheet ? closeButton() : q('[data-wx-objective]');
+      if(!node && target==='area-expand') node=inSheet ? closeButton() : q('[data-wx-objective]');
+      if(!node && target==='batch-select') node=inSheet ? closeButton() : screen!=='upgrades' ? q('[data-wx-nav="upgrades"]') : model.mode==='action' ? practiceCommand('station-quantity:'+data.count,shell) || practiceCommand('batch',shell) : practiceCommand('batch',shell);
+      if(!node && target==='focus-action') node=inSheet ? closeButton() : q('[data-wx-focus]');
+      if(!node && target==='tier-unlock') {
+        if(inSheet) { node=practiceCommand('onboarding-open:ready:'+data.tierId) || practiceCommand('tier-unlock:'+data.tierId) || closeButton();finalAction=model.mode==='action' && node!==closeButton(); }
+        else { const foundation=foundations().find(item=>item.tierId===data.tierId);node=foundation ? q('[data-upgrade="'+foundation.trackId+'"] .wx-upgrade-info') : q('[data-wx-tier-ready]:not([hidden])') || practiceCommand('ready-tiers'); }
+      }
+      if(!node && ['catalog-buy','technique-config'].includes(target)) {
+        const entry=allUpgrades().find(item=>item.id===data.catalogId || samePracticeAction(item.action,operation));
+        node=inSheet ? closeButton() : entry && q('[data-wx-upgrade="'+entry.id+'"] .wx-upgrade-info');
+        if(!node && entry) node=practiceCommand('upgrade-detail:'+entry.id,shell);
+        const module=node?.closest('details.wx-skill-module');
+        if(module && !module.open)node=module.querySelector('summary');
+      }
+      if(!node && ['card-equip','card-fuse','card-detail','cards-decks','deck-select','card-recycle','card-craft'].includes(target)) {
+        if(target==='deck-select') node=practiceCommand('deck:'+data.deckId,shell);
+        else if(inSheet && sheet?.kind==='card-equip' && sheet.id===data.cardId) {node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
+        else if(inSheet && sheet?.kind==='card-slot') node=practiceCommand('choose-card:'+data.cardId);
+        else if(inSheet && sheet?.kind==='collection-card' && sheet.id===data.cardId) {
+          node=target==='card-equip' ? practiceCommand('equip-card-slot:'+data.slot) : target==='card-fuse' ? practiceMenu({kind:'collection-transaction',entity:'card',id:data.cardId,operation:'fusion'}) : ['card-recycle','card-craft'].includes(target) ? practiceMenu({kind:'card-ink',id:data.cardId}) : closeButton();
+        } else if(inSheet && sheet?.kind==='card-ink') node=practiceMenu({kind:'collection-transaction',entity:'card',id:data.cardId,operation:target==='card-recycle' ? 'recycle' : 'craft'});
+        else if(inSheet) node=closeButton();
+        else node=target==='cards-decks' ? practiceCommand('card-slot:'+data.deckId+':'+data.slot,shell) : card();
+      }
+      if(!node && ['gear-equip','gear-scroll','gear-detail','equipment-slots','gear-forge','gear-reforge-review','gear-reforge-review-details'].includes(target)) {
+        if(inSheet && sheet?.kind==='gear-slot') node=practiceCommand('gear-choice:'+data.itemId);
+        else if(inSheet && sheet?.kind==='collection-gear' && sheet.id===data.itemId) {
+          if(target==='gear-equip' || target==='gear-forge') {node=footer();finalAction=model.mode==='action';}
+          else if(target==='gear-scroll') node=practiceCommand('scroll:'+data.scrollId);
+          else if(target.startsWith('gear-reforge')) node=practiceMenu({kind:'collection-transaction',entity:'gear',id:data.itemId,operation:'reforge'});
+          else node=closeButton();
+        } else if(inSheet) node=closeButton();
+        else node=target==='equipment-slots' ? practiceCommand('gear-slot:'+data.slot,shell) : gear();
+      }
+      if(!node && target==='guild-action') {
+        if(model.requiredAction?.type==='plan-reserve' && inSheet && sheet?.kind==='reserve') {node=practiceCommand('save-reserve');finalAction=true;}
+        else if(operation.requiredAction?.type==='specialist' && sheet?.kind==='crew') node=practiceCommand('crew-slot:'+operation.requiredAction.slot);
+        else if(model.guideId==='reserves' && sheet?.kind==='planning') node=practiceMenu({kind:'reserves'});
+        else if(model.guideId==='reserves' && sheet?.kind==='reserves') node=practiceMenu({kind:'reserve',id:data.resourceId || 'ore'});
+        else if(model.mode==='action' && model.guideId==='planner' && operation.requiredAction?.action) {
+          const entry=(view.globalUpgrades || []).find(item=>item.action?.id===operation.requiredAction.action.id && item.action.type===operation.requiredAction.action.type);
+          node=inSheet ? closeButton() : screen!=='upgrades' ? q('[data-wx-nav="upgrades"]') : entry && practiceCommand('upgrade-detail:'+entry.id,shell);
+        }
+        else if(inSheet) node=practiceMenu(practiceSection(model)) || closeButton();
+        else node=practiceMenu(practiceSection(model)) || (data.section==='crew' ? practiceMenu({kind:'crew'}) : data.section==='discoveries' ? practiceCommand('guild-atlas') : practiceMenu({kind:'planning'}));
+      }
+      if(!node && /^(refit|charter|shop|caravan)-review/.test(target)) {
+        const kind=data.section;
+        if(inSheet && sheet?.kind==='reset') node=practiceCommand('review:'+kind);
+        else if(inSheet) node=practiceMenu({kind:'reset',reset:kind}) || practiceCommand(kind) || practiceCommand('caravan-options') || closeButton();
+        else node=kind==='shop' || kind==='caravan' ? q('[data-wx-options]') : practiceMenu({kind:'renewals'}) || practiceCommand('guild-atlas');
+      }
+      if(inSheet && node && !dialog.contains(node)) {node=closeButton();finalAction=false;}
+      if (node && finalAction) bindPracticeControl(node,model);
+      let container=node?.closest('.wx-sheet-content,[data-wx-station-content],[data-wx-station-world],[data-wx-destination],[data-wx-tray],[data-wx-currencies],.wx-dock');
+      const dock=node?.closest('.wx-dock');
+      // Short landscape keeps the real tiles and Operations in a scrollable
+      // dock. Its visible viewport, not the overflowing inner grid, is the
+      // clipping boundary used to bring a required tutorial control into view.
+      if (dock && dock.scrollHeight>dock.clientHeight+1 && /auto|scroll/.test(root.getComputedStyle(dock).overflowY)) container=dock;
+      const allowed=inSheet ? Array.from(dialog.querySelectorAll('[data-wx-close],[data-wx-back]')).filter(button=>!button.hidden) : [q('[data-wx-options]'),q('[data-wx-save-alert]:not([hidden])')].filter(Boolean);
+      if(model.requiredAction?.type==='plan-reserve' && inSheet) {const input=dialog.querySelector('[data-wx-reserve]');if(input){allowed.push(input);if(finalAction && input.value!==String(model.requiredAction.amount)){node=input;restorePracticeControl();}}}
+      return {element:node,clip:container,scroll:container,allowed};
+    }
+    function practiceInspectionMatches(model) {
+      if(model?.mode!=='inspect') return false;
+      const data=model.targetData || {},target=model.target;
+      const legacySheet=options.legacySheet?.();
+      if(/^(refit|charter|shop|caravan)-review-details$/.test(target)) return legacySheet?.kind===data.section && !!legacySheet.element?.getClientRects().length;
+      if(target==='station-open')return screen==='upgrades' && !stationDrawer.hidden;
+      if(target==='station-select')return sheet?.kind==='station-picker' && dialog.open;
+      if(!dialog.open || !dialog.getClientRects().length || !sheet) return false;
+      if(target==='area-upgrades') return sheet.kind==='local' && sheet.id===data.trackId && (!sheet.areaId || sheet.areaId===data.areaId) || sheet.kind==='station-detail' && (stationRowsById.get(sheet.id)?.alias===data.trackId || sheet.id===data.skillId);
+      if(target==='station-build')return sheet.kind==='station-proposal' && sheet.id===data.stationId;
+      if(/^station-|^area-(upgrade|infrastructure)/.test(target))return sheet.kind==='station-detail' && (!data.skillId || sheet.id===data.skillId);
+      if(target==='area-goal') return sheet.kind==='objective';
+      if(['area-plans','area-plan-option'].includes(target)) return ['choice','plan-choice'].includes(sheet.kind);
+      if(target==='area-configuration') return sheet.kind==='configuration';
+      if(target==='area-specialization') return sheet.kind==='specialization';
+      if(target==='cards-decks') return sheet.kind==='card-equip' && sheet.id===data.cardId;
+      if(target==='card-detail') return ['collection-card','card-equip'].includes(sheet.kind) && sheet.id===data.cardId;
+      if(['card-fuse','card-recycle','card-craft'].includes(target)) return sheet.kind==='collection-transaction' && sheet.id===data.cardId && sheet.operation===({'card-fuse':'fusion','card-recycle':'recycle','card-craft':'craft'}[target]);
+      if(['equipment-slots','gear-detail','gear-forge','gear-reforge-review'].includes(target)) return sheet.kind==='collection-gear' && sheet.id===data.itemId;
+      if(target==='gear-scroll') return sheet.kind==='collection-transaction' && sheet.id===data.itemId && sheet.scrollId===data.scrollId;
+      if(target==='gear-reforge-review-details') return sheet.kind==='collection-transaction' && sheet.id===data.itemId && sheet.operation==='reforge';
+      if(target==='tier-unlock') return sheet.kind==='tier' && sheet.id===data.tierId || sheet.kind==='onboarding-notice' && (sheet.ids || []).includes('ready:'+data.tierId);
+      if(['catalog-buy','technique-config'].includes(target)) return sheet.kind==='upgrade' && sheet.id===data.catalogId;
+      if(target==='area-expand') return ['objective','finale'].includes(sheet.kind);
+      if(target==='focus-action') return sheet.kind==='focus';
+      if(target==='batch-select')return sheet.kind==='batch';
+      if(target==='playbook-details')return sheet.kind==='loadouts';
+      if(target==='guild-action') return sheet.kind===practiceSection(model).kind;
+      if(['refit-review','charter-review'].includes(target)) return sheet.kind==='reset' && sheet.reset===data.section;
+      if(['shop-review','caravan-review'].includes(target)) return sheet.kind==='options';
+      return false;
+    }
+    function schedulePracticeReceipt(model) {
+      if(model?.mode!=='inspect' || !model.inspectAction || practiceReceiptToken===model.token) return;
+      const identity=onboardingIdentity;
+      root.requestAnimationFrame(()=>{
+        if(disposed || identity!==onboardingIdentity || currentContext.saveFailure || currentContext.awaitingWallet || practice()?.token!==model.token || !practiceInspectionMatches(model)) return;
+        onboardingBusy=true;
+        const result=onboardingAction(model.inspectAction);
+        onboardingBusy=false;
+        if(!result?.ok) { showGuide();return; }
+        practiceReceiptToken=model.token;
+        if(result.completedGuide) notify(model.title+' lesson complete'+(result.reward?.coins && root.WayfarersCore.Numbers.cmp(result.reward.coins,0)>0 ? ' · +'+root.WayfarersCore.format(result.reward.coins)+' coins' : ''));
+        if(!practice()) {guide.hide();restorePracticeControl();}
+        syncOnboarding();
+      });
+    }
+    function guideGoal() {
+      const area=selectedAreaId();
+      const upgrades=q('[data-wx-nav="upgrades"]');
+      if (area === 'watchtower' && upgrades?.getClientRects().length && !upgrades.hidden) return {element:upgrades,kind:'upgrades'};
+      if (area === 'quarry') return {element:q('[data-wx-objective]'),kind:'areas'};
+      const expansion=q('[data-wx-expand]');
+      if (expansion?.getClientRects().length) return {element:expansion,kind:'expand',label:view.expedition.next.label};
+      const develop=q('[data-wx-develop]');
+      if (develop?.getClientRects().length) return {element:develop,kind:'develop'};
+      const multiple=(view.expedition.areas || []).filter(area=>area.unlocked).length > 1;
+      return {element:q('[data-wx-objective]'),kind:multiple ? 'areas' : 'objective'};
+    }
+    function contextualGuide(model) {
+      if (model?.mode) {
+        if (model.target==='area-goal' && dialog.open && !['objective','finale'].includes(sheet?.kind)) {
+          model.context='close-before-objective';
+          model.heading='Return to your area';
+          model.body='Close this panel, then open the highlighted objective to see your next destination.';
+        }
+        if (['area-plans','area-plan-option','area-configuration','area-specialization'].includes(model.target)) {
+          const inspect = model.mode === 'inspect';
+          const operationLabel = selectedAreaId() === 'quarry' ? 'Processing' : 'Operations';
+          if (dialog.open && !['choice','plan-choice','configuration','specialization'].includes(sheet?.kind)) {
+            model.context='close-before-plans';
+            model.heading='Return to your area';
+            model.body=inspect ? 'Close this panel, then open ' + operationLabel + ' to inspect your current production.' : 'Close this panel, then open Operations to apply the highlighted working plan.';
+          } else if (!dialog.open) {
+            model.context='open-area-plans';
+            model.heading='Open ' + operationLabel;
+            model.body=inspect ? 'Inspect how your area is working. Alternate plans appear as you discover them.' : 'Open the highlighted control. Then choose the working plan for this lesson.';
+          }
+        }
+        return model;
+      }
+      if (model?.target !== 'area-goal') return model;
+      const goal=guideGoal();
+      model.context=goal.kind + ':' + (goal.label || '');
+      if (model.guideId === 'greenway') {
+        if (goal.kind === 'expand') { model.heading='Choose the next expansion'; model.body=goal.label + ' starts your next landmark when you are ready. Your unlocked areas keep working.'; }
+        else if (goal.kind === 'develop') { model.heading='Keep developing the Trail'; model.body='Develop opens the Trail’s earned upgrades. The Trail keeps producing while you visit other areas.'; }
+        else if (goal.kind === 'areas') { model.heading='Visit your other areas'; model.body='The area picker returns to every unlocked area. Each keeps working while you develop another.'; }
+      }
+      return model;
+    }
+    function resolveGuideTarget(target, fallback, model) {
+      if (model?.mode && !model.replay) return practiceTarget(model);
+      const resolve = key => {
+        if (key === 'scene') return {element:q('[data-wx-station-world]'),clip:q('.wx-world')};
+        if (key === 'area-upgrades') return screen==='upgrades' ? {element:q('[data-wx-station-content] .wx-upgrade-info'),clip:q('[data-wx-station-content]'),scroll:q('[data-wx-station-content]')} : {element:q('[data-wx-nav="upgrades"]')};
+        if (key === 'area-plans') return {element:screen==='upgrades' ? q('[data-wx-station-content] [data-wx-plans]') : q('[data-wx-nav="upgrades"]'),clip:screen==='upgrades' ? q('[data-wx-station-content]') : null};
+        if (key === 'area-goal') return guideGoal();
+        const collectionTargets = {'cards-introduction':'.wx-collection-intro','cards-decks':'.wx-deck-tabs','cards-library':'.wx-card-grid','equipment-introduction':'.wx-collection-intro','equipment-slots':'.wx-gear-slots','equipment-inventory':'.wx-gear-grid',cards:'.wx-deck-workspace, .wx-collection-intro',equipment:'.wx-gear-slots, .wx-collection-intro'};
+        if (collectionTargets[key]) return {element:q(collectionTargets[key]),clip:q('[data-wx-destination]'),scroll:q('[data-wx-destination]')};
+        return null;
+      };
+      let result = resolve(typeof target === 'object' ? target.key : target);
+      if ((!result?.element || !result.element.getClientRects().length || result.element.hidden) && fallback) result = resolve(fallback);
+      return result;
+    }
+    function onboardingAction(action) {
+      if (!action) return;
+      return execute(Object.assign({},action,{onboardingEpoch:currentContext.onboardingEpoch}));
+    }
+    function guideModel() {
+      const data = onboarding();
+      if (onboardingReplay) {
+        const definition = data?.guides?.find(item => item.id === onboardingReplay.id);
+        const step = definition?.steps?.[onboardingReplay.index];
+        return step ? contextualGuide(Object.assign({},step,{guideId:definition.id,stepId:step.id,title:definition.title,index:onboardingReplay.index,total:definition.steps.length,replay:true,epoch:onboardingIdentity})) : null;
+      }
+      const active = data?.active;
+      if (!active || !active.mode && (active.guideId || active.areaId) !== guideScopeId()) return null;
+      const definition = data.guides?.find(item => item.id === (active.guideId || active.id) || item.areaId === active.areaId);
+      const step = definition?.steps?.find(item => item.id === active.stepId) || {};
+      return contextualGuide(Object.assign({},step,active,{guideId:active.guideId || active.id || definition?.id,title:active.title || definition?.title,index:active.index ?? definition?.progress ?? 0,total:active.total || definition?.steps?.length || 3,epoch:onboardingIdentity,saveFailure:currentContext.saveFailure,disabled:currentContext.awaitingWallet}));
+    }
+    function onboardingSafe() {
+      return !disposed && !onboardingBusy && !!guideScopeId() && !dialog.open && !guide?.isOpen() && !document.hidden && !swipe && !activePointers.size && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && (!options.onboardingAllowed || options.onboardingAllowed());
+    }
+    function restoreGuideScroll() {
+      if (guideScroll?.scope === guideScopeId()) q(guideScroll.destination ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop=guideScroll.top;
+      guideScroll=null;
+    }
+    function showGuide() {
+      const model = guideModel();
+      if (!model || !guide) return;
+      if(model.mode==='currency' && dialog.open)close();
+      if (!model.replay && model.index === model.total-1 && model.rewardPreview?.available) model.rewardText=model.rewardPreview.text;
+      if(model.mode==='action' && model.costCoverage==='guild') {
+        const quote=model.practicePreview;
+        const labels={copies:'duplicate cards',steady:'Steady Scroll',bold:'Bold Scroll',brilliant:'Brilliant Scroll',restoration:'Restoration Scroll',focus:'Focus charge',ink:'Archive Ink'};
+        const costs=quote ? (quote.cost || []).map(cost=>cost.text) : Object.entries(model.suppliedCost || {}).filter(([,amount])=>root.WayfarersCore.Numbers.cmp(amount,0)>0).map(([id,amount])=>root.WayfarersCore.format(amount)+' '+(labels[id] || id));
+        if(costs.length)model.quoteText=(quote ? '×'+quote.quantity+' · ' : 'Normal price: ')+costs.join(' · ')+'\nGuild supplies · wallet unchanged';
+        if(quote)model.body='Use the highlighted upgrade button. This improvement remains in your guild.';
+        if(!model.quoteText && model.suppliesText)model.rewardText=model.suppliesText;
+      } else if(model.suppliesText) model.rewardText=model.suppliesText;
+      cancelSwipe(); suppressSceneTapUntil=root.performance.now()+500;
+      if (!guideScroll) guideScroll={scope:guideScopeId(),destination:screen !== 'expedition',top:q(screen !== 'expedition' ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop};
+      guide.show(model);
+      if (model.helpOpenAction && deliberateHelp===model.guideId) {
+        const identity=onboardingIdentity;
+        root.requestAnimationFrame(()=>{
+          const active=practice();
+          if(identity!==onboardingIdentity || !guide.isOpen() || active?.token!==model.token || !active.helpOpenAction || currentContext.saveFailure) return;
+          onboardingBusy=true;
+          const result=onboardingAction(active.helpOpenAction);
+          onboardingBusy=false;
+          if(result?.ok) { deliberateHelp=null;notify('Help opened · +4 coins'); }
+        });
+      }
+    }
+    function advanceGuide(model) {
+      if (model.epoch !== onboardingIdentity) return;
+      if (model.replay) {
+        onboardingReplay.index += 1;
+        if (!guideModel()) { onboardingReplay=null; guide.hide(); restoreGuideScroll(); }
+        else showGuide();
+        return;
+      }
+      onboardingBusy=true;
+      const result=onboardingAction(model.action || {type:'onboarding-next',id:model.guideId,stepId:model.stepId || model.id});
+      onboardingBusy=false;
+      if (result?.ok && result.completedGuide) {
+        const coins=result.reward?.coins;
+        notify((model.title || 'Area') + ' guide complete' + (coins && root.WayfarersCore.Numbers.cmp(coins,0)>0 ? ' · +' + root.WayfarersCore.format(coins) + ' coins' : ''));
+      }
+      if (result?.ok && !guideModel()) { guide.hide(); restoreGuideScroll(); }
+      else showGuide();
+      syncOnboarding();
+    }
+    function leaveGuide(model) {
+      if (model.epoch !== onboardingIdentity) return;
+      if (model.replay) { onboardingReplay=null; guide.hide(); restoreGuideScroll(); return; }
+      if (currentContext.saveFailure || currentContext.awaitingWallet) { guide.hide(); restoreGuideScroll(); open({kind:'options'}); return; }
+      if(!(model.canLeave ?? !model.mandatory)) { showGuide();return; }
+      onboardingBusy=true;
+      const result=onboardingAction({type:'onboarding-leave',id:model.guideId});
+      onboardingBusy=false;
+      if (!result?.ok) { showGuide(); return; }
+      guide.hide(); restoreGuideScroll();
+      restorePracticeControl();
+      if (['cards','equipment'].includes(model.guideId)) { showGuildPage('overview'); return; }
+      const areas=(view.expedition.areas || []).filter(area => area.unlocked);
+      const previous=areas.find(area => area.id === guideReturnArea && area.id !== selectedAreaId());
+      if (previous) selectArea(previous.id);
+      else open({kind:areas.length > 1 ? 'areas' : 'options'});
+    }
+    function replayGuide(areaId) {
+      const definition=guideForArea(areaId);
+      if (!definition) return;
+      if (definition.steps?.some(step=>step.mode)) { open({kind:'lesson-help',id:definition.id,replay:true});return; }
+      close();
+      if (areaId === 'cards' || areaId === 'equipment') showGuildPage(areaId);
+      else { screen='expedition'; if (areaId !== selectedAreaId()) selectArea(areaId); }
+      onboardingReplay={id:definition.id,index:0}; showGuide();
+    }
+    function startLesson(id,intendedAction) {
+      const definition=onboarding()?.guides?.find(item=>item.id===id);
+      if(!definition || definition.complete || !definition.available && !intendedAction) return {ok:false,message:'This lesson is not available yet.'};
+      onboardingBusy=true;
+      const result=onboardingAction(Object.assign({},definition.visitAction,intendedAction ? {intendedAction} : {}));
+      onboardingBusy=false;
+      if(result?.ok) {
+        if(sheet?.kind==='lesson-help' || sheet?.kind==='lessons') close();
+        showGuide();
+        schedulePracticeReceipt(practice());
+      }
+      return result;
+    }
+    function rewardOpenedHelp(id) {
+      const definition=onboarding()?.guides?.find(item=>item.id===id);
+      if(!definition?.helpOpenAction || definition.helpReward?.claimed || practice())return;
+      const identity=onboardingIdentity;
+      root.requestAnimationFrame(()=>{
+        if(identity!==onboardingIdentity || !dialog.open || sheet?.kind!=='lesson-help' || sheet.id!==id || currentContext.saveFailure)return;
+        onboardingBusy=true;
+        const action=onboarding()?.guides?.find(item=>item.id===id)?.helpOpenAction;
+        const reward=action ? onboardingAction(action) : null;
+        onboardingBusy=false;
+        if(reward?.ok)notify('Help opened · +4 coins');
+      });
+    }
+    function discoveryEntries(ids) {
+      const entries=onboarding()?.inbox?.entries || [];
+      return entries.filter(item => ids ? ids.includes(item.id) : !item.read || item.pending);
+    }
+    function showDiscoveries(ids) {
+      const items=discoveryEntries(ids);
+      if (!items.length) return;
+      const unseen=items.filter(item => !item.announced).map(item => item.id);
+      if (unseen.length && !onboardingAction({type:'onboarding-announce',ids:unseen})?.ok) return;
+      onboardingNoticePresented=true;
+      open({kind:'onboarding-notice',ids:items.map(item => item.id)});
+    }
+    function revealControl(node,scroll) {
+      if (!node) return false;
+      if (scroll) {
+        const target=node.getBoundingClientRect(),clip=scroll.getBoundingClientRect();
+        if (target.top < clip.top || target.bottom > clip.bottom) scroll.scrollTop += target.top-clip.top-8;
+      }
+      node.focus({preventScroll:true});
+      node.classList.add('wx-arrival-target');
+      root.setTimeout(() => node.classList.remove('wx-arrival-target'),2200);
+      return true;
+    }
+    function goToDiscovery(item,savedResult) {
+      if(!savedResult && !practice() && item.pending) {
+        const lesson=onboarding()?.guides?.find(guide=>guide.id==='tiers' && !guide.complete && guide.available);
+        if(lesson) {startLesson('tiers',item.openAction || {type:'onboarding-open',id:item.id});return;}
+      }
+      onboardingBusy=true;
+      const result=savedResult || onboardingAction(item.openAction || {type:'onboarding-open',id:item.id});
+      onboardingBusy=false;
+      if (!result?.ok) { renderSheet(); return; }
+      onboardingNoticePresented=true;
+      (onboarding()?.notice?.items || []).forEach(entry => onboardingSuppressed.add(entry.id));
+      const destination=result.destination || result.goToAction || item.goToAction;
+      close();
+      if (!destination) return;
+      if (destination.screen === 'cards' || destination.screen === 'equipment') showGuildPage(destination.screen);
+      else if (destination.screen === 'guild') showGuildPage('overview');
+      else if (destination.screen === 'upgrades') {
+        if(destination.areaId){showUpgrades(destination.areaId);if(destination.stationId)selectedStation=destination.stationId;if(destination.scope)stationScope=destination.scope;renderStationLayout();if(destination.skillId)revealControl(q('[data-wx-station-skill="'+destination.skillId+'"] .wx-upgrade-info'),q('[data-wx-station-content]'));}
+        else showUpgrades();
+        const item=(view.globalUpgrades || []).find(row => destination.purchase && row.action?.type === destination.purchase.type && row.action?.id === destination.purchase.id);
+        if (item) revealControl(Array.from(q('[data-wx-destination]').querySelectorAll('[data-wx-upgrade]')).find(row => row.dataset.wxUpgrade === item.id)?.querySelector('button'),q('[data-wx-destination]'));
+      } else {
+        if (destination.areaId) selectArea(destination.areaId); else {screen='expedition';update(view);}
+        if (destination.upgradeId) {
+          const station=stationModel().currentArea?.stations?.find(entry=>(entry.skills || []).some(row=>row.trackId===destination.upgradeId || row.action?.id===destination.upgradeId || row.id===destination.upgradeId));
+          if(station)openStation(station.id);
+          const node=q('[data-wx-station-content] [data-upgrade="'+destination.upgradeId+'"] .wx-upgrade-info');
+          if (!revealControl(node,q('[data-wx-station-content]')) && destination.control === 'upgrade-tier') showReadyTiers(readyTiers().find(tier => tier.areaId === destination.areaId)?.id);
+        } else if (destination.control === 'batch') open({kind:'batch'});
+        else if (destination.control === 'focus') open({kind:'focus'});
+        else if (destination.control === 'plans') open({kind:'choice'});
+      }
+      syncOnboarding();
+    }
+    function syncOnboarding() {
+      const data=onboarding();
+      if (!data || !guide || onboardingBusy) return;
+      const identity=String(data.identity || data.guildIdentity || '') + ':' + String(currentContext.onboardingEpoch || 0);
+      if (identity !== onboardingIdentity) {
+        root.clearTimeout(onboardingTimer); onboardingTimer=null; onboardingReplay=null;
+        guide.hide(); restorePracticeControl(); practiceReceiptToken=null; deliberateHelp=null;deliverySequence=null;pendingCollectionOutcome=null;guideScroll=null; guideReturnArea=null; onboardingIdentity=identity;
+        onboardingNoticePresented=false; onboardingSuppressed=new Set();
+        root.clearTimeout(stationScrollTimer);stationScroll.clear();
+        try {const saved=JSON.parse(root.localStorage?.getItem('wayfarers-world-scroll-v1') || 'null');if(saved?.identity===identity)for(const [areaId,top] of Object.entries(saved.areas || {}))if(Number.isFinite(top) && top>=0)stationScroll.set(areaId,top);}catch(_){}
+        stationWorld.dataset.restoredArea='';stationWorld.scrollTop=stationScroll.get(stationWorldArea) || 0;
+        if (sheet?.kind.startsWith('onboarding')) close();
+      }
+      if (onboardingNoticePresented) (data.notice?.items || []).forEach(item => onboardingSuppressed.add(item.id));
+      if (guide.isOpen()) {
+        if (!practice() && !guideScopeId() && !onboardingReplay || options.overlayOpen() || !guideModel()) { guide.hide(); restorePracticeControl(); restoreGuideScroll(); }
+        else showGuide();
+        return;
+      }
+      const suppressedSheet=['return','collection-result','onboarding-inbox','lesson-help','lessons'].includes(sheet?.kind) || sheet?.kind==='options' && !/^(shop|caravan)-review/.test(practice()?.target || '') || sheet?.kind==='onboarding-notice' && practice()?.target!=='tier-unlock';
+      if (practice() && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && !suppressedSheet) { showGuide(); return; }
+      if (!onboardingSafe() || onboardingTimer) return;
+      const epoch=onboardingIdentity;
+      onboardingTimer=root.setTimeout(() => {
+        onboardingTimer=null;
+        if (epoch !== onboardingIdentity || !onboardingSafe()) return;
+        const latest=onboarding();
+        if (latest.active && guideModel()) { showGuide(); return; }
+        if (latest.active && !guideModel()) {
+          onboardingBusy=true;
+          const left=onboardingAction(latest.active.leaveAction || {type:'onboarding-leave',id:latest.active.guideId});
+          onboardingBusy=false;
+          if (!left?.ok) return;
+        }
+        if (screen === 'expedition' && latest.notice?.items?.some(item => !onboardingSuppressed.has(item.id))) {
+          onboardingBusy=true;
+          const notice=latest.notice;
+          const result=onboardingAction(notice.deferAction || {type:'onboarding-announce',ids:notice.items.map(item => item.id)});
+          onboardingBusy=false;
+          if (result?.ok) { onboardingNoticePresented=true; open({kind:'onboarding-notice',ids:notice.items.map(item => item.id)}); }
+          return;
+        }
+        const definition=guideForArea(guideScopeId());
+        if (definition?.mandatory && !definition.complete) {
+          onboardingBusy=true;
+          const result=onboardingAction(definition.visitAction || {type:'onboarding-visit',id:guideScopeId()});
+          onboardingBusy=false;
+          if (result?.ok) showGuide();
+        }
+      },650);
+    }
+    function readyTiers() { return view?.expedition.tiers?.ready || []; }
+    function tierTracks(tier) {
+      return (tier.tracks || []).slice(0,2).map(track => typeof track === 'string' ? {label:track} : track);
+    }
+    function tierPreview(tier) {
+      const tracks = tierTracks(tier);
+      const single = tracks.length === 1 && String(tier.label).includes(tracks[0].label);
+      return '<div class="wx-tier-heading">' + icon(tier.icon || areaIcons[tier.areaId] || 'research') + '<span><small>' + esc(areaNames[tier.areaId] || 'Guild') + ' · New upgrade</small><strong>' + esc(single ? tracks[0].label : tier.label) + '</strong></span></div>' +
+        '<p class="wx-tier-effect">' + esc(tier.shortEffect || '') + '</p>' + (single ? '' : '<div class="wx-tier-tracks">' + tracks.map(track => '<div>' + icon(track.icon || 'research') + '<span><strong>' + esc(track.label || track.name || track.id) + '</strong>' + (track.shortEffect && track.shortEffect !== track.label ? '<small>' + esc(track.shortEffect) + '</small>' : '') + '</span></div>').join('') + '</div>') + ((tier.tracks || []).length > tracks.length ? '<p class="wx-muted">+' + (tier.tracks.length - tracks.length) + ' more upgrades in this tier</p>' : '');
+    }
+    function showReadyTiers(id, automatic) {
+      const ready = readyTiers();
+      const tier = id && ready.find(item => item.id === id);
+      if (!ready.length || id && !tier) return;
+      if (onboarding()) { showDiscoveries((id ? [id] : ready.map(item => item.id)).map(value => 'ready:' + value)); return; }
+      if (!automatic) {
+        const action = view.expedition.tiers?.notice?.deferAction || tier?.deferAction;
+        if (action && !execute(action)?.ok) return;
+      }
+      tierNoticePresented = true;
+      ready.forEach(item => tierNoticeSuppressed.add(item.id));
+      open(tier || ready.length === 1 ? {kind:'tier',id:(tier || ready[0]).id} : {kind:'tiers'});
+    }
+    function tierNoticeSafe() {
+      return !disposed && !tierNoticeRunning && screen === 'expedition' && !dialog.open && !document.hidden && !swipe && !activePointers.size && !options.overlayOpen() && !currentContext.saveFailure && !currentContext.awaitingWallet && (!options.tierNoticeAllowed || options.tierNoticeAllowed());
+    }
+    function scheduleTierNotice() {
+      if (onboarding()) { root.clearTimeout(tierNoticeTimer); tierNoticeTimer=null; return; }
+      const notice = view?.expedition.tiers?.notice;
+      if (!notice || notice.id !== tierNoticeId) {
+        root.clearTimeout(tierNoticeTimer); tierNoticeTimer = null; tierNoticeId = notice?.id || null;
+      }
+      if (tierNoticePresented) (notice?.items || []).forEach(item => tierNoticeSuppressed.add(item.id));
+      if (!notice || !notice.items.some(item => !tierNoticeSuppressed.has(item.id)) || tierNoticeTimer || tierNoticePresented || !tierNoticeSafe()) return;
+      const id = notice.id;
+      tierNoticeTimer = root.setTimeout(() => {
+        tierNoticeTimer = null;
+        if (tierNoticePresented || !tierNoticeSafe() || view?.expedition.tiers?.notice?.id !== id) return;
+        const current = view.expedition.tiers.notice;
+        tierNoticeRunning = true;
+        const result = execute(current.deferAction);
+        tierNoticeRunning = false;
+        if (result?.ok && readyTiers().length) showReadyTiers(null,true);
+      }, 1200);
+    }
+    function legacy(kind) {
+      if(!practice() && ['shop','caravan'].includes(kind)) {const definition=onboarding()?.guides?.find(item=>item.id===kind && !item.complete && item.available);if(definition){startLesson(kind);return;}}
+      const model=practice(); close(); options.openLegacy(kind); schedulePracticeReceipt(model);
+    }
+    function open(model, replace) {
+      if(!practice() && model.kind==='collection-transaction' && model.operation==='reforge') {const definition=onboarding()?.guides?.find(item=>item.id==='gear-reforge' && !item.complete && item.available);if(definition){startLesson('gear-reforge');return;}}
+      cancelSwipe();
+      motion?.finish();
+      if (guide?.isOpen()) { guide.hide(); onboardingReplay=null; restoreGuideScroll(); }
+      if (!dialog.open) { opener = document.activeElement; stack.length = 0; }
+      else if (!replace && sheet) stack.push(sheet);
+      sheet = model;
+      renderSheet();
+      if (!dialog.open) dialog.showModal();
+      dialog.querySelector('[data-wx-sheet-content]').scrollTop = 0;
+      inspectSheetAttention(model);
+      schedulePracticeReceipt(practice());
+      if (practice()) syncOnboarding();
+      else if(model.kind==='reset') {const definition=onboarding()?.guides?.find(item=>item.id===model.reset && !item.complete && item.available);if(definition)startLesson(model.reset);}
+      if(model.kind==='lesson-help' && !model.replay)rewardOpenedHelp(model.id);
+    }
+    function close(settings) {
+      if (!settings?.preserveMotion || dialog.open) motion?.finish();
+      if (guide?.isOpen()) { guide.hide(); onboardingReplay=null; restoreGuideScroll(); }
+      restorePracticeControl();
+      sheet = null;
+      stack.length = 0;
+      if (dialog.open) dialog.close();
+      if (opener?.isConnected && opener.getClientRects().length) opener.focus({ preventScroll:true });
+    }
+    function back() {
+      if (stack.length) { sheet = stack.pop(); renderSheet(); return; }
+      close();
+    }
+    function inspectLocal(id) { const item = view.expedition.cards.find(card => card.id === id); if (item) open({ kind:'local', id, areaId:item.action?.areaId || view.expedition.stage.kind, catalogId:item.catalogId }); }
+    function showUpgrades(areaId, effect) {
+      close(); if (areaId && areaId !== selectedAreaId() && (view.expedition.areas || []).some(area=>area.id===areaId&&area.unlocked)) selectArea(areaId); upgradeArea = areaId ? 'current' : 'global'; stationScope=areaId ? 'station' : 'global'; upgradeEffect = effect === 'research' ? 'all' : effect || 'all'; upgradeSearch = effect === 'research' ? 'research' : ''; screen = 'upgrades'; update(view);
+      q('[data-wx-destination]').scrollTop = 0;
+    }
+    function selectArea(areaId) {
+      const area = (view.expedition.areas || []).find(item => item.id === areaId);
+      if (!area || !area.unlocked) return;
+      const guidedArea=practice()?.destination?.areaId || practice()?.targetData?.areaId;
+      if(mandatoryLesson() && areaId!==selectedAreaId() && areaId!==guidedArea) { showGuide();return {ok:false,message:'Complete the highlighted lesson before changing areas.'}; }
+      const areas=(view.expedition.areas || []).filter(item=>item.unlocked);
+      const changed=areaId!==selectedAreaId();
+      const direction=areas.findIndex(item=>item.id===areaId)>areas.findIndex(item=>item.id===selectedAreaId()) ? 1 : -1;
+      if (areaId !== selectedAreaId()) guideReturnArea=selectedAreaId();
+      close({preserveMotion:changed});
+      const commit=()=>{screen='expedition';const result=execute(area.action || {type:'expedition-select',areaId});update(view);if(result?.ok)inspectAttention(item=>item.id==='area:'+areaId);return result;};
+      return motion && changed ? motion.transition(direction,commit) : commit();
+    }
+    function stepArea(direction) {
+      const areas = (view?.expedition.areas || []).filter(area => area.unlocked);
+      const index = areas.findIndex(area => area.selected || area.id === displayedArea);
+      if (areas[index + direction]) return selectArea(areas[index + direction].id);
+      motion?.cancel();
+      return false;
+    }
+    function cancelSwipe() {
+      if (swipe?.moved) suppressSceneTapUntil = root.performance.now() + 500;
+      swipe = null;
+      motion?.cancel();
+      q('.wx-world').style.removeProperty('--wx-swipe');
+    }
+    function startPointer(event) {
+      activePointers.add(event.pointerId);
+      if (activePointers.size > 1) { suppressSceneTapUntil = root.performance.now() + 1000; cancelSwipe(); return; }
+      if (!event.target.closest?.('[data-wx-station-world]') || event.target.closest('button') || event.button > 0 || screen !== 'expedition' || dialog.open || options.overlayOpen() || guide?.isOpen() || mandatoryLesson()) return;
+      const bounds = q('.wx-world').getBoundingClientRect();
+      const edge = 28;
+      if (event.clientX < edge || event.clientX > root.innerWidth - edge || event.clientX < bounds.left + 12 || event.clientX > bounds.right - 12) { suppressSceneTapUntil = root.performance.now() + 500; return; }
+      swipe = { id:event.pointerId, x:event.clientX, y:event.clientY, moved:false, cancelled:false, locked:false };
+    }
+    function movePointer(event) {
+      if (!swipe || event.pointerId !== swipe.id) return;
+      const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
+      if (Math.hypot(dx,dy) < 12) return;
+      swipe.moved = true;
+      if (!swipe.locked && (Math.abs(dy) > Math.abs(dx) * .55)) { swipe.cancelled = true; return; }
+      if (swipe.cancelled) return;
+      if(!swipe.locked)motion?.begin();
+      swipe.locked = true;
+      const areas=(view.expedition.areas || []).filter(area=>area.unlocked),index=areas.findIndex(area=>area.id===selectedAreaId());
+      motion?.drag(dx,!areas[index+(dx<0 ? 1 : -1)]);
+      if (event.cancelable) event.preventDefault();
+    }
+    function endPointer(event) {
+      activePointers.delete(event.pointerId);
+      if (!swipe || event.pointerId !== swipe.id) return;
+      const gesture = swipe;
+      const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+      const threshold = Math.max(48, Math.min(80, q('.wx-world').clientWidth * .16));
+      const navigate = !gesture.cancelled && event.type === 'pointerup' && Math.abs(dx) >= threshold && Math.abs(dx) >= Math.abs(dy) * 1.8;
+      if (gesture.moved || navigate || event.type !== 'pointerup') suppressSceneTapUntil = root.performance.now() + 500;
+      swipe = null;
+      if (navigate) { event.preventDefault(); stepArea(dx < 0 ? 1 : -1); }
+      else motion?.cancel();
+    }
+    function execute(action) {
+      if (typeof action === 'function') return action();
+      if (!action) return;
+      const unfinished=guideForArea(guideScopeId());
+      if (!practice() && unfinished?.mandatory && !unfinished.complete && !onboardingReplay && (/^expedition-(buy|choice|config|specialize|focus|expand|next)$/.test(action.type) || /^(card-|gear-|deck-)/.test(action.type))) {
+        if (dialog.open) close();
+        if (onboardingSafe()) {
+          onboardingBusy=true;
+          const result=onboardingAction(unfinished.visitAction);
+          onboardingBusy=false;
+          if (result?.ok) showGuide();
+        }
+        return {ok:false,message:'Finish this area’s short guide before working here.'};
+      }
+      const currentPractice=practice();
+      if(!currentPractice && !String(action.type).startsWith('onboarding-') && !onboardingReplay) {
+        const trigger=(onboarding()?.triggers || []).find(item=>item.actionTypes.includes(action.type) && Object.entries(item.match || {}).every(([key,value])=>action[key]===value));
+        if(trigger) {const result=startLesson(trigger.id,action);if(result?.ok)return {ok:false,lessonStarted:true,message:'Use the highlighted control for your first practice.'};}
+      }
+      if (currentPractice?.practiceAction && samePracticeAction(action,currentPractice)) action=Object.assign({},currentPractice.practiceAction,{onboardingEpoch:currentContext.onboardingEpoch});
+      const appliedAction=action.type==='onboarding-perform' ? action.action : action;
+      if (['challenge'].includes(action.type)) close();
+      const investment = ['expedition-buy','buy','expedition-development','research','luck-research','refit-upgrade','legacy-upgrade','project','capability','expedition-next','expedition-expand','station-skill-buy','station-skill-unlock','station-area-buy','station-area-unlock','station-build'].includes(appliedAction.type);
+      const suppressedBefore = investment ? new Set([...tierNoticeSuppressed,...readyTiers().map(item => item.id)]) : null;
+      const onboardingBefore = investment ? new Set([...onboardingSuppressed,...(onboarding()?.notice?.items || []).map(item => item.id)]) : null;
+      const result = options.perform(action);
+      if (result?.pendingSave && result.committed && result.collectionEvent != null) {
+        pendingCollectionOutcome={id:result.collectionEvent,identity:onboardingIdentity};
+      }
+      if(result?.ok && result.completedGuide) notify((currentPractice?.title || 'Practice')+' complete'+(result.reward?.coins && root.WayfarersCore.Numbers.cmp(result.reward.coins,0)>0 ? ' · +'+root.WayfarersCore.format(result.reward.coins)+' coins' : ''));
+      if (result?.ok && investment) {
+        tierNoticePresented = false;
+        tierNoticeSuppressed = suppressedBefore;
+        onboardingNoticePresented=false; onboardingSuppressed=onboardingBefore;
+        scheduleTierNotice();
+        syncOnboarding();
+        if(/^station-(skill|area)-(buy|unlock)$/.test(appliedAction.type))inspectAttention(item=>item.id==='upgrade:'+appliedAction.id || item.itemId===appliedAction.id);
+      }
+      if (result?.ok && appliedAction.type === 'expedition-choice') { notify('Plan selected'); back(); }
+      if (result?.ok && ['expedition-config','expedition-specialize'].includes(appliedAction.type)) notify('Plan updated');
+      if (result?.ok && appliedAction.type === 'expedition-batch') back();
+      if (result?.ok && appliedAction.type === 'expedition-focus') close();
+      if (result?.ok && appliedAction.type === 'upgrade-tier-unlock') { close(); notify('Upgrade tier unlocked'); }
+      if (result?.ok && ['expedition-next','expedition-expand'].includes(appliedAction.type)) { close(); screen = 'expedition'; update(view); }
+      if (result?.ok && action.type === 'route') { close(); screen = 'expedition'; update(view); }
+      if (result?.ok && ['card-fuse','card-recycle','card-craft','gear-scroll','gear-forge','gear-reforge'].includes(appliedAction.type)) {
+        const event = view.collection?.events?.find(item => item.id === result.collectionEvent);
+        if (event) open({kind:'collection-result',id:event.id},true);
+      }
+      if(action.type==='onboarding-perform') { restorePracticeControl();syncOnboarding(); }
+      if(result?.ok && action.type==='onboarding-perform' && appliedAction.type==='onboarding-open') goToDiscovery({id:appliedAction.id},result);
+      if (result?.ok && action.type === 'retry-save') {
+        const pendingEvent=pendingCollectionOutcome?.identity===onboardingIdentity && view.collection?.events?.find(item => item.id===pendingCollectionOutcome.id);
+        pendingCollectionOutcome=null;
+        if (pendingEvent) open({kind:'collection-result',id:pendingEvent.id},true);
+        else if (sheet?.kind === 'tier' || sheet?.kind === 'tiers') {
+          if (sheet.kind === 'tier' && !readyTiers().some(item => item.id === sheet.id)) close();
+          else renderSheet();
+        } else if (sheet?.kind.startsWith('collection-')) {
+          // Retrying persistence does not execute a rolled-back purchase. Keep
+          // its review, and never substitute an unrelated historical outcome.
+          if (sheet.kind==='collection-result' && !view.collection?.events?.some(item => item.id===sheet.id)) close();
+          else renderSheet();
+        }
+      }
+      return result;
+    }
+    function choiceBody(choice) {
+      if (!choice || !choice.visible) return '<p>This decision appears at the next checkpoint.</p>';
+      const preferred = choice.id === 'smelting' ? ['guild:ore','quarry:furnace','guild:knowledge','guild:coins'] : choice.id === 'dispatch' ? ['guild:coins','quarry:carts','guild:maps'] : ['guild:coins','guild:ore','guild:knowledge'];
+      const previews = item => {
+        const changes = item.impact || [];
+        const ordered = preferred.map(id => changes.find(change => change.metric === id)).filter(Boolean);
+        const chosen = ordered.concat(changes.filter(change => !ordered.includes(change))).slice(0,3);
+        return impacts({ impact:chosen.map(change => Object.assign({},change,{label:String(change.label || change.metric).replace('Guild · Total ','Guild ').replace('Quarry · Smelting capacity','Smelt capacity').replace('Quarry · Hauling capacity','Haul capacity')})) });
+      };
+      let html = '<div class="wx-options">' + choice.options.map(item => button(icon(item.icon || item.id) + '<strong>' + esc(item.label) + '</strong><span>' + esc(item.effectText) + '</span>' + ((item.impact || []).length ? '<span class="wx-impact wx-choice-impact">' + previews(item) + '</span>' : '') + (item.selected ? '<small>Selected</small>' : ''), item.action, { selected:item.selected, disabled:item.disabled, className:'wx-choice' })).join('') + '</div>';
+      if (choice.options.some(item => (item.impact || []).length > 3)) html += button('Full rate comparison', () => open({ kind:'choice-metrics', id:choice.id }), { key:'choice-metrics:' + choice.id, className:'wx-compare' });
+      return html;
+    }
+    function detailBody(item, local) {
+      if (!item) return '<p>This upgrade is no longer available.</p>';
+      const exactPractice=practice()?.practicePreview;
+      const supplied=exactPractice && ((exactPractice.catalogId || exactPractice.id)===(item.catalogId || item.id) || exactPractice.areaId===(item.areaId || item.action?.areaId) && exactPractice.trackId===(item.trackId || item.id));
+      if(supplied)item=Object.assign({},item,exactPractice,{label:exactPractice.label || exactPractice.name || item.label});
+      const validSkillQuantity=!item.skillId || item.rankAfter!=null && item.rankAfter<=(item.maxRank ?? item.maxLevel);
+      const unmet = (item.dependencies || []).some(dependency => !dependency.met);
+      const running = view.expedition.commission?.id === item.action?.id && item.action?.type === 'expedition-development';
+      const artId=root.WayfarersIcons.TRACK_ART[item.areaId || item.action?.areaId]?.includes(item.trackId || item.id) ? 'track-'+(item.areaId || item.action?.areaId)+'-'+(item.trackId || item.id) : item.icon || item.trackId || item.id;
+      let html = '<div class="wx-detail-hero">' + icon(artId) + '<strong>' + esc(local ? 'Rank ' + (item.rank ?? item.level ?? 0) + ' / ' + (item.maxRank ?? item.maxLevel) : running ? 'Researching · ' + Math.floor(percent(view.expedition.commission.progress)) + '%' : item.selected ? 'Active' : completedUpgrade(item) ? 'Complete' : unmet ? 'Locked' : item.level ? 'Rank ' + item.level : item.disabled ? 'Save up' : 'Available') + '</strong></div><p class="wx-effect">' + esc(item.effectText || item.description) + '</p>';
+      if (item.description && item.effectText && !item.description.startsWith(item.effectText)) html += '<p class="wx-muted">' + esc(item.description) + '</p>';
+      html += areaLinks(item);
+      if ((item.impact || []).length && validSkillQuantity) html += '<div class="wx-impact">' + impacts(item) + '</div>';
+      else if (item.quantity && item.group === 'area' && !item.disabled) html += '<p class="wx-muted">No immediate rate change in this quote.</p>' + button('Review area plans', () => { selectArea(item.areaId); open({kind:'choice'}); }, {key:'review-area-plan:' + item.areaId});
+      const dependencies=(item.dependencies || []).filter(dependency=>!item.skillId || !dependency.met);
+      if (dependencies.length) html += '<ul class="wx-dependencies">' + dependencies.map(dependency => '<li data-met="' + !!dependency.met + '"><b aria-hidden="true">' + (dependency.met ? '✓' : '○') + '</b>' + esc(dependency.label) + '</li>').join('') + '</ul>';
+      if (item.comparison && !(item.impact || []).length) html += '<p>' + esc(typeof item.comparison === 'string' ? item.comparison : item.comparison.text) + '</p>';
+      if (item.chainOutput) html += '<p class="wx-muted">Whole chain: ' + item.chainOutput.current.toFixed(2) + ' → ' + item.chainOutput.next.toFixed(2) + ' ingots/s</p>';
+      if (item.nextMilestone) html += '<div class="wx-milestone">' + icon('mastery') + '<span>' + esc(typeof item.nextMilestone === 'string' ? item.nextMilestone : 'Lv ' + item.nextMilestone.rank + ' · ' + (item.nextMilestone.label || item.nextMilestone.effectText)) + '</span></div>';
+      if (item.configuration) {
+        const configuration=item.configuration;
+        html += section('Working plan',(configuration.dormant ? '<p class="wx-muted">Rebuild this skill to use its saved plan.</p>' : '') + '<div class="wx-options">' + configuration.options.map(option=>button(esc(option.label || option.name || option.value)+(option.description ? '<small>'+esc(option.description)+'</small>' : ''),option.action,{key:'skill-config:'+configuration.skillId+':'+option.value,className:'wx-choice',selected:option.selected,disabled:option.disabled || option.selected || currentContext.saveFailure || currentContext.awaitingWallet,aria:(option.label || option.value)+(option.selected ? ', selected' : '')})).join('') + '</div>');
+      }
+      if (!supplied && (item.reason || item.shortageText)) html += '<p class="wx-muted">' + esc(item.shortageText || item.reason) + '</p>';
+      const rankCap = item.maxRank ?? item.maxLevel;
+      const rangeValid = item.rankAfter != null && (rankCap == null || item.rankAfter <= rankCap);
+      const quantityLabel = item.quantity ? 'Exactly ' + item.quantity + ' rank' + (item.quantity === 1 ? '' : 's') + (rangeValid ? ' · ' + (item.rank ?? item.level ?? 0) + ' → ' + item.rankAfter : '') : '';
+      const exactCost = (item.cost || []).map(cost => cost.text).join(' · ');
+      detailFooter = '<div class="wx-purchase-summary">' + (quantityLabel ? '<strong>' + esc(quantityLabel) + '</strong>' : '') + (exactCost ? '<small>' + (running ? 'Funded: ' : 'Cost: ') + esc(exactCost) + '</small>' : '') + (supplied ? '<small class="wx-funded">Guild supplies this practice · wallet unchanged</small>' : '') + (item.quantity && !rangeValid && item.reason ? '<small>' + esc(item.reason) + '</small>' : '') + '</div><div class="wx-purchase-controls">' + (!supplied && item.quantity && batchAvailable() ? batchControl() : '') + button(completedUpgrade(item) ? 'Complete' : running ? 'Researching' : item.quantity ? 'Buy ×' + item.quantity : exactCost ? 'Buy upgrade' : item.selected ? 'Selected' : 'Choose', item.action, { disabled:item.disabled || completedUpgrade(item) || currentContext.awaitingWallet || currentContext.saveFailure, className:'wx-confirm',aria:(running ? 'Researching ' : item.quantity ? 'Buy exactly ' + item.quantity + ' ranks of ' : 'Buy ') + (item.label || item.name || item.id) + (!running && exactCost ? ', ' + exactCost : '') }) + '</div>';
+      if (!supplied && item.fittingQuantityAction) detailFooter += button('Use ×' + item.fittingQuantityAction.count,item.fittingQuantityAction,{key:'skill-quantity:'+item.id,className:'wx-fit-quantity',aria:'Change exact purchase quantity to '+item.fittingQuantityAction.count+'. This does not buy the upgrade.'});
+      if (!local && !running && view.planning?.unlocked && ['buy','research','project','expedition-development'].includes(item.action?.type) && !item.owned) {
+        html += section('Planning', button('Save for this', { type:'plan-goal', action:item.action }) + (view.planning.capabilities.some(c => c.id === 'purchase-queue' && c.owned) ? button('Add to queue', { type:'plan-queue', action:item.action }) : ''));
+      }
+      return html;
+    }
+    function crewBody() {
+      const slots = view.progression.specialists || [null,null];
+      return '<div class="wx-roster-slots">' + slots.map((id, slot) => button(icon(id || 'crew') + '<strong>' + esc(id ? (root.WayfarersCore.Content.SPECIALISTS.find(s => s.id === id)?.name || id) : 'Choose explorer') + '</strong><small>Explorer ' + (slot + 1) + '</small>', () => open({ kind:'roster', slot }), { key:'crew-slot:' + slot, className:'wx-portrait-slot' })).join('') + '</div>' +
+        menu('Companion', view.progression.companion || 'Choose a travelling partner', view.progression.companion || 'fox', { kind:'companions' }) +
+        catalog('Recruit', visible(view.specialists).filter(item => !item.owned)) +
+        menu('Guild approach', (view.doctrines || []).find(item => item.selected)?.label || 'Open Roads', 'compass', { kind:'doctrines' });
+    }
+    function rosterBody(slot) {
+      const owned = visible(view.specialists).filter(item => item.owned && (item.slot === 0 || item.slot == null));
+      return '<div class="wx-options">' + owned.map(item => {
+        const id = item.specialistId || item.action.id;
+        const label = root.WayfarersCore.Content.SPECIALISTS.find(s => s.id === id)?.name || item.label;
+        return button(icon(id) + '<strong>' + esc(label) + '</strong><span>' + esc(item.effectText) + '</span>', { type:'specialist', slot, id }, { className:'wx-choice', selected:view.progression.specialists[slot] === id });
+      }).join('') + '</div>' + (!owned.length ? '<p>Recruit an explorer to fill this position.</p>' : button('Leave position empty', { type:'specialist', slot, id:null }));
+    }
+    function planningBody() {
+      const planning = view.planning;
+      let html = '';
+      const local = view.expedition.automation;
+      if (local?.unlocked) html += section('Area helper', button(local.enabled ? 'Helper on' : 'Turn helper on', { type:'expedition-automation', enabled:!local.enabled, priority:local.priority }, { selected:local.enabled }) + '<div class="wx-segments">' + (local.choices || ['balanced','progress','income'].map(id => ({ id, label:id[0].toUpperCase() + id.slice(1) }))).map(choice => button(esc(choice.label), { type:'expedition-automation', enabled:local.enabled, priority:choice.id }, { selected:local.priority === choice.id })).join('') + '</div><p class="wx-muted">Buys area ranks using shared coins and respects saved goals. Progress funds the current project; income funds production.</p>' + button(local.dispatch ? 'Auto-expand on' : 'Auto-expand off', { type:'expedition-automation', enabled:local.enabled, priority:local.priority, dispatch:!local.dispatch }, { selected:local.dispatch }));
+      html += catalog('Guild automation', view.automations);
+      if (planning?.unlocked) {
+        html += menu('Purchase priorities', 'Choose what the guild buys first', 'compass', { kind:'priorities' });
+        html += menu('Reserves & saved goal', planning.goal ? 'Saving for ' + (planning.goal.name || planning.goal.id) : 'Protect supplies from automatic spending', 'crate', { kind:'reserves' });
+        if (planning.capabilities.some(item => item.id === 'purchase-queue' && item.owned)) html += menu('Purchase queue', planning.queue.length + ' planned upgrades', 'notes', { kind:'queue' });
+        if (planning.capabilities.some(item => item.id === 'kit-plan' && item.owned)) html += menu('Automatic kits', planning.kit, 'backpack', { kind:'kit-plan' });
+        if (planning.capabilities.some(item => item.id === 'dispatch-preparation' && item.owned)) html += menu('Route preparation', planning.preparation, 'maps', { kind:'prepare-plan' });
+        if (planning.capabilities.some(item => item.id === 'loadouts' && item.owned)) html += menu('Saved playbooks', planning.loadouts.length + ' saved', 'quill', { kind:'loadouts' });
+      }
+      html += catalog('Planning licences', planning?.capabilities);
+      return html || '<p>Expedition helpers unlock after restoring Watchtower.</p>';
+    }
+    function renderSheet() {
+      if (!sheet || !view) return;
+      const e = view.expedition;
+      const luck = view.luck || {};
+      let title = '';
+      let html = '';
+      const model = sheet;
+      detailFooter = '';
+      if (['deck-name','card-slot','card-equip','card-ink','gear-slot'].includes(model.kind) || model.kind.startsWith('collection-')) {
+        const content = collectionSheet(model); title = content.title; html = content.html;
+      }
+      else if (model.kind === 'lessons') {
+        title='Field guide';
+        const lessons=(onboarding()?.guides || []).filter(item=>item.available || item.complete);
+        html=lessons.map(item=>menu(item.title,item.complete ? 'Learned · review anytime' : item.optional ? 'Hands-on practice' : 'Continue your area lesson','compass',{kind:'lesson-help',id:item.id})).join('');
+      } else if(model.kind==='lesson-help') {
+        const lesson=(onboarding()?.guides || []).find(item=>item.id===model.id);
+        title=lesson?.title || 'Field guide';
+        html=(lesson?.steps || []).map((step,index)=>'<article class="wx-lesson-reference"><small>'+(index+1)+' / '+lesson.steps.length+'</small><strong>'+esc(step.heading)+'</strong><p>'+esc(step.body)+'</p></article>').join('');
+        if(lesson && !lesson.complete) detailFooter=button('Practice with real controls',()=>{deliberateHelp=lesson.id;startLesson(lesson.id);},{key:'lesson-start:'+lesson.id,className:'wx-confirm'});
+        else detailFooter=button('Back to game',close,{key:'lesson-close',className:'wx-confirm'});
+      } else if (model.kind === 'onboarding-notice' || model.kind === 'onboarding-inbox') {
+        const entries=discoveryEntries(model.ids);
+        title=entries.length === 1 ? entries[0].label : model.kind === 'onboarding-inbox' ? 'Discoveries' : 'New discoveries';
+        const action = item => currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{key:'onboarding-retry',className:'wx-confirm'}) : button(item.openLabel || 'Go to',()=>goToDiscovery(item),{key:'onboarding-open:' + item.id,className:'wx-confirm',disabled:currentContext.awaitingWallet,aria:(item.openLabel || 'Go to') + ' ' + item.label.replace(/ (unlocked|available|completed)$/,'')});
+        if (entries.length === 1) {
+          const item=entries[0];
+          html='<div class="wx-tier-heading">' + icon(item.icon || areaIcons[item.targetAreaId] || 'research') + '<span class="wx-tier-effect">' + esc(item.effect) + '</span></div>';
+          detailFooter='<div class="wx-tier-actions">' + button('Later',close,{key:'onboarding-later',className:'wx-tier-later'}) + action(item) + '</div>';
+        } else {
+          html='<div class="wx-inbox-list">' + entries.map(item => button(icon(item.icon || 'research') + '<span><strong>' + esc(item.label) + '</strong><small>' + esc(item.effect) + '</small></span><b>›</b>',()=>goToDiscovery(item),{key:'onboarding-open:' + item.id,className:'wx-menu',disabled:currentContext.saveFailure || currentContext.awaitingWallet,aria:(item.openLabel || 'Go to') + ' ' + item.label})).join('') + '</div>' + (!entries.length ? '<p class="wx-empty">Every discovery is up to date.</p>' : '');
+          detailFooter=currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{key:'onboarding-retry',className:'wx-confirm'}) : button('Later',close,{key:'onboarding-later',className:'wx-tier-later'});
+        }
+      }
+      else if (model.kind === 'tier') {
+        const tier = readyTiers().find(item => item.id === model.id);
+        title = 'New upgrades ready';
+        if (tier) {
+          html = tierPreview(tier);
+          detailFooter = '<div class="wx-tier-actions">' + button('Later',close,{key:'tier-later',className:'wx-tier-later'}) + (currentContext.saveFailure ? button('Retry save',{type:'retry-save'},{key:'tier-retry',className:'wx-confirm'}) : button('Unlock tier',tier.unlockAction,{key:'tier-unlock:' + tier.id,className:'wx-confirm',disabled:currentContext.awaitingWallet,aria:'Unlock ' + tier.label + ' for ' + (areaNames[tier.areaId] || 'Guild')})) + '</div>';
+        } else html = '<p>This tier is already unlocked.</p>' + button('Continue',close,{key:'tier-finished'});
+      }
+      else if (model.kind === 'tiers') {
+        title = 'Upgrade tiers ready';
+        html = '<div class="wx-tier-ready-list">' + readyTiers().map(tier => button(icon(tier.icon || areaIcons[tier.areaId] || 'research') + '<span><small>' + esc(areaNames[tier.areaId] || 'Guild') + '</small><strong>' + esc(tier.label) + '</strong><small>' + esc(tier.shortEffect || '') + '</small></span><b>›</b>',()=>open({kind:'tier',id:tier.id}),{key:'tier-review:' + tier.id,className:'wx-menu'})).join('') + '</div>';
+        detailFooter = button('Later',close,{key:'tier-later',className:'wx-tier-later'});
+      }
+      else if (model.kind === 'areas') {
+        title = 'Your areas';
+        const areas = e.areas || [];
+        const next = areas.find(area => !area.unlocked && area.visible !== false);
+        html = '<div class="wx-area-grid">' + areas.filter(area => area.unlocked).map(area => {
+          const needsGuide=guideForArea(area.id) && !guideForArea(area.id).complete;
+          return '<button data-wx-area="' + esc(area.id) + '" class="wx-area-tile" aria-pressed="' + !!area.selected + '" aria-label="' + esc((areaNames[area.id] || area.label) + (area.selected ? ', current area' : '') + ', ' + (area.rateText || area.status || 'Working') + (needsGuide ? ', guide available' : area.attention ? ', new development' : '')) + '">' + icon(areaIcons[area.id]) + '<strong>' + esc(areaNames[area.id] || area.label) + '</strong><small>' + esc(area.rateText || area.status || 'Working') + '</small>' + (needsGuide || area.attention ? '<span class="wx-new">' + (needsGuide ? 'Guide' : 'New') + '</span>' : '') + '</button>';
+        }).join('') + '</div>';
+        if (next) html += '<div class="wx-next-discovery">' + icon(areaIcons[next.id]) + '<span><strong>Next · ' + esc(areaNames[next.id] || next.label) + '</strong><small>' + esc(next.requirement || next.reason || next.objective || 'Continue your current expedition') + '</small></span></div>';
+      }
+      else if (model.kind === 'batch') {
+        title = 'Purchase quantity';
+        const options = e.batch?.options || [{count:1,unlocked:true}];
+        const next = options.find(item => !item.unlocked);
+        html = '<div class="wx-batch-options">' + options.filter(item => item.unlocked).map(item => button('×' + item.count, item.action || { type:'expedition-batch', count:item.count }, { key:'batch:' + item.count, selected:(e.batch?.selected || 1) === item.count, aria:'Buy exactly ' + item.count + ' ranks per purchase' })).join('') + '</div><p class="wx-muted">Each purchase buys the full quantity. Prices and effects update together.</p>' + (next ? '<div class="wx-next-discovery"><span><strong>Next · ×' + next.count + '</strong><small>' + esc(next.requirement || 'Continue developing your guild') + '</small></span></div>' : '');
+      }
+      else if (model.kind === 'focus') {
+        title = 'Guild Focus';
+        const focus = e.focus || {};
+        html = '<div class="wx-focus-summary"><strong>' + (focus.charges || 0) + ' / ' + (focus.max || 3) + '</strong><span>Shared across every area</span></div>' + (focus.active ? '<p class="wx-effect">' + esc(areaNames[focus.active] || focus.active) + ' focused · ' + Math.ceil(focus.remaining) + 's left</p>' : '') + (focus.charges < focus.max ? '<p class="wx-muted">Next charge in ' + esc(Math.ceil((focus.nextChargeSeconds || 0) / 60)) + ' min · Restores while away</p>' : '') + '<div class="wx-focus-choices">' + (focus.actions || []).map(item => button(icon(item.icon || areaIcons[item.areaId || e.stage.kind]) + '<span><strong>' + esc(item.label) + '</strong><small>' + esc(item.description || item.effectText) + '</small>' + (item.context ? '<small>' + esc(item.context) + '</small>' : '') + '<small>' + esc(focusInputs(item)) + '</small>' + ((item.impact || []).length ? '<span class="wx-impact">' + impacts(item) + '</span>' : '') + '</span><b>1 ◆</b>', item.action, { key:'focus:' + item.id, disabled:item.disabled || !focus.charges, className:'wx-focus-choice' })).join('') + '</div>';
+      }
+      else if (model.kind === 'skill-state') {
+        const item = foundations().find(entry=>entry.trackId===model.trackId || entry.catalogId===model.id) || allUpgrades().find(entry=>entry.id===model.id || entry.catalogId===model.id);
+        title=item?.label || item?.name || 'Skill requirements';
+        html=item?.state==='learned' ? detailBody(item,true) : item ? '<div class="wx-detail-hero">'+localIcon(item.trackId || item.id,item.icon)+'<strong>'+esc(item.state==='ready' ? 'Ready to unlock' : 'Locked')+'</strong></div><p class="wx-effect">'+esc(item.description || item.effectText || item.shortEffect || '')+'</p><div class="wx-skill-requirements">'+requirementLines(item)+'</div>' : '<p>This skill has already been learned.</p>';
+        if(item?.state==='ready')detailFooter=button('Unlock '+(item.label || item.name),item.unlockAction,{key:'skill-unlock-detail:'+item.id,className:'wx-confirm',disabled:currentContext.saveFailure || currentContext.awaitingWallet});
+      }
+      else if(model.kind==='station-picker') {
+        title='Choose station';
+        html='<div class="wx-station-picker">'+(stationModel().currentArea?.stations || []).filter(item=>item.status==='built').map(item=>button(stationGlyph(item)+'<span><strong>'+esc(item.name)+'</strong><small>'+esc(item.outputText || '')+'</small></span><b>›</b>',()=>{close();selectedStation=item.id;if(item.selectAction)execute(item.selectAction);renderStationLayout();},{key:'station-choice:'+item.id,className:'wx-menu',aria:'Choose '+item.name})).join('')+'</div>';
+      }
+      else if(model.kind==='station-proposal') {
+        const item=stationModel().currentArea?.stations?.find(entry=>entry.id===model.id);
+        title=item?.name || 'New station';
+        if(item){html='<div class="wx-detail-hero">'+stationGlyph(item)+'</div><p>'+esc(item.description || 'Adds an independent work site. Your earlier stations keep producing.')+'</p>'+(item.requirements || []).map(req=>'<div class="wx-station-gate" data-met="'+!!req.met+'">'+esc(stationRequirement(req))+'</div>').join('');detailFooter=button('Build '+esc(item.name),item.buildAction,{key:'station-proposal-build:'+item.id,className:'wx-confirm',disabled:item.status!=='ready' || !item.buildAction || currentContext.saveFailure || currentContext.awaitingWallet});}
+      }
+      else if(model.kind==='station-detail') {
+        const item=stationRowsById.get(model.id);title=item?.name || 'Station upgrade';
+        if(item){html='<div class="wx-detail-hero">'+stationArtIcon(item.icon,item.icon || 'tools')+'<strong>Rank '+(item.rank || 0)+' / '+(item.maxRank || 100)+'</strong></div><p class="wx-effect">'+esc(item.description || item.effectText || '')+'</p>'+(item.comparison ? '<p>'+esc(item.comparison.text || item.comparison)+'</p>' : '')+(item.requirements || []).map(req=>'<div class="wx-station-gate" data-met="'+!!req.met+'">'+esc(stationRequirement(req))+'</div>').join('')+(item.disabled && item.reason ? '<p class="wx-muted">'+esc(item.reason)+'</p>' : '')+(item.fittingQuantityAction ? button('Use ×'+item.fittingQuantityAction.count,item.fittingQuantityAction,{key:'station-fit:'+item.id,className:'wx-button'}) : '');const locked=item.status==='locked';detailFooter=button(item.status==='ready' ? 'Unlock '+esc(item.name) : 'Buy ×'+(item.quantity || stationModel().batch || 1),item.status==='ready' ? item.unlockAction : item.action,{key:'station-detail-buy:'+item.id,className:'wx-confirm',disabled:locked || item.disabled || currentContext.saveFailure || currentContext.awaitingWallet});}
+      }
+      else if (model.kind === 'local') { const item = allUpgrades().find(c => c.id === model.catalogId) || e.cards.find(c => c.id === model.id && (!model.areaId || c.action?.areaId === model.areaId || !c.action?.areaId)); title = item?.label || item?.name || 'Upgrade'; html = detailBody(item, true); }
+      else if (model.kind === 'upgrade') { const item = allUpgrades().find(c => c.id === model.id || c.catalogId === model.id); title = item ? name(item) : 'Upgrade'; html = detailBody(item); }
+      else if (model.kind === 'inspect') { const item = descriptors.get(model.id); title = item ? name(item) : 'Upgrade'; html = detailBody(item); }
+      else if (model.kind === 'choice') {
+        title = selectedAreaId() === 'quarry' ? 'Processing' : 'Operations';
+        const groups = visible(e.choices || [e.choice]);
+        const configurations = visible(e.configurations);
+        html = operationBody();
+        if (configurations.length || (e.specializations || []).length > 1) {
+          html += groups.map(choice => menu(choice.title, choice.options.find(item => item.selected)?.label || 'Choose a working plan', 'compass', {kind:'plan-choice',id:choice.id})).join('');
+          html += configurations.map(group => menu(group.label, Array.isArray(group.selected) ? group.selected.filter(Boolean).length + ' / ' + group.slots + ' assigned' : group.options.find(item => item.id === group.selected)?.label || 'Choose', 'compass', {kind:'configuration',id:group.id,slot:0})).join('');
+          if ((e.specializations || []).length > 1) html += menu('Specialization', e.specializations.find(item => item.selected)?.label || 'Balanced tracks', 'mastery', {kind:'specialization'});
+        } else html += groups.map(choice => section(choice.title, choiceBody(choice))).join('');
+      }
+      else if (model.kind === 'plan-choice') { const choice = e.choices.find(item => item.id === model.id); title = choice?.title || 'Working plan'; html = choiceBody(choice); }
+      else if (model.kind === 'configuration') {
+        const group = (e.configurations || []).find(item => item.id === model.id);
+        title = group?.label || 'Area plan';
+        if (group) {
+          const slot = Math.max(0,Math.min(model.slot || 0,group.slots - 1));
+          if (group.slots > 1) html += '<div class="wx-segments">' + Array.from({length:group.slots},(_,index) => button('Slot ' + (index + 1), () => open({kind:'configuration',id:group.id,slot:index},true), {key:'config-slot:' + index,selected:slot === index})).join('') + '</div>';
+          const options = group.slotOptions?.find(item => item.slot === slot)?.options || (slot === 0 ? group.options : []);
+          const selected = Array.isArray(group.selected) ? group.selected[slot] : group.selected;
+          html += choiceBody({visible:true,id:group.id,options:options.map(item => Object.assign({},item,{selected:item.id === selected,effectText:item.description || item.effectText}))});
+        }
+      }
+      else if (model.kind === 'specialization') { title = 'Specialization'; html = choiceBody({visible:true,id:'specializations',options:(e.specializations || []).map(item => Object.assign({},item,{effectText:item.description || item.effect || 'No specialized track'}))}); }
+      else if (model.kind === 'choice-metrics') {
+        const choice = (e.choices || [e.choice]).find(item => item.id === model.id);
+        title = 'Full rate comparison';
+        html = (choice?.options || []).map(item => section(item.label + (item.selected ? ' · Selected' : ''), '<p class="wx-muted">' + esc(item.effectText) + '</p>' + ((item.impact || []).length ? '<div class="wx-impact">' + impacts(item) + '</div>' : '<p class="wx-muted">Current working plan.</p>'))).join('');
+      }
+      else if (model.kind === 'upgrade-filters') {
+        title = 'Upgrade effects';
+        html = '<div class="wx-options">' + ['all', ...model.effects].map(id => button(id === 'all' ? 'All effects' : id.replace(/[-_]/g,' ').replace(/^./, letter => letter.toUpperCase()), () => { upgradeEffect = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, { key:'filter:effect:' + id, selected:upgradeEffect === id })).join('') + '</div>';
+      }
+      else if (model.kind === 'upgrade-areas') {
+        title = 'Affected area';
+        const catalog = visible(view.globalUpgrades || []);
+        const areaIds = (e.areas || []).filter(area => area.unlocked && catalog.some(item => item.areaId === area.id || (item.targetAreas || []).includes(area.id))).map(area => area.id);
+        if (catalog.some(item => !String(item.action?.type || '').startsWith('expedition-'))) areaIds.push('guild');
+        html = '<div class="wx-options">' + ['all',...areaIds].map(id => button(id === 'all' ? 'All areas' : esc(areaNames[id] || id), () => { upgradeArea = id; close(); update(view); q('[data-wx-destination]').scrollTop = 0; }, {key:'filter:area:' + id,selected:upgradeArea === id})).join('') + '</div>';
+      }
+      else if (model.kind === 'objective') {
+        title = e.stage.name;
+        html = '<p class="wx-effect">' + esc(e.stage.objective) + '</p><ol class="wx-checkpoint-list">' + (e.checkpoints || []).map(c => '<li data-done="' + !!c.complete + '"><b>' + (c.complete ? '✓' : '○') + '</b><span>' + esc(c.label) + '</span></li>').join('') + '</ol>';
+        if (e.scene?.kind === 'harbor' && e.scene?.ruleset === 'progression') {
+          const voyage = e.scene.voyage || {};
+          html += section('At sea', (voyage.manifests || []).map((manifest,index) => '<div class="wx-milestone"><span><strong>Ship ' + (index + 1) + ' · ' + Math.floor(percent(manifest.work / manifest.target)) + '%</strong><small>' + esc(manifest.port) + ' · On arrival: ' + esc(Object.entries(manifest.payout || {}).map(([id,value]) => '+' + metric(value) + ' ' + id).join(' · ')) + '</small></span></div>').join('') || '<p class="wx-muted">Ships launch automatically when supplies are available.</p>');
+          html += '<p class="wx-muted">Next departure uses ' + esc(metric(e.scene.rates?.supply || 0)) + ' provisions. Arrival rewards are credited when a voyage finishes.</p>';
+        }
+        if (e.condition) html += '<p>' + esc(e.condition) + '</p>';
+        if (e.stage.index > 2) html += '<ul class="wx-muted">' + (e.guildLinks || []).map(link => '<li>' + esc(link) + '</li>').join('') + '</ul>';
+        if (e.choice?.visible) html += menu('Current approach', e.choice.options.find(c => c.selected)?.label, 'compass', { kind:'choice' });
+        if (guideForArea(selectedAreaId())) html += button('Replay area guide',()=>replayGuide(selectedAreaId()),{key:'guide-replay:' + selectedAreaId(),className:'wx-button wx-guide-replay'});
+        if(e.next?.action && !e.next.disabled)detailFooter=button(esc(e.next.label)+' →',e.next.action,{key:'area-expand',className:'wx-confirm',aria:e.next.label,disabled:currentContext.saveFailure || currentContext.awaitingWallet});
+      } else if (model.kind === 'finale') {
+        title = e.stage.established || e.scene?.established ? 'Area developed' : 'Outpost established';
+        const outpost = e.outposts?.find(item => item.id === e.stage.kind);
+        const unlocks = e.stage.index === 0 ? '<div class="wx-milestone">' + icon('mine') + '<span>Mine unlocked · Ore for equipment</span></div>' : e.stage.index === 1 ? '<div class="wx-milestone">' + icon('forge') + '<span>Forge unlocked · Your first equipment rank</span></div>' : e.stage.index === 2 ? '<div class="wx-milestone">' + icon('crew') + '<span>Crew, blueprints & expedition helper unlocked</span></div>' : '';
+        html = '<div class="wx-detail-hero wx-finale-art">' + icon(areaIcons[e.stage.kind] || 'guild') + '<strong>' + esc(e.stage.name) + '</strong></div><p class="wx-effect">' + esc(outpost?.effectText || outpost?.description || 'This area keeps working while you visit the others.') + '</p>' + unlocks + button(esc(e.next?.label || 'Continue developing') + ' →', e.next?.action, { className:'wx-confirm', disabled:e.next?.disabled || !e.next?.action });
+        const newProject = e.stage.index > 0 && visible(view.globalUpgrades || []).find(item => !item.owned && item.action?.type === 'expedition-development' && (item.dependencies || []).every(dependency => dependency.met) && (item.sourceAreas || []).includes(e.stage.kind) && (item.targetAreas || []).some(id => id !== e.stage.kind));
+        if (newProject) {
+          const affected = newProject.targetAreas.find(id => id !== e.stage.kind);
+          html += button(icon(areaIcons[affected]) + '<span><strong>' + esc(areaNames[affected] + ': ' + name(newProject)) + '</strong><small>New from ' + esc(areaNames[e.stage.kind]) + '</small></span><b>›</b>', () => { selectArea(affected); open({ kind:'upgrade', id:newProject.id }); }, { key:'unlock-project:' + newProject.id, className:'wx-menu' });
+        }
+        html += button('Visit the Guild', () => { close(); screen = 'guild'; update(view); }, { key:'finale-guild' });
+        html += '<p class="wx-muted">' + esc(e.next?.description || 'Your upgrades, crews and production stay in every unlocked area.') + '</p>';
+      } else if (model.kind === 'room') {
+        const room = view.rooms.find(r => r.id === model.id);
+        title = room?.name || 'Guild';
+        html = catalog('Upgrades', (room?.actions || []).filter(item => item.action?.type === 'buy')) + catalog('Recipes', visible(view.recipes).filter(item => item.room === model.id));
+        if (model.id === 'study') html += button('Open research upgrades', () => showUpgrades('all','research'), { key:'study-upgrades', className:'wx-confirm' });
+        if (model.id === 'forge') html += catalog('Field kits', luck.kits);
+        if (model.id === 'cartography') html += catalog('Preparations', e.preparation) + catalog('Route focus', view.modes);
+      } else if (model.kind === 'crew') { title = 'Crew'; html = crewBody(); }
+      else if (model.kind === 'roster') { title = 'Choose explorer ' + (model.slot + 1); html = rosterBody(model.slot); }
+      else if (model.kind === 'companions') { title = 'Companions'; html = tiles(view.companions); }
+      else if (model.kind === 'doctrines') { title = 'Guild approach'; html = tiles(view.doctrines); }
+      else if (model.kind === 'research') { title = 'Research'; html = button('Open global upgrades', () => showUpgrades(), { key:'research-upgrades', className:'wx-confirm' }); }
+      else if (model.kind === 'network') {
+        title = 'Connected areas';
+        html = (e.areas || []).filter(area => area.unlocked).map(area => button(icon(areaIcons[area.id]) + '<span><strong>' + esc(areaNames[area.id] || area.label) + '</strong><small>' + esc(area.rateText || area.status || '') + '</small></span><b>›</b>', () => selectArea(area.id), { key:'network-area:' + area.id, className:'wx-menu' })).join('');
+        const connected = visible(view.globalUpgrades || []).filter(item => item.owned && (item.targetAreas || []).includes(e.stage.kind) && (item.sourceAreas || []).some(id => id !== e.stage.kind));
+        html += section('Supporting this area', connected.map(item => '<article class="wx-connection">' + areaLinks(item) + '<strong>' + esc(name(item)) + '</strong><span>' + esc(item.effectText || item.description) + '</span>' + button('Details', () => open({ kind:'upgrade', id:item.id }), { key:'connection:' + item.id }) + '</article>').join(''));
+        html += button('Find connected upgrades', () => showUpgrades(e.stage.kind), { key:'network-upgrades', className:'wx-confirm' });
+      }
+      else if (model.kind === 'projects') { title = 'Guild projects'; html = tiles([...(view.development?.projects || []), ...(view.development?.chapter?.projects || [])]); }
+      else if (model.kind === 'planning') { title = 'Automation'; html = planningBody(); }
+      else if (model.kind === 'priorities') {
+        title = 'Purchase priorities';
+        html = ['operations','equipment'].map(group => section(group === 'operations' ? 'Guild operations' : 'Equipment', '<div class="wx-options">' + (group === 'operations' ? ['balanced','travel','production'] : ['balanced','tools','boots','research']).map(id => button(esc(id[0].toUpperCase() + id.slice(1)), { type:'plan-priority', group, id }, { selected:view.planning.priorities[group] === id })).join('') + '</div>')).join('');
+      } else if (model.kind === 'reserves') {
+        title = 'Protected supplies';
+        html = '<p>Automation leaves these amounts unspent.</p>' + visible(view.resources).filter(r => (view.planning.reserves || []).some(x => x.id === r.id)).map(r => { const item = view.planning.reserves.find(x => x.id === r.id); return menu(r.name, item.formatted + ' reserved', r.id, { kind:'reserve', id:r.id }); }).join('') + section('Saved purchase', view.planning.goal ? '<p>' + esc(view.planning.goal.name || view.planning.goal.id) + '</p>' + button('Clear saved goal', { type:'plan-goal', action:null }) : '<p>Inspect any guild upgrade, then choose “Save for this”.</p>');
+      } else if (model.kind === 'reserve') {
+        title = 'Reserve ' + model.id;
+        const item = view.planning.reserves.find(r => r.id === model.id);
+        html = '<label class="wx-field">Minimum to keep<input data-wx-reserve inputmode="decimal" value="' + esc(item.formatted.replace(/,/g,'')) + '" aria-label="Minimum reserve"></label>' + button('Save reserve', () => execute({ type:'plan-reserve', id:model.id, amount:dialog.querySelector('[data-wx-reserve]').value }), { key:'save-reserve', className:'wx-confirm' });
+      } else if (model.kind === 'queue') {
+        title = 'Purchase queue';
+        html = (view.planning.queue || []).map((item,index) => '<div class="wx-row"><span>' + esc(item.name || item.id) + '</span>' + button('Remove', { type:'plan-remove', index }) + '</div>').join('') || '<p>Inspect an upgrade and add it to your queue.</p>';
+      } else if (model.kind === 'loadouts') {
+        title = 'Guild playbooks';
+        html = [0,1,2].map(id => { const item = view.planning.loadouts.find(x => Number(x.id) === id); return section(item?.name || 'Plan ' + (id + 1), button('Save current', { type:'loadout-save', id, name:'Plan ' + (id + 1) }) + button('Use', { type:'loadout-use', id }, { disabled:!item }) + button('Delete', { type:'loadout-delete', id }, { disabled:!item })); }).join('');
+      } else if (model.kind === 'kit-plan' || model.kind === 'prepare-plan') {
+        const kit = model.kind === 'kit-plan';
+        title = kit ? 'Automatic kit' : 'Automatic preparation';
+        html = '<div class="wx-options">' + (kit ? ['off','mining','travel'] : ['off','scout','supply','survey']).map(id => button(esc(id), { type:kit ? 'plan-kit' : 'plan-preparation', id }, { selected:(kit ? view.planning.kit : view.planning.preparation) === id })).join('') + '</div>';
+      } else if(model.kind==='wallet') {
+        title='Wallet';
+        html='<div class="wx-wallet-list">'+currencies().map(item=>button(icon(item.icon || item.id)+'<span><strong>'+esc(item.name || item.label || item.id)+'</strong><small>'+esc(item.rateFormatted || '')+'</small></span><b>'+esc(item.formatted || compact(item.value))+'</b>',()=>open({kind:'currency',id:item.id}),{key:'wallet-currency:'+item.id,className:'wx-menu',aria:(item.name || item.id)+': '+(item.formatted || compact(item.value))})).join('')+'</div>';
+      } else if (model.kind === 'currency') {
+        const currency=currencies().find(item=>item.id===model.id);
+        title=currency?.name || currency?.label || 'Currency';
+        html=currency ? '<div class="wx-currency-detail">'+icon(currency.icon || currency.id)+'<strong>'+esc(currency.formatted || compact(currency.value))+'</strong></div><p class="wx-effect">'+esc(currency.purpose || currency.description || 'Used for earned guild improvements.')+'</p>'+(currency.earnedFrom ? '<p>'+esc(currency.earnedFrom)+'</p>' : '')+(currency.walletText ? '<p class="wx-muted">'+esc(currency.walletText)+'</p>' : '')+(currency.rateFormatted ? '<p class="wx-muted">'+esc(currency.rateFormatted)+'</p>' : '') : '<p>This currency has not been earned yet.</p>';
+      } else if (model.kind === 'stockpile') {
+        title = 'Guild stockpile';
+        html = '<div class="wx-stockpile">' + visible(view.resources).map(r => '<div>' + icon(r.id) + '<span>' + esc(r.name) + '<small>' + esc(r.rateFormatted || '') + '</small></span><strong>' + esc(r.formatted) + '</strong></div>').join('') + '</div>';
+      } else if (model.kind === 'blueprints') { title = 'Lasting blueprints'; html = '<p>' + (e.blueprints.some(item => !item.disabled) ? 'Choose a lasting advantage for this region.' : 'Complete another region to choose again.') + ' Kept through renewals.</p>' + tiles(e.blueprints); }
+      else if (model.kind === 'outpost') {
+        const item = e.outposts.find(p => p.id === model.id);
+        title = item?.name || item?.label || 'Outpost';
+        html = '<div class="wx-detail-hero">' + icon(item?.icon || 'guild') + '</div><p class="wx-effect">' + esc(item?.effectText || item?.description || item?.rateText || 'Working for the guild') + '</p>' + (item?.action ? button('Visit', item.action) : '');
+      } else if (model.kind === 'route-confirm') {
+        title = 'Travel to ' + (view.routes.find(item => item.action?.id === model.action.id)?.label || 'this route');
+        html = '<p>Your areas keep their upgrades and continue working.</p>' + button('Visit area', model.action, { className:'wx-confirm' });
+      } else if (model.kind === 'routes') { title = 'Expedition routes'; html = tiles(view.routes) + catalog('Reward focus', view.modes); }
+      else if (model.kind === 'relics') { title = 'Relic collection'; html = tiles(luck.relics) + catalog('Discovery focus', luck.hunts) + catalog('Field kits', luck.kits); }
+      else if (model.kind === 'journal') {
+        title = 'Expedition journal';
+        html = (luck.ledger?.recent || []).slice(-16).reverse().map(item => '<article class="wx-journal-entry"><strong>' + esc(item.title) + '</strong><span>' + esc(item.reward) + '</span></article>').join('') || '<p>Your discoveries will be recorded here.</p>';
+        html += section('Guild record', '<ul>' + (view.events || []).slice(-10).reverse().map(item => '<li>' + esc(item) + '</li>').join('') + '</ul>');
+      } else if (model.kind === 'renewals') {
+        title = 'Guild renewals';
+        html = menu('Expedition Refit', view.refit.rewardText, 'notes', { kind:'reset', reset:'refit' }) + menu('Guild Charter', view.charter.rewardText, 'crests', { kind:'reset', reset:'charter' }) + catalog('Field-note upgrades', view.refitUpgrades) + catalog('Legacy upgrades', view.legacyUpgrades) + catalog('Challenges', view.challenges);
+      } else if (model.kind === 'reset') {
+        title = model.reset === 'refit' ? 'Expedition Refit' : 'Guild Charter';
+        html = '<p class="wx-effect">' + esc(view[model.reset].rewardText) + '</p><p>Review exactly what stays and restarts before confirming.</p>' + button('Review reset', () => legacy(model.reset), { key:'review:' + model.reset, className:'wx-confirm' });
+      } else if (model.kind === 'supplies') { title = 'Expedition supplies'; html = catalog('Supply plan', e.supplyChoices) + catalog('Meals & recipes', view.recipes) + catalog('Preparation', e.preparation); }
+      else if (model.kind === 'options') {
+        title = 'Wayfarers’ Guild';
+        html = button(icon('settings') + '<span>Settings & saves</span>', () => legacy('settings'), { key:'settings', className:'wx-menu' });
+        if (root.WayfarersAndroid) html += button(icon('automation') + '<span>App updates</span>', () => { close(); options.nativeOptions(); }, { key:'native-options', className:'wx-menu' });
+        if(mandatoryLesson())html+='<p class="wx-muted">Your lesson stays at this step while you manage settings and saves.</p>';
+        else {
+        if (view.premium?.unlocked) html += button(icon('starshards') + '<span>Starshard shop</span>', () => legacy('shop'), { key:'shop', className:'wx-menu' });
+        if (view.caravan?.offer || view.caravan?.pending) html += button(icon('caravan') + '<span>Caravan delivery<span class="wx-new">Ready</span></span>',()=>legacy('caravan'),{key:'caravan-options',className:'wx-menu'});
+        if (onboarding()) html += button(icon('chest') + '<span>Discoveries' + (discoveryEntries().length ? '<small>' + discoveryEntries().length + ' ready to visit</small>' : '') + '</span>',()=>open({kind:'onboarding-inbox'}),{key:'onboarding-inbox',className:'wx-menu'});
+        if (onboarding()?.guides?.length) html += menu('Field guide','Learn a mechanic by using it','compass',{kind:'lessons'});
+        if (guideForArea(selectedAreaId())) html += button(icon('compass') + '<span>Replay area guide</span>',()=>replayGuide(selectedAreaId()),{key:'guide-replay:' + selectedAreaId(),className:'wx-menu'});
+        html += menu('How this expedition works', e.stage.name, 'compass', { kind:'objective' });
+        }
+      } else if (model.kind === 'return') {
+        title = 'Welcome back';
+        html = '<p>' + esc(model.time) + ' of guild work</p><div class="wx-stockpile">' + model.gains.map(item => '<div>' + icon(item.id) + '<span>' + esc(item.id) + '</span><strong>+' + esc(item.amount) + '</strong></div>').join('') + '</div>' + button('Continue expedition', close, { key:'return-close', className:'wx-confirm' });
+      }
+      text(dialog.querySelector('h2'), title);
+      dialog.dataset.kind = model.kind;
+      dialog.querySelector('[data-wx-back]').hidden = !stack.length;
+      markup(dialog.querySelector('[data-wx-sheet-content]'), html);
+      const footer = dialog.querySelector('[data-wx-sheet-footer]');
+      footer.hidden = !detailFooter;
+      markup(footer,detailFooter);
+      renderAttention();
+    }
+    function destinationBody() {
+      const e = view.expedition;
+      if (screen === 'upgrades') return upgradesBody();
+      if (screen === 'guild') {
+        if (guildPage === 'cards') return guildTabs() + cardsBody();
+        if (guildPage === 'equipment') return guildTabs() + equipmentBody();
+        const rooms = view.rooms.filter(r => r.unlocked && r.id !== 'trail');
+        let html = guildTabs();
+        if (view.caravan?.offer || view.caravan?.pending) html += button(icon('caravan') + '<span><strong>Caravan delivery</strong><small>A reward is ready to review</small></span><b>›</b>',()=>legacy('caravan'),{key:'caravan-guild',className:'wx-menu wx-caravan-ready'});
+        html += '<div class="wx-room-grid">' + rooms.map(room => button(icon(room.id) + '<strong>' + esc(room.name) + '</strong><small>' + esc(room.level ? 'Rank ' + room.level : 'Working') + '</small>', () => open({ kind:'room', id:room.id }), { key:'room:' + room.id, className:'wx-room' })).join('') + '</div>';
+        if (visible(view.specialists).length) html += menu('Crew', 'Explorers & companions', 'crew', { kind:'crew' });
+        html += button(icon('maps') + '<span><strong>Atlas & discoveries</strong><small>Outposts, relics and renewals</small></span><b>›</b>', () => { close(); screen = 'atlas'; update(view); }, { key:'guild-atlas', className:'wx-menu' });
+        if (e.automation?.unlocked || view.planning?.unlocked) html += menu('Automation', e.automation?.enabled ? 'Expedition helper active' : 'Set your priorities', 'automation', { kind:'planning' });
+        if (visible(view.globalUpgrades || []).length) html += button(icon('research') + '<span><strong>Global upgrades</strong><small>Developments, guild tools & research</small></span><b>›</b>', () => showUpgrades(), { key:'guild-upgrades', className:'wx-menu' });
+        if (visible(view.recipes).length) html += menu('Supplies', 'Meals, kits & preparation', 'provisions', { kind:'supplies' });
+        html += menu('Stockpile', 'Production & resources', 'crate', { kind:'stockpile' });
+        return html;
+      }
+      let html = '<div class="wx-atlas-path">' + (e.outposts || []).map((outpost,index) => button('<span class="wx-atlas-number">' + (index + 1) + '</span>' + icon(outpost.icon || (index % 3 === 1 ? 'mine' : index % 3 === 2 ? 'observatory' : 'guild')) + '<span><strong>' + esc(outpost.name || outpost.label || 'Outpost ' + (index + 1)) + '</strong><small>' + esc(outpost.rateText || outpost.effectText || 'Working automatically') + '</small></span><b>✓</b>', () => open({ kind:'outpost', id:outpost.id }), { key:'outpost:' + outpost.id, className:'wx-atlas-stop' })).join('') + '</div>';
+      html += (e.areas || []).filter(area => area.unlocked).map(area => button(icon(areaIcons[area.id]) + '<span><strong>' + esc(areaNames[area.id] || area.label) + '</strong><small>' + esc(area.rateText || area.status || 'Working') + '</small></span><b>›</b>', () => selectArea(area.id), { key:'atlas-area:' + area.id, className:'wx-menu' })).join('');
+      if (e.automation?.unlocked && visible(e.blueprints).length) html += menu('Blueprints', 'Keep a lasting advantage', 'quill', { kind:'blueprints' });
+      if (view.luck?.relicsUnlocked) html += menu('Relics', view.luck.owned.length + ' collected', 'chest', { kind:'relics' });
+      if (view.luck?.unlocked) html += menu('Journal', 'Finds & expedition record', 'journal', { kind:'journal' });
+      if (view.presentation.journalSections.includes('renewals')) html += menu('Renewals', 'Field notes & guild crests', 'notes', { kind:'renewals' });
+      if (view.routes.length > 1) html += menu('Route archive', 'Revisit discovered destinations', 'maps', { kind:'routes' });
+      return html;
+    }
+    function update(nextView, context) {
+      if (disposed || !nextView.expedition?.local) return;
+      const incoming = nextView.expedition;
+      const choiceGroups = (incoming.choices || []).some(choice => Array.isArray(choice.options)) ? incoming.choices : incoming.choices?.length ? [{id:'plans',title:'Working plan',visible:visible(incoming.choices).length > 1,options:visible(incoming.choices).map(item => Object.assign({effectText:item.description || item.effect},item))}] : [];
+      const stageModel = Object.assign({ objective:incoming.stage.goal || incoming.stage.checkpoint?.label || 'Develop this area', established:incoming.scene?.established },incoming.stage);
+      view = Object.assign({},nextView,{expedition:Object.assign({},incoming,{
+        stage:stageModel,
+        cards:(incoming.cards || []).map(item => item.trackId && item.id !== item.trackId ? Object.assign({},item,{id:item.trackId}) : item),
+        choices:choiceGroups,
+        choice:incoming.choice || choiceGroups.find(choice => choice.visible !== false) || {visible:false,options:[]},
+        finale:incoming.finale || {ready:stageModel.phase === 'Capstone',completed:stageModel.completed,progress:stageModel.finaleTarget ? stageModel.finaleWork / stageModel.finaleTarget : 0},
+        sequence:incoming.sequence ?? Math.max(0,...(incoming.events || []).map(event => event.sequence || 0)),
+        checkpoints:incoming.checkpoints || [], outposts:incoming.outposts || []
+      })});
+      const e = view.expedition;
+      const stage = e.stage;
+      if (context) currentContext = context;
+      const ctx = currentContext;
+      shell.dataset.quiet=dialog.dataset.quiet=String(!!ctx.quiet);
+      const allDescriptors = ['actions','routes','modes','recipes','research','specialists','companions','doctrines','challenges','automations','refitUpgrades','legacyUpgrades'].flatMap(key => view[key] || []).concat(e.blueprints || [], e.preparation || [], e.supplyChoices || [], view.planning?.capabilities || [], view.development?.projects || [], view.development?.chapter?.projects || [], view.luck?.relics || [], view.luck?.research || [], view.luck?.hunts || [], view.luck?.kits || [], view.globalUpgrades || []);
+      allDescriptors.forEach(item => descriptors.set(descriptorKey(item), item));
+      const collection = view.collection || {};
+      const hasCards = !!(collection.cardsAvailable || collection.cardsUnlocked);
+      const hasEquipment = !!(collection.equipmentAvailable || collection.equipmentUnlocked);
+      const hasCollection = hasCards || hasEquipment;
+      const guildUnlocked = view.unlocks.some(id => id !== 'trail') || hasCollection;
+      const areas = e.areas || ['greenway','quarry','watchtower'].map((id,index) => ({ id, unlocked:stage.index >= index, selected:stage.kind === id }));
+      const selectedArea = areas.find(area => area.selected)?.id || stage.kind;
+      const unlockedAreas = areas.filter(area => area.unlocked);
+      const areaIndex = unlockedAreas.findIndex(area => area.id === selectedArea);
+      const canNavigateAreas = ['expedition','upgrades'].includes(screen) && unlockedAreas.length > 1;
+      const upgradesUnlocked = true;
+      const tierReady = readyTiers();
+      const localTiers = tierReady.filter(item => item.areaId === selectedArea);
+      q('[data-wx-nav="guild"]').hidden = !guildUnlocked;
+      q('[data-wx-nav="upgrades"]').hidden = !upgradesUnlocked;
+      q('[data-wx-tier-attention]').hidden = !tierReady.length;
+      q('[data-wx-nav="upgrades"]').setAttribute('aria-label','Upgrades' + (tierReady.length ? ', ' + tierReady.length + ' upgrade tiers ready' : ''));
+      if ((screen === 'guild' || screen === 'atlas') && !guildUnlocked || screen === 'upgrades' && !upgradesUnlocked) screen = 'expedition';
+      q('[data-wx-prev]').hidden = q('[data-wx-next]').hidden = !canNavigateAreas;
+      q('[data-wx-prev]').disabled = areaIndex <= 0;
+      q('[data-wx-next]').disabled = areaIndex >= unlockedAreas.length - 1;
+      q('[data-wx-prev]').setAttribute('aria-label', 'Previous area' + (unlockedAreas[areaIndex - 1] ? ': ' + areaNames[unlockedAreas[areaIndex - 1].id] : ''));
+      q('[data-wx-next]').setAttribute('aria-label', 'Next area' + (unlockedAreas[areaIndex + 1] ? ': ' + areaNames[unlockedAreas[areaIndex + 1].id] : ''));
+      q('[data-wx-nav="expedition"] [data-wx-attention]').hidden = !areas.some(area => area.attention && !area.selected);
+      q('[data-wx-nav="expedition"]').setAttribute('aria-label', 'Areas, current ' + (areaNames[selectedArea] || stage.name) + (areas.some(area => area.attention && !area.selected) ? ', new development' : ''));
+      shell.dataset.screen = screen;
+      shell.dataset.guildPage = guildPage;
+      shell.dataset.collection = String(hasCollection);
+      q('[data-wx-guild-attention]').hidden = !collection.attention && !view.caravan?.offer && !view.caravan?.pending;
+      shell.dataset.area = selectedArea;
+      shell.querySelectorAll('[data-wx-nav]').forEach(node => node.setAttribute('aria-current', node.dataset.wxNav === screen || screen === 'atlas' && node.dataset.wxNav === 'guild' ? 'page' : 'false'));
+      q('.wx-play').hidden = screen !== 'expedition';
+      q('[data-wx-destination]').hidden = screen === 'expedition';
+      renderCurrencies();
+      q('[data-wx-save-alert]').hidden = !ctx.saveFailure && !ctx.awaitingWallet;
+      text(q('[data-wx-save-alert]'), ctx.awaitingWallet ? 'Restoring purchase wallet…' : 'Retry save');
+      text(q('[data-wx-stage-name]'), screen === 'expedition' ? canNavigateAreas ? (areaIndex + 1) + ' of ' + unlockedAreas.length + ' areas' : 'Wayfarers Guild' : '');
+      text(q('[data-wx-objective-text]'), ['expedition','upgrades'].includes(screen) ? (areaNames[selectedArea] || stage.name) + (canNavigateAreas ? ' ▾' : '') : screen === 'guild' ? 'Your guild' : 'The atlas');
+      q('[data-wx-objective]').disabled = screen !== 'expedition';
+      q('[data-wx-objective]').setAttribute('aria-label', canNavigateAreas ? 'Choose area. ' + (areaNames[selectedArea] || stage.name) + ', ' + (areaIndex + 1) + ' of ' + unlockedAreas.length : stage.name + ': ' + stage.objective);
+      q('[data-wx-objective]').setAttribute('aria-haspopup', canNavigateAreas ? 'dialog' : 'false');
+      q('[data-wx-progress]').hidden = screen !== 'expedition';
+      q('[data-wx-progress]').value = percent(stage.progress);
+      if (!['expedition','upgrades'].includes(screen)) markup(q('[data-wx-destination]'), destinationBody());
+      if (previousScreen !== screen) { q('[data-wx-destination]').scrollTop = 0; previousScreen = screen; }
+      const shown = e.cards.filter(c => c.visible !== false);
+      const foundation = foundations();
+      const tray = q('[data-wx-tray]');
+      const switchingArea = displayedArea !== selectedArea;
+      if (switchingArea && displayedArea) text(q('[data-wx-area-status]'),(areaNames[selectedArea] || stage.name) + ', area ' + (areaIndex + 1) + ' of ' + unlockedAreas.length);
+      tray.dataset.count = foundation.length;
+      q('.wx-dock').dataset.count = String(foundation.length);
+      text(q('[data-wx-upgrade-count]'), 'Foundations');
+      const readyButton = q('[data-wx-tier-ready]');
+      const extraTiers = localTiers.filter(tier=>!foundation.some(item=>item.tierId===tier.id));
+      readyButton.hidden = !extraTiers.length;
+      readyButton.dataset.tierId = extraTiers.length === 1 ? extraTiers[0].id : '';
+      text(readyButton,'Ready' + (extraTiers.length > 1 ? ' · ' + extraTiers.length : '') + ' ›');
+      readyButton.setAttribute('aria-label',(areaNames[selectedArea] || stage.name) + ': ' + extraTiers.length + ' upgrade tiers ready. Review unlocks.');
+      const batch = q('[data-wx-batch]');
+      batch.hidden = !batchAvailable();
+      text(batch, 'Buy ×' + (e.batch?.selected || 1) + ' ▾');
+      batch.setAttribute('aria-label', 'Purchase quantity: ' + (e.batch?.selected || 1) + '. Change exact quantity.');
+      for (const node of Array.from(tray.children)) if (!foundation.some(item => item.id === node.dataset.upgrade)) node.remove();
+      foundation.forEach(item => {
+        let node = Array.from(tray.children).find(row => row.dataset.upgrade === item.id);
+        if (!node) { node=document.createElement('article');tray.append(node); }
+        const holder=document.createElement('div');holder.innerHTML=skillTile(item,true);const fresh=holder.firstElementChild;
+        node.className=fresh.className;node.dataset.upgrade=item.id;node.dataset.state=item.state;node.dataset.ready=String(item.state==='ready');
+        markup(node,fresh.innerHTML);
+        if (previousStage === stage.id && previousRanks[item.id] != null && previousRanks[item.id] < item.rank) { node.classList.remove('wx-purchased'); void node.offsetWidth; node.classList.add('wx-purchased'); }
+      });
+      displayedArea = selectedArea;
+      earnedTracks.set(selectedArea,shown.map(item=>item.id));
+      if (knownAreaCount !== null && knownAreaCount < unlockedAreas.length && !swipeTaught && unlockedAreas.length > 1) { swipeTaught = true; notify('Swipe the scenery to visit your other areas'); }
+      knownAreaCount = unlockedAreas.length;
+      previousRanks = Object.fromEntries(e.cards.map(c => [c.id,c.rank]));
+      previousStage = stage.id;
+      if (seenSequence == null) seenSequence = e.sequence;
+      if (e.sequence > seenSequence) {
+        const previousSequence = seenSequence;
+        seenSequence = e.sequence;
+        const event = (e.events || []).filter(item => item.sequence > previousSequence && item.kind !== 'stage').pop();
+        if (event) { const affected = event.targetAreas?.find(id => id !== event.areaId) || event.areaId; notify((affected ? (areaNames[affected] || affected) + ': ' : '') + event.title); }
+        root.queueMicrotask(() => { if (!disposed) options.perform({ type:'expedition-seen', sequence:seenSequence }); });
+      }
+      const bottleneck = (e.stations || []).find(s => s.bottleneck);
+      const activeArea = areas.find(area => area.id === selectedArea);
+      const voyageLabel = e.scene?.kind === 'harbor' && e.scene?.ruleset === 'progression' ? e.scene.voyage?.ships ? 'Voyage · ' + Math.floor(percent(e.scene.voyage.progress)) + '% · ' + e.scene.voyage.ships + ' at sea' : 'Ships waiting for supplies' : null;
+      const delivery=e.delivery || e.scene?.delivery;
+      const deliveryLabel=selectedArea==='greenway' && delivery?.active ? delivery.phase==='arrived' ? 'Outpost · +'+compact(delivery.lastReward)+' coins' : 'Outpost · '+Math.floor(percent(delivery.progress))+'%' : null;
+      if(deliverySequence!==null && delivery?.sequence>deliverySequence && delivery.lastKind==='landmark') notify('Trail outpost reached · +'+compact(delivery.lastReward)+' coins');
+      if(delivery)deliverySequence=delivery.sequence;
+      q('[data-wx-world-label]').dataset.arrived=String(!!deliveryLabel && delivery.phase==='arrived');
+      text(q('[data-wx-world-label]'), deliveryLabel || voyageLabel || (bottleneck ? bottleneck.label + ' · ' + (bottleneck.status || 'Bottleneck') : activeArea?.established ? activeArea.rateText || 'Area working' : canNavigateAreas ? stage.objective : ''));
+      q('[data-wx-world-label]').hidden = !q('[data-wx-world-label]').textContent;
+      q('[data-wx-world-label]').setAttribute('aria-label','Area details: ' + q('[data-wx-world-label]').textContent);
+      markup(q('[data-wx-flow]'),(e.operation?.stages || []).slice(0,3).map(step=>'<div><span>'+icon(step.icon || step.id)+'</span><strong>'+esc(step.label)+'</strong><small>'+esc(step.rateText || '')+'</small>'+(step.bufferText ? '<small class="wx-flow-queue">'+esc(step.bufferText)+'</small>' : '')+'</div>').join(''));
+      if(deliveryLabel) q('[data-wx-world-label]').setAttribute('aria-label','Trail outpost. '+delivery.deliveries+' deliveries. Last award '+compact(delivery.lastReward)+' coins. '+(delivery.phase==='arrived' ? 'Arrived.' : Math.floor(percent(delivery.progress))+' percent of this journey.'));
+      const focus = q('[data-wx-focus]');
+      focus.hidden = !e.focus?.unlocked;
+      if (e.focus?.unlocked) { markup(focus, '<span aria-hidden="true">◆</span><span>Focus<small>' + (e.focus.active ? Math.ceil(e.focus.remaining) + 's' : e.focus.charges + ' / ' + e.focus.max) + '</small></span>'); focus.setAttribute('aria-label', 'Guild Focus. ' + (e.focus.active ? (areaNames[e.focus.active] || e.focus.active) + ' active, ' + Math.ceil(e.focus.remaining) + ' seconds left. ' : '') + e.focus.charges + ' of ' + e.focus.max + ' shared charges. Review effects.'); }
+      const support = visible(view.globalUpgrades || []).find(item => item.owned && (item.targetAreas || []).includes(selectedArea) && (item.sourceAreas || []).some(id => id !== selectedArea));
+      const network = q('[data-wx-network]');
+      network.hidden = !support;
+      if (support) { markup(network, areaLinks(support) + '<span>' + esc(name(support)) + '</span>'); network.setAttribute('aria-label', 'Area connections: ' + name(support)); }
+      const choiceCount = visible(e.choices || [e.choice]).length + visible(e.configurations).length + ((e.specializations || []).length > 1 ? 1 : 0);
+      const selectedPlan = e.choice?.options?.find(option => option.selected)?.label;
+      const planLabel = stage.kind === 'quarry' ? 'Processing' : 'Operations';
+      let worldActions = button(icon(stage.kind === 'quarry' ? 'forge' : 'compass') + '<span>' + esc(planLabel) + '</span><b>›</b>', () => open({ kind:'choice' }), { key:'world-choice', className:'wx-world-button wx-operation-button', aria:planLabel + '. Inspect current production and area plans' + (selectedPlan ? ': ' + selectedPlan : '') });
+      if (stage.completed && e.next?.action && !e.next.disabled) {
+        const nextLabel = e.next.label.replace('Discover','Open').replace('Copper Quarry','Quarry').replace('Greenway','Trail').replace('Watchtower','Tower');
+        worldActions += button(esc(nextLabel) + ' →', e.next.action, { className:'wx-world-button wx-gold', aria:e.next.label });
+      }
+      else if (activeArea?.established && upgradesUnlocked) worldActions += button(icon('tools') + '<span>Develop</span>', () => showUpgrades(selectedArea), { key:'area-develop:' + selectedArea, className:'wx-world-button wx-develop' });
+      markup(q('[data-wx-world-actions]'), worldActions);
+      q('[data-wx-do="world-choice"]')?.setAttribute('data-wx-plans','');
+      q('[data-wx-world-actions] .wx-gold')?.setAttribute('data-wx-expand','');
+      q('[data-wx-world-actions] .wx-develop')?.setAttribute('data-wx-develop','');
+      scene.setQuiet(!!ctx.quiet);
+      scene.update(Object.assign({}, e, { scene:Object.assign({}, e.scene, { banner:view.premium?.equipped, companion:view.progression.companion }) }));
+      renderStationLayout();
+      q('[data-wx-canvas]').setAttribute('aria-label', stage.name + '. ' + stage.objective + '. ' + Math.floor(percent(stage.progress)) + '% complete.' + (bottleneck ? ' ' + bottleneck.label + ' is the bottleneck.' : ''));
+      if (sheet) renderSheet();
+      if (!viewedStages.has(stage.id)) { viewedStages.add(stage.id); if (stage.completed) celebrated.add(stage.id); }
+      if (stage.completed && !celebrated.has(stage.id) && !dialog.open && !guide?.isOpen() && !onboarding()?.active && !options.overlayOpen()) {
+        celebrated.add(stage.id);
+        open({ kind:'finale' });
+      }
+      scheduleTierNotice();
+      renderAttention();
+      syncOnboarding();
+    }
+    function notify(message) {
+      if (!message || disposed) return;
+      // Complete transaction and help messages remain in their sheets/journal.
+      const brief = String(message).split(/(?<=[.!?])\s/)[0];
+      if (brief.length > 90) return;
+      text(q('[data-wx-toast]'), brief);
+      q('[data-wx-toast]').dataset.visible = 'true';
+      root.clearTimeout(toastTimer);
+      toastTimer = root.setTimeout(() => { q('[data-wx-toast]').dataset.visible = 'false'; }, 2500);
+    }
+    function click(event) {
+      const target = event.target.closest('button');
+      if (!target || target.disabled) return;
+      event.stopPropagation();
+      if (target.dataset.wxPractice && target.dataset.wxPractice===practice()?.token) execute(Object.assign({},practice().practiceAction,{onboardingEpoch:currentContext.onboardingEpoch}));
+      else if (target.dataset.wxDo) execute(commands.get(target.dataset.wxDo));
+      else if (target.dataset.wxBuy) execute(view.expedition.cards.find(c => c.id === target.dataset.wxBuy)?.action);
+      else if (target.dataset.wxArea) selectArea(target.dataset.wxArea);
+      else if (target.dataset.wxNav) { if(mandatoryLesson()&&!target.hasAttribute('data-guide-target')){showGuide();return;}close(); guildOrigin = null; if(target.dataset.wxNav==='upgrades'&&screen==='expedition'){upgradeArea='current';stationScope='station';} screen = target.dataset.wxNav; update(view); }
+      else if (target.dataset.wxStationOpen) openStation(target.dataset.wxStationOpen);
+      else if (target.hasAttribute('data-wx-station-cache')) execute(stationModel().encounter?.action);
+      else if (target.hasAttribute('data-wx-drawer-close')) closeStationDrawer();
+      else if (target.dataset.wxCollection) showGuildPage(target.dataset.wxCollection);
+      else if (target.dataset.wxCurrency) open({kind:'currency',id:target.dataset.wxCurrency});
+      else if (target.hasAttribute('data-wx-currency-more')) { const rail=q('[data-wx-currencies]');rail.scrollTo({left:rail.scrollLeft+rail.clientWidth>=rail.scrollWidth-2 ? 0 : rail.scrollLeft+rail.clientWidth*.75,behavior:currentContext.quiet ? 'instant' : 'smooth'}); }
+      else if (target.hasAttribute('data-wx-network')) open({ kind:'network' });
+      else if (target.hasAttribute('data-wx-close')) close();
+      else if (target.hasAttribute('data-wx-back')) back();
+      else if (target.hasAttribute('data-wx-wallet')) open({ kind:'wallet' });
+      else if (target.hasAttribute('data-wx-objective')) open({ kind:['area-goal','area-expand'].includes(practice()?.target) ? 'objective' : (view.expedition.areas || []).filter(area => area.unlocked).length > 1 ? 'areas' : 'objective' });
+      else if (target.hasAttribute('data-wx-world-label')) open({kind:'objective'});
+      else if (target.hasAttribute('data-wx-prev')) stepArea(-1);
+      else if (target.hasAttribute('data-wx-next')) stepArea(1);
+      else if (target.hasAttribute('data-wx-batch')) open({kind:'batch'});
+      else if (target.hasAttribute('data-wx-tier-ready')) showReadyTiers(target.dataset.tierId || null);
+      else if (target.hasAttribute('data-wx-focus')) open({kind:'focus'});
+      else if (target.hasAttribute('data-wx-options')) open({ kind:'options' });
+      else if (target.hasAttribute('data-wx-save-alert')) { if(currentContext.saveFailure) execute({type:'retry-save'}); else legacy('settings'); }
+      else if (target.hasAttribute('data-wx-reward')) legacy('caravan');
+    }
+    shell.addEventListener('click', click, { signal:controller.signal });
+    shell.addEventListener('toggle',event=>{ const module=event.target.closest?.('.wx-skill-module');if(module){if(module.open)expandedSkillModules.add(module.dataset.module);else expandedSkillModules.delete(module.dataset.module);} },{capture:true,signal:controller.signal});
+    q('[data-wx-currencies]').addEventListener('scroll',currencyOverflow,{passive:true,signal:controller.signal});
+    document.addEventListener('pointerdown', startPointer, { capture:true, signal:controller.signal });
+    document.addEventListener('pointermove', movePointer, { capture:true, passive:false, signal:controller.signal });
+    document.addEventListener('pointerup', endPointer, { capture:true, signal:controller.signal });
+    document.addEventListener('pointercancel', endPointer, { capture:true, signal:controller.signal });
+    root.addEventListener('blur', () => { cancelSwipe(); activePointers.clear(); }, {signal:controller.signal});
+    root.addEventListener('resize', () => {cancelSwipe();motion?.finish();currencyOverflow();}, {signal:controller.signal});
+    q('.wx-world').addEventListener('keydown', event => { if (event.target.closest('button') || dialog.open) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepArea(event.key === 'ArrowLeft' ? -1 : 1); } }, {signal:controller.signal});
+    function saveStationScroll() {try {root.localStorage?.setItem('wayfarers-world-scroll-v1',JSON.stringify({identity:onboardingIdentity,areas:Object.fromEntries(stationScroll)}));}catch(_){} }
+    stationWorld.addEventListener('scroll',()=>{if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);root.clearTimeout(stationScrollTimer);stationScrollTimer=root.setTimeout(saveStationScroll,150);},{passive:true,signal:controller.signal});
+    shell.addEventListener('input', event => { if (event.target.hasAttribute('data-wx-search')) { upgradeSearch = event.target.value; markup(q('[data-wx-destination]'), destinationBody()); } }, { signal:controller.signal });
+    dialog.addEventListener('click', click, { signal:controller.signal });
+    dialog.addEventListener('input',()=>guide?.refresh(),{signal:controller.signal});
+    dialog.addEventListener('cancel', event => { event.preventDefault(); back(); }, { signal:controller.signal });
+    return {
+      update, notify, close,
+      isOpen: () => dialog.open || !!guide?.isOpen(),
+      handleBack() { if (guide?.handleBack()) return true; if (dialog.open) { back(); return true; } if (screen === 'guild' && guildOrigin) { const origin=guildOrigin; guildOrigin=null; screen=origin.screen; guildPage=origin.page; update(view); q('[data-wx-destination]').scrollTop=origin.scroll; return true; } if (screen !== 'expedition') { screen = 'expedition'; update(view); return true; } return false; },
+      showReturn(offline) {
+        if (!offline || offline.seconds < 60 || !view || dialog.open || options.overlayOpen()) return;
+        const gains = Object.entries(offline.gains || {}).slice(0,4).map(([id, amount]) => ({ id, amount:root.WayfarersCore.format(amount) }));
+        open({ kind:'return', time:offline.seconds >= 3600 ? (offline.seconds / 3600).toFixed(1) + ' hours' : Math.floor(offline.seconds / 60) + ' minutes', gains });
+      },
+      dispose() { saveStationScroll();disposed = true; controller.abort(); root.clearTimeout(toastTimer); root.clearTimeout(tierNoticeTimer); root.clearTimeout(onboardingTimer);root.clearTimeout(stationScrollTimer); guide?.dispose(); motion?.dispose(); scene.dispose();stationScenes.forEach(entry=>entry.scene.dispose());stationScenes.clear(); dialog.remove(); shell.remove(); delete host.dataset.expeditionMode; }
+    };
+  }
+  root.WayfarersExpeditionUI = { create };
+})(typeof globalThis !== 'undefined' ? globalThis : this);

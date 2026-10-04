@@ -1,0 +1,602 @@
+{
+  "schemaVersion": 3,
+  "createdAt": 0,
+  "lastUpdate": 24420000,
+  "resources": {
+    "coins": {
+      "m": 2.656247836293837,
+      "e": 7
+    },
+    "ore": {
+      "m": 2.7121630825004286,
+      "e": 9
+    },
+    "herbs": {
+      "m": 6.3193404485345575,
+      "e": 5
+    },
+    "provisions": {
+      "m": 3.7865664991521553,
+      "e": 5
+    },
+    "knowledge": {
+      "m": 1.4457729937459516,
+      "e": 7
+    },
+    "maps": {
+      "m": 7.764122969388523,
+      "e": 6
+    },
+    "notes": {
+      "m": 0,
+      "e": 0
+    },
+    "crests": {
+      "m": 0,
+      "e": 0
+    },
+    "starshards": {
+      "m": 4,
+      "e": 0
+    }
+  },
+  "upgrades": {
+    "boots": 19,
+    "preparation": 14,
+    "miners": 17,
+    "forge": 14,
+    "foragers": 14,
+    "cooks": 13,
+    "scholars": 12,
+    "surveyors": 11,
+    "mentors": 16,
+    "gear-tools": 23,
+    "gear-boots": 23,
+    "gear-instruments": 14
+  },
+  "research": [
+    "auto-work",
+    "auto-forge",
+    "efficient-smelting",
+    "field-notes",
+    "balanced-meals",
+    "ore-conversion",
+    "map-survey",
+    "auto-route"
+  ],
+  "refitUpgrades": {
+    "pace": 1,
+    "supply": 1,
+    "insight": 0
+  },
+  "legacy": {
+    "foundations": 0,
+    "curriculum": 0,
+    "waystones": 0
+  },
+  "rooms": [
+    "trail",
+    "mine",
+    "forge",
+    "forage",
+    "kitchen",
+    "study",
+    "hall",
+    "cartography"
+  ],
+  "mastery": {
+    "trail": {
+      "m": 1.7659379813324465,
+      "e": 4
+    },
+    "mine": {
+      "m": 1.747158583177234,
+      "e": 4
+    },
+    "forge": {
+      "m": 2.229846366945654,
+      "e": 5
+    },
+    "forage": {
+      "m": 1.686599183402037,
+      "e": 4
+    },
+    "kitchen": {
+      "m": 1.6584481095657575,
+      "e": 4
+    },
+    "study": {
+      "m": 1.6417424528913167,
+      "e": 4
+    },
+    "hall": {
+      "m": 1.6076693314059134,
+      "e": 4
+    },
+    "cartography": {
+      "m": 1.5395837484040962,
+      "e": 4
+    }
+  },
+  "ranks": {
+    "trail": 5,
+    "mine": 5,
+    "forge": 9,
+    "forage": 5,
+    "kitchen": 5,
+    "study": 5,
+    "hall": 5,
+    "cartography": 5
+  },
+  "route": {
+    "index": 9,
+    "progress": {
+      "m": 8.572342222581682,
+      "e": 9
+    },
+    "mode": "frontier"
+  },
+  "run": {
+    "id": 3,
+    "completed": 8,
+    "work": {
+      "m": 1.2780368704249077,
+      "e": 10
+    },
+    "elapsed": 21240
+  },
+  "chapter": {
+    "work": {
+      "m": 1.2780414242828675,
+      "e": 10
+    },
+    "refits": 2
+  },
+  "lifetime": {
+    "work": {
+      "m": 1.2780414242828675,
+      "e": 10
+    },
+    "coins": {
+      "m": 2.535326376299805,
+      "e": 8
+    },
+    "refits": 2,
+    "charters": 0,
+    "highestRoute": 8,
+    "frontier": 0
+  },
+  "crew": {
+    "owned": [],
+    "specialists": [
+      null,
+      null
+    ],
+    "companions": [],
+    "companion": null
+  },
+  "meal": "meal-none",
+  "doctrine": "balanced",
+  "automations": {
+    "operations": true,
+    "equipment": true,
+    "routes": true
+  },
+  "challenges": {
+    "active": null,
+    "completed": []
+  },
+  "collections": [
+    "greenway",
+    "copperhills",
+    "mistwood"
+  ],
+  "planner": 0,
+  "events": [
+    "Copper Hills landmark added to the guild collection.",
+    "Field journals researched.",
+    "Lasting provisions researched.",
+    "Mosslight Way completed.",
+    "Map Room discovered: Produce maps, choose route rewards, and chart the endless frontier.",
+    "Alternative alloys researched.",
+    "Field surveying researched.",
+    "Lantern Marsh completed.",
+    "Route dispatch researched.",
+    "Expedition find: 1 earned Starshard.",
+    "The Hollow Gate completed.",
+    "Mistwood landmark added to the guild collection."
+  ],
+  "premium": {
+    "rng": 3198146626,
+    "eligibleSeconds": 23100,
+    "untilDrop": 26767.959,
+    "drops": 1,
+    "claimedMilestones": [
+      "first-refit"
+    ],
+    "owned": [],
+    "equipped": null
+  },
+  "luck": {
+    "rng": 3608839665,
+    "commonRemainingMs": 173186.93850708008,
+    "relicRemainingMs": 7490238.948037654,
+    "pitySeconds": 10606.116051962346,
+    "owned": [
+      "golden-pickaxe",
+      "surveyors-lens"
+    ],
+    "active": null,
+    "duplicateProgress": {
+      "golden-pickaxe": 100,
+      "surveyors-lens": 100,
+      "living-crucible": 0
+    },
+    "hunt": "balanced",
+    "scheduledHunt": "balanced",
+    "research": [],
+    "kit": {
+      "prepared": null,
+      "active": null,
+      "remainingSeconds": 0
+    },
+    "ledger": {
+      "seq": 41,
+      "seen": 0,
+      "recent": [
+        {
+          "seq": 10,
+          "type": "caravan",
+          "rarity": "rare",
+          "title": "A caravan has arrived",
+          "reward": "Choose a guaranteed reward before an optional ad.",
+          "effect": "This offer stays until used or dismissed. Free progress continues.",
+          "at": 5657776
+        },
+        {
+          "seq": 11,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+570 knowledge",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 6138768.93850708
+        },
+        {
+          "seq": 12,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+266 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 6684456.93850708
+        },
+        {
+          "seq": 13,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+400 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 7253327.93850708
+        },
+        {
+          "seq": 14,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+85,798 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 7904942.93850708
+        },
+        {
+          "seq": 15,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+2,213,744 ore",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 8602456.93850708
+        },
+        {
+          "seq": 16,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+1,999,534 ore",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 9253788.93850708
+        },
+        {
+          "seq": 17,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+155,448 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 9923569.93850708
+        },
+        {
+          "seq": 18,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+479 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 10443787.93850708
+        },
+        {
+          "seq": 19,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+241 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 11133596.93850708
+        },
+        {
+          "seq": 20,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+301 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 11850224.93850708
+        },
+        {
+          "seq": 21,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+205 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 12567471.93850708
+        },
+        {
+          "seq": 22,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+1,256 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 13092836.93850708
+        },
+        {
+          "seq": 23,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+265 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 13802673.93850708
+        },
+        {
+          "seq": 24,
+          "type": "relic",
+          "rarity": "epic",
+          "title": "Surveyor’s Lens discovered",
+          "reward": "A rare expedition discovery.",
+          "effect": "Map Room mastery strengthens knowledge; Study mastery strengthens maps. Each bonus has a fixed ceiling.",
+          "at": 13813883.948037654,
+          "relicId": "surveyors-lens"
+        },
+        {
+          "seq": 25,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+2,732 maps",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 14318002.93850708
+        },
+        {
+          "seq": 26,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+1,247 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 14916785.93850708
+        },
+        {
+          "seq": 27,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+8,828,232 ore",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 15511464.93850708
+        },
+        {
+          "seq": 28,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+14,279 knowledge",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 16013225.93850708
+        },
+        {
+          "seq": 29,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+185,834 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 16564144.93850708
+        },
+        {
+          "seq": 30,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+22,474 maps",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 17226465.93850708
+        },
+        {
+          "seq": 31,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+6,601 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 17826373.93850708
+        },
+        {
+          "seq": 32,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+1,285,040 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 18433486.93850708
+        },
+        {
+          "seq": 33,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+2,278 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 19078165.93850708
+        },
+        {
+          "seq": 34,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+1,696 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 19778791.93850708
+        },
+        {
+          "seq": 35,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+46,590 maps",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 20429177.93850708
+        },
+        {
+          "seq": 36,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+99,424,487 ore",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 20914358.93850708
+        },
+        {
+          "seq": 37,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+120,581 knowledge",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 21565418.93850708
+        },
+        {
+          "seq": 38,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+9,751 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 22209716.93850708
+        },
+        {
+          "seq": 39,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+9,004 herbs",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 22748701.93850708
+        },
+        {
+          "seq": 40,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+49,056 maps",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 23283342.93850708
+        },
+        {
+          "seq": 41,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+2,199 provisions",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 23911527.93850708
+        }
+      ]
+    },
+    "collectionBanner": false,
+    "commonFinds": 38,
+    "relicFinds": 2
+  },
+  "caravan": {
+    "rng": 2442815027,
+    "remainingMs": 0,
+    "offer": {
+      "id": "wg-caravan-0-1-14ee04z",
+      "golden": false,
+      "minutes": 107,
+      "arrivedAt": 5657776,
+      "quote": {
+        "version": 1,
+        "offerId": "wg-caravan-0-1-14ee04z",
+        "kind": "relic",
+        "golden": false,
+        "issuedAt": 24420000,
+        "runId": 3,
+        "charters": 0,
+        "reward": {
+          "resources": {
+            "coins": {
+              "m": 1.098407486511548,
+              "e": 7
+            }
+          },
+          "relic": {
+            "id": "living-crucible",
+            "progress": 20
+          }
+        }
+      },
+      "locked": true
+    },
+    "sequence": 1,
+    "completed": [],
+    "receipts": [],
+    "pendingQuote": {
+      "version": 1,
+      "offerId": "wg-caravan-0-1-14ee04z",
+      "kind": "relic",
+      "golden": false,
+      "issuedAt": 24420000,
+      "runId": 3,
+      "charters": 0,
+      "reward": {
+        "resources": {
+          "coins": {
+            "m": 1.098407486511548,
+            "e": 7
+          }
+        },
+        "relic": {
+          "id": "living-crucible",
+          "progress": 20
+        }
+      }
+    },
+    "surge": {
+      "resource": null,
+      "remainingSeconds": 0
+    }
+  }
+}

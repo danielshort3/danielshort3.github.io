@@ -1,0 +1,2987 @@
+{
+  "state": {
+    "schemaVersion": 5,
+    "createdAt": 0,
+    "lastUpdate": 1800000,
+    "resources": {
+      "coins": {
+        "m": 9.999998093916247,
+        "e": 13
+      },
+      "ore": {
+        "m": 1,
+        "e": 14
+      },
+      "herbs": {
+        "m": 1,
+        "e": 14
+      },
+      "provisions": {
+        "m": 1,
+        "e": 14
+      },
+      "knowledge": {
+        "m": 1,
+        "e": 14
+      },
+      "maps": {
+        "m": 1,
+        "e": 14
+      },
+      "notes": {
+        "m": 0,
+        "e": 0
+      },
+      "crests": {
+        "m": 0,
+        "e": 0
+      },
+      "starshards": {
+        "m": 0,
+        "e": 0
+      }
+    },
+    "upgrades": {
+      "boots": 0,
+      "preparation": 0,
+      "miners": 0,
+      "forge": 0,
+      "foragers": 0,
+      "cooks": 0,
+      "scholars": 0,
+      "surveyors": 0,
+      "mentors": 0,
+      "gear-tools": 0,
+      "gear-boots": 0,
+      "gear-instruments": 0
+    },
+    "research": [],
+    "refitUpgrades": {
+      "pace": 0,
+      "supply": 0,
+      "insight": 0
+    },
+    "legacy": {
+      "foundations": 0,
+      "curriculum": 0,
+      "waystones": 0
+    },
+    "rooms": [
+      "trail",
+      "mine",
+      "forge",
+      "forage",
+      "hall"
+    ],
+    "mastery": {
+      "trail": {
+        "m": 5.3999999999999995,
+        "e": 2
+      },
+      "mine": {
+        "m": 5.053110426440873,
+        "e": 2
+      },
+      "forge": {
+        "m": 3.8420088426704875,
+        "e": 2
+      },
+      "forage": {
+        "m": 1.0637256454737056,
+        "e": 1
+      },
+      "kitchen": {
+        "m": 0,
+        "e": 0
+      },
+      "study": {
+        "m": 0,
+        "e": 0
+      },
+      "hall": {
+        "m": 1.0637256454737056,
+        "e": 1
+      },
+      "cartography": {
+        "m": 0,
+        "e": 0
+      }
+    },
+    "ranks": {
+      "trail": 1,
+      "mine": 1,
+      "forge": 1,
+      "forage": 0,
+      "kitchen": 0,
+      "study": 0,
+      "hall": 0,
+      "cartography": 0
+    },
+    "route": {
+      "index": 3,
+      "progress": {
+        "m": 0,
+        "e": 0
+      },
+      "mode": "frontier"
+    },
+    "run": {
+      "id": 1,
+      "completed": 2,
+      "work": {
+        "m": 3.0570000000000004,
+        "e": 4
+      },
+      "elapsed": 1799.9999999999993
+    },
+    "chapter": {
+      "work": {
+        "m": 3.0570000000000004,
+        "e": 4
+      },
+      "refits": 0
+    },
+    "lifetime": {
+      "work": {
+        "m": 3.0570000000000004,
+        "e": 4
+      },
+      "coins": {
+        "m": 5.9546194494576845,
+        "e": 4
+      },
+      "refits": 10,
+      "charters": 1,
+      "highestRoute": 2,
+      "frontier": 0
+    },
+    "crew": {
+      "owned": [
+        "scout",
+        "prospector",
+        "quartermaster"
+      ],
+      "specialists": [
+        "scout",
+        null
+      ],
+      "companions": [],
+      "companion": null
+    },
+    "meal": "meal-none",
+    "doctrine": "balanced",
+    "automations": {
+      "operations": false,
+      "equipment": false,
+      "routes": false
+    },
+    "challenges": {
+      "active": null,
+      "completed": []
+    },
+    "collections": [
+      "greenway"
+    ],
+    "planner": 0,
+    "events": [
+      "Old Footpath completed.",
+      "Mine discovered: Mine ore. Stronger picks and deeper routes improve its quality.",
+      "Trail establishment expedition completed. Its outpost keeps working.",
+      "Copper Quarry completed.",
+      "Forge built by the quarry expedition. Its equipment strengthens the whole guild.",
+      "Quarry establishment expedition completed. Its outpost keeps working.",
+      "Watchtower Road completed.",
+      "Forager's Camp discovered: Gather herbs for provisions and research instruments.",
+      "Greenway landmark added to the guild collection.",
+      "Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.",
+      "Tower establishment expedition completed. Its outpost keeps working."
+    ],
+    "premium": {
+      "rng": 3806652160,
+      "eligibleSeconds": 1280.67,
+      "untilDrop": 13202.591,
+      "drops": 0,
+      "claimedMilestones": [
+        "first-refit",
+        "first-charter"
+      ],
+      "owned": [],
+      "equipped": null
+    },
+    "luck": {
+      "rng": 2787866157,
+      "commonRemainingMs": 210832.85785304208,
+      "relicRemainingMs": 301767,
+      "pitySeconds": 0,
+      "owned": [],
+      "active": null,
+      "duplicateProgress": {
+        "golden-pickaxe": 0,
+        "surveyors-lens": 0,
+        "living-crucible": 0,
+        "marsh-lantern": 0,
+        "frost-compass": 0,
+        "archive-quill": 0,
+        "starsteel-anvil": 0,
+        "wayfarer-standard": 0
+      },
+      "hunt": "balanced",
+      "scheduledHunt": "balanced",
+      "research": [],
+      "kit": {
+        "prepared": null,
+        "active": null,
+        "remainingSeconds": 0
+      },
+      "ledger": {
+        "seq": 2,
+        "seen": 0,
+        "recent": [
+          {
+            "seq": 1,
+            "type": "supplies",
+            "rarity": "common",
+            "title": "A useful trail find",
+            "reward": "+671 coins",
+            "effect": "Supplies have already joined your stockpile.",
+            "at": 706845.8578530422
+          },
+          {
+            "seq": 2,
+            "type": "supplies",
+            "rarity": "common",
+            "title": "A useful trail find",
+            "reward": "+48.45 ore",
+            "effect": "Supplies have already joined your stockpile.",
+            "at": 1375048.8578530422
+          }
+        ]
+      },
+      "collectionBanner": false,
+      "commonFinds": 2,
+      "relicFinds": 0
+    },
+    "caravan": {
+      "rng": 1760403615,
+      "remainingMs": 4337776,
+      "offer": null,
+      "sequence": 0,
+      "completed": [],
+      "receipts": [],
+      "pendingQuote": null,
+      "surge": {
+        "resource": null,
+        "remainingSeconds": 0
+      }
+    },
+    "guild": {
+      "grandfathered": false,
+      "projects": [],
+      "capabilities": [],
+      "supply": "steady",
+      "prepared": {
+        "index": -1,
+        "kinds": []
+      },
+      "chapterProject": {
+        "number": 1,
+        "choice": null
+      },
+      "plan": {
+        "reserves": {
+          "coins": {
+            "m": 0,
+            "e": 0
+          },
+          "ore": {
+            "m": 0,
+            "e": 0
+          },
+          "herbs": {
+            "m": 0,
+            "e": 0
+          },
+          "provisions": {
+            "m": 0,
+            "e": 0
+          },
+          "knowledge": {
+            "m": 0,
+            "e": 0
+          },
+          "maps": {
+            "m": 0,
+            "e": 0
+          }
+        },
+        "goal": null,
+        "priorities": {
+          "operations": "balanced",
+          "equipment": "balanced"
+        },
+        "queue": [],
+        "kit": "off",
+        "preparation": "off"
+      },
+      "loadouts": [],
+      "audit": []
+    },
+    "introductions": {
+      "seen": []
+    },
+    "expedition": {
+      "version": 3,
+      "index": 2,
+      "cleared": 2,
+      "completed": true,
+      "renewed": false,
+      "selectedArea": "watchtower",
+      "projectArea": "watchtower",
+      "work": 8500,
+      "finaleWork": 1500,
+      "areas": {
+        "greenway": {
+          "ranks": {
+            "boots": 25,
+            "porters": 25,
+            "scouts": 25,
+            "caravans": 25,
+            "waystations": 25,
+            "railways": 25
+          },
+          "highRanks": {
+            "boots": 25,
+            "porters": 25,
+            "scouts": 25,
+            "caravans": 25,
+            "waystations": 25,
+            "railways": 25
+          },
+          "learned": [
+            "boots",
+            "porters",
+            "scouts",
+            "caravans",
+            "waystations",
+            "railways"
+          ],
+          "cap": 1000,
+          "choice": "trade",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 0,
+          "discoveries": {
+            "botanical": 0,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 0,
+            "output": 0
+          },
+          "elapsed": 46379210019.39049,
+          "purchases": 150,
+          "seen": 0
+        },
+        "quarry": {
+          "ranks": {
+            "picks": 25,
+            "carts": 25,
+            "furnace": 25,
+            "geology": 25,
+            "recovery": 25,
+            "deepworks": 25
+          },
+          "highRanks": {
+            "picks": 25,
+            "carts": 25,
+            "furnace": 25,
+            "geology": 25,
+            "recovery": 25,
+            "deepworks": 25
+          },
+          "learned": [
+            "picks",
+            "carts",
+            "furnace",
+            "geology",
+            "recovery",
+            "deepworks"
+          ],
+          "cap": 1000,
+          "choice": "balanced",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 0,
+          "discoveries": {
+            "botanical": 0,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 23,
+            "output": 23
+          },
+          "elapsed": 46379209903.76063,
+          "purchases": 150,
+          "seen": 0
+        },
+        "watchtower": {
+          "ranks": {
+            "beacon": 25,
+            "signals": 25,
+            "crew": 25,
+            "optics": 25,
+            "forecasting": 25,
+            "relay-grid": 25
+          },
+          "highRanks": {
+            "beacon": 25,
+            "signals": 25,
+            "crew": 25,
+            "optics": 25,
+            "forecasting": 25,
+            "relay-grid": 25
+          },
+          "learned": [
+            "beacon",
+            "signals",
+            "crew",
+            "optics",
+            "forecasting",
+            "relay-grid"
+          ],
+          "cap": 1000,
+          "choice": "survey",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 0,
+          "discoveries": {
+            "botanical": 0,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 0,
+            "output": 0
+          },
+          "elapsed": 46379209500.0601,
+          "purchases": 150,
+          "seen": 0
+        },
+        "workshop": {
+          "ranks": {
+            "assembly": 25,
+            "toolmaking": 25,
+            "metallurgy": 25,
+            "mechanisms": 25,
+            "precision": 25,
+            "replication": 25
+          },
+          "highRanks": {
+            "assembly": 25,
+            "toolmaking": 25,
+            "metallurgy": 25,
+            "mechanisms": 25,
+            "precision": 25,
+            "replication": 25
+          },
+          "learned": [
+            "assembly",
+            "toolmaking",
+            "metallurgy",
+            "mechanisms",
+            "precision",
+            "replication"
+          ],
+          "cap": 1000,
+          "choice": "tools",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 0,
+          "discoveries": {
+            "botanical": 0,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 0,
+            "output": 0
+          },
+          "elapsed": 46378989728.52329,
+          "purchases": 150,
+          "seen": 0
+        },
+        "ruins": {
+          "ranks": {
+            "delving": 25,
+            "archaeology": 25,
+            "recovery-teams": 25,
+            "restoration": 25,
+            "attunement": 25,
+            "resonance": 25
+          },
+          "highRanks": {
+            "delving": 25,
+            "archaeology": 25,
+            "recovery-teams": 25,
+            "restoration": 25,
+            "attunement": 25,
+            "resonance": 25
+          },
+          "learned": [
+            "delving",
+            "archaeology",
+            "recovery-teams",
+            "restoration",
+            "attunement",
+            "resonance"
+          ],
+          "cap": 1000,
+          "choice": "industry",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 4.803920090198517,
+          "discoveries": {
+            "botanical": 463663367,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 10,
+            "output": 10
+          },
+          "elapsed": 46366336796.0784,
+          "purchases": 150,
+          "seen": 0
+        },
+        "harbor": {
+          "ranks": {
+            "shipbuilding": 25,
+            "seamanship": 25,
+            "stowage": 25,
+            "contracts": 25,
+            "navigation": 25,
+            "fleet-command": 25
+          },
+          "highRanks": {
+            "shipbuilding": 25,
+            "seamanship": 25,
+            "stowage": 25,
+            "contracts": 25,
+            "navigation": 25,
+            "fleet-command": 25
+          },
+          "learned": [
+            "shipbuilding",
+            "seamanship",
+            "stowage",
+            "contracts",
+            "navigation",
+            "fleet-command"
+          ],
+          "cap": 1000,
+          "choice": "trade",
+          "specialization": null,
+          "plans": {
+            "assignments": [
+              "survey"
+            ],
+            "templates": [
+              "supplies"
+            ],
+            "target": "near",
+            "discovery": "botanical",
+            "loadouts": [
+              "industry"
+            ],
+            "port": "coast"
+          },
+          "voyages": [],
+          "discoveryWork": 0,
+          "discoveries": {
+            "botanical": 0,
+            "metallic": 0,
+            "inscribed": 0
+          },
+          "buffers": {
+            "input": 0,
+            "output": 0
+          },
+          "elapsed": 45423341614.701225,
+          "purchases": 150,
+          "seen": 0
+        }
+      },
+      "projects": [
+        "wheelworks",
+        "tower-surveys",
+        "deposit-maps",
+        "workshop-foundation",
+        "alloy-machinery",
+        "sorting-lines",
+        "workshop-lenses",
+        "rail-network",
+        "industrial-supports",
+        "ruins-expedition",
+        "restoration-laboratory",
+        "precision-patterns",
+        "tower-attunement",
+        "harbor-foundation",
+        "standing-contracts",
+        "ocean-charts",
+        "harbor-observations",
+        "deepwater-equipment",
+        "deepworks-commission",
+        "ruins-resonators",
+        "standardized-production",
+        "continental-exchange",
+        "navigation-artifact",
+        "deepwater-resonance",
+        "guild-industry",
+        "guild-discovery",
+        "guild-commerce"
+      ],
+      "commission": null,
+      "batch": 1,
+      "revision": 971,
+      "focus": {
+        "charges": 3,
+        "recharge": 0,
+        "active": null,
+        "remaining": 0,
+        "unlocked": true
+      },
+      "automation": {
+        "enabled": false,
+        "priority": "balanced",
+        "dispatch": false,
+        "clock": 60
+      },
+      "sequence": 150,
+      "seen": 0,
+      "recent": [
+        {
+          "sequence": 139,
+          "kind": "milestone",
+          "title": "Stowage 3",
+          "text": "+8% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 140,
+          "kind": "milestone",
+          "title": "Stowage 10",
+          "text": "+6% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 141,
+          "kind": "milestone",
+          "title": "Stowage 25",
+          "text": "A specialist plan is now learned permanently.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 142,
+          "kind": "milestone",
+          "title": "Contracts 3",
+          "text": "+8% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 143,
+          "kind": "milestone",
+          "title": "Contracts 10",
+          "text": "+6% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 144,
+          "kind": "milestone",
+          "title": "Contracts 25",
+          "text": "A specialist plan is now learned permanently.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 145,
+          "kind": "milestone",
+          "title": "Navigation 3",
+          "text": "+8% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 146,
+          "kind": "milestone",
+          "title": "Navigation 10",
+          "text": "+6% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 147,
+          "kind": "milestone",
+          "title": "Navigation 25",
+          "text": "A specialist plan is now learned permanently.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 148,
+          "kind": "milestone",
+          "title": "Fleet Command 3",
+          "text": "+8% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 149,
+          "kind": "milestone",
+          "title": "Fleet Command 10",
+          "text": "+6% extra rank capacity at this milestone.",
+          "stage": 2,
+          "areaId": "harbor"
+        },
+        {
+          "sequence": 150,
+          "kind": "milestone",
+          "title": "Fleet Command 25",
+          "text": "A specialist plan is now learned permanently.",
+          "stage": 2,
+          "areaId": "harbor"
+        }
+      ],
+      "purchases": 900,
+      "blueprints": [],
+      "mastery": {
+        "greenway": 0,
+        "quarry": 0,
+        "watchtower": 0
+      },
+      "legacyDevelopments": []
+    }
+  },
+  "expected": {
+    "rates": {
+      "gain": {
+        "coins": {
+          "m": 5.074015534115054,
+          "e": 3
+        },
+        "ore": {
+          "m": 2.3242171780291767,
+          "e": 1
+        },
+        "herbs": {
+          "m": 5.7185309228902454,
+          "e": 0
+        },
+        "provisions": {
+          "m": 6.415002021757014,
+          "e": 1
+        },
+        "knowledge": {
+          "m": 1.9254428408307973,
+          "e": 1
+        },
+        "maps": {
+          "m": 1.4148330468464014,
+          "e": 1
+        },
+        "notes": {
+          "m": 0,
+          "e": 0
+        },
+        "crests": {
+          "m": 0,
+          "e": 0
+        },
+        "starshards": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "drain": {
+        "coins": {
+          "m": 0,
+          "e": 0
+        },
+        "ore": {
+          "m": 1.1308516978349994,
+          "e": 0
+        },
+        "herbs": {
+          "m": 0,
+          "e": 0
+        },
+        "provisions": {
+          "m": 0,
+          "e": 0
+        },
+        "knowledge": {
+          "m": 0,
+          "e": 0
+        },
+        "maps": {
+          "m": 0,
+          "e": 0
+        },
+        "notes": {
+          "m": 0,
+          "e": 0
+        },
+        "crests": {
+          "m": 0,
+          "e": 0
+        },
+        "starshards": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "xp": {
+        "trail": {
+          "m": 2.9999999999999996,
+          "e": -1
+        },
+        "mine": {
+          "m": 2.9999999999999996,
+          "e": -1
+        },
+        "forge": {
+          "m": 2.9999999999999996,
+          "e": -1
+        },
+        "forage": {
+          "m": 2.9999999999999996,
+          "e": -1
+        },
+        "kitchen": {
+          "m": 0,
+          "e": 0
+        },
+        "study": {
+          "m": 0,
+          "e": 0
+        },
+        "hall": {
+          "m": 2.9999999999999996,
+          "e": -1
+        },
+        "cartography": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "travel": {
+        "m": 4.5540674276859106,
+        "e": 2
+      },
+      "kitchenRatio": 1,
+      "mealRatio": 0
+    },
+    "after120": {
+      "schemaVersion": 5,
+      "createdAt": 0,
+      "lastUpdate": 1920000,
+      "resources": {
+        "coins": {
+          "m": 9.999998961639143,
+          "e": 13
+        },
+        "ore": {
+          "m": 1.0000000000265337,
+          "e": 14
+        },
+        "herbs": {
+          "m": 1.0000000000068623,
+          "e": 14
+        },
+        "provisions": {
+          "m": 9.999999999456557,
+          "e": 13
+        },
+        "knowledge": {
+          "m": 1.0000000000231055,
+          "e": 14
+        },
+        "maps": {
+          "m": 1.0000000016011898,
+          "e": 14
+        },
+        "notes": {
+          "m": 0,
+          "e": 0
+        },
+        "crests": {
+          "m": 0,
+          "e": 0
+        },
+        "starshards": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "upgrades": {
+        "boots": 0,
+        "preparation": 0,
+        "miners": 0,
+        "forge": 0,
+        "foragers": 0,
+        "cooks": 0,
+        "scholars": 0,
+        "surveyors": 0,
+        "mentors": 0,
+        "gear-tools": 0,
+        "gear-boots": 0,
+        "gear-instruments": 0
+      },
+      "research": [],
+      "refitUpgrades": {
+        "pace": 0,
+        "supply": 0,
+        "insight": 0
+      },
+      "legacy": {
+        "foundations": 0,
+        "curriculum": 0,
+        "waystones": 0
+      },
+      "rooms": [
+        "trail",
+        "mine",
+        "forge",
+        "forage",
+        "hall"
+      ],
+      "mastery": {
+        "trail": {
+          "m": 5.759999999999998,
+          "e": 2
+        },
+        "mine": {
+          "m": 5.413110426440872,
+          "e": 2
+        },
+        "forge": {
+          "m": 4.2020088426704865,
+          "e": 2
+        },
+        "forage": {
+          "m": 4.663725645473705,
+          "e": 1
+        },
+        "kitchen": {
+          "m": 0,
+          "e": 0
+        },
+        "study": {
+          "m": 0,
+          "e": 0
+        },
+        "hall": {
+          "m": 4.663725645473705,
+          "e": 1
+        },
+        "cartography": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "ranks": {
+        "trail": 1,
+        "mine": 1,
+        "forge": 1,
+        "forage": 0,
+        "kitchen": 0,
+        "study": 0,
+        "hall": 0,
+        "cartography": 0
+      },
+      "route": {
+        "index": 3,
+        "progress": {
+          "m": 0,
+          "e": 0
+        },
+        "mode": "frontier"
+      },
+      "run": {
+        "id": 1,
+        "completed": 2,
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "elapsed": 1919.9999999999998
+      },
+      "chapter": {
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "refits": 0
+      },
+      "lifetime": {
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "coins": {
+          "m": 8.736775164792617,
+          "e": 6
+        },
+        "refits": 10,
+        "charters": 1,
+        "highestRoute": 2,
+        "frontier": 0
+      },
+      "crew": {
+        "owned": [
+          "scout",
+          "prospector",
+          "quartermaster"
+        ],
+        "specialists": [
+          "scout",
+          null
+        ],
+        "companions": [],
+        "companion": null
+      },
+      "meal": "meal-none",
+      "doctrine": "balanced",
+      "automations": {
+        "operations": false,
+        "equipment": false,
+        "routes": false
+      },
+      "challenges": {
+        "active": null,
+        "completed": []
+      },
+      "collections": [
+        "greenway"
+      ],
+      "planner": 0,
+      "events": [
+        "Old Footpath completed.",
+        "Mine discovered: Mine ore. Stronger picks and deeper routes improve its quality.",
+        "Trail establishment expedition completed. Its outpost keeps working.",
+        "Copper Quarry completed.",
+        "Forge built by the quarry expedition. Its equipment strengthens the whole guild.",
+        "Quarry establishment expedition completed. Its outpost keeps working.",
+        "Watchtower Road completed.",
+        "Forager's Camp discovered: Gather herbs for provisions and research instruments.",
+        "Greenway landmark added to the guild collection.",
+        "Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.",
+        "Tower establishment expedition completed. Its outpost keeps working."
+      ],
+      "premium": {
+        "rng": 3806652160,
+        "eligibleSeconds": 1400.67,
+        "untilDrop": 13082.591,
+        "drops": 0,
+        "claimedMilestones": [
+          "first-refit",
+          "first-charter"
+        ],
+        "owned": [],
+        "equipped": null
+      },
+      "luck": {
+        "rng": 2787866157,
+        "commonRemainingMs": 90832.85785304211,
+        "relicRemainingMs": 301767,
+        "pitySeconds": 0,
+        "owned": [],
+        "active": null,
+        "duplicateProgress": {
+          "golden-pickaxe": 0,
+          "surveyors-lens": 0,
+          "living-crucible": 0,
+          "marsh-lantern": 0,
+          "frost-compass": 0,
+          "archive-quill": 0,
+          "starsteel-anvil": 0,
+          "wayfarer-standard": 0
+        },
+        "hunt": "balanced",
+        "scheduledHunt": "balanced",
+        "research": [],
+        "kit": {
+          "prepared": null,
+          "active": null,
+          "remainingSeconds": 0
+        },
+        "ledger": {
+          "seq": 2,
+          "seen": 0,
+          "recent": [
+            {
+              "seq": 1,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+671 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 706845.8578530422
+            },
+            {
+              "seq": 2,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+48.45 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 1375048.8578530422
+            }
+          ]
+        },
+        "collectionBanner": false,
+        "commonFinds": 2,
+        "relicFinds": 0
+      },
+      "caravan": {
+        "rng": 1760403615,
+        "remainingMs": 4217776,
+        "offer": null,
+        "sequence": 0,
+        "completed": [],
+        "receipts": [],
+        "pendingQuote": null,
+        "surge": {
+          "resource": null,
+          "remainingSeconds": 0
+        }
+      },
+      "guild": {
+        "grandfathered": false,
+        "projects": [],
+        "capabilities": [],
+        "supply": "steady",
+        "prepared": {
+          "index": -1,
+          "kinds": []
+        },
+        "chapterProject": {
+          "number": 1,
+          "choice": null
+        },
+        "plan": {
+          "reserves": {
+            "coins": {
+              "m": 0,
+              "e": 0
+            },
+            "ore": {
+              "m": 0,
+              "e": 0
+            },
+            "herbs": {
+              "m": 0,
+              "e": 0
+            },
+            "provisions": {
+              "m": 0,
+              "e": 0
+            },
+            "knowledge": {
+              "m": 0,
+              "e": 0
+            },
+            "maps": {
+              "m": 0,
+              "e": 0
+            }
+          },
+          "goal": null,
+          "priorities": {
+            "operations": "balanced",
+            "equipment": "balanced"
+          },
+          "queue": [],
+          "kit": "off",
+          "preparation": "off"
+        },
+        "loadouts": [],
+        "audit": []
+      },
+      "introductions": {
+        "seen": []
+      },
+      "expedition": {
+        "version": 3,
+        "index": 2,
+        "cleared": 2,
+        "completed": true,
+        "renewed": false,
+        "selectedArea": "watchtower",
+        "projectArea": "watchtower",
+        "work": 8500,
+        "finaleWork": 1500,
+        "areas": {
+          "greenway": {
+            "ranks": {
+              "boots": 25,
+              "porters": 25,
+              "scouts": 25,
+              "caravans": 25,
+              "waystations": 25,
+              "railways": 25
+            },
+            "highRanks": {
+              "boots": 25,
+              "porters": 25,
+              "scouts": 25,
+              "caravans": 25,
+              "waystations": 25,
+              "railways": 25
+            },
+            "learned": [
+              "boots",
+              "porters",
+              "scouts",
+              "caravans",
+              "waystations",
+              "railways"
+            ],
+            "cap": 1000,
+            "choice": "trade",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46379210139.390495,
+            "purchases": 150,
+            "seen": 0
+          },
+          "quarry": {
+            "ranks": {
+              "picks": 25,
+              "carts": 25,
+              "furnace": 25,
+              "geology": 25,
+              "recovery": 25,
+              "deepworks": 25
+            },
+            "highRanks": {
+              "picks": 25,
+              "carts": 25,
+              "furnace": 25,
+              "geology": 25,
+              "recovery": 25,
+              "deepworks": 25
+            },
+            "learned": [
+              "picks",
+              "carts",
+              "furnace",
+              "geology",
+              "recovery",
+              "deepworks"
+            ],
+            "cap": 1000,
+            "choice": "balanced",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 56.314960510160304,
+              "output": 56.314960510160304
+            },
+            "elapsed": 46379210023.760635,
+            "purchases": 150,
+            "seen": 0
+          },
+          "watchtower": {
+            "ranks": {
+              "beacon": 25,
+              "signals": 25,
+              "crew": 25,
+              "optics": 25,
+              "forecasting": 25,
+              "relay-grid": 25
+            },
+            "highRanks": {
+              "beacon": 25,
+              "signals": 25,
+              "crew": 25,
+              "optics": 25,
+              "forecasting": 25,
+              "relay-grid": 25
+            },
+            "learned": [
+              "beacon",
+              "signals",
+              "crew",
+              "optics",
+              "forecasting",
+              "relay-grid"
+            ],
+            "cap": 1000,
+            "choice": "survey",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46379209620.060104,
+            "purchases": 150,
+            "seen": 0
+          },
+          "workshop": {
+            "ranks": {
+              "assembly": 25,
+              "toolmaking": 25,
+              "metallurgy": 25,
+              "mechanisms": 25,
+              "precision": 25,
+              "replication": 25
+            },
+            "highRanks": {
+              "assembly": 25,
+              "toolmaking": 25,
+              "metallurgy": 25,
+              "mechanisms": 25,
+              "precision": 25,
+              "replication": 25
+            },
+            "learned": [
+              "assembly",
+              "toolmaking",
+              "metallurgy",
+              "mechanisms",
+              "precision",
+              "replication"
+            ],
+            "cap": 1000,
+            "choice": "tools",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46378989848.5233,
+            "purchases": 150,
+            "seen": 0
+          },
+          "ruins": {
+            "ranks": {
+              "delving": 25,
+              "archaeology": 25,
+              "recovery-teams": 25,
+              "restoration": 25,
+              "attunement": 25,
+              "resonance": 25
+            },
+            "highRanks": {
+              "delving": 25,
+              "archaeology": 25,
+              "recovery-teams": 25,
+              "restoration": 25,
+              "attunement": 25,
+              "resonance": 25
+            },
+            "learned": [
+              "delving",
+              "archaeology",
+              "recovery-teams",
+              "restoration",
+              "attunement",
+              "resonance"
+            ],
+            "cap": 1000,
+            "choice": "industry",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 2.4338411105191184,
+            "discoveries": {
+              "botanical": 463663381,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 20,
+              "output": 20
+            },
+            "elapsed": 46366336916.07841,
+            "purchases": 150,
+            "seen": 0
+          },
+          "harbor": {
+            "ranks": {
+              "shipbuilding": 25,
+              "seamanship": 25,
+              "stowage": 25,
+              "contracts": 25,
+              "navigation": 25,
+              "fleet-command": 25
+            },
+            "highRanks": {
+              "shipbuilding": 25,
+              "seamanship": 25,
+              "stowage": 25,
+              "contracts": 25,
+              "navigation": 25,
+              "fleet-command": 25
+            },
+            "learned": [
+              "shipbuilding",
+              "seamanship",
+              "stowage",
+              "contracts",
+              "navigation",
+              "fleet-command"
+            ],
+            "cap": 1000,
+            "choice": "trade",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [
+              {
+                "work": 719.9999999999999,
+                "target": 900,
+                "port": "coast",
+                "supplies": 2188.73585614501,
+                "convoy": 18.14137356315714,
+                "payout": {
+                  "coins": {
+                    "m": 2.6894490354014113,
+                    "e": 6
+                  },
+                  "maps": {
+                    "m": 2.6403530263489836,
+                    "e": 4
+                  }
+                }
+              },
+              {
+                "work": 719.9999999999999,
+                "target": 900,
+                "port": "coast",
+                "supplies": 2188.73585614501,
+                "convoy": 18.14137356315714,
+                "payout": {
+                  "coins": {
+                    "m": 1.3447245177007057,
+                    "e": 6
+                  },
+                  "maps": {
+                    "m": 5.280706052697967,
+                    "e": 4
+                  }
+                }
+              }
+            ],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 45423341734.70123,
+            "purchases": 150,
+            "seen": 0
+          }
+        },
+        "projects": [
+          "wheelworks",
+          "tower-surveys",
+          "deposit-maps",
+          "workshop-foundation",
+          "alloy-machinery",
+          "sorting-lines",
+          "workshop-lenses",
+          "rail-network",
+          "industrial-supports",
+          "ruins-expedition",
+          "restoration-laboratory",
+          "precision-patterns",
+          "tower-attunement",
+          "harbor-foundation",
+          "standing-contracts",
+          "ocean-charts",
+          "harbor-observations",
+          "deepwater-equipment",
+          "deepworks-commission",
+          "ruins-resonators",
+          "standardized-production",
+          "continental-exchange",
+          "navigation-artifact",
+          "deepwater-resonance",
+          "guild-industry",
+          "guild-discovery",
+          "guild-commerce"
+        ],
+        "commission": null,
+        "batch": 1,
+        "revision": 971,
+        "focus": {
+          "charges": 3,
+          "recharge": 0,
+          "active": null,
+          "remaining": 0,
+          "unlocked": true
+        },
+        "automation": {
+          "enabled": false,
+          "priority": "balanced",
+          "dispatch": false,
+          "clock": 60
+        },
+        "sequence": 154,
+        "seen": 0,
+        "recent": [
+          {
+            "sequence": 143,
+            "kind": "milestone",
+            "title": "Contracts 10",
+            "text": "+6% extra rank capacity at this milestone.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 144,
+            "kind": "milestone",
+            "title": "Contracts 25",
+            "text": "A specialist plan is now learned permanently.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 145,
+            "kind": "milestone",
+            "title": "Navigation 3",
+            "text": "+8% extra rank capacity at this milestone.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 146,
+            "kind": "milestone",
+            "title": "Navigation 10",
+            "text": "+6% extra rank capacity at this milestone.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 147,
+            "kind": "milestone",
+            "title": "Navigation 25",
+            "text": "A specialist plan is now learned permanently.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 148,
+            "kind": "milestone",
+            "title": "Fleet Command 3",
+            "text": "+8% extra rank capacity at this milestone.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 149,
+            "kind": "milestone",
+            "title": "Fleet Command 10",
+            "text": "+6% extra rank capacity at this milestone.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 150,
+            "kind": "milestone",
+            "title": "Fleet Command 25",
+            "text": "A specialist plan is now learned permanently.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 151,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 152,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 153,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 154,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          }
+        ],
+        "purchases": 900,
+        "blueprints": [],
+        "mastery": {
+          "greenway": 0,
+          "quarry": 0,
+          "watchtower": 0
+        },
+        "legacyDevelopments": []
+      }
+    },
+    "after28800": {
+      "schemaVersion": 5,
+      "createdAt": 0,
+      "lastUpdate": 30600000,
+      "resources": {
+        "coins": {
+          "m": 1.0000269019797454,
+          "e": 14
+        },
+        "ore": {
+          "m": 1.0000000065142893,
+          "e": 14
+        },
+        "herbs": {
+          "m": 1.0000000016889643,
+          "e": 14
+        },
+        "provisions": {
+          "m": 9.999999907132208,
+          "e": 13
+        },
+        "knowledge": {
+          "m": 1.00000000554524,
+          "e": 14
+        },
+        "maps": {
+          "m": 1.0000005056362253,
+          "e": 14
+        },
+        "notes": {
+          "m": 0,
+          "e": 0
+        },
+        "crests": {
+          "m": 0,
+          "e": 0
+        },
+        "starshards": {
+          "m": 1,
+          "e": 0
+        }
+      },
+      "upgrades": {
+        "boots": 0,
+        "preparation": 0,
+        "miners": 0,
+        "forge": 0,
+        "foragers": 0,
+        "cooks": 0,
+        "scholars": 0,
+        "surveyors": 0,
+        "mentors": 0,
+        "gear-tools": 0,
+        "gear-boots": 0,
+        "gear-instruments": 0
+      },
+      "research": [],
+      "refitUpgrades": {
+        "pace": 0,
+        "supply": 0,
+        "insight": 0
+      },
+      "legacy": {
+        "foundations": 0,
+        "curriculum": 0,
+        "waystones": 0
+      },
+      "rooms": [
+        "trail",
+        "mine",
+        "forge",
+        "forage",
+        "hall"
+      ],
+      "mastery": {
+        "trail": {
+          "m": 9.180000000000046,
+          "e": 3
+        },
+        "mine": {
+          "m": 9.145311042644131,
+          "e": 3
+        },
+        "forge": {
+          "m": 9.024200884267088,
+          "e": 3
+        },
+        "forage": {
+          "m": 8.650637256454761,
+          "e": 3
+        },
+        "kitchen": {
+          "m": 0,
+          "e": 0
+        },
+        "study": {
+          "m": 0,
+          "e": 0
+        },
+        "hall": {
+          "m": 8.650637256454761,
+          "e": 3
+        },
+        "cartography": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "ranks": {
+        "trail": 4,
+        "mine": 4,
+        "forge": 4,
+        "forage": 4,
+        "kitchen": 0,
+        "study": 0,
+        "hall": 4,
+        "cartography": 0
+      },
+      "route": {
+        "index": 3,
+        "progress": {
+          "m": 0,
+          "e": 0
+        },
+        "mode": "frontier"
+      },
+      "run": {
+        "id": 1,
+        "completed": 2,
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "elapsed": 30599.999999999938
+      },
+      "chapter": {
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "refits": 0
+      },
+      "lifetime": {
+        "work": {
+          "m": 3.0570000000000004,
+          "e": 4
+        },
+        "coins": {
+          "m": 2.704902797309244,
+          "e": 9
+        },
+        "refits": 10,
+        "charters": 1,
+        "highestRoute": 2,
+        "frontier": 0
+      },
+      "crew": {
+        "owned": [
+          "scout",
+          "prospector",
+          "quartermaster"
+        ],
+        "specialists": [
+          "scout",
+          null
+        ],
+        "companions": [],
+        "companion": null
+      },
+      "meal": "meal-none",
+      "doctrine": "balanced",
+      "automations": {
+        "operations": false,
+        "equipment": false,
+        "routes": false
+      },
+      "challenges": {
+        "active": null,
+        "completed": []
+      },
+      "collections": [
+        "greenway"
+      ],
+      "planner": 3.8701841731381137e-10,
+      "events": [
+        "Old Footpath completed.",
+        "Mine discovered: Mine ore. Stronger picks and deeper routes improve its quality.",
+        "Trail establishment expedition completed. Its outpost keeps working.",
+        "Copper Quarry completed.",
+        "Forge built by the quarry expedition. Its equipment strengthens the whole guild.",
+        "Quarry establishment expedition completed. Its outpost keeps working.",
+        "Watchtower Road completed.",
+        "Forager's Camp discovered: Gather herbs for provisions and research instruments.",
+        "Greenway landmark added to the guild collection.",
+        "Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.",
+        "Tower establishment expedition completed. Its outpost keeps working.",
+        "Expedition find: 1 earned Starshard."
+      ],
+      "premium": {
+        "rng": 3198146626,
+        "eligibleSeconds": 30080.67,
+        "untilDrop": 19787.289,
+        "drops": 1,
+        "claimedMilestones": [
+          "first-refit",
+          "first-charter"
+        ],
+        "owned": [],
+        "equipped": null
+      },
+      "luck": {
+        "rng": 1503639089,
+        "commonRemainingMs": 521905.85785266163,
+        "relicRemainingMs": 301767,
+        "pitySeconds": 0,
+        "owned": [],
+        "active": null,
+        "duplicateProgress": {
+          "golden-pickaxe": 0,
+          "surveyors-lens": 0,
+          "living-crucible": 0,
+          "marsh-lantern": 0,
+          "frost-compass": 0,
+          "archive-quill": 0,
+          "starsteel-anvil": 0,
+          "wayfarer-standard": 0
+        },
+        "hunt": "balanced",
+        "scheduledHunt": "balanced",
+        "research": [],
+        "kit": {
+          "prepared": null,
+          "active": null,
+          "remainingSeconds": 0
+        },
+        "ledger": {
+          "seq": 51,
+          "seen": 0,
+          "recent": [
+            {
+              "seq": 20,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+1,386 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 11390438.857853066
+            },
+            {
+              "seq": 21,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+185,834 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 12026651.857853072
+            },
+            {
+              "seq": 22,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+336 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 12600483.857853075
+            },
+            {
+              "seq": 23,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+800 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 13209827.85785308
+            },
+            {
+              "seq": 24,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+1,345 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 13868293.857853083
+            },
+            {
+              "seq": 25,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+946 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 14407903.857853087
+            },
+            {
+              "seq": 26,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+884 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 15096123.85785309
+            },
+            {
+              "seq": 27,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+281,041 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 15680051.85785309
+            },
+            {
+              "seq": 28,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+169,931 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 16384032.857853096
+            },
+            {
+              "seq": 29,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+340 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 16884833.8578531
+            },
+            {
+              "seq": 30,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+964 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 17590559.857853103
+            },
+            {
+              "seq": 31,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+738 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 18261031.857853103
+            },
+            {
+              "seq": 32,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+284 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 18898614.857853085
+            },
+            {
+              "seq": 33,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+259 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 19598538.85785306
+            },
+            {
+              "seq": 34,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+315 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 20180950.857853036
+            },
+            {
+              "seq": 35,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+196,501 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 20771308.857853014
+            },
+            {
+              "seq": 36,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+307 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 21469842.85785299
+            },
+            {
+              "seq": 37,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+240 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 21978514.857852973
+            },
+            {
+              "seq": 38,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+218,187 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 22689536.857852943
+            },
+            {
+              "seq": 39,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+301,086 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 23364489.85785292
+            },
+            {
+              "seq": 40,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+1,145 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 23877747.857852906
+            },
+            {
+              "seq": 41,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+249 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 24459306.857852884
+            },
+            {
+              "seq": 42,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+219,743 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 25083209.85785286
+            },
+            {
+              "seq": 43,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+296 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 25789530.857852835
+            },
+            {
+              "seq": 44,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+286 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 26314904.857852817
+            },
+            {
+              "seq": 45,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+1,143 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 27030613.85785279
+            },
+            {
+              "seq": 46,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+179,473 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 27567226.85785277
+            },
+            {
+              "seq": 47,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+278,020 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 28172802.857852746
+            },
+            {
+              "seq": 48,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+170,813 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 28783607.857852723
+            },
+            {
+              "seq": 49,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+797 ore",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 29409396.8578527
+            },
+            {
+              "seq": 50,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+196,423 coins",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 29972604.857852686
+            },
+            {
+              "seq": 51,
+              "type": "supplies",
+              "rarity": "common",
+              "title": "A useful trail find",
+              "reward": "+271 herbs",
+              "effect": "Supplies have already joined your stockpile.",
+              "at": 30557883.857852664
+            }
+          ]
+        },
+        "collectionBanner": false,
+        "commonFinds": 50,
+        "relicFinds": 0
+      },
+      "caravan": {
+        "rng": 2442815027,
+        "remainingMs": 0,
+        "offer": {
+          "id": "wg-caravan-0-1-14ee04z",
+          "golden": false,
+          "minutes": 107,
+          "arrivedAt": 6137775.999999995,
+          "quote": null,
+          "locked": false
+        },
+        "sequence": 1,
+        "completed": [],
+        "receipts": [],
+        "pendingQuote": null,
+        "surge": {
+          "resource": null,
+          "remainingSeconds": 0
+        }
+      },
+      "guild": {
+        "grandfathered": false,
+        "projects": [],
+        "capabilities": [],
+        "supply": "steady",
+        "prepared": {
+          "index": -1,
+          "kinds": []
+        },
+        "chapterProject": {
+          "number": 1,
+          "choice": null
+        },
+        "plan": {
+          "reserves": {
+            "coins": {
+              "m": 0,
+              "e": 0
+            },
+            "ore": {
+              "m": 0,
+              "e": 0
+            },
+            "herbs": {
+              "m": 0,
+              "e": 0
+            },
+            "provisions": {
+              "m": 0,
+              "e": 0
+            },
+            "knowledge": {
+              "m": 0,
+              "e": 0
+            },
+            "maps": {
+              "m": 0,
+              "e": 0
+            }
+          },
+          "goal": null,
+          "priorities": {
+            "operations": "balanced",
+            "equipment": "balanced"
+          },
+          "queue": [],
+          "kit": "off",
+          "preparation": "off"
+        },
+        "loadouts": [],
+        "audit": []
+      },
+      "introductions": {
+        "seen": []
+      },
+      "expedition": {
+        "version": 3,
+        "index": 2,
+        "cleared": 2,
+        "completed": true,
+        "renewed": false,
+        "selectedArea": "watchtower",
+        "projectArea": "watchtower",
+        "work": 8500,
+        "finaleWork": 1500,
+        "areas": {
+          "greenway": {
+            "ranks": {
+              "boots": 25,
+              "porters": 25,
+              "scouts": 25,
+              "caravans": 25,
+              "waystations": 25,
+              "railways": 25
+            },
+            "highRanks": {
+              "boots": 25,
+              "porters": 25,
+              "scouts": 25,
+              "caravans": 25,
+              "waystations": 25,
+              "railways": 25
+            },
+            "learned": [
+              "boots",
+              "porters",
+              "scouts",
+              "caravans",
+              "waystations",
+              "railways"
+            ],
+            "cap": 1000,
+            "choice": "trade",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46379238819.388336,
+            "purchases": 150,
+            "seen": 0
+          },
+          "quarry": {
+            "ranks": {
+              "picks": 25,
+              "carts": 25,
+              "furnace": 25,
+              "geology": 25,
+              "recovery": 25,
+              "deepworks": 25
+            },
+            "highRanks": {
+              "picks": 25,
+              "carts": 25,
+              "furnace": 25,
+              "geology": 25,
+              "recovery": 25,
+              "deepworks": 25
+            },
+            "learned": [
+              "picks",
+              "carts",
+              "furnace",
+              "geology",
+              "recovery",
+              "deepworks"
+            ],
+            "cap": 1000,
+            "choice": "balanced",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 56.314960510160304,
+              "output": 56.314960510160304
+            },
+            "elapsed": 46379238703.75848,
+            "purchases": 150,
+            "seen": 0
+          },
+          "watchtower": {
+            "ranks": {
+              "beacon": 25,
+              "signals": 25,
+              "crew": 25,
+              "optics": 25,
+              "forecasting": 25,
+              "relay-grid": 25
+            },
+            "highRanks": {
+              "beacon": 25,
+              "signals": 25,
+              "crew": 25,
+              "optics": 25,
+              "forecasting": 25,
+              "relay-grid": 25
+            },
+            "learned": [
+              "beacon",
+              "signals",
+              "crew",
+              "optics",
+              "forecasting",
+              "relay-grid"
+            ],
+            "cap": 1000,
+            "choice": "survey",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46379238300.057945,
+            "purchases": 150,
+            "seen": 0
+          },
+          "workshop": {
+            "ranks": {
+              "assembly": 25,
+              "toolmaking": 25,
+              "metallurgy": 25,
+              "mechanisms": 25,
+              "precision": 25,
+              "replication": 25
+            },
+            "highRanks": {
+              "assembly": 25,
+              "toolmaking": 25,
+              "metallurgy": 25,
+              "mechanisms": 25,
+              "precision": 25,
+              "replication": 25
+            },
+            "learned": [
+              "assembly",
+              "toolmaking",
+              "metallurgy",
+              "mechanisms",
+              "precision",
+              "replication"
+            ],
+            "cap": 1000,
+            "choice": "tools",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 46379018528.52114,
+            "purchases": 150,
+            "seen": 0
+          },
+          "ruins": {
+            "ranks": {
+              "delving": 25,
+              "archaeology": 25,
+              "recovery-teams": 25,
+              "restoration": 25,
+              "attunement": 25,
+              "resonance": 25
+            },
+            "highRanks": {
+              "delving": 25,
+              "archaeology": 25,
+              "recovery-teams": 25,
+              "restoration": 25,
+              "attunement": 25,
+              "resonance": 25
+            },
+            "learned": [
+              "delving",
+              "archaeology",
+              "recovery-teams",
+              "restoration",
+              "attunement",
+              "resonance"
+            ],
+            "cap": 1000,
+            "choice": "industry",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [],
+            "discoveryWork": 0.9849649673612753,
+            "discoveries": {
+              "botanical": 463666614,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 20,
+              "output": 20
+            },
+            "elapsed": 46366365596.07625,
+            "purchases": 150,
+            "seen": 0
+          },
+          "harbor": {
+            "ranks": {
+              "shipbuilding": 25,
+              "seamanship": 25,
+              "stowage": 25,
+              "contracts": 25,
+              "navigation": 25,
+              "fleet-command": 25
+            },
+            "highRanks": {
+              "shipbuilding": 25,
+              "seamanship": 25,
+              "stowage": 25,
+              "contracts": 25,
+              "navigation": 25,
+              "fleet-command": 25
+            },
+            "learned": [
+              "shipbuilding",
+              "seamanship",
+              "stowage",
+              "contracts",
+              "navigation",
+              "fleet-command"
+            ],
+            "cap": 1000,
+            "choice": "trade",
+            "specialization": null,
+            "plans": {
+              "assignments": [
+                "survey"
+              ],
+              "templates": [
+                "supplies"
+              ],
+              "target": "near",
+              "discovery": "botanical",
+              "loadouts": [
+                "industry"
+              ],
+              "port": "coast"
+            },
+            "voyages": [
+              {
+                "work": 899.9974295305074,
+                "target": 900,
+                "port": "coast",
+                "supplies": 2188.73585614501,
+                "convoy": 18.14137356315714,
+                "payout": {
+                  "coins": {
+                    "m": 2.6894490354014113,
+                    "e": 6
+                  },
+                  "maps": {
+                    "m": 2.6403530263489836,
+                    "e": 4
+                  }
+                }
+              },
+              {
+                "work": 899.9974295305074,
+                "target": 900,
+                "port": "coast",
+                "supplies": 2188.73585614501,
+                "convoy": 18.14137356315714,
+                "payout": {
+                  "coins": {
+                    "m": 1.3447245177007057,
+                    "e": 6
+                  },
+                  "maps": {
+                    "m": 5.280706052697967,
+                    "e": 4
+                  }
+                }
+              }
+            ],
+            "discoveryWork": 0,
+            "discoveries": {
+              "botanical": 0,
+              "metallic": 0,
+              "inscribed": 0
+            },
+            "buffers": {
+              "input": 0,
+              "output": 0
+            },
+            "elapsed": 45423370414.69907,
+            "purchases": 150,
+            "seen": 0
+          }
+        },
+        "projects": [
+          "wheelworks",
+          "tower-surveys",
+          "deposit-maps",
+          "workshop-foundation",
+          "alloy-machinery",
+          "sorting-lines",
+          "workshop-lenses",
+          "rail-network",
+          "industrial-supports",
+          "ruins-expedition",
+          "restoration-laboratory",
+          "precision-patterns",
+          "tower-attunement",
+          "harbor-foundation",
+          "standing-contracts",
+          "ocean-charts",
+          "harbor-observations",
+          "deepwater-equipment",
+          "deepworks-commission",
+          "ruins-resonators",
+          "standardized-production",
+          "continental-exchange",
+          "navigation-artifact",
+          "deepwater-resonance",
+          "guild-industry",
+          "guild-discovery",
+          "guild-commerce"
+        ],
+        "commission": null,
+        "batch": 1,
+        "revision": 971,
+        "focus": {
+          "charges": 3,
+          "recharge": 0,
+          "active": null,
+          "remaining": 0,
+          "unlocked": true
+        },
+        "automation": {
+          "enabled": false,
+          "priority": "balanced",
+          "dispatch": false,
+          "clock": 60
+        },
+        "sequence": 1492,
+        "seen": 0,
+        "recent": [
+          {
+            "sequence": 1481,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1482,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1483,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1484,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1485,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1486,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1487,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1488,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1489,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1490,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1491,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          },
+          {
+            "sequence": 1492,
+            "kind": "stage",
+            "title": "Voyage delivered",
+            "text": "coast cargo arrived automatically. Supplies were paid when the ship departed.",
+            "stage": 2,
+            "areaId": "harbor"
+          }
+        ],
+        "purchases": 900,
+        "blueprints": [],
+        "mastery": {
+          "greenway": 0,
+          "quarry": 0,
+          "watchtower": 0
+        },
+        "legacyDevelopments": []
+      }
+    }
+  }
+}
