@@ -65,6 +65,12 @@ async function assertClosed(page, label, expectedHash = '') {
     `${label} presents an intentional resting state with meaningful copy.`);
   assert.equal(await page.locator('.site-frame__welcome').count(), 1,
     `${label} reuses one visible welcome after the frame mounts.`);
+  assert.equal((await page.locator('.site-frame__welcome-title').innerText()).replace(/\s+/g, ' ').trim(), 'Daniel Short',
+    `${label} preserves the name without punctuation through home transitions.`);
+  assert.equal(await page.locator('.site-frame__welcome-summary').innerText(), 'I build tools, explore data, and make games.',
+    `${label} preserves the selected single-sentence introduction.`);
+  assert.equal(await page.locator('.site-frame__welcome p').count(), 1,
+    `${label} keeps the introduction free of an eyebrow or extra paragraph.`);
   const browseLink = page.locator('.site-frame__welcome-browse:visible');
   assert.equal(await browseLink.count(), 1,
     `${label} exposes one project-library link beside the category bars.`);
@@ -188,6 +194,8 @@ async function runViewport({ browser, base, artifactDir }, settings) {
       assert.equal(staticResponse.status(), 200, `${settings.name} raw homepage responds successfully.`);
       assert(await staticPage.locator('.home-accordion__welcome h1').isVisible(),
         `${settings.name} raw HTML displays the authored introduction without JavaScript.`);
+      assert.equal((await staticPage.locator('.home-accordion__welcome h1').textContent()).replace(/\s+/g, ' ').trim(), 'Daniel Short',
+        `${settings.name} raw HTML retains the readable full name without JavaScript.`);
       assert.equal(await staticPage.locator('.home-accordion__welcome .site-frame__welcome-browse:visible').count(), 1,
         `${settings.name} raw HTML exposes the project-library link without JavaScript.`);
       assert.equal(await staticPage.locator('.home-accordion__noscript a:visible').count(), 3,

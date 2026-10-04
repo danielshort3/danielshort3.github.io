@@ -105,10 +105,8 @@
           "defaultPanel": "about",
           "initialView": "closed",
           "welcome": {
-            "eyebrow": "WELCOME",
-            "title": "Daniel Short.",
-            "summary": "Solving everyday problems with data and thoughtful tools.",
-            "detail": "I use data, AI, and machine learning to build practical projects and browser tools.",
+            "title": "Daniel Short",
+            "summary": "I build tools, explore data, and make games.",
             "browseLink": { "label": "Browse all projects", "href": "/portfolio" }
           },
           "categories": [
