@@ -11,6 +11,16 @@ const { prepareBundle, parseArgs, validateManifest } = require('./prepare-app-up
 const { sha256, applyPatch } = require('./app-update-format.cjs');
 const ROOT = path.resolve(__dirname, '../../..');
 
+test('standalone sideload installer survives the main app Play-source removal without duplicate classes', () => {
+  const gradle = fs.readFileSync(path.join(ROOT, 'mobile/android/wayfarers/build.gradle.kts'), 'utf8');
+  const adapter = fs.readFileSync(path.join(ROOT, 'mobile/android/wayfarers/src/main/java/me/danielshort/app/updates/AutomaticAppInstaller.kt'), 'utf8');
+  assert.match(gradle, /exclude\("me\/danielshort\/app\/updates\/AutomaticAppInstaller\.kt"\)/);
+  assert.match(gradle, /exclude\("me\/danielshort\/app\/updates\/AutomaticInstallReceiver\.kt"\)/);
+  assert.match(adapter, /class AutomaticAppInstaller/);
+  assert.match(adapter, /AutomaticInstallEngine\(/);
+  assert.doesNotMatch(adapter, /SiteApplication/);
+});
+
 test('standalone assets use the canonical game bytes and contain no website cache or network scripts', () => {
   const output = fs.mkdtempSync(path.join(os.tmpdir(), 'wayfarers-bundle-'));
   const records = bundle(output);

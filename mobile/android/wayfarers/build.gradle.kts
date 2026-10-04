@@ -22,11 +22,13 @@ val updateFeed = "https://github.com/danielshort3/danielshort3.github.io/release
 val persistentSigningKey = File(System.getProperty("user.home"), ".android/debug.keystore")
 
 // Compile the canonical implementation verbatim. The only application-specific
-// updater class is supplied by this module: its private installer receiver.
+// Android installer adapters are supplied by this sideload-only module. The
+// main app's Play distribution no longer includes that platform bridge.
 val shareUpdaterSources by tasks.registering(Sync::class) {
   from(rootProject.file("app/src/main/java")) {
     include("me/danielshort/app/updates/*.kt", "me/danielshort/app/data/AppSettings.kt")
     exclude("me/danielshort/app/updates/AutomaticInstallReceiver.kt")
+    exclude("me/danielshort/app/updates/AutomaticAppInstaller.kt")
   }
   into(updaterSources)
 }

@@ -296,9 +296,9 @@
       else C.RELICS.filter(def => !own(out.luck.duplicateProgress, def.id)).forEach(def => { out.luck.duplicateProgress[def.id] = 0; });
       out.guild = createGuild(true);
       out.guild.chapterProject.number = out.lifetime.charters;
-      out.introductions = { seen: presentationSystems(out).map(system => system.id) };
       out.expedition = E.hydrate(out, ratio(input.route.progress, getRoute(input.route.index, input).distance));
       out.areaSkills = Skills.initial(out, true); out.stations = Stations.initial(out);
+      out.introductions = { seen: presentationSystems(out).map(system => system.id) };
       return validateState(out).valid ? out : null;
     } catch (_) { return null; }
   }

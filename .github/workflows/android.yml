@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'mobile/android/**'
+      - 'js/games/wayfarers-guild/**'
+      - 'css/games/wayfarers-guild.css'
+      - 'pages/games/wayfarers-guild.html'
+      - 'build/bundle-wayfarers-android.cjs'
       - 'content/**'
       - 'img/**'
       - 'build/generate-mobile-content.js'
@@ -22,6 +26,10 @@ on:
   pull_request:
     paths:
       - 'mobile/android/**'
+      - 'js/games/wayfarers-guild/**'
+      - 'css/games/wayfarers-guild.css'
+      - 'pages/games/wayfarers-guild.html'
+      - 'build/bundle-wayfarers-android.cjs'
       - 'content/**'
       - 'img/**'
       - 'build/generate-mobile-content.js'
@@ -98,6 +106,21 @@ jobs:
           name: android-review-${{ github.sha }}
           path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 14
+
+      - name: Test, lint, and compile the standalone Guild
+        working-directory: mobile/android
+        run: bash ./gradlew --no-daemon --console=plain :wayfarers:testDebugUnitTest :wayfarers:lintRelease :wayfarers:assembleRelease :wayfarers:assembleDebugAndroidTest
+
+      - name: Upload standalone Guild validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfarers-android-reports-${{ github.sha }}
+          path: |
+            mobile/android/wayfarers/build/reports/tests/
+            mobile/android/wayfarers/build/reports/lint-results-release.*
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Upload test and lint reports

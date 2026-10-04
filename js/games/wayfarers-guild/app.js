@@ -1572,14 +1572,18 @@
 
     setMarkup(q('[data-open="settings"]'), icon('settings'));
     setMarkup(q('[data-profession-flow]'), '<span>' + icon('ore') + 'Ore</span><b aria-hidden="true">→</b><span>' + icon('tools') + 'Equipment</span><b aria-hidden="true">→</b><span>' + icon('trail') + 'Routes</span>');
+    // Website privacy controls must remain operable before a hands-on lesson
+    // isolates the page. Native game content has no consent banner or modal.
+    const websiteConsentOpen = () => !!document.getElementById('pcz-banner') || document.body?.dataset.consentBanner === 'open' || document.body?.classList.contains('consent-blocked');
+    root.addEventListener('consent-ui-closed', () => { if (!disposed) render(); }, { signal });
     if (root.WayfarersExpeditionUI && root.WayfarersExpeditionScene && view.expedition && view.expedition.local) {
       expeditionUI = root.WayfarersExpeditionUI.create({
         element:q('[data-game]'), perform, quiet,
         openLegacy:openDialog,
         legacySheet:() => dialog.open && dialog.getClientRects().length ? { kind:dialogKind, element:dialog } : null,
-        overlayOpen:() => dialog.open || !q('[data-find-feedback]').hidden,
-        tierNoticeAllowed:() => !disposed && !dialog.open && !caravanBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
-        onboardingAllowed:() => !disposed && !dialog.open && !caravanBusy && !billingBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
+        overlayOpen:() => websiteConsentOpen() || dialog.open || !q('[data-find-feedback]').hidden,
+        tierNoticeAllowed:() => !websiteConsentOpen() && !disposed && !dialog.open && !caravanBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
+        onboardingAllowed:() => !websiteConsentOpen() && !disposed && !dialog.open && !caravanBusy && !billingBusy && !awaitingPurchaseWallet && !saveFailure && !hardResetBusy && pendingCatchup <= 1,
         nativeOptions:() => q('.wg-exit').click()
       });
       scene.destroy();
