@@ -39,7 +39,7 @@ class GuildReleaseSnapshotTest {
       evaluate(scenario, """
         var later=document.querySelector('.wx-sheet[open] [data-wx-do="onboarding-later"]'); if(later) later.click();
         var close=document.querySelector('.wx-sheet[open] [data-wx-close]'); if(close) close.click();
-        document.querySelector('[data-wx-options]').click();
+        (document.querySelector('.wx-guide[open] [data-guide-settings]') || document.querySelector('[data-wx-options]')).click();
         document.querySelector('[data-wx-do="settings"]').click(); true;
       """.trimIndent())
       Thread.sleep(400)
@@ -50,7 +50,7 @@ class GuildReleaseSnapshotTest {
       var after = JSONObject()
       while (System.nanoTime() < deadline) {
         after = read(scenario)
-        if (after.optBoolean("confirmed") && after.optLong("createdAt") != before.optLong("createdAt")) break
+        if (after.optBoolean("confirmed") && after.optLong("createdAt") != before.optLong("createdAt") && after.optString("step") == "currency:coins") break
         Thread.sleep(150)
       }
       assertTrue("Confirmed reset must persist a distinct new guild: $after", after.optBoolean("confirmed") && after.optLong("createdAt") != before.optLong("createdAt"))
