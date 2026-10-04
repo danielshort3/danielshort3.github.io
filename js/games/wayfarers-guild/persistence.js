@@ -10,6 +10,7 @@
   const SAVE_KEY = 'wayfarers-guild-save-v1';
   const BACKUP_KEY = SAVE_KEY + '-backup';
   const RESET_KEY = SAVE_KEY + '-reset';
+  const UPDATE_RESET_BACKUP_KEY = SAVE_KEY + '-before-update-reset';
   const FORMAT = 'wayfarers-guild-save';
   const VERSION = 8;
   const MAX_BYTES = 1024 * 1024;
@@ -371,7 +372,8 @@
           (value.previousCreatedAt !== null && !validTime(value.previousCreatedAt)) ||
           (value.text !== null && (typeof value.text !== 'string' || !parse(value.text).ok)) ||
           typeof value.seedText !== 'string' || !parse(value.seedText).ok || parse(value.seedText).payload.resetGeneration !== value.id ||
-          (value.text !== null && parse(value.text).payload.resetGeneration !== value.id)) return null;
+          (value.text !== null && parse(value.text).payload.resetGeneration !== value.id) ||
+          (value.updateId !== undefined && (typeof value.updateId !== 'string' || !/^[a-zA-Z0-9-]{16,100}$/.test(value.updateId)))) return null;
         return value;
       } catch (error) { return null; }
     }
@@ -429,8 +431,17 @@
       const main = readSave(SAVE_KEY);
       if (!main.ok || (hasObservedMain && main.text !== observedMain)) return result(false, 'conflict', CONFLICT_MESSAGE);
       const old = main.text && parse(main.text);
+      const updateId = options && options.updateId;
+      if (updateId !== undefined && (typeof updateId !== 'string' || !/^[a-zA-Z0-9-]{16,100}$/.test(updateId))) return result(false, 'invalid', 'The update reset could not be verified. Your guild is unchanged.');
+      if (options && options.preserveCommerce && old && old.ok && old.payload.state.caravan.pendingQuote) return result(false, 'reward-pending', 'Finish the reserved caravan reward before resetting. Your guild is unchanged.');
       const time = now();
       const next = core.createState(time);
+      if (options && options.preserveCommerce && old && old.ok) {
+        next.premium.owned = old.payload.state.premium.owned.slice();
+        next.premium.equipped = old.payload.state.premium.equipped;
+        next.caravan.receipts = old.payload.state.caravan.receipts.slice();
+        next.caravan.completed = old.payload.state.caravan.completed.slice();
+      }
       if (old && old.ok && next.createdAt === old.payload.state.createdAt) next.createdAt = Math.min(MAX_TIME, next.createdAt + 1);
       const serialized = serialize(next, time, false);
       if (!serialized.ok) return serialized;
@@ -441,7 +452,13 @@
       const seedText = JSON.stringify(freshEnvelope);
       const journal = { version: 1, id, previousId: previousJournal ? previousJournal.id : '',
         previousCreatedAt: old && old.ok ? old.payload.state.createdAt : null, text: seedText, seedText };
+      if (updateId) journal.updateId = updateId;
       try {
+        if (options && options.backupBeforeReset) {
+          if (!old || !old.ok) return result(false, 'invalid', 'A valid pre-update guild backup is required. No progress was changed.');
+          storage.setItem(UPDATE_RESET_BACKUP_KEY, main.text);
+          if (storage.getItem(UPDATE_RESET_BACKUP_KEY) !== main.text) return result(false, 'unavailable', 'The pre-reset backup could not be saved. Your guild is unchanged.');
+        }
         storage.setItem(RESET_KEY, JSON.stringify(journal));
         observedReset = JSON.stringify(journal); resetObserved = true;
       } catch (error) { return result(false, 'unavailable', 'The reset could not be started. Your existing guild is unchanged.'); }
@@ -452,5 +469,5 @@
       resetForTesting, pendingReset, finishReset };
   }
 
-  return { createStore: createStore, SAVE_KEY: SAVE_KEY, BACKUP_KEY: BACKUP_KEY, RESET_KEY: RESET_KEY, FORMAT: FORMAT, VERSION: VERSION, MAX_BYTES: MAX_BYTES };
+  return { createStore: createStore, SAVE_KEY: SAVE_KEY, BACKUP_KEY: BACKUP_KEY, RESET_KEY: RESET_KEY, UPDATE_RESET_BACKUP_KEY, FORMAT: FORMAT, VERSION: VERSION, MAX_BYTES: MAX_BYTES };
 }));

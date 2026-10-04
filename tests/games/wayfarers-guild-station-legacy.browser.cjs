@@ -1,6 +1,6 @@
 'use strict';
 
-// Retained shipped economy uses the new world/drawer presentation. Funded
+// Retained shipped economy uses its real mapped tracks in the inline strips. Funded
 // fixtures isolate renderer and real transaction continuity, never pacing.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -12,8 +12,8 @@ const { bundle } = require('../../build/bundle-wayfarers-android.cjs');
 const H = require('./helpers/wayfarers-progression.cjs');
 const F = require('./helpers/wayfarers-onboarding.cjs');
 const Storage = require('../../js/games/wayfarers-guild/persistence');
-const output = fs.mkdtempSync(path.join(os.tmpdir(), 'guild-station-legacy-'));
-const report = { output, flows: [], errors: [] };
+const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'guild-station-legacy-')));
+const report = { output, browser: 'Browser plugin not available; repository Playwright workflow used.', flows: [], errors: [] };
 async function run() {
   const files = path.join(output, 'bundle');
   bundle(files);
@@ -56,26 +56,34 @@ async function run() {
           assert.match(await page.locator('[data-wx-station-open="quarry:tool-forge"]').innerText(), /Refinery/);
         }
         for (const station of area.stations) {
+          const realRows = station.skills.filter(row => row.visible !== false && row.action?.type === 'expedition-buy');
+          const segment = page.locator('[data-wx-station="' + station.id + '"]');
+          assert.deepEqual(await segment.locator('.wx-inline-upgrade').evaluateAll(nodes => nodes.map(node => node.dataset.wxInlineSkill)), realRows.map(row => row.id), 'Only the real retained production tracks belong inline to this station');
+          assert.equal(await segment.locator('.wx-inline-upgrade[data-state="locked"]').count(), 0, 'A developed retained save receives no artificial canonical locks');
+          assert(Math.abs((await segment.locator('.wx-station-controls').boundingBox()).height - 104) < .1, 'Retained tracks keep the same reserved strip height');
           await page.locator('[data-wx-station-open="' + station.id + '"]').click();
           assert.equal(await page.locator('[data-wx-do="upgrade-scope:area"]').count(), 0, 'New Area infrastructure is absent until reset');
-          assert.deepEqual(await page.locator('.wx-station-row').evaluateAll(nodes => nodes.map(node => node.dataset.wxStationSkill)), station.skills.map(row => row.id), 'Exactly the real retained purchases belong to this station');
+          assert.deepEqual(await page.locator('.wx-station-row').evaluateAll(nodes => nodes.map(node => node.dataset.wxStationSkill)), station.skills.filter(row => row.visible !== false && row.action?.type !== 'expedition-buy').map(row => row.id), 'The drawer retains advanced techniques without duplicating real inline production');
+          assert.equal(await page.locator('[data-wx-do="station-core:' + station.id + '"]').count(), 1);
           await page.locator('[data-wx-drawer-close]').click();
         }
         const purchase = area.stations.flatMap(station => station.skills.map(row => ({ station, row }))).find(({ row }) => row.action?.type === 'expedition-buy' && !row.disabled);
         assert(purchase, 'A real legacy purchase remains available');
-        await page.locator('[data-wx-station-open="' + purchase.station.id + '"]').click();
+        const cell = page.locator('[data-wx-inline-skill="' + purchase.row.id + '"]');
+        await cell.scrollIntoViewIfNeeded();
+        await page.evaluate(id => { const cell = document.querySelector('[data-wx-inline-skill="' + id + '"]'); window.__legacyInline = { cell, buy: cell.querySelector('.wx-inline-buy'), canvas: cell.closest('.wx-station-segment').querySelector('canvas'), scroll: document.querySelector('.wx-station-world').scrollTop }; }, purchase.row.id);
         const before = await saved();
         const expected = H.clone(before);
-        const actualRow = H.Core.getView(before).stations.currentStation.skills.find(row => row.id === purchase.row.id);
+        const actualRow = H.Core.getView(before).stations.currentArea.stations.find(station => station.id === purchase.station.id).skills.find(row => row.id === purchase.row.id);
         const bought = H.Core.act(expected, actualRow.action);
         assert(bought.ok, bought.message);
-        await page.locator('[data-wx-station-skill="' + purchase.row.id + '"] .wx-station-buy').click();
+        await cell.locator('.wx-inline-buy').click();
         const after = await saved();
         assert.equal(after.expedition.version, 3, 'Presentation does not adopt a new economy');
         assert.equal(after.expedition.areas[area.id].ranks[purchase.row.action.id], expected.expedition.areas[area.id].ranks[purchase.row.action.id], 'The visible purchase applies the actual legacy quote');
+        assert(await page.evaluate(() => { const prior = window.__legacyInline; return prior.cell.isConnected && prior.cell.querySelector('.wx-inline-buy') === prior.buy && prior.cell.closest('.wx-station-segment').querySelector('canvas') === prior.canvas && document.querySelector('.wx-station-world').scrollTop === prior.scroll; }), 'Retained transaction keeps the art, button and camera intact');
         assert(H.Core.validateState(after).valid);
         await page.screenshot({ path: path.join(output, 'legacy-' + area.id + '-' + width + '.png') });
-        await page.locator('[data-wx-drawer-close]').click();
       }
       await page.reload();
       await page.clock.runFor(1500);
@@ -83,7 +91,7 @@ async function run() {
       assert((await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 1);
       await context.close();
     }
-    report.flows.push('320/390 retained economy: real owner-grouped tracks and techniques, Refinery semantics, no invented Crystal Lab or new Area scope; actual purchases and reload preserve version3');
+    report.flows.push('320/390 retained economy: every real mapped expedition-buy track appears under its owner station, without artificial slots/locks or drawer duplicates; advanced techniques, Refinery semantics and exact purchase effects survive; no invented Crystal Lab or new Area scope; actual inline purchases and reload preserve version3');
     assert.deepEqual(report.errors, []);
     process.stdout.write(JSON.stringify({ ok: true, ...report }, null, 2) + '\n');
   } finally {

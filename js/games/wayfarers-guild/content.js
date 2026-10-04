@@ -2,7 +2,17 @@
   'use strict';
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
-  if (root) root.WayfarersContent = api;
+  if (root) {
+    const host = root.WayfarersContent;
+    // The APK supplies trusted document metadata independently of this catalog.
+    // Preserve it regardless of whether native bootstrap or this file runs first.
+    if (host && Number.isSafeInteger(host.version) && host.version > 0 && typeof host.documentToken === 'string') {
+      ['version', 'label', 'apkVersion', 'documentToken', 'recoveryToken', 'restoreFailed'].forEach(key => {
+        if (Object.prototype.hasOwnProperty.call(host, key)) api[key] = host[key];
+      });
+    }
+    root.WayfarersContent = api;
+  }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const RESOURCES = [

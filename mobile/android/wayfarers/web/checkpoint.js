@@ -34,7 +34,9 @@
       (!reset || (!resetPending && native.previousGeneration === generation))) {
       // Native reset committed before WebView files did. Never retain the erased
       // guild as a fallback when restoring a new reset generation.
-      localStorage.setItem(api.RESET_KEY, JSON.stringify({ version: 1, id: nativeGeneration, previousId: native.previousGeneration || '', previousCreatedAt: native.replacesCreatedAt ?? null, text: native.text, seedText: native.text }));
+      const restored = { version: 1, id: nativeGeneration, previousId: native.previousGeneration || '', previousCreatedAt: native.replacesCreatedAt ?? null, text: native.text, seedText: native.text };
+      if (native.updateId) restored.updateId = native.updateId;
+      localStorage.setItem(api.RESET_KEY, JSON.stringify(restored));
       generation = nativeGeneration; resetPending = true;
     } else if (durable && resetPending && nativeGeneration === generation &&
       durable.state.createdAt === parse(reset.text).state.createdAt && durable.savedAt >= parse(reset.text).savedAt) {
@@ -107,8 +109,8 @@
       if (result.ok && result.persisted) mirror(previous && previous.state.createdAt);
       return result;
     };
-    store.resetForTesting = async function () {
-      const result = resetForTesting({ deferCommit: true });
+    store.resetForTesting = async function (options) {
+      const result = resetForTesting(Object.assign({}, options || {}, { deferCommit: true }));
       if (!result.ok) return result;
       const journal = result.journal || store.pendingReset();
       if (!journal || !journal.text) return { ok: false, status: 'reset-pending', message: 'The reset could not be verified.' };
@@ -119,7 +121,7 @@
       const confirmed = await new Promise(resolve => {
         const timer = setTimeout(() => { resetRequests.delete(requestId); resolve(false); }, 8000);
         resetRequests.set(requestId, { resolve, timer });
-        try { window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'reset-guild', requestId, text: journal.text, generation: journal.id, previousGeneration: journal.previousId,
+        try { window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'reset-guild', requestId, text: journal.text, generation: journal.id, previousGeneration: journal.previousId, updateId: journal.updateId || '',
           documentToken: window.WayfarersContent && window.WayfarersContent.documentToken })); }
         catch (error) { clearTimeout(timer); resetRequests.delete(requestId); resolve(false); }
       });

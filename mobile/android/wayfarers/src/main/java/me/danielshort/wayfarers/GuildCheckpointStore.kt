@@ -9,7 +9,7 @@ import java.security.MessageDigest
 
 /** A private, fsynced copy of the validated game envelope, never a purchase wallet. */
 class GuildCheckpointStore(private val file: File) {
-  data class Checkpoint(val text: String, val createdAt: Double, val savedAt: Double, val lastUpdate: Double, val replacesCreatedAt: Double?, val generation: String = "", val previousGeneration: String? = null)
+  data class Checkpoint(val text: String, val createdAt: Double, val savedAt: Double, val lastUpdate: Double, val replacesCreatedAt: Double?, val generation: String = "", val previousGeneration: String? = null, val updateId: String? = null)
 
   @Synchronized fun read(): Checkpoint? = runCatching {
     if (!file.isFile || file.length() !in 1..MAX_RECORD_BYTES.toLong()) return null
@@ -23,7 +23,8 @@ class GuildCheckpointStore(private val file: File) {
     val text = record.getString("text")
     require(record.getString("sha256") == digest(text))
     return parse(text, if (record.has("replacesCreatedAt")) record.getDouble("replacesCreatedAt") else null).copy(
-      generation = record.optString("generation", ""), previousGeneration = if (record.has("previousGeneration")) record.getString("previousGeneration") else null)
+      generation = record.optString("generation", ""), previousGeneration = if (record.has("previousGeneration")) record.getString("previousGeneration") else null,
+      updateId = if (record.has("updateId")) record.getString("updateId").also { require(it.matches(Regex("[a-zA-Z0-9-]{16,100}"))) } else null)
   }
 
   /** Only the native content transaction can restore its verified pre-apply record. */
@@ -55,19 +56,26 @@ class GuildCheckpointStore(private val file: File) {
       if (!backup.exists()) atomicWrite(backup, file.readBytes())
       decodeRecord(backup.readText(Charsets.UTF_8))
     }
-    persist(incoming.copy(replacesCreatedAt = replacement, generation = generation, previousGeneration = previous?.previousGeneration))
+    persist(incoming.copy(replacesCreatedAt = replacement, generation = generation, previousGeneration = previous?.previousGeneration,
+      updateId = previous?.takeIf { it.createdAt == incoming.createdAt }?.updateId))
     true
   }.getOrDefault(false)
 
-  @Synchronized fun reset(text: String, previousGeneration: String, generation: String): Boolean = runCatching {
+  @Synchronized fun reset(text: String, previousGeneration: String, generation: String, updateId: String = ""): Boolean = runCatching {
     require(generation.matches(Regex("[a-zA-Z0-9-]{16,100}")) && generation != previousGeneration)
+    require(updateId.isEmpty() || updateId.matches(Regex("[a-zA-Z0-9-]{16,100}")))
     val incoming = parse(text, null)
     val previous = read()
     // A lost acknowledgment retries the same transaction without rolling back
     // progress already made by the new guild.
-    if (previous?.generation == generation) return incoming.createdAt == previous.createdAt
+    if (previous?.generation == generation) return incoming.createdAt == previous.createdAt && updateId == previous.updateId.orEmpty()
     require(previousGeneration == (previous?.generation ?: "")) { "Stale reset generation" }
-    persist(incoming.copy(replacesCreatedAt = previous?.createdAt, generation = generation, previousGeneration = previousGeneration))
+    if (updateId.isNotEmpty()) {
+      require(previous != null) { "An automatic reset requires a prior guild" }
+      atomicWrite(File(file.parentFile, file.name + ".before-update-reset"), file.readBytes())
+    }
+    persist(incoming.copy(replacesCreatedAt = previous?.createdAt, generation = generation, previousGeneration = previousGeneration,
+      updateId = updateId.takeIf { it.isNotEmpty() }))
     true
   }.getOrDefault(false)
 
@@ -75,6 +83,7 @@ class GuildCheckpointStore(private val file: File) {
     val record = JSONObject().put("version", 1).put("text", checkpoint.text).put("sha256", digest(checkpoint.text)).put("generation", checkpoint.generation)
     checkpoint.replacesCreatedAt?.let { record.put("replacesCreatedAt", it) }
     checkpoint.previousGeneration?.let { record.put("previousGeneration", it) }
+    checkpoint.updateId?.let { record.put("updateId", it) }
     val bytes = record.toString().toByteArray(Charsets.UTF_8)
     require(bytes.size <= MAX_RECORD_BYTES)
     atomicWrite(file, bytes)
@@ -94,6 +103,7 @@ class GuildCheckpointStore(private val file: File) {
       JSONObject().put("text", it.text).put("generation", it.generation).apply {
         if (it.replacesCreatedAt != null) put("replacesCreatedAt", it.replacesCreatedAt)
         if (it.previousGeneration != null) put("previousGeneration", it.previousGeneration)
+        if (it.updateId != null) put("updateId", it.updateId)
       }.toString()
     } ?: "null"
     return "window.WayfarersNativeCheckpoint=$value;"

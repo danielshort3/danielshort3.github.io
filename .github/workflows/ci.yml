@@ -96,6 +96,22 @@ jobs:
         env:
           WAYFARERS_QA_DIR: ${{ runner.temp }}/wayfarers-stations
 
+      - name: Verify opt-in update reset controls and recovery
+        run: npm run test:wayfarers-guild:debug-updates:browser
+        timeout-minutes: 5
+        env:
+          WAYFARERS_QA_DIR: ${{ runner.temp }}/wayfarers-debug-updates
+
+      - name: Upload update-reset evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfarers-debug-updates
+          path: |
+            ${{ runner.temp }}/wayfarers-debug-updates/*.png
+            ${{ runner.temp }}/wayfarers-debug-updates/report.json
+          if-no-files-found: ignore
+
       - name: Upload Guild scene and tutorial evidence
         if: always()
         uses: actions/upload-artifact@v4

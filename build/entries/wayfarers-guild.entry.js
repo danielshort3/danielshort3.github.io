@@ -18,6 +18,7 @@ import '../../js/games/wayfarers-guild/onboarding.js';
 import '../../js/games/wayfarers-guild/trail-deliveries.js';
 import '../../js/games/wayfarers-guild/core.js';
 import '../../js/games/wayfarers-guild/persistence.js';
+import '../../js/games/wayfarers-guild/debug-updates.js';
 import '../../js/games/wayfarers-guild/billing.js';
 import '../../js/games/wayfarers-guild/rewarded.js';
 import '../../js/games/wayfarers-guild/icons.js';
