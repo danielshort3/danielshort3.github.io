@@ -1433,6 +1433,17 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Explain the horizontal row when the platform hides its scrollbar. */
+    :is(.personal-library--projects, .home-library[data-home-library-view="projects"]) .home-library__jump-links::before {
+      content: "Swipe →";
+      flex: 0 0 auto;
+      align-self: center;
+      padding-inline: 6px;
+      color: #475569;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     :is(.personal-library--projects, .home-library[data-home-library-view="projects"]) .home-library__jump-links a {
       flex: 0 0 auto;
       white-space: nowrap;

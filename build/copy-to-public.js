@@ -113,6 +113,7 @@ function collectDistArtifacts(cssManifest, jsManifest) {
   const artifacts = new Set([
     'ai-digest-manifest.json',
     'styles.css',
+    'styles-demo.css',
     'styles-home.css',
     'styles-workbench.css',
     'styles-tools.css',
@@ -247,6 +248,9 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
   let next = html;
   if (cssHrefs.base) {
     next = next.replace(/href=(["'])dist\/styles\.css\1/g, `href="dist/${cssHrefs.base}"`);
+  }
+  if (cssHrefs.demo) {
+    next = next.replace(/href=(["'])dist\/styles-demo\.css\1/g, `href="dist/${cssHrefs.demo}"`);
   }
   if (cssHrefs.home) {
     next = next.replace(/href=(["'])dist\/styles-home\.css\1/g, `href="dist/${cssHrefs.home}"`);
@@ -417,6 +421,7 @@ function copyStatic(){
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {
     base: cssManifest && typeof cssManifest.file === 'string' ? cssManifest.file : null,
+    demo: cssManifest && typeof cssManifest.demoFile === 'string' ? cssManifest.demoFile : null,
     home: cssManifest && typeof cssManifest.homeFile === 'string' ? cssManifest.homeFile : null,
     workbench: cssManifest && typeof cssManifest.workbenchFile === 'string' ? cssManifest.workbenchFile : null,
     tools: cssManifest && typeof cssManifest.toolsFile === 'string' ? cssManifest.toolsFile : null
@@ -442,6 +447,7 @@ function copyStatic(){
       }
     });
     const rewrittenTargets = [`dist/${cssHrefs.base}`];
+    if (cssHrefs.demo) rewrittenTargets.push(`dist/${cssHrefs.demo}`);
     if (cssHrefs.home) rewrittenTargets.push(`dist/${cssHrefs.home}`);
     if (cssHrefs.workbench) rewrittenTargets.push(`dist/${cssHrefs.workbench}`);
     if (cssHrefs.tools) rewrittenTargets.push(`dist/${cssHrefs.tools}`);
@@ -455,4 +461,4 @@ if (require.main === module) {
   log('Prepared public/ output for Vercel');
 }
 
-module.exports = { resolveApprovedDocuments, copyApprovedDocuments };
+module.exports = { resolveApprovedDocuments, copyApprovedDocuments, collectDistArtifacts, rewriteCssLinksInHtml };
