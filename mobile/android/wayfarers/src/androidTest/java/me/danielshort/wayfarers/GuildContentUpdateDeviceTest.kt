@@ -62,6 +62,11 @@ class GuildContentUpdateDeviceTest {
     assertEquals(8, payload.getInt("saveSchema"))
     assertEquals(17, published.minAppVersionCode)
     val app = context.applicationContext as WayfarersApplication
+    // APK 16's released verifier reports its signature/compatibility rejection
+    // with this exact message. A transport error must not pass this gate.
+    val compatibilityMessage = "This game update could not be verified or is incompatible with this app."
+    val rejection = assertThrows(Exception::class.java) { app.contentStore.verifyManifest(envelope) }
+    assertEquals(compatibilityMessage, rejection.message)
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val before = awaitReady(scenario, 2)
       assertEquals(JSONObject(exported.readText()).getJSONObject("state").getLong("createdAt"),
@@ -77,7 +82,7 @@ class GuildContentUpdateDeviceTest {
         app.contentUpdates.state.value is GuildContentUpdateState.Error
       }
       val failure = app.contentUpdates.state.value as GuildContentUpdateState.Error
-      assertTrue("Show the actual compatibility error", failure.message.isNotBlank())
+      assertEquals("Reject the authenticated incompatible feed, not a transient transport failure", compatibilityMessage, failure.message)
       assertNotNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
         it.text?.toString() == failure.message && it.isVisibleToUser
       })
