@@ -136,6 +136,10 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(/<body[^>]*data-page="contact"/i.test(wrapped), 'Personal shell should preserve the original data-page');
   assert(/<body[^>]*data-audience="personal"/i.test(wrapped), 'Personal shell should stamp the personal audience');
   assert(/<body[^>]*data-personal-fit="viewport"/i.test(wrapped), 'Shared shells should default to a bounded desktop frame');
+  assert(!/<body[^>]*data-personal-presentation=/i.test(wrapped), 'Ordinary routes retain the website shell');
+  const gamePresentation = wrapPersonalAccordionHtml(sample, { category: 'games', itemId: 'wayfarers-guild' });
+  assert(/<body[^>]*data-personal-presentation="game"/i.test(gamePresentation), 'Wayfarers owns one gameplay viewport');
+  assert(!/<body[^>]*data-personal-presentation=/i.test(wrapPersonalAccordionHtml(sample, { category: 'games', itemId: 'roulette' })), 'The game presentation does not change other games');
   for (const fit of ['document', '', 'unknown']) {
     const normalized = wrapPersonalAccordionHtml(sample, { category: 'contact', fit });
     assert(/<body[^>]*data-personal-fit="viewport"/i.test(normalized),
@@ -417,8 +421,8 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 52,
-    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 17 projects, 18 tools, and six games');
+  assert(uniqueManagedPages.length === 53,
+    'The personal shell route sweep should cover four category roots, seven utility/fallback pages, 17 projects, 18 tools, and seven games');
   assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');

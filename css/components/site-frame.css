@@ -1,4 +1,73 @@
 @layer overrides {
+  /* A game-owned viewport keeps the site's chrome out of its action area.
+     The route policy restores the normal shell when the player exits. */
+  html:has(body[data-personal-presentation="game"]),
+  body[data-personal-presentation="game"] {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+  body[data-personal-presentation="game"] :is([data-site-shell-header], [data-site-shell-footer], .mobile-site-masthead, .mobile-section-nav, .mobile-site-dock, [data-page-masthead]) {
+    display: none !important;
+  }
+  /* The mobile site's in-flow consent card needs a viewport layer when the
+     game owns the viewport. Keep both privacy choices reachable. */
+  body[data-personal-presentation="game"] #pcz-banner {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    inset-inline: 0 !important;
+    width: 100% !important;
+    z-index: 99999 !important;
+    max-height: calc(var(--android-webview-height, 100dvh) - 12px);
+    overflow-y: auto;
+    padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  }
+  body[data-personal-presentation="game"] #pcz-banner .pcz-btn {
+    min-height: 48px !important;
+    font-size: 0.875rem !important;
+  }
+  body[data-personal-presentation="game"] .site-frame.site-frame {
+    --frame-height: var(--android-webview-height, 100dvh);
+    --frame-available-height: var(--android-webview-height, 100dvh);
+    --frame-content-gutter: 0px;
+    --frame-panel-border-width: 0px;
+    --frame-slot-border-width: 0px;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: var(--android-webview-height, 100dvh);
+    min-height: 0;
+    padding: 0;
+    background: #172b40;
+  }
+  body[data-personal-presentation="game"] .site-frame :is(.site-frame__stage, .site-frame__panel, .site-frame__slot, .site-frame__slot-content, .site-frame__viewport, .site-frame__body) {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+    background: #172b40;
+  }
+  body[data-personal-presentation="game"] .site-frame__stage {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr) !important;
+  }
+  body[data-personal-presentation="game"] .site-frame .site-frame__slot {
+    grid-area: 1 / 1 !important;
+  }
+  html:has(#android-feature-chrome) body[data-personal-presentation="game"] .site-frame[data-frame-presentation="game"] .site-frame__slot {
+    grid-area: 1 / 1 !important;
+  }
+  body[data-personal-presentation="game"] .site-frame :is(.site-frame__tab, .site-frame__toolbar),
+  body[data-personal-presentation="game"] .site-frame__panel::before,
+  body[data-personal-presentation="game"] .site-frame__slot::after {
+    display: none !important;
+  }
   .site-frame.site-frame {
     --site-frame-geometry-duration: 320ms;
     --site-frame-wipe-duration: 160ms;

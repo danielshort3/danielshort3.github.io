@@ -108,6 +108,7 @@ const GAME_PAGE_PATHS = Object.freeze({
   roulette: path.join('pages', 'games', 'roulette.html'),
   'probability-engine': path.join('pages', 'games', 'probability-engine.html'),
   stormbreak: path.join('pages', 'games', 'stormbreak.html'),
+  'wayfarers-guild': path.join('pages', 'games', 'wayfarers-guild.html'),
   'ocean-wave-simulation': path.join('pages', 'ocean-wave-simulation.html')
 });
 

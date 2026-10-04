@@ -1,0 +1,35 @@
+# Wayfarers' Guild cards and equipment
+
+`collection-content.js` owns the authored cards, equipment, scrolls and rarity rules. `collections.js` owns inventory, named decks, fusion, crafting, enhancement, independent RNG and canonical previews. `core.js` advances the collection clock and persists it with the rest of the guild. The physical production engine applies bonuses before its capacity and supply constraints. `expedition-ui.js` owns the earned Cards and Equipment tabs, inspection sheets and result feedback.
+
+## Cards: switchable strategies
+
+Cards become available after discovering the Quarry. Accepting the short introduction grants Trail Courier and Quarry Mole, but neither is automatically equipped. Three named decks each hold up to four different cards; a card may appear in multiple saved decks. Only the selected deck applies bonuses. Two slots open initially, a third opens at the Tower and a fourth at the Workshop, each with a discovery notice.
+
+There are eighteen cards across six areas, with Common, Rare, Epic and Legendary rarities. Rarity is fixed. Guaranteed fusion consumes 2, 3, 5 and 8 duplicates to reach ranks 2–5. The original owned card remains, and all saved decks use its improved rank. Rank multipliers are 1, 1.2, 1.36, 1.48 and 1.56. Duplicate copies can instead become Archive Ink; ten same-rarity duplicates buy a targeted copy of an already discovered card. Crafting cannot discover rare cards or create a profitable recycling loop.
+
+Journey cards support trade and travel; Industry cards support extraction, hauling, refining and manufacturing; Discovery cards support knowledge, research and recovery. Two, three or four cards with a shared tag add a 4%, 7% or 9% synergy. Bonuses target particular production stages, so rarity alone does not decide the best deck. More extraction does not solve an existing hauling bottleneck.
+
+The first timed card find occurs after fifteen eligible minutes, then finds arrive every 45–75 minutes. Offline progression counts, within the game's existing offline-time allowance. Base rarity weights are 62/28/9/1, normalized over rarities available in discovered areas. An Epic-or-better is guaranteed by the twelfth eligible find, and a Legendary by the eightieth when available. The UI explains the available pool and these rules.
+
+## Equipment: persistent items and scroll choices
+
+Equipment becomes available at the Tower. The introduction grants Trail Boots, two Steady Scrolls, one Bold Scroll and one Restoration Scroll. Equip the boots explicitly. There are four slots—Tool, Head, Coat and Boots—with two distinct authored items per slot. Area discoveries reveal ordinary-resource crafting patterns. Owning equipment does not grant its effect until it is equipped.
+
+Each item has six enhancement slots. Steady Scrolls guarantee +1 point; Bold Scrolls have a 60% chance of +2 points; Brilliant Scrolls have a 15% chance of +5 points. Every attempt consumes its scroll and one slot. A failure never destroys gear, removes existing points or downgrades the item. Restoration Scrolls recover one failed slot, keep successful points and cannot erase a successful enhancement. The item's base effect and additional effect per point are defined in content; previews show the exact result and production consequences before spending.
+
+The Workshop unlocks **Reforge** for an enhanced item. It costs three earned Restoration Scrolls plus ten times that item's original ordinary crafting cost. Confirmation removes every enhancement point and failed slot, restoring six free attempts while keeping the base item and equipped slot. It never grants scrolls, rolls RNG or preserves selected successes. This costly fresh start lets earlier safe gear use better scrolls later; the preview must show the lost bonuses and complete cost before confirmation.
+
+The first supply cache arrives after one eligible hour, then every 90–150 minutes. Cache weights are 50% Steady, 32% Bold, 15% Brilliant and 3% Restoration. Scrolls are earned; these systems have no premium-currency purchase, paid random pack or paid restoration. A safe upgrade can permanently use a slot, so the confirmation explicitly explains the tradeoff.
+
+Equipment is distinct from the existing resettable guild reinforcement ranks. Equipment items, successful enhancements, failed slots, card ranks, copies, deck names, Ink and unused scrolls survive Refits and Charters. Neither reset grants more starter items or resets loot/RNG clocks. Existing relics and saved guild playbooks remain separate systems.
+
+## Saves, art and focused verification
+
+Save schema 6 adds a validated `collection` field. Historical saves gain an empty, inactive collection without changing prior production. A retained expedition version 2 keeps its released formulas until the player's confirmed adoption reset. Its collection access follows its actual discovered areas; later-area cards appear after those areas are really discovered.
+
+Random outcomes are generated by the engine and saved before success feedback. An uncommitted failed write restores the entire pre-action state, including inventory and RNG; Retry save recovers persistence, and the player must explicitly confirm the action again. If the checkpoint committed but final verification failed, the exact committed result remains pending and Retry shows that same outcome without another spend or roll. Further collection changes stay blocked during recovery. Result acknowledgements are saved separately, with rollback on failure. Independent persisted loot and enhancement RNG prevent navigation, previews or reloads from rolling again. Already funded voyage cargo and reserved rewarded-ad quotes remain unchanged.
+
+Each card and equipment item has an individually generated transparent pixel-art image in `img/wayfarers-guild/`. `collection-art.json` records every prompt, source checksum and shipped checksum. `build/process-wayfarers-collection-art.cjs` performs nearest-neighbor sizing to 96px without replacing alpha or drawing the game interface into the artwork. Semantic HTML supplies consistent card frames, rarity names, ranks and copy counts; equipment uses square inventory tiles. Both the browser and standalone Android bundle include every image offline.
+
+Focused checks: `npm run test:wayfarers-guild:collections`, `npm run test:wayfarers-guild:collections:browser`, the progression suite, standalone bundle tests and Android checkpoint unit tests. `tests/games/wayfarers-guild-collection-budget.cjs` measures acquisition over many RNG seeds. Its all-area supplied fixture is a material-budget witness, not a prediction of natural completion time.

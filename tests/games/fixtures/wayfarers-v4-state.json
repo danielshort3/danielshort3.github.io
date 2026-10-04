@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 4,
+  "createdAt": 1700000000000,
+  "lastUpdate": 1700000600000,
+  "resources": {
+    "coins": {
+      "m": 1.2777790113658365,
+      "e": 3
+    },
+    "ore": {
+      "m": 2.1131423098821527,
+      "e": 2
+    },
+    "herbs": {
+      "m": 1.4632147499621437,
+      "e": 1
+    },
+    "provisions": {
+      "m": 1.7384753652223275,
+      "e": 1
+    },
+    "knowledge": {
+      "m": 1.8891772114494354,
+      "e": 1
+    },
+    "maps": {
+      "m": 5.9583425357795,
+      "e": 0
+    },
+    "notes": {
+      "m": 0,
+      "e": 0
+    },
+    "crests": {
+      "m": 0,
+      "e": 0
+    },
+    "starshards": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "upgrades": {
+    "boots": 0,
+    "preparation": 0,
+    "miners": 0,
+    "forge": 0,
+    "foragers": 0,
+    "cooks": 0,
+    "scholars": 0,
+    "surveyors": 0,
+    "mentors": 0,
+    "gear-tools": 2,
+    "gear-boots": 0,
+    "gear-instruments": 0
+  },
+  "research": [],
+  "refitUpgrades": {
+    "pace": 0,
+    "supply": 0,
+    "insight": 0
+  },
+  "legacy": {
+    "foundations": 0,
+    "curriculum": 0,
+    "waystones": 0
+  },
+  "rooms": [
+    "trail",
+    "mine",
+    "forge",
+    "forage",
+    "hall",
+    "kitchen"
+  ],
+  "mastery": {
+    "trail": {
+      "m": 1.7999999999999694,
+      "e": 2
+    },
+    "mine": {
+      "m": 1.5398477589321937,
+      "e": 2
+    },
+    "forge": {
+      "m": 1.2339298366336575,
+      "e": 2
+    },
+    "forage": {
+      "m": 8.062234967482384,
+      "e": 1
+    },
+    "kitchen": {
+      "m": 5.518969413404224,
+      "e": 1
+    },
+    "study": {
+      "m": 0,
+      "e": 0
+    },
+    "hall": {
+      "m": 8.062234967482384,
+      "e": 1
+    },
+    "cartography": {
+      "m": 0,
+      "e": 0
+    }
+  },
+  "ranks": {
+    "trail": 0,
+    "mine": 0,
+    "forge": 0,
+    "forage": 0,
+    "kitchen": 0,
+    "study": 0,
+    "hall": 0,
+    "cartography": 0
+  },
+  "route": {
+    "index": 5,
+    "progress": {
+      "m": 9.813647107031036,
+      "e": 10
+    },
+    "mode": "frontier"
+  },
+  "run": {
+    "id": 1,
+    "completed": 4,
+    "work": {
+      "m": 9.813805164031033,
+      "e": 10
+    },
+    "elapsed": 600
+  },
+  "chapter": {
+    "work": {
+      "m": 9.813805164031033,
+      "e": 10
+    },
+    "refits": 0
+  },
+  "lifetime": {
+    "work": {
+      "m": 9.813805164031033,
+      "e": 10
+    },
+    "coins": {
+      "m": 1.7433688090491732,
+      "e": 4
+    },
+    "refits": 0,
+    "charters": 0,
+    "highestRoute": 4,
+    "frontier": 0
+  },
+  "crew": {
+    "owned": [
+      "scout",
+      "prospector",
+      "quartermaster"
+    ],
+    "specialists": [
+      "scout",
+      null
+    ],
+    "companions": [],
+    "companion": null
+  },
+  "meal": "meal-none",
+  "doctrine": "balanced",
+  "automations": {
+    "operations": false,
+    "equipment": false,
+    "routes": false
+  },
+  "challenges": {
+    "active": null,
+    "completed": []
+  },
+  "collections": [
+    "greenway"
+  ],
+  "planner": 0,
+  "events": [
+    "Forge built by the quarry expedition. Its equipment strengthens the whole guild.",
+    "Copper Quarry expedition completed. Its outpost keeps working.",
+    "Watchtower Road completed.",
+    "Forager's Camp discovered: Gather herbs for provisions and research instruments.",
+    "Greenway landmark added to the guild collection.",
+    "Guild Hall opened. Choose a Scout, Prospector or Quartermaster for future expeditions.",
+    "Watchtower Road expedition completed. Its outpost keeps working.",
+    "Copper Hills Crossing completed.",
+    "Kitchen discovered: Turn herbs into provisions. Choose a meal for the current expedition.",
+    "Copper Hills Crossing expedition completed. Its outpost keeps working.",
+    "Copper Hills Works completed.",
+    "Copper Hills Works expedition completed. Its outpost keeps working."
+  ],
+  "premium": {
+    "rng": 1334337114,
+    "eligibleSeconds": 411.31,
+    "untilDrop": 139869.808,
+    "drops": 0,
+    "claimedMilestones": [],
+    "owned": [],
+    "equipped": null
+  },
+  "luck": {
+    "rng": 1962365909,
+    "commonRemainingMs": 560220.4136892619,
+    "relicRemainingMs": 2700000,
+    "pitySeconds": 0,
+    "owned": [],
+    "active": null,
+    "duplicateProgress": {
+      "golden-pickaxe": 0,
+      "surveyors-lens": 0,
+      "living-crucible": 0,
+      "marsh-lantern": 0,
+      "frost-compass": 0,
+      "archive-quill": 0,
+      "starsteel-anvil": 0,
+      "wayfarer-standard": 0
+    },
+    "hunt": "balanced",
+    "scheduledHunt": "balanced",
+    "research": [],
+    "kit": {
+      "prepared": null,
+      "active": null,
+      "remainingSeconds": 0
+    },
+    "ledger": {
+      "seq": 1,
+      "seen": 0,
+      "recent": [
+        {
+          "seq": 1,
+          "type": "supplies",
+          "rarity": "common",
+          "title": "A useful trail find",
+          "reward": "+2,543 coins",
+          "effect": "Supplies have already joined your stockpile.",
+          "at": 1700000570565.4136
+        }
+      ]
+    },
+    "collectionBanner": false,
+    "commonFinds": 1,
+    "relicFinds": 0
+  },
+  "caravan": {
+    "rng": 441895878,
+    "remainingMs": 3785196,
+    "offer": null,
+    "sequence": 0,
+    "completed": [],
+    "receipts": [],
+    "pendingQuote": null,
+    "surge": {
+      "resource": null,
+      "remainingSeconds": 0
+    }
+  },
+  "guild": {
+    "grandfathered": false,
+    "projects": [],
+    "capabilities": [],
+    "supply": "steady",
+    "prepared": {
+      "index": -1,
+      "kinds": []
+    },
+    "chapterProject": {
+      "number": 0,
+      "choice": null
+    },
+    "plan": {
+      "reserves": {
+        "coins": {
+          "m": 0,
+          "e": 0
+        },
+        "ore": {
+          "m": 0,
+          "e": 0
+        },
+        "herbs": {
+          "m": 0,
+          "e": 0
+        },
+        "provisions": {
+          "m": 0,
+          "e": 0
+        },
+        "knowledge": {
+          "m": 0,
+          "e": 0
+        },
+        "maps": {
+          "m": 0,
+          "e": 0
+        }
+      },
+      "goal": null,
+      "priorities": {
+        "operations": "balanced",
+        "equipment": "balanced"
+      },
+      "queue": [],
+      "kit": "off",
+      "preparation": "off"
+    },
+    "loadouts": [],
+    "audit": []
+  },
+  "introductions": {
+    "seen": []
+  },
+  "expedition": {
+    "version": 2,
+    "index": 5,
+    "cleared": 4,
+    "completed": false,
+    "selectedArea": "watchtower",
+    "areas": {
+      "greenway": {
+        "index": 3,
+        "goalMode": "regional",
+        "legacyRegion": 0,
+        "seenSequence": 0,
+        "established": true,
+        "elapsed": 600,
+        "work": 483,
+        "finaleWork": 176.4,
+        "buffers": {
+          "ore": 0,
+          "smelt": 0
+        },
+        "ranks": {
+          "boots": 9,
+          "porters": 7,
+          "scouts": 7,
+          "picks": 0,
+          "carts": 0,
+          "furnace": 0,
+          "crew": 0,
+          "lift": 0,
+          "beacon": 0
+        },
+        "choices": {
+          "route": "short",
+          "smelting": "throughput",
+          "equipment": "tools",
+          "allocation": "balanced",
+          "dispatch": "trade"
+        },
+        "purchases": 23
+      },
+      "quarry": {
+        "index": 4,
+        "goalMode": "regional",
+        "legacyRegion": 0,
+        "seenSequence": 0,
+        "established": true,
+        "elapsed": 513,
+        "work": 462,
+        "finaleWork": 126,
+        "buffers": {
+          "ore": 34,
+          "smelt": 0
+        },
+        "ranks": {
+          "boots": 0,
+          "porters": 0,
+          "scouts": 0,
+          "picks": 9,
+          "carts": 8,
+          "furnace": 8,
+          "crew": 0,
+          "lift": 0,
+          "beacon": 0
+        },
+        "choices": {
+          "route": "short",
+          "smelting": "throughput",
+          "equipment": "tools",
+          "allocation": "balanced",
+          "dispatch": "trade"
+        },
+        "purchases": 25
+      },
+      "watchtower": {
+        "index": 5,
+        "goalMode": "regional",
+        "legacyRegion": 0,
+        "seenSequence": 0,
+        "established": true,
+        "elapsed": 411,
+        "work": 1188.9610918133756,
+        "finaleWork": 0,
+        "buffers": {
+          "ore": 0,
+          "smelt": 0
+        },
+        "ranks": {
+          "boots": 0,
+          "porters": 0,
+          "scouts": 0,
+          "picks": 0,
+          "carts": 0,
+          "furnace": 0,
+          "crew": 8,
+          "lift": 8,
+          "beacon": 8
+        },
+        "choices": {
+          "route": "short",
+          "smelting": "throughput",
+          "equipment": "tools",
+          "allocation": "balanced",
+          "dispatch": "trade"
+        },
+        "purchases": 24
+      }
+    },
+    "developments": [],
+    "blueprints": [],
+    "mastery": {
+      "greenway": 2,
+      "quarry": 2,
+      "watchtower": 1
+    },
+    "automation": {
+      "enabled": false,
+      "priority": "balanced",
+      "dispatch": false
+    },
+    "sequence": 23,
+    "seen": 0,
+    "recent": [
+      {
+        "sequence": 12,
+        "kind": "milestone",
+        "title": "Scouts rank 3",
+        "text": "Alternate crossing: bridge work +50%",
+        "stage": 3,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 13,
+        "kind": "milestone",
+        "title": "Boots rank 6",
+        "text": "Permanent boots investment reached rank 6.",
+        "stage": 3,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 14,
+        "kind": "milestone",
+        "title": "Porters rank 6",
+        "text": "Permanent porters investment reached rank 6.",
+        "stage": 3,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 15,
+        "kind": "milestone",
+        "title": "Scouts rank 6",
+        "text": "Permanent scouts investment reached rank 6.",
+        "stage": 3,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 16,
+        "kind": "stage",
+        "title": "Copper Hills Crossing established",
+        "text": "This area keeps producing. Its upgrades, workers and choices remain available.",
+        "stage": 3,
+        "areaId": "greenway"
+      },
+      {
+        "sequence": 17,
+        "kind": "milestone",
+        "title": "Picks rank 6",
+        "text": "Permanent picks investment reached rank 6.",
+        "stage": 4,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 18,
+        "kind": "milestone",
+        "title": "Carts rank 6",
+        "text": "Permanent carts investment reached rank 6.",
+        "stage": 4,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 19,
+        "kind": "milestone",
+        "title": "Furnace rank 6",
+        "text": "Permanent furnace investment reached rank 6.",
+        "stage": 4,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 20,
+        "kind": "stage",
+        "title": "Copper Hills Works established",
+        "text": "This area keeps producing. Its upgrades, workers and choices remain available.",
+        "stage": 4,
+        "areaId": "quarry"
+      },
+      {
+        "sequence": 21,
+        "kind": "milestone",
+        "title": "Crew rank 6",
+        "text": "Permanent crew investment reached rank 6.",
+        "stage": 5,
+        "areaId": "watchtower"
+      },
+      {
+        "sequence": 22,
+        "kind": "milestone",
+        "title": "Lift rank 6",
+        "text": "Permanent lift investment reached rank 6.",
+        "stage": 5,
+        "areaId": "watchtower"
+      },
+      {
+        "sequence": 23,
+        "kind": "milestone",
+        "title": "Beacon rank 6",
+        "text": "Permanent beacon investment reached rank 6.",
+        "stage": 5,
+        "areaId": "watchtower"
+      }
+    ],
+    "purchases": 72
+  }
+}

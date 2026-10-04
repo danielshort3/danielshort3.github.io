@@ -1,0 +1,557 @@
+{
+  "version": 1,
+  "artDirection": "C2 Pocket Rooms",
+  "generator": "OpenAI built-in ImageGen",
+  "generatedOn": "2026-09-29",
+  "processing": "Sharp nearest-neighbor extraction, binary alpha threshold150, 22-color palette quantization without dithering; separate actors, props and backgrounds.",
+  "palette": [
+    "#14283a",
+    "#203d54",
+    "#34556e",
+    "#5e7f96",
+    "#9bb5c6",
+    "#f5e9cc",
+    "#fff7e6",
+    "#cbb989",
+    "#ffbd43",
+    "#e68a29",
+    "#b75e20",
+    "#76502f",
+    "#463329",
+    "#2071b2",
+    "#144a77",
+    "#4b6843",
+    "#77975f",
+    "#dbab7a",
+    "#f3c594",
+    "#6b6259",
+    "#245e63",
+    "#345782"
+  ],
+  "actors": {
+    "file": "actors.png",
+    "width": 128,
+    "height": 160,
+    "frames": {
+      "walk1": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "walk2": {
+        "x": 32,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "walk3": {
+        "x": 64,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "idle": {
+        "x": 96,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "miner1": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "miner2": {
+        "x": 32,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "smith1": {
+        "x": 64,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "smith2": {
+        "x": 96,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "scholar1": {
+        "x": 0,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "cook1": {
+        "x": 32,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "forager": {
+        "x": 64,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "cartographer": {
+        "x": 96,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "leader": {
+        "x": 0,
+        "y": 96,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "alchemist": {
+        "x": 32,
+        "y": 96,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "fox": {
+        "x": 64,
+        "y": 96,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "owl": {
+        "x": 96,
+        "y": 96,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "tortoise": {
+        "x": 0,
+        "y": 128,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "inspect": {
+        "x": 32,
+        "y": 128,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "scholar2": {
+        "x": 64,
+        "y": 128,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "cook2": {
+        "x": 96,
+        "y": 128,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      }
+    },
+    "source": "exec-87021bd7-d6c4-4034-954c-fbc40e66bb61.png",
+    "sha256": "521dfb0bda8ce18508d6c3a88469fc65d464cbf34d1ce0f12007ff2b99a5b7ff"
+  },
+  "props": {
+    "file": "props.png",
+    "width": 128,
+    "height": 96,
+    "frames": {
+      "ore": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "furnace": {
+        "x": 32,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "anvil": {
+        "x": 64,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "lantern": {
+        "x": 96,
+        "y": 0,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "crate": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "cauldron": {
+        "x": 32,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "desk": {
+        "x": 64,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "mapTable": {
+        "x": 96,
+        "y": 32,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "basket": {
+        "x": 0,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "banner": {
+        "x": 32,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "alchemy": {
+        "x": 64,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      },
+      "sign": {
+        "x": 96,
+        "y": 64,
+        "w": 32,
+        "h": 32,
+        "baseline": 30
+      }
+    },
+    "source": "exec-e87a9c15-7695-4b5e-a15d-fee1025bcd4b.png",
+    "sha256": "763f5a87d75782facdc0c85e8de55eab63d0bf355e96cafc6b1b6677a1de7623"
+  },
+  "realms": {
+    "file": "realms.png",
+    "width": 192,
+    "height": 256,
+    "frames": {
+      "greenway": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 64
+      },
+      "copperhills": {
+        "x": 96,
+        "y": 0,
+        "w": 96,
+        "h": 64
+      },
+      "mistwood": {
+        "x": 0,
+        "y": 64,
+        "w": 96,
+        "h": 64
+      },
+      "frostpass": {
+        "x": 96,
+        "y": 64,
+        "w": 96,
+        "h": 64
+      },
+      "sunkenreach": {
+        "x": 0,
+        "y": 128,
+        "w": 96,
+        "h": 64
+      },
+      "starfall": {
+        "x": 96,
+        "y": 128,
+        "w": 96,
+        "h": 64
+      },
+      "frontier": {
+        "x": 0,
+        "y": 192,
+        "w": 96,
+        "h": 64
+      },
+      "room": {
+        "x": 96,
+        "y": 192,
+        "w": 96,
+        "h": 64
+      }
+    },
+    "source": "exec-522f6be6-48eb-4d97-9e4a-3e1446605552.png",
+    "sha256": "8536b4a59e23679f1953b11b57d624d78f3034a01614b2eb127039114a0abc70"
+  },
+  "uiIcons": {
+    "file": "ui-icons.png",
+    "width": 288,
+    "height": 288,
+    "cellSize": 48,
+    "generatedOn": "2026-09-30",
+    "source": "exec-14b15e1d-3800-4573-982f-04571f8bf55f.png",
+    "sourceSha256": "4ffb9031977dc13657cf1ff0c48a191301a1209001edb8b3c2dad05a7a2ca710",
+    "frames": {
+      "coins": {
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "ore": {
+        "x": 48,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "herbs": {
+        "x": 96,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "provisions": {
+        "x": 144,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "knowledge": {
+        "x": 192,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "maps": {
+        "x": 240,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "notes": {
+        "x": 0,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "crests": {
+        "x": 48,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "starshards": {
+        "x": 96,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "boot": {
+        "x": 144,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "mine": {
+        "x": 192,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "tools": {
+        "x": 240,
+        "y": 48,
+        "w": 48,
+        "h": 48
+      },
+      "forge": {
+        "x": 0,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "compass": {
+        "x": 48,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "observatory": {
+        "x": 96,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "trail": {
+        "x": 144,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "kitchen": {
+        "x": 192,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "crate": {
+        "x": 240,
+        "y": 96,
+        "w": 48,
+        "h": 48
+      },
+      "caravan": {
+        "x": 0,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "chest": {
+        "x": 48,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "golden-pickaxe": {
+        "x": 96,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "surveyors-lens": {
+        "x": 144,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "living-crucible": {
+        "x": 192,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "recipe": {
+        "x": 240,
+        "y": 144,
+        "w": 48,
+        "h": 48
+      },
+      "banner-amber": {
+        "x": 0,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "banner-moon": {
+        "x": 48,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "automation": {
+        "x": 96,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "mastery": {
+        "x": 144,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "miners": {
+        "x": 192,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "meal": {
+        "x": 240,
+        "y": 192,
+        "w": 48,
+        "h": 48
+      },
+      "backpack": {
+        "x": 0,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "time": {
+        "x": 48,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "equipment": {
+        "x": 96,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "alloys": {
+        "x": 144,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "quill": {
+        "x": 192,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      },
+      "supplies": {
+        "x": 240,
+        "y": 240,
+        "w": 48,
+        "h": 48
+      }
+    }
+  }
+}

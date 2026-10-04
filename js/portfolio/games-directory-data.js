@@ -59,13 +59,28 @@ window.DIRECTORY_WORKBENCH = {
           "field": "tags"
         },
         {
+          "value": "guild-strategy",
+          "label": "Guild strategy",
+          "field": "tags"
+        },
+        {
           "value": "idle-action",
           "label": "Idle action",
           "field": "tags"
         },
         {
+          "value": "idle-adventure",
+          "label": "Idle adventure",
+          "field": "tags"
+        },
+        {
           "value": "mythic-farming",
           "label": "Mythic farming",
+          "field": "tags"
+        },
+        {
+          "value": "offline-progress",
+          "label": "Offline progress",
           "field": "tags"
         },
         {
@@ -361,6 +376,46 @@ window.DIRECTORY_WORKBENCH = {
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"9\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <path d=\"M18.7 6.1A9 9 0 1 0 19.8 16\"></path>\n  <path d=\"M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z\"></path>\n  <path d=\"m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6\"></path>\n</svg>",
       "order": 6
+    },
+    {
+      "id": "wayfarers-guild",
+      "title": "Wayfarers' Guild",
+      "subtitle": "Browser Game",
+      "summary": "Follow an automatic trail, build your guild, and connect gathering, crafting, research, and expeditions.",
+      "href": "games/wayfarers-guild",
+      "type": "Browser Game",
+      "category": "Browser Game",
+      "tags": [
+        "Idle adventure",
+        "Guild strategy",
+        "Offline progress"
+      ],
+      "tools": [
+        "Idle adventure",
+        "Guild strategy",
+        "Offline progress"
+      ],
+      "concepts": [
+        "Idle adventure",
+        "Guild strategy",
+        "Offline progress"
+      ],
+      "formats": [
+        "Browser Game"
+      ],
+      "results": [
+        "Follow an automatic trail, build your guild, and connect gathering, crafting, research, and expeditions."
+      ],
+      "actions": [
+        "Focus areas: Idle adventure, Guild strategy, Offline progress"
+      ],
+      "iconImage": "img/home-icons/wayfarers-guild.svg?v=dd9188f97dac",
+      "image": "img/home-previews/games/wayfarers-guild.webp",
+      "imageWidth": 640,
+      "imageHeight": 360,
+      "imageResponsive": false,
+      "iconHtml": "",
+      "order": 7
     }
   ]
 };

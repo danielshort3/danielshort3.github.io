@@ -33,7 +33,7 @@
   ],
   "heroEyebrow": "Systems playground",
   "heroTitle": "Games and simulations",
-  "heroLead": "Six playable experiments in probability, progression, and interactive systems.",
+  "heroLead": "Playable experiments in probability, progression, and interactive systems.",
   "brandPanel": {
     "signals": [],
     "proofPoints": []
@@ -134,6 +134,24 @@
       ],
       "iconType": "ocean",
       "order": 3
+    },
+    {
+      "id": "wayfarers-guild",
+      "iconImage": "img/home-icons/wayfarers-guild.svg",
+      "title": "Wayfarers' Guild",
+      "href": "games/wayfarers-guild",
+      "summary": "Follow an automatic trail, build your guild, and connect gathering, crafting, research, and expeditions.",
+      "image": "img/home-previews/games/wayfarers-guild.webp",
+      "imageWidth": 640,
+      "imageHeight": 360,
+      "imageAlt": "Pixel-art adventurer traveling toward a watchtower and a warm guild of connected rooms",
+      "tags": [
+        "Idle adventure",
+        "Guild strategy",
+        "Offline progress"
+      ],
+      "iconType": "wayfarers-guild",
+      "order": 7
     }
   ]
 }
