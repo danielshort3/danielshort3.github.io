@@ -736,7 +736,12 @@
       }
       if(inSheet && node && !dialog.contains(node)) {node=closeButton();finalAction=false;}
       if (node && finalAction) bindPracticeControl(node,model);
-      const container=node?.closest('.wx-sheet-content,[data-wx-destination],[data-wx-tray],[data-wx-currencies],.wx-dock');
+      let container=node?.closest('.wx-sheet-content,[data-wx-destination],[data-wx-tray],[data-wx-currencies],.wx-dock');
+      const dock=node?.closest('.wx-dock');
+      // Short landscape keeps the real tiles and Operations in a scrollable
+      // dock. Its visible viewport, not the overflowing inner grid, is the
+      // clipping boundary used to bring a required tutorial control into view.
+      if (dock && dock.scrollHeight>dock.clientHeight+1 && /auto|scroll/.test(root.getComputedStyle(dock).overflowY)) container=dock;
       const allowed=inSheet ? Array.from(dialog.querySelectorAll('[data-wx-close],[data-wx-back]')).filter(button=>!button.hidden) : [q('[data-wx-options]'),q('[data-wx-save-alert]:not([hidden])')].filter(Boolean);
       if(model.requiredAction?.type==='plan-reserve' && inSheet) {const input=dialog.querySelector('[data-wx-reserve]');if(input){allowed.push(input);if(finalAction && input.value!==String(model.requiredAction.amount)){node=input;restorePracticeControl();}}}
       return {element:node,clip:container,scroll:container,allowed};

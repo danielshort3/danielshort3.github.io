@@ -21,6 +21,34 @@ import java.util.concurrent.TimeUnit
 /** Explicit disposable-device opt-in; no save replacement or progression injection. */
 @RunWith(AndroidJUnit4::class)
 class GuildOnboardingDeviceTest {
+  @Test fun pendingUpgradeRemainsOperableInCompactLandscape() {
+    assumeTrue("Requires a disposable guild paused at its first upgrade",
+      InstrumentationRegistry.getArguments().getString("guildCompactGuideQa") == "true")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      awaitGuide(scenario, "greenway", "upgrade")
+      try {
+        scenario.onActivity { activity ->
+          findWebView(activity.window.decorView)!!.settings.textZoom = 130
+          activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
+        val landscape = awaitSnapshot(scenario, "Compact landscape must expose the required real upgrade") {
+          it.optInt("width") > it.optInt("height") && it.optBoolean("spotlightVisible") && it.optBoolean("targetReceivesHit")
+        }
+        assertCoach(landscape)
+        saveScreenshot("compact-landscape")
+        performHighlightedStep(scenario, "upgrade", nativeTouch = true)
+        val bought = awaitGuide(scenario, "greenway", "operate")
+        assertEquals(1, bought.getInt("boots"))
+        assertEquals(1, bought.getInt("supplyCount"))
+      } finally {
+        scenario.onActivity { activity ->
+          findWebView(activity.window.decorView)!!.settings.textZoom = 100
+          activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+      }
+    }
+  }
+
   @Test fun retainedE2PlanUsesVisibleRealControlsAndPersistsItsChoice() {
     assumeTrue("Requires an explicitly imported disposable retained E2 save",
       InstrumentationRegistry.getArguments().getString("guildRetainedE2Qa") == "true")
@@ -308,7 +336,17 @@ class GuildOnboardingDeviceTest {
       if (matches(current)) return current
       Thread.sleep(150)
     }
+    saveScreenshot("guide-failure")
     throw AssertionError("$label: $current")
+  }
+
+  private fun saveScreenshot(name: String) {
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    val output = java.io.File(instrumentation.targetContext.getExternalFilesDir(null), "release-qa").apply { mkdirs() }
+    instrumentation.uiAutomation.takeScreenshot()?.let { bitmap ->
+      java.io.FileOutputStream(java.io.File(output, "$name.png")).use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+      bitmap.recycle()
+    }
   }
 
   private fun snapshot(scenario: ActivityScenario<MainActivity>): JSONObject {
@@ -339,7 +377,7 @@ class GuildOnboardingDeviceTest {
           currencyRead:practice?.currencyRead || [],
           boots:state && state.expedition.areas.greenway.ranks.boots,guideOpen:!!guide,guide:guide && guide.dataset.guide,step:guide && guide.dataset.step,replay:!!guide && guide.dataset.replay==='true',
           expeditionVersion:state && state.expedition.version,routeChoice:state && (state.expedition.areas.greenway.choices?.route || state.expedition.areas.greenway.choice),
-          renderDiagnostics:{popoverSupported:typeof HTMLElement.prototype.showPopover==='function',guide:renderInfo(guide),parent:renderInfo(guide?.parentElement),sheet:renderInfo(sheet),target:renderInfo(target)},
+          renderDiagnostics:{popoverSupported:typeof HTMLElement.prototype.showPopover==='function',guide:renderInfo(guide),parent:renderInfo(guide?.parentElement),sheet:renderInfo(sheet),target:renderInfo(target),card:renderInfo(card),ring:renderInfo(ring),recovery:guide?.querySelector('[data-guide-recovery]')?.textContent},
           sheetKind:sheet ? sheet.dataset.kind:'',width:innerWidth,height:innerHeight,
           viewportExactWidth:visualViewport ? visualViewport.width : innerWidth,
           replayAvailable:!!sheet && !!sheet.querySelector('[data-wx-do="guide-replay:greenway"]'),

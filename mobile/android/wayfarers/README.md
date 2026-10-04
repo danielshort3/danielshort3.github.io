@@ -6,7 +6,7 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.11.0`, version code `14` |
+| Default candidate | `0.11.1`, version code `15` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
 

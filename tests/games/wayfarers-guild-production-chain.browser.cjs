@@ -64,6 +64,16 @@ async function run() {
       const after=await geometry(page);assert.deepEqual(after.world,before.world);assert.deepEqual(after.dock,before.dock);report.viewports.push(after);await context.close();
     }
     report.flows.push('Three persistent foundations, canonical locked prerequisites and real Operations inspector at320/390/915 without geometry shifts');
+    for(const [width,height] of [[670,268],[640,256]]) {
+      const {context,page}=await open(width,height,fresh);const dock=page.locator('.wx-dock');const nav=await page.locator('.wx-nav').boundingBox();
+      assert(await dock.evaluate(node=>node.scrollHeight>node.clientHeight && getComputedStyle(node).overflowY==='auto'),'Short landscape dock has real scroll capacity');
+      const buy=page.locator('[data-wx-buy="boots"]');await buy.scrollIntoViewIfNeeded();
+      assert(await buy.evaluate(node=>{const r=node.getBoundingClientRect(),d=node.closest('.wx-dock').getBoundingClientRect();return r.height>=48 && r.top>=d.top && r.bottom<=d.bottom && node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),'Actual upgrade target is fully visible and receives input after dock scroll');
+      await buy.click();assert.equal((await saved(page)).expedition.areas.greenway.ranks.boots,2);
+      await page.locator('[data-wx-plans]').scrollIntoViewIfNeeded();await page.locator('[data-wx-plans]').click();assert.equal(await page.locator('.wx-sheet[open]').getAttribute('data-kind'),'choice');await page.locator('[data-wx-close]').click();
+      assert.deepEqual(await page.locator('.wx-nav').boundingBox(),nav,'Dock scroll never moves navigation');await shot(page,'short-landscape-dock-'+width);await context.close();
+    }
+    report.flows.push('At670×268/640×256 real dock scrolling exposes48px purchases and Processing without moving fixed navigation');
     if(process.env.WAYFARERS_CHAIN_OPENING_ONLY!=='1') {
       const ready=clone(fresh);H.fund(ready,100000);
       while(ready.expedition.areas.greenway.ranks.boots<4)assert(H.Core.act(ready,H.Core.getView(ready).expedition.cards[0].action).ok);
