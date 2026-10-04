@@ -110,7 +110,10 @@ function runProjectPrivacyLayoutTests({ assert }) {
   for (const match of privacyMain.matchAll(/\bid="([^"]+)"/g)) idCounts.set(match[1], (idCounts.get(match[1]) || 0) + 1);
   assert([...idCounts.values()].every((count) => count === 1), 'Moving preferences creates no duplicate IDs.');
   const shortcuts = [...privacyMain.matchAll(/href="(\/privacy#[^"]+)"/g)].map((match) => match[1]);
-  assert(shortcuts.length === 11, 'Privacy has two early actions, eight section shortcuts, and an inline account deletion link.');
+  assert(shortcuts.length === 12, 'Privacy has two early actions, nine section shortcuts, and an inline account deletion link.');
+  assert(privacyMain.includes('id="assistant-and-links"') && shortcuts.includes('/privacy#assistant-and-links')
+    && privacyMain.includes('configurable retention period, with a 30-day default'),
+  'Assistant notices reach a real policy section that distinguishes configurable log retention from a universal promise.');
   assert(privacyMain.includes('id="android-app"') && shortcuts.includes('/privacy#android-app'),
     'The Android policy has a direct section shortcut.');
   assert(privacyMain.includes('id="account-deletion"') && shortcuts.filter((href) => href === '/privacy#account-deletion').length === 3

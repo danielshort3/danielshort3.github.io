@@ -17,9 +17,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
+  <link rel="stylesheet" href="dist/styles-demo.css">
   <style>
     :root {
       --radius-lg: 12px;
@@ -429,19 +427,19 @@
 
     .risk-pill[data-risk="low"] {
       background: color-mix(in srgb, var(--risk-low) 18%, transparent);
-      color: color-mix(in srgb, var(--risk-low) 72%, #ffffff 28%);
+      color: #166534;
       border-color: color-mix(in srgb, var(--risk-low) 40%, transparent);
     }
 
     .risk-pill[data-risk="elevated"] {
       background: color-mix(in srgb, var(--risk-elevated) 18%, transparent);
-      color: color-mix(in srgb, var(--risk-elevated) 72%, #ffffff 28%);
+      color: var(--warning-text, #92400e);
       border-color: color-mix(in srgb, var(--risk-elevated) 40%, transparent);
     }
 
     .risk-pill[data-risk="high"] {
       background: color-mix(in srgb, var(--risk-high) 18%, transparent);
-      color: color-mix(in srgb, var(--risk-high) 72%, #ffffff 28%);
+      color: #991b1b;
       border-color: color-mix(in srgb, var(--risk-high) 40%, transparent);
     }
 
@@ -765,9 +763,9 @@
               <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
             </div>
             <div class="map-svg">
-              <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
+              <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="group" aria-label="State risk map"></svg>
             </div>
-            <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
+            <div class="map-tooltip" id="map-tooltip" role="tooltip" hidden></div>
           </div>
         </section>
 
@@ -1049,6 +1047,10 @@
           if (stateId) selectState(stateId);
         })
         .on("keydown", (event, d) => {
+          if (event.key === "Escape") {
+            hideTooltip();
+            return;
+          }
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
           const stateId = NAME_TO_ABBR[d.properties.name];
@@ -1113,6 +1115,8 @@
       notifyResize();
     }
 
+    let tooltipTrigger = null;
+
     function showTooltip(event, stateId) {
       if (!stateId) return;
       const data = appState.states.get(stateId);
@@ -1120,6 +1124,12 @@
       const value = data ? formatPercent(data.prob) : "--";
       const tooltip = DOM.tooltip;
       tooltip.textContent = `${name}: ${value}`;
+      tooltip.hidden = false;
+      if (tooltipTrigger && tooltipTrigger !== event.currentTarget) {
+        tooltipTrigger.removeAttribute("aria-describedby");
+      }
+      tooltipTrigger = event.currentTarget;
+      tooltipTrigger.setAttribute("aria-describedby", tooltip.id);
       const rect = event.currentTarget.getBoundingClientRect();
       const wrapRect = DOM.mapWrap.getBoundingClientRect();
       tooltip.style.left = `${rect.left - wrapRect.left + rect.width / 2}px`;
@@ -1129,6 +1139,9 @@
 
     function hideTooltip() {
       DOM.tooltip.classList.remove("visible");
+      DOM.tooltip.hidden = true;
+      if (tooltipTrigger) tooltipTrigger.removeAttribute("aria-describedby");
+      tooltipTrigger = null;
     }
 
     function updateMap() {
