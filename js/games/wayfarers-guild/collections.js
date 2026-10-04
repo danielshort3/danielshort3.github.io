@@ -203,7 +203,11 @@
   }
   function effectText(state, effects, strength = 1) {
     const labels = { coins: 'Trail delivery coins', maps: 'maps', travel: 'Trail travel', cargo: 'new voyage cargo', picks: 'extraction capacity', haul: 'hauling capacity', smelt: 'refining capacity', oreYield: 'ore yield', knowledge: 'knowledge', research: 'commission research', assembly: 'assembly capacity', workshopYield: 'manufacturing yield', oreSaving: 'Workshop ore per item', delving: 'delving capacity', recovery: 'recovery capacity', artifacts: 'artifact support', interpretation: 'interpretation capacity', voyage: 'funded voyage travel' };
-    if (state.expedition?.version !== 3) {
+    if(state.expedition?.version===4) {
+      const stations={Trail:['coins','cargo','travel'],Quarry:['picks','haul','smelt','oreYield'],Tower:['knowledge','maps','research'],Workshop:['assembly','workshopYield','oreSaving'],Ruins:['delving','interpretation','recovery','artifacts'],Harbor:['voyage','cargo','maps']};
+      return Object.entries(stations).map(([name,keys])=>[name,keys.reduce((sum,key)=>sum+(effects[key]||0),0)]).filter(([,value])=>value).map(([name,value])=>'+'+Number((value*strength*100).toFixed(2))+'% '+name+' base station output').join('; ');
+    }
+    if (![3,4].includes(state.expedition?.version)) {
       const groups = { coins: ['coins', 'cargo'], ore: ['picks', 'haul', 'smelt', 'oreYield'], herbs: ['delving', 'recovery', 'artifacts'], provisions: ['assembly', 'workshopYield', 'oreSaving'], knowledge: ['knowledge', 'research', 'interpretation'], maps: ['maps'], travel: ['travel', 'voyage'] };
       return 'Retained run: ' + Object.entries(groups).map(([id, keys]) => [id, keys.reduce((sum, key) => sum + (effects[key] || 0), 0)]).filter(([, amount]) => amount).map(([id, amount]) => '+' + Number((amount * strength * 100).toFixed(2)) + '% ' + id).join('; ');
     }

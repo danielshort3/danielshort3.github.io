@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -13,7 +14,7 @@ const old = require('./fixtures/wayfarers-v4-state.json');
 const expected = require('./fixtures/wayfarers-v4-expected.json');
 const clone = value => JSON.parse(JSON.stringify(value));
 const envelope = (state, version = state.schemaVersion, savedAt = state.lastUpdate) => JSON.stringify({ format: Storage.FORMAT, version, savedAt, state });
-const latestVersion = state => Object.assign(clone(state), { schemaVersion: Core.VERSION, collection: Core.createState(state.createdAt).collection, areaSkills: Skills.initial(state, true) });
+const latestVersion = state => Object.assign(clone(state), { schemaVersion: Core.VERSION, collection: createReleasedState(state.createdAt).collection, areaSkills: Skills.initial(state, true),stations:Core.Stations.initial(state) });
 function fixture(initial = {}, time = old.lastUpdate) {
   const values = new Map(Object.entries(initial));
   const writes = [];
@@ -75,7 +76,7 @@ test('failed migration writes and malformed/future envelopes cannot sacrifice an
     const protectedStore = fixture({ [Storage.SAVE_KEY]: bad });
     const result = protectedStore.store.load({ deferOffline: true });
     assert.equal(result.canSave, false);
-    assert.equal(protectedStore.store.save(Core.createState(old.lastUpdate)).ok, false);
+    assert.equal(protectedStore.store.save(createReleasedState(old.lastUpdate)).ok, false);
     assert.equal(protectedStore.values.get(Storage.SAVE_KEY), bad);
   }
 });

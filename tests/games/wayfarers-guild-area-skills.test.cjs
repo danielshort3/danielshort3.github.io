@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { Core, P, N, clone, advance, fund, mature, claimTiers } = require('./helpers/wayfarers-progression.cjs');
@@ -51,7 +52,7 @@ test('each area retains six tracks and adds nine unique techniques in five three
   }
 });
 test('wealth and elapsed time cannot replace local foundation work or explicit claims', () => {
-  const s = Core.createState(0); fund(s);
+  const s = createReleasedState(0); fund(s);
   for (let i = 0; i < 4; i += 1) act(s, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
   assert.equal(S.foundationRequirement(s, 'greenway', 'porters').met, false);
   assert.equal(Core.act(s, { type: 'upgrade-tier-unlock', id: 'area:greenway:porters' }).ok, false);
@@ -75,7 +76,7 @@ test('readiness of the third foundation cannot substitute for claiming its lesso
   const before = clone(s); assert.equal(Core.act(s, { type: 'area-skill-unlock', id: 'stockpiles' }).ok, false); assert.deepEqual(s, before);
 });
 test('malformed high-rank, configuration and unbacked receipt histories fail closed', () => {
-  const fresh = Core.createState(0);
+  const fresh = createReleasedState(0);
   for (const mutate of [s => s.areaSkills.highRanks.stockpiles = 1, s => s.areaSkills.configs['ore-sorting'] = 'graded', s => s.areaSkills.ranks.stockpiles = 11]) {
     const s = clone(fresh); mutate(s); assert.equal(S.validate(s.areaSkills, s), false);
   }

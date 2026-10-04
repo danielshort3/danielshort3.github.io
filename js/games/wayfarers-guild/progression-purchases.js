@@ -10,7 +10,7 @@
   function quote(state, action, count, dependencies) {
     const result = { valid: false, affordable: false, reason: '', costs: {}, count, rank: 0, rankAfter: 0 };
     const info = action && TYPES[action.type];
-    if (state.expedition?.version !== 3 || !info) { result.reason = 'This purchase is not repeatable.'; return result; }
+    if (![3,4].includes(state.expedition?.version) || !info) { result.reason = 'This purchase is not repeatable.'; return result; }
     const [map, catalog] = info;
     const definition = dependencies.Content[catalog].find(item => item.id === action.id);
     if (!definition || !dependencies.isOpen(state, action)) { result.reason = 'Unlock this improvement first.'; return result; }

@@ -38,7 +38,7 @@ class GuildContentUpdateTest {
     val signer = Signature.getInstance("SHA256withECDSA").apply { initSign(key.private); update(payload) }
     return JSONObject().put("payload", Base64.getEncoder().encodeToString(payload)).put("signature", Base64.getEncoder().encodeToString(signer.sign())).toString()
   }
-  private fun fixture(version: Int = 2, transform: (JSONObject) -> Unit = {}, archiveTransform: (ByteArray) -> ByteArray = { it }): Fixture {
+  private fun fixture(version: Int = 2, transform: (JSONObject) -> Unit = {}, archiveTransform: (ByteArray) -> ByteArray = { it }, schema: Int = 7, minimum: Int = 16): Fixture {
     val files = linkedMapOf("wayfarers/index.html" to "<html>Version $version</html>", "wayfarers/game.css" to "body{color:#fff}")
     val zipped = ByteArrayOutputStream()
     ZipOutputStream(zipped).use { zip -> files.forEach { (path, text) -> zip.putNextEntry(ZipEntry(path)); zip.write(text.toByteArray()); zip.closeEntry() } }
@@ -46,19 +46,22 @@ class GuildContentUpdateTest {
     val records = JSONArray()
     files.forEach { (path, text) -> records.put(JSONObject().put("path", path).put("sha256", GuildContentLimits.digest(text.toByteArray())).put("size", text.toByteArray().size)) }
     val json = JSONObject().put("schemaVersion", 1).put("packageName", "me.danielshort.wayfarers").put("contentVersion", version)
-      .put("label", "Game $version").put("nativeApi", 1).put("minAppVersionCode", 16).put("saveSchema", 7)
+      .put("label", "Game $version").put("nativeApi", 1).put("minAppVersionCode", minimum).put("saveSchema", schema)
       .put("archive", JSONObject().put("url", url).put("sha256", GuildContentLimits.digest(bytes)).put("size", bytes.size)).put("records", records)
     transform(json)
-    return Fixture(bytes, json, verifier().verify(sign(json)))
+    return Fixture(bytes, json, verifier(version = minimum, schema = schema).verify(sign(json)))
   }
   private fun temporary(): File = Files.createTempDirectory("guild-content-test").toFile().also { it.deleteOnExit() }
   private fun stage(store: GuildContentStore, fixture: Fixture) {
     val archive = File(temporary(), "content.zip").apply { writeBytes(fixture.bytes) }
     store.stage(fixture.manifest, archive)
   }
-  private fun checkpoint(): ByteArray {
-    val save = JSONObject().put("format", "wayfarers-guild-save").put("version", 7).put("savedAt", 123)
-      .put("state", JSONObject().put("schemaVersion", 7).put("createdAt", 10).put("lastUpdate", 123).put("resources", JSONObject()).put("upgrades", JSONObject()).put("rooms", JSONArray())).toString()
+  private fun checkpoint(schema: Int = 7, stations: JSONObject = JSONObject()): ByteArray {
+    val state = JSONObject().put("schemaVersion", schema).put("createdAt", 10).put("lastUpdate", 123)
+      .put("resources", JSONObject()).put("upgrades", JSONObject()).put("rooms", JSONArray())
+    if (schema >= 8) state.put("stations", stations)
+    val save = JSONObject().put("format", "wayfarers-guild-save").put("version", schema).put("savedAt", 123)
+      .put("state", state).toString()
     return JSONObject().put("version", 1).put("text", save).put("sha256", GuildContentLimits.digest(save.toByteArray())).put("generation", "").toString().toByteArray()
   }
   private val storage = "{\"wayfarers-guild-save\":\"retained guild\",\"wayfarers-guild-generation\":\"old generation\"}"
@@ -218,6 +221,67 @@ class GuildContentUpdateTest {
     assertEquals(5, store.currentVersion())
     assertEquals(6, store.stagedManifest()!!.contentVersion)
   }
+
+  @Test fun apkSeventeenSelectsSchemaEightBaselineInsteadOfIncompatibleActiveContent() {
+    val root = temporary()
+    val old = GuildContentStore(root, verifier())
+    stage(old, fixture()); val active = old.beginApply(checkpoint(), storage); assertTrue(old.commitApply(active.id))
+    val guildFile = File(root, "guild-checkpoint.json").apply { writeBytes(checkpoint()) }
+    val original = guildFile.readBytes()
+    val current = GuildContentStore(root, verifier(version = 17, schema = 8), bundledVersion = 3)
+    assertNull(current.startupRecovery())
+    assertTrue(current.session().isBundled)
+    assertEquals(3L, current.currentVersion())
+    assertArrayEquals("Selecting compatible content must not overwrite a guild", original, guildFile.readBytes())
+    assertTrue("Last committed legacy content must remain available for recovery export", active.directory!!.isDirectory)
+    assertTrue(current.notice()!!.contains("Your guild was kept"))
+    assertEquals(3L, JSONObject(File(root, "journal.json").readText()).getLong("highest"))
+    fails { current.verifyManifest(fixture().manifest.envelope) }
+    val patch = fixture(version = 4, schema = 8, minimum = 17)
+    fails { verifier().verify(patch.manifest.envelope) }
+    stage(current, patch)
+    assertEquals(4L, current.stagedManifest()!!.contentVersion)
+    assertEquals(3L, current.currentVersion())
+    assertNull(GuildContentStore(root, verifier(version = 17, schema = 8), 3).startupRecovery())
+    assertTrue(active.directory.isDirectory)
+  }
+
+  @Test fun apkSchemaUpgradeRestoresAnInterruptedLegacyPairBeforeCanonicalMigration() {
+    val root = temporary()
+    val old = GuildContentStore(root, verifier())
+    stage(old, fixture()); val active = old.beginApply(checkpoint(), storage); old.commitApply(active.id)
+    stage(old, fixture(version = 3)); val pending = old.beginApply(checkpoint(), storage)
+    val upgraded = GuildContentStore(root, verifier(version = 17, schema = 8), bundledVersion = 3)
+    val recovery = upgraded.startupRecovery()!!
+    assertArrayEquals(checkpoint(), recovery.checkpointBytes)
+    assertEquals(storage, recovery.localStorageJson)
+    assertEquals(3L, upgraded.currentVersion())
+    assertFalse(upgraded.commitApply(pending.id))
+    assertTrue(active.directory!!.isDirectory)
+    assertTrue(upgraded.consumeRecovery(recovery.token))
+    assertNull(upgraded.startupRecovery())
+    assertTrue(active.directory.isDirectory)
+  }
+
+  @Test fun schemaEightStationSaveAndAllStorageAreRestoredAsOneRollbackPair() {
+    val root = temporary()
+    val store = GuildContentStore(root, verifier(version = 17, schema = 8), bundledVersion = 3)
+    val stations = JSONObject().put("version", 1).put("built", JSONArray().put("greenway:path"))
+      .put("ranks", JSONObject().put("station:greenway:path:pathfinding", 27))
+      .put("highRanks", JSONObject().put("station:greenway:path:pathfinding", 27))
+      .put("selected", JSONObject().put("greenway", "greenway:path"))
+      .put("output", JSONObject().put("greenway", JSONObject().put("m", 3.2).put("e", 6)))
+    val snapshot = checkpoint(schema = 8, stations = stations)
+    val allStorage = JSONObject(storage).put("wayfarers-guild-save-v1", JSONObject(snapshot.toString(Charsets.UTF_8)).getString("text"))
+      .put("wayfarers-guild-backup-v1", "last good guild").put("wayfarers-guild-quiet", "true").toString()
+    stage(store, fixture(version = 4, schema = 8, minimum = 17))
+    val candidate = store.beginApply(snapshot, allStorage)
+    val recovery = GuildContentStore(root, verifier(version = 17, schema = 8), 3).startupRecovery()!!
+    assertArrayEquals(snapshot, recovery.checkpointBytes)
+    assertEquals(allStorage, recovery.localStorageJson)
+    assertEquals(3L, store.currentVersion())
+    assertFalse(store.commitApply(candidate.id))
+  }
   @Test fun corruptPairedBackupAndUnsafeStorageBlockApplyingOrRollback() {
     val root = temporary()
     val store = GuildContentStore(root, verifier())
@@ -311,6 +375,30 @@ class GuildContentUpdateTest {
     assertTrue(manager.state.value is GuildContentUpdateState.Ready)
     assertTrue(store.session().isBundled)
     scope.cancel()
+  }
+
+  @Test fun newApkIgnoresAuthenticatedSupersededFeedButOldApkRequiresUpgradeForNewSchema() {
+    fun checked(store: GuildContentStore, envelope: String): GuildContentUpdateState {
+      val fake = object : GuildContentTransport {
+        override fun manifest(url: String, cancel: () -> Unit) = envelope
+        override fun download(archive: GuildContentArchive, target: File, progress: (Long, Long) -> Unit, cancel: () -> Unit) {
+          fail("Incompatible content must never download")
+        }
+      }
+      val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+      try {
+        val manager = GuildContentUpdateManager(store, url, fake, scope)
+        manager.check()
+        return manager.state.value
+      } finally { scope.cancel() }
+    }
+    val upgraded = GuildContentStore(temporary(), verifier(version = 17, schema = 8), bundledVersion = 3)
+    assertEquals(3L, (checked(upgraded, fixture().manifest.envelope) as GuildContentUpdateState.Current).version)
+    val next = fixture(version = 4, schema = 8, minimum = 17)
+    val old = GuildContentStore(temporary(), verifier())
+    assertTrue(checked(old, next.manifest.envelope) is GuildContentUpdateState.Error)
+    val tampered = JSONObject(fixture().manifest.envelope).put("signature", Base64.getEncoder().encodeToString(ByteArray(72)))
+    assertTrue("Even obsolete feed content must be authenticated", checked(upgraded, tampered.toString()) is GuildContentUpdateState.Error)
   }
 
   @Test fun cancelStopsAutomaticDownloadUntilFreshCheckAndStillAllowsManualDownload() {

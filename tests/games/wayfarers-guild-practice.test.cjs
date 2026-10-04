@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const H = require('./helpers/wayfarers-progression.cjs');
@@ -20,7 +21,7 @@ function collected() { const s = mature(); act(s, { type: 'collection-unlock', k
 function memory() { const map = new Map(); return { getItem: key => map.get(key) || null, setItem: (key, v) => map.set(key, String(v)), removeItem: key => map.delete(key) }; }
 
 test('fresh Trail requires actual information opening and a real supplied rank, never Next', () => {
-  const s = Core.createState(1), before = clone(s);
+  const s = createReleasedState(1), before = clone(s);
   Core.getView(s); assert.deepEqual(s, before);
   act(s, { type: 'onboarding-visit', id: 'greenway' });
   assert.equal(current(s).mode, 'currency'); explain(s); assert.equal(current(s).mode, 'inspect');
@@ -33,7 +34,7 @@ test('fresh Trail requires actual information opening and a real supplied rank, 
 });
 
 test('first Quarry visit exposes Processing inspection before any alternate plan exists', () => {
-  const s = Core.createState(12); finish(s, 'greenway');
+  const s = createReleasedState(12); finish(s, 'greenway');
   let seconds = 0;
   while (!s.expedition.areas.quarry && seconds < 3600) {
     for (const tier of Core.getView(s).upgradeTiers.ready.filter(row => row.id.startsWith('area:greenway:'))) act(s, tier.unlockAction);
@@ -64,7 +65,7 @@ test('first Quarry visit exposes Processing inspection before any alternate plan
 });
 
 test('every area teaches its first operation at its minimum earned skill state', () => {
-  const s = Core.createState(13), visited = [];
+  const s = createReleasedState(13), visited = [];
   function visitNewAreas() {
     for (const id of Object.keys(s.expedition.areas)) {
       if (visited.includes(id)) continue;
@@ -97,7 +98,7 @@ test('every area teaches its first operation at its minimum earned skill state',
 });
 
 test('three foundation descriptors keep readiness separate from inspection acknowledgement', () => {
-  const s = Core.createState(14), initial = clone(s);
+  const s = createReleasedState(14), initial = clone(s);
   const foundations = () => Core.getView(s).upgradeTiers.foundations.filter(row => row.areaId === 'greenway');
   assert.deepEqual(foundations().map(row => row.status), ['learned', 'locked', 'locked']);
   assert.ok(foundations().slice(1).every(row => row.requirements.length > 0 && !row.unlockAction));
@@ -181,7 +182,7 @@ test('retained Quarry Processing reports canonical actual rates and queues witho
 });
 
 test('stale tokens, substitutions, replay and duplicate transactions cannot spend or grant', () => {
-  const s = Core.createState(2); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
+  const s = createReleasedState(2); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
   const request = clone(current(s).practiceAction), wrong = clone(request); wrong.action.id = 'porters';
   const before = clone(s); assert.equal(Core.act(s, wrong).ok, false); assert.deepEqual(s, before);
   act(s, request); const after = clone(s); assert.equal(Core.act(s, request).ok, false); assert.deepEqual(s, after);
@@ -189,7 +190,7 @@ test('stale tokens, substitutions, replay and duplicate transactions cannot spen
 });
 
 test('mandatory lesson rejects leaving and reload resumes without granting supplies', () => {
-  let s = Core.createState(3); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
+  let s = createReleasedState(3); act(s, { type: 'onboarding-visit', id: 'greenway' }); step(s);
   assert.equal(current(s).canLeave, false); assert.equal(Core.act(s, {type:'onboarding-leave',id:'greenway'}).ok, false); assert.deepEqual(s.resources.coins, N.zero());
   s = Core.normalizeState(clone(s), s.lastUpdate); act(s, { type: 'onboarding-visit', id: 'greenway' });
   assert.equal(current(s).stepId, 'upgrade'); step(s); step(s);
@@ -296,13 +297,13 @@ test('Refit retains proofs and consumes no second practice supply after ordinary
 });
 
 test('offline time never completes lessons, opens Help, or spends practice receipts', () => {
-  const s = Core.createState(11); act(s, { type: 'onboarding-visit', id: 'greenway' });
+  const s = createReleasedState(11); act(s, { type: 'onboarding-visit', id: 'greenway' });
   const before = clone(s.onboarding.practice); advance(s, 7200);
   for (const key of ['active', 'bindings', 'proofs', 'supplies', 'rewards', 'helpRewards']) assert.deepEqual(s.onboarding.practice[key], before[key]); assert.ok(Object.values(s.onboarding.practice.progress).every(p => p === 0)); valid(s);
 });
 
 test('first-use Unlock and go both teaches the real tier claim and consumes its duplicate notice', () => {
-  const s = Core.createState(44); H.fund(s);
+  const s = createReleasedState(44); H.fund(s);
   for (let n = 0; n < 20 && !Core.getView(s).upgradeTiers.ready.some(row => row.id === 'area:greenway:porters'); n += 1) { act(s, { type: 'expedition-buy', id: 'boots' }); advance(s, 30); }
   const entry = Core.getView(s).onboarding.inbox.entries.find(r => r.id === 'ready:area:greenway:porters');
   assert.ok(entry);

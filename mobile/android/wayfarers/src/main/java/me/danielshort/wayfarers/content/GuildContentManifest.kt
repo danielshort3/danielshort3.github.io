@@ -24,7 +24,8 @@ data class GuildContentManifest(
   val id: String get() = "v$contentVersion-${archive.sha256.take(16)}"
 }
 
-class GuildContentFailure(message: String, cause: Throwable? = null) : Exception(message, cause)
+open class GuildContentFailure(message: String, cause: Throwable? = null) : Exception(message, cause)
+class GuildContentCompatibilityFailure(val contentVersion: Long) : GuildContentFailure("This game update requires a compatible app version. Check for an app update first.")
 
 object GuildContentLimits {
   const val MAX_ENVELOPE = 512 * 1024
@@ -78,10 +79,10 @@ class GuildContentVerifier(
       require(manifest.length() == 9)
       require(integer(manifest, "schemaVersion") == 1L)
       require(manifest.getString("packageName") == packageName)
-      require(integer(manifest, "nativeApi") == nativeApi.toLong())
-      require(integer(manifest, "saveSchema") == saveSchema.toLong())
+      val signedNativeApi = integer(manifest, "nativeApi")
+      val signedSaveSchema = integer(manifest, "saveSchema")
       val minimum = integer(manifest, "minAppVersionCode")
-      require(minimum in 1..appVersionCode.toLong()) { "A newer app is required" }
+      require(minimum in 1..Int.MAX_VALUE.toLong())
       val version = integer(manifest, "contentVersion")
       require(version in 1..Int.MAX_VALUE.toLong())
       val label = manifest.getString("label")
@@ -105,6 +106,9 @@ class GuildContentVerifier(
       require(records.map { it.path }.toSet().size == records.size) { "Duplicate content path" }
       require(records.sumOf { it.size } <= GuildContentLimits.MAX_EXTRACTED)
       require(records.any { it.path == "wayfarers/index.html" } && records.any { it.path == "wayfarers/game.css" })
+      if (signedNativeApi != nativeApi.toLong() || signedSaveSchema != saveSchema.toLong() || minimum > appVersionCode) {
+        throw GuildContentCompatibilityFailure(version)
+      }
       return GuildContentManifest(version, label, minimum.toInt(), archive, records, envelope)
     } catch (failure: GuildContentFailure) {
       throw failure

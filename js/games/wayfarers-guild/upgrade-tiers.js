@@ -16,7 +16,7 @@
   const initial = () => ({ version: 1, claimed: ['area:greenway:boots'], pending: [], prompted: [] });
   const identity = action => action.type + ':' + action.id;
   function definitions(state) {
-    const x = state.expedition, rows = [], progression = x?.version === 3;
+    const x = state.expedition, rows = [], progression = [3, 4].includes(x?.version);
     if (cache.has(progression)) return cache.get(progression);
     for (const area of D.AREAS) {
       const tracks = progression ? area.tracks : (legacyTracks[area.id] || []).map((id, index) => {
@@ -57,13 +57,14 @@
   function localReady(state, row, migration) {
     const x = state.expedition, area = x?.areas?.[row.areaId], track = row.actions[0].id;
     if (!area) return false;
-    if (x.version === 3) return area.learned.includes(track) || area.highRanks[track] > 0 || area.ranks[track] > 0;
+    if ([3, 4].includes(x.version)) return area.learned.includes(track) || area.highRanks[track] > 0 || area.ranks[track] > 0;
     if (area.ranks[track] > 0 || row.index === 0) return true;
     if (migration) return row.areaId !== 'greenway' || area.index > 0 || track === 'porters' && (area.ranks.boots >= 2 || area.work >= 28) || track === 'scouts' && (Object.values(area.ranks).reduce((a,b) => a+b,0) >= 5 || area.work >= 70);
     const previous = legacyTracks[row.areaId][row.index - 1];
     return area.ranks[previous] >= 2 || area.elapsed >= row.index * 180;
   }
   function eligible(state, row, migration = false) {
+    if (row.local && state.expedition?.version === 4 && !migration) return false;
     if (row.local) return localReady(state, row, migration) && (migration || row.index === 0 || state.upgradeTiers.claimed.includes(row.previous));
     // The existing guild-wide boot system is introduced after the first area;
     // the opening remains one understandable local purchase surface.

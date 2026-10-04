@@ -43,9 +43,18 @@ class GuildCheckpointStore(private val file: File) {
     if (previous != null) {
       require(incoming.savedAt >= previous.savedAt) { "Older checkpoint" }
       require(incoming.createdAt == previous.createdAt || replacesCreatedAt == previous.createdAt) { "Unreviewed guild replacement" }
+      require(JSONObject(incoming.text).getInt("version") >= JSONObject(previous.text).getInt("version")) { "Older save schema" }
       if (incoming.text == previous.text) return true
     }
     val replacement = replacesCreatedAt ?: previous?.takeIf { it.createdAt == incoming.createdAt }?.replacesCreatedAt
+    // Keep the exact last good older-schema record before adopting a migration.
+    // It is a recovery/export backup, never an automatic downgrade of a new save.
+    if (previous != null && incoming.createdAt == previous.createdAt &&
+      JSONObject(previous.text).getInt("version") < JSONObject(incoming.text).getInt("version")) {
+      val backup = File(file.parentFile, file.name + ".before-schema-${JSONObject(incoming.text).getInt("version")}")
+      if (!backup.exists()) atomicWrite(backup, file.readBytes())
+      decodeRecord(backup.readText(Charsets.UTF_8))
+    }
     persist(incoming.copy(replacesCreatedAt = replacement, generation = generation, previousGeneration = previous?.previousGeneration))
     true
   }.getOrDefault(false)
@@ -68,10 +77,14 @@ class GuildCheckpointStore(private val file: File) {
     checkpoint.previousGeneration?.let { record.put("previousGeneration", it) }
     val bytes = record.toString().toByteArray(Charsets.UTF_8)
     require(bytes.size <= MAX_RECORD_BYTES)
-    file.parentFile?.mkdirs()
-    val temporary = File(file.parentFile, file.name + ".pending")
+    atomicWrite(file, bytes)
+  }
+
+  private fun atomicWrite(destination: File, bytes: ByteArray) {
+    destination.parentFile?.mkdirs()
+    val temporary = File(destination.parentFile, destination.name + ".pending")
     FileOutputStream(temporary).use { stream -> stream.write(bytes); stream.flush(); stream.fd.sync() }
-    Files.move(temporary.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    Files.move(temporary.toPath(), destination.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
   }
 
   /** Executed as a same-origin external script before the game creates its store. */
@@ -90,7 +103,7 @@ class GuildCheckpointStore(private val file: File) {
     require(text.toByteArray(Charsets.UTF_8).size in 1 until GuildContentPolicy.MAX_SAVE_BYTES)
     val payload = JSONObject(text)
     val gameVersion = payload.getInt("version")
-    require(payload.getString("format") == "wayfarers-guild-save" && gameVersion in 1..7)
+    require(payload.getString("format") == "wayfarers-guild-save" && gameVersion in 1..8)
     val state = payload.getJSONObject("state")
     require(state.getInt("schemaVersion") == gameVersion)
     require(state.has("resources") && state.has("upgrades") && state.has("rooms"))

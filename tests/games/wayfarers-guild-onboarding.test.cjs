@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { Core, N, P, clone, advance, fund, mature, claimTiers } = require('./helpers/wayfarers-progression.cjs');
@@ -14,7 +15,7 @@ function finish(state, id) {
 }
 function withoutGuidance(state) { const copy = clone(state); delete copy.onboarding; return copy; }
 function porters() {
-  const state = Core.createState(0); fund(state);
+  const state = createReleasedState(0); fund(state);
   for (let rank = 0; rank < 4; rank += 1) act(state, { type: 'expedition-buy', id: 'boots' });
   for (let seconds = 0; !state.upgradeTiers.pending.includes('area:greenway:porters') && seconds < 600; seconds += 1) advance(state, 1);
   assert.ok(state.upgradeTiers.pending.includes('area:greenway:porters'), 'Real Pathfinding ranks and three deliveries earn Porters');
@@ -104,7 +105,7 @@ test('retained expedition adoption keeps learned guides and does not announce ma
   state.upgrades['gear-tools']=1; state.upgrades['gear-boots']=1;
   const before=clone(state.onboarding);
   assert.ok(Core.getRefitPreview(state).available); act(state,{type:'refit'});
-  assert.equal(state.expedition.version,3);
+  assert.equal(state.expedition.version,4);
   assert.deepEqual(state.onboarding.progress,before.progress); assert.deepEqual(state.onboarding.rewardClaims,before.rewardClaims);
   assert.ok(!Core.getView(state).onboarding.notice.items.some(row=>row.id.startsWith('tier:area:')));
   assert.ok(Core.getView(state).onboarding.notice.items.some(row=>row.id==='feature:focus'),'genuinely new earned feature still announces'); valid(state);
@@ -134,14 +135,14 @@ test('offline partitions preserve durable discovery order without paying or comp
 });
 
 test('strict validation and import reject forged discoveries, rewards, prototype keys and skipped completion', () => {
-  const original=Core.createState(0);
+  const original=createReleasedState(0);
   const mutations=[x=>{x.onboarding.progress.harbor=3;},x=>{x.onboarding.progress.greenway=3;},x=>{x.onboarding.active='constructor';},x=>{x.onboarding.entries.push('area:harbor');},x=>{x.onboarding.entries.push('tier:area:greenway:scouts');},x=>{x.onboarding.read.push('feature:cards');},x=>{x.onboarding.rewardClaims.push('harbor');},x=>{x.onboarding.announced.push('area:greenway');},x=>{x.onboarding.progress=JSON.parse('{"__proto__":1}');},x=>{x.onboarding.progress=[];},x=>{x.onboarding.version=2;}];
   for(const change of mutations){const state=clone(original);change(state);const before=clone(state);assert.equal(Core.validateState(state).valid,false);assert.deepEqual(state,before);const store=Storage.createStore({storage:null,now:()=>0});assert.equal(store.inspectImport(JSON.stringify({format:Storage.FORMAT,version:Storage.VERSION,savedAt:0,state})).ok,false);}
 });
 
 test('fresh testing-reset state starts guides again without carrying old rewards or purchased inventory', () => {
   const previous=mature(); act(previous,{type:'expedition-select',areaId:'greenway'}); finish(previous,'greenway');
-  const fresh=Core.createState(previous.createdAt+1000);
+  const fresh=createReleasedState(previous.createdAt+1000);
   assert.deepEqual(fresh.onboarding,O.initial()); assert.deepEqual(fresh.onboarding.rewardClaims,[]);
   assert.notEqual(Core.getView(fresh).onboarding.identity,Core.getView(previous).onboarding.identity);
   assert.deepEqual(fresh.collection.cards,{}); valid(fresh);

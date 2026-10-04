@@ -83,11 +83,27 @@
   };
   // Readiness requires the canonical game and a durable native save.
   if (window.WayfarersContent && window.WayfarersAndroid) {
+    function sceneReady() {
+      const world = document.querySelector('[data-wx-station-world]');
+      if (!world) {
+        const canvas = document.querySelector('[data-wx-canvas]');
+        return !canvas || canvas.dataset.sceneStatus === 'ready';
+      }
+      const clip = world.getBoundingClientRect();
+      const visible = Array.from(world.querySelectorAll('canvas')).filter(function (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && rect.right > Math.max(0, clip.left) &&
+          rect.left < Math.min(window.innerWidth, clip.right) && rect.bottom > Math.max(0, clip.top) &&
+          rect.top < Math.min(window.innerHeight, clip.bottom);
+      });
+      // Offscreen stations render lazily. The legacy compatibility canvas must
+      // never certify a newly visible scene before its real art has painted.
+      return visible.length > 0 && visible.every(function (canvas) { return canvas.dataset.sceneStatus === 'ready'; });
+    }
     let flushed = false;
     const timer = setInterval(function () {
       if (window.WayfarersContent.restoreFailed || !window.WayfarersUI || !window.WayfarersUI.contentReady()) return;
-      const canvas = document.querySelector('[data-wx-canvas]');
-      if (canvas && canvas.dataset.sceneStatus !== 'ready') return;
+      if (!sceneReady()) return;
       if (!flushed) { flushed = window.WayfarersUI.flushForContentUpdate(); return; }
       if (!window.WayfarersCheckpoint.confirmed()) return;
       clearInterval(timer);

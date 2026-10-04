@@ -112,7 +112,7 @@ class GuildOnboardingDeviceTest {
       performHighlightedStep(scenario, "inspect")
       val second = awaitGuide(scenario, "greenway", "upgrade")
       assertCoach(second)
-      assertTrue("The normal first quote remains visible", second.getString("quoteText").contains("6 Coins", ignoreCase = true))
+      assertTrue("The normal first quote remains visible", second.getString("quoteText").contains("24 Coins", ignoreCase = true))
       assertEquals(1, second.getInt("progress"))
       assertEquals("Inspection must not buy the required practice rank", 0, second.getInt("boots"))
       assertEquals(1, second.getInt("proofCount"))
@@ -370,7 +370,7 @@ class GuildOnboardingDeviceTest {
         function renderInfo(el){if(!el)return null;var r=box(el),c=getComputedStyle(el),pop=false;try{pop=el.matches(':popover-open');}catch(error){}return {tag:el.tagName,classes:el.className,parent:el.parentElement?.className,popover:el.getAttribute('popover'),popoverOpen:pop,transform:c.transform,overflow:c.overflow,position:c.position,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};}
         var focused=document.activeElement, unrelated=document.querySelector('[data-wx-nav="guild"]');
         var exits=sheet ? Array.from(sheet.querySelectorAll('[data-wx-close],[data-wx-back]')) : [];
-        var capacity=state && state.expedition.version===3 && window.WayfarersProgression ? window.WayfarersProgression.rawRates(state).areas.greenway.travel : 0;
+        var capacity=state && state.expedition.version===4 && window.WayfarersCore ? window.WayfarersCore.getView(state).stations.currentStation.output : state && state.expedition.version===3 && window.WayfarersProgression ? window.WayfarersProgression.rawRates(state).areas.greenway.travel : 0;
         return {createdAt:state && state.createdAt,areaCount:state ? Object.keys(state.expedition.areas).length : 0,progress:practice && practice.progress.greenway,claimCount:o ? o.rewardClaims.filter(function(id){return id==='greenway';}).length : 0,
           proofCount:practice ? practice.proofs.filter(function(id){return id.startsWith('greenway:');}).length : 0,
           supplyCount:practice ? practice.supplies.filter(function(id){return id==='greenway:upgrade';}).length : 0,travelCapacity:capacity,

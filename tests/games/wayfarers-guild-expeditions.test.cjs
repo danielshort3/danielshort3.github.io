@@ -184,7 +184,8 @@ test('an explicit released-run Refit adopts rebuilding ranks while preserving pe
   assert.ok(Core.getRefitPreview(state).available);
   const retained = clone(state.expedition), premium = clone(state.premium);
   assert.ok(Core.act(state, { type: 'refit' }).ok);
-  assert.equal(state.expedition.version, 3);
+  assert.equal(state.expedition.version, 4);
+  assert.ok(Core.Stations.active(state));
   for (const key of ['cleared', 'blueprints', 'mastery', 'purchases']) assert.deepEqual(state.expedition[key], retained[key]);
   for (const key of ['enabled', 'priority', 'dispatch']) assert.equal(state.expedition.automation[key], retained.automation[key]);
   for (const id of Object.keys(retained.areas)) {
@@ -211,6 +212,7 @@ test('field-missing v4 and historical migrations join the current stage without 
   valid(upgraded);
   for (const version of [1, 2, 3]) {
     const historical = Core.createState(0); delete historical.expedition; delete historical.guild; delete historical.introductions; delete historical.collection; delete historical.areaSkills;
+    delete historical.stations; delete historical.upgradeTiers; delete historical.onboarding; delete historical.trailDeliveries;
     historical.schemaVersion = version;
     if (version < 3) { delete historical.luck; delete historical.caravan; }
     else Core.Content.RELICS.filter(item => item.chapter > 0).forEach(item => delete historical.luck.duplicateProgress[item.id]);
@@ -407,7 +409,7 @@ test('shared reserve and explicit development objective protect savings from bot
   // A deliberately short cash interval cannot buy a rank just below its exact
   // cost. The next interval does; the wallet never supplies a free whole coin.
   Core.act(state, { type: 'expedition-automation', enabled: false, priority: 'balanced', dispatch: false });
-  const offer = require('../../js/games/wayfarers-guild/progression.js').catalog(state).find(x => x.id === 'area:greenway:boots');
+  const offer = Core.Stations.row(state, Core.Stations.Content.SKILLS[0]);
   state.resources.coins = N.sub(offer.cost[0].amount, .001);
   assert.equal(Core.act(state, offer.action).ok, false);
   advance(state, .01);

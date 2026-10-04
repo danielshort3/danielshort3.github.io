@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -16,7 +17,7 @@ function collected() {
   return state;
 }
 function ownedCard(state, id, copies = 0) { state.collection.cards[id] = { rank: 1, copies }; }
-function stripCollection(state) { const copy = clone(state); copy.schemaVersion = 5; delete copy.collection; delete copy.areaSkills; return copy; }
+function stripCollection(state) { const copy = clone(state); copy.schemaVersion = 5; delete copy.collection; delete copy.areaSkills; delete copy.stations; return copy; }
 
 for (const kind of ['network', 'retained']) {
   const fixture = require('./fixtures/wayfarers-v5-' + kind + '.json');
@@ -38,7 +39,7 @@ for (const kind of ['network', 'retained']) {
 }
 
 test('starter introductions require learned areas, grant once and never equip a bonus automatically', () => {
-  const fresh = Core.createState(0), before = clone(fresh);
+  const fresh = createReleasedState(0), before = clone(fresh);
   assert.equal(Core.act(fresh, { type: 'collection-unlock', kind: 'cards' }).ok, false);
   assert.deepEqual(fresh, before);
   const state = mature(), rates = Core.getRates(state);
@@ -184,8 +185,9 @@ test('all collection clocks, inventories, decks and scroll RNG survive real Refi
   buy(state, { type: 'gear-scroll', id: 'trail-boots', scrollId: 'bold' }); advance(state, 321);
   const collection = clone(state.collection);
   act(state, { type: 'refit' }); assert.deepEqual(state.collection, collection);
+  require('./helpers/wayfarers-stations.cjs').establish(state);
   const target = 5 + state.lifetime.charters * 2;
-  while (state.run.completed < target) { fund(state); for (const [areaId, area] of Object.entries(state.expedition.areas)) for (const id of area.learned) while (area.ranks[id] < 25) act(state, { type: 'expedition-buy', areaId, id }); if (state.expedition.completed) act(state, { type: 'expedition-next' }); advance(state, 60); }
+  while (state.run.completed < target) { fund(state); if (state.expedition.completed) act(state, { type: 'expedition-next' }); advance(state, 60); }
   const before = clone(state.collection); act(state, { type: 'charter' }); assert.deepEqual(state.collection, before);
   valid(state);
 });
@@ -359,7 +361,7 @@ test('current saves retain card inventories and reject future envelopes without 
   values.set(Storage.SAVE_KEY, unsupported);
   const protectedStore = Storage.createStore({ storage, now: () => state.lastUpdate });
   assert.equal(protectedStore.load({ deferOffline: true }).canSave, false);
-  assert.equal(protectedStore.save(Core.createState(0)).ok, false);
+  assert.equal(protectedStore.save(createReleasedState(0)).ok, false);
   assert.equal(values.get(Storage.SAVE_KEY), unsupported);
   valid(state);
 });
@@ -375,7 +377,7 @@ test('old fresh saves unlock introductions from actual persistent areas rather t
 });
 
 test('earned deck slots are gated and announce once without filling a new slot', () => {
-  const state = Core.createState(0); fund(state);
+  const state = createReleasedState(0); fund(state);
   while (!state.expedition.completed || !P.canAdvance(state)) {
     claimTiers(state);
     for (const id of state.expedition.areas.greenway.learned) Core.act(state, { type: 'expedition-buy', areaId: 'greenway', id });

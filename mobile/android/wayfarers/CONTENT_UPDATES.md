@@ -51,7 +51,7 @@ The manifest payload is:
 }
 ```
 
-`contentVersion` is a strictly increasing integer independent of the APK version. `label` is a readable release label. This native API accepts save schema `7`; a schema migration or a new native bridge contract must first ship through a compatible APK. Do not relabel a save-schema-changing release as schema 7. The builder currently deliberately fixes native API `1`, minimum APK code `16` and save schema `7`.
+`contentVersion` is a strictly increasing integer independent of the APK version. `label` is a readable release label. The example above documents the historical APK-16/schema-7 content protocol. APK 17 bundles baseline content version 3 and accepts schema 8 under native API 1. New signed content must have version greater than 3, minimum APK code 17 and save schema 8. Ship this compatible APK before updating the signed content pointer. APK 16 authenticates the manifest then rejects schema-8 content without activating it. Do not relabel a schema-changing release as schema 7.
 
 Only HTTPS assets under this repository's GitHub release-download path are allowed. The fixed signed channel pointer is `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json`. Android package updates continue using `latest.json` on the same channel release; keep these two independent manifests distinct.
 
@@ -59,26 +59,15 @@ Only HTTPS assets under this repository's GitHub release-download path are allow
 
 Keep the private signing key outside every checkout, cloud upload, release asset and Android source tree. Preserve it securely across releases; changing the embedded public key requires an APK update. A synthetic interoperability fixture under `mobile/android/scripts/guild-content-protocol-fixture.json` has its own discarded test key and must never be used as a production release identity.
 
-From the repository root, prepare into a fresh directory outside the checkout:
+From the repository root, prepare into a fresh directory outside the checkout. Supply the prior published signed envelope, including when moving from historical content 2 to schema-8 content 4:
 
 ```powershell
 node mobile/android/scripts/prepare-guild-content.cjs `
   --key C:\Guild-Signing\content-p256.pem `
-  --output C:\Guild-Releases\content-v2 `
-  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v2/ `
-  --version 2 `
-  --label 0.12.0.1
-```
-
-For every subsequent content release, supply the prior published signed envelope:
-
-```powershell
-node mobile/android/scripts/prepare-guild-content.cjs `
-  --key C:\Guild-Signing\content-p256.pem `
-  --output C:\Guild-Releases\content-v3 `
-  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v3/ `
-  --version 3 `
-  --label 0.12.0.2 `
+  --output C:\Guild-Releases\content-v4 `
+  --base-url https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-content-v4/ `
+  --version 4 `
+  --label 0.13.0.1 `
   --previous-envelope C:\Guild-Releases\published-content-v2.json
 ```
 

@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -206,7 +207,7 @@ test('corrupt reset journal fails closed rather than recovering an erased backup
   const next = make();
   const before = Array.from(storage.data);
   assert.equal(next.load().canSave, false);
-  assert.equal(next.save(Core.createState(999)).ok, false);
+  assert.equal(next.save(createReleasedState(999)).ok, false);
   assert.equal(next.resetForTesting().ok, false);
   assert.deepEqual(Array.from(storage.data), before);
 });
@@ -231,7 +232,7 @@ test('an old save already between read and write cannot erase confirmed purchase
       interleave = false;
       const reset = store.resetForTesting(); assert.equal(reset.ok, true);
       freshIdentity = reset.state.createdAt;
-      Core.advance(reset.state, 10);
+      Core.advance(reset.state, 24);
       const purchase = Core.getView(reset.state).expedition.cards.find(card => card.visible !== false);
       assert.equal(Core.act(reset.state, purchase.action).ok, true);
       assert.equal(store.save(reset.state).ok, true);
@@ -263,7 +264,7 @@ test('native reset waits for acknowledgment and fences snapshots while pending',
   store.load();
   const pending = store.resetForTesting();
   assert.equal(context.WayfarersCheckpoint.snapshot(), '');
-  assert.equal(store.save(Core.createState(2000000)).ok, false);
+  assert.equal(store.save(createReleasedState(2000000)).ok, false);
   assert.equal(resetMessage.previousGeneration, '');
   response.onmessage({ data: JSON.stringify({ type: 'reset-guild', requestId: resetMessage.requestId, ok: true }) });
   assert.equal((await pending).ok, true);
@@ -319,7 +320,7 @@ test('native bootstrap compares the canonical new generation rather than a stale
   const old = storage.getItem(Storage.SAVE_KEY);
   const reset = store.resetForTesting();
   const nativeText = storage.getItem(Storage.SAVE_KEY);
-  Core.advance(reset.state, 10);
+  Core.advance(reset.state, 24);
   assert.equal(Core.act(reset.state, Core.getView(reset.state).expedition.cards.find(card => card.visible !== false).action).ok, true);
   assert.equal(store.save(reset.state).ok, true);
   storage.setItem(Storage.SAVE_KEY, old);

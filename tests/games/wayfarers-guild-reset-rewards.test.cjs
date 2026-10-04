@@ -33,7 +33,7 @@ test('explicit adoption keeps locked rewards, receipt history, earned ownership 
   const { state, quote } = pendingReleasedReward();
   const before = clone(state), preview = Core.getRefitPreview(state);
   assert.equal(Core.act(state, { type: 'refit' }).ok, true);
-  assert.equal(state.expedition.version, 3);
+  assert.equal(state.expedition.version, 4);
   assert.equal(state.schemaVersion, Core.VERSION);
   assert.equal(state.run.id, before.run.id + 1);
   assert.deepEqual(state.luck, before.luck);

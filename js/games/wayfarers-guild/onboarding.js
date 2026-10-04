@@ -14,7 +14,7 @@
   const GUIDES = D.AREAS.map(area => area.id).concat('cards', 'equipment');
   const tierCache = new Map();
   const tierRows = state => {
-    const version = state.expedition?.version === 3 ? 3 : 2;
+    const version = [3,4].includes(state.expedition?.version) ? 3 : 2;
     if (!tierCache.has(version)) tierCache.set(version, Tiers.describe(state));
     return tierCache.get(version);
   };
@@ -83,7 +83,7 @@
     return row.local ? ui('expedition', { areaId: row.areaId, upgradeId: purchase.id }) : ui('upgrades', { tierId: row.id, purchase: clone(purchase) });
   }
   function retiredDestination(state, row) {
-    if (row.local && row.actions[0].id === 'lift' && state.expedition?.version === 3) return ui('expedition', { areaId: row.areaId, upgradeId: 'signals' });
+    if (row.local && row.actions[0].id === 'lift' && [3,4].includes(state.expedition?.version)) return ui('expedition', { areaId: row.areaId, upgradeId: 'signals' });
     return ui('expedition', { areaId: hasArea(state, row.areaId) ? row.areaId : state.expedition?.selectedArea || 'greenway' });
   }
   function definitions(state) {
@@ -102,7 +102,7 @@
     tiers.filter(row => !row.local || row.index > 0).forEach(row => rows.push({ id: 'ready:' + row.id, kind: 'tier-ready', label: row.label + ' available', effect: row.shortEffect, icon: row.icon, targetAreaId: row.areaId, earned: !!state.upgradeTiers && (state.upgradeTiers.pending.includes(row.id) || state.upgradeTiers.claimed.includes(row.id)), pending: !!state.upgradeTiers?.pending.includes(row.id), tierId: row.id, goToAction: tierDestination(row) }));
     tiers.filter(row => !row.local || row.index > 0).forEach(row => rows.push({ id: 'tier:' + row.id, kind: 'tier', label: row.label + ' unlocked', effect: row.shortEffect, icon: row.icon, targetAreaId: row.areaId, earned: !!state.upgradeTiers?.claimed.includes(row.id), goToAction: tierDestination(row) }));
     // Prior-version entries remain meaningful after explicit adoption.
-    const other = tierRows({ ...state, expedition: { ...state.expedition, version: state.expedition?.version === 3 ? 2 : 3 } });
+    const other = tierRows({ ...state, expedition: { ...state.expedition, version: [3,4].includes(state.expedition?.version) ? 2 : 3 } });
     other.filter(row => (!row.local || row.index > 0) && !rows.some(item => item.id === 'ready:' + row.id)).forEach(row => rows.push({ id: 'ready:' + row.id, kind: 'tier-ready', label: row.label + ' · earlier expedition', effect: 'Retained history. Current options are shown in the area.', icon: row.icon, targetAreaId: row.areaId, earned: !!state.upgradeTiers && (state.upgradeTiers.pending.includes(row.id) || state.upgradeTiers.claimed.includes(row.id)), pending: false, retired: true, tierId: row.id, goToAction: retiredDestination(state, row) }));
     other.filter(row => (!row.local || row.index > 0) && !rows.some(item => item.id === 'tier:' + row.id)).forEach(row => rows.push({ id: 'tier:' + row.id, kind: 'tier', label: row.label + ' · earlier expedition', effect: 'Retained history. Current options are shown in the area.', icon: row.icon, targetAreaId: row.areaId, retired: true, earned: !!state.upgradeTiers?.claimed.includes(row.id), goToAction: retiredDestination(state, row) }));
     D.PROJECTS.forEach(project => rows.push({ id: 'project:' + project.id, kind: 'project', label: project.name + ' completed', effect: project.effect, icon: 'research', sourceAreaId: project.source, targetAreaId: project.target, earned: !!state.expedition?.projects?.includes(project.id), goToAction: ui('expedition', { areaId: project.target, control: project.unlock.track ? 'upgrade-tier' : 'plans', upgradeId: project.unlock.track || null }) }));
