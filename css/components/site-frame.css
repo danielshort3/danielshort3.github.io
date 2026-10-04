@@ -458,23 +458,24 @@
     letter-spacing: .15em;
   }
   .site-frame__welcome-title {
-    margin: 0 0 18px;
+    margin: 0 0 24px;
     color: inherit;
     font-family: inherit;
-    font-size: clamp(2.5rem, 4.3vw, 4rem);
+    font-size: clamp(4.5rem, 7.5vw, 6.75rem);
     font-weight: 800;
-    line-height: 1.08;
+    line-height: 1;
     letter-spacing: -.04em;
     text-wrap: balance;
   }
+  .site-frame__welcome-name { display: block; }
   :is(.site-frame, .home-accordion__welcome) .site-frame__welcome-summary {
-    max-width: 30ch;
+    max-width: 20.5ch;
     margin: 0;
     color: #091f3b;
-    font-size: clamp(1.125rem, 1.75vw, 1.5rem);
-    line-height: 1.45;
+    font-size: clamp(1.25rem, 1.85vw, 1.625rem);
+    line-height: 1.35;
     letter-spacing: -.02em;
-    text-wrap: balance;
+    text-wrap: pretty;
   }
   .site-frame__welcome-detail {
     max-width: 52ch;
@@ -557,8 +558,9 @@
       padding: clamp(36px, 7svh, 60px) 24px 32px;
     }
     :is(.site-frame, .home-accordion__welcome) .site-frame__welcome-eyebrow { margin-bottom: 14px; }
-    .site-frame__welcome-title { font-size: clamp(2rem, 9.6vw, 2.75rem); margin-bottom: 14px; }
-    :is(.site-frame, .home-accordion__welcome) .site-frame__welcome-summary { max-width: 25ch; font-size: 1.25rem; }
+    .site-frame__welcome-title { font-size: clamp(2rem, 10.8vw, 2.75rem); margin-bottom: 18px; }
+    .site-frame__welcome-name { display: inline; }
+    :is(.site-frame, .home-accordion__welcome) .site-frame__welcome-summary { max-width: 20.5ch; font-size: 1.25rem; }
     :is(.site-frame, .home-accordion__welcome) .site-frame__welcome-hint { margin-top: 22px; padding-top: 18px; font-size: .875rem; }
     .site-frame.site-frame[data-frame-view="closed"] .site-frame__stage {
       flex: 0 0 auto;
@@ -603,7 +605,7 @@
   @media (max-width: 600px) {
     body[data-page="home"] .site-frame[data-frame-view="closed"] .site-frame__welcome,
     body[data-page="home"] .home-accordion__welcome {
-      padding: 36px 24px 14px;
+      padding: clamp(48px, 9.5svh, 80px) clamp(24px, 10vw, 40px) 18px;
     }
     body[data-page="home"] .site-frame__welcome-detail { margin-top: 10px; }
     body[data-page="home"] .site-frame__welcome-browse {
