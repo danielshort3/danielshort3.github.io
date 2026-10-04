@@ -1025,3 +1025,10 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
   .wx-stage-roles .wg-icon { width:20px!important; height:20px!important; }
   .wx-role-column>.wx-skill-tile { min-height:140px; flex-basis:140px; }
 }
+/* Smaller phones may have fewer than 140 CSS pixels below the fixed chrome
+   after rotation. Scroll the actual dock; never hide or shrink its controls. */
+@media(max-height:340px) and (orientation:landscape) {
+  .wx-game .wx-dock { grid-template-rows:24px 160px 56px; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; scrollbar-width:thin; scroll-padding-block:5px; }
+  .wx-game .wx-dock:has([data-wx-batch]:not([hidden])),.wx-game .wx-dock:has([data-wx-tier-ready]:not([hidden])) { grid-template-rows:48px 160px 56px; }
+  .wx-game .wx-dock .wx-tray { min-height:160px; overflow:visible; }
+}

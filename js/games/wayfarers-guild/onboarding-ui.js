@@ -186,7 +186,10 @@
           if (side>=180) card.style.width=Math.min(size.width,side)+'px';
           else {
             const vertical=Math.max(box.top-safe.top-12,safe.bottom-box.bottom-12);
-            if (vertical>=144) card.style.maxHeight=vertical+'px';
+            // In short landscape a full-width sheet action can leave less than
+            // 144px below it. The copy already scrolls: use that real space
+            // instead of centering the coach over the required touch target.
+            if (vertical>=120) card.style.maxHeight=vertical+'px';
           }
           size=card.getBoundingClientRect();
           best=spaces().filter(fits).sort((a,b)=>b.room-a.room)[0];
