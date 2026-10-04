@@ -76,6 +76,8 @@ class GuildReleaseSnapshotTest {
       assertEquals(snapshot.getLong("createdAt"), state.getLong("createdAt"))
       val output = File(context.getExternalFilesDir(null), "release-qa").apply { mkdirs() }
       File(output, "guild.json").writeText(checkpoint.text)
+      val migrationBackup = GuildCheckpointStore(File(context.filesDir, "guild-checkpoint.json.before-schema-8")).read()
+      if (migrationBackup != null) File(output, "guild-before-schema-8.json").writeText(migrationBackup.text)
       File(output, "snapshot.json").writeText(snapshot.toString(2))
       val prefs = File(context.applicationInfo.dataDir, "shared_prefs")
       prefs.listFiles()?.filter { it.isFile && it.extension == "xml" }?.forEach {
@@ -93,11 +95,19 @@ class GuildReleaseSnapshotTest {
         JSON.stringify((function(){
           var raw=localStorage.getItem('wayfarers-guild-save-v1'), envelope=raw&&JSON.parse(raw), state=envelope&&envelope.state;
           var guide=document.querySelector('.wx-guide[open]'), canvas=document.querySelector('[data-wx-canvas]');
+          var world=document.querySelector('[data-wx-station-world]'), clip=world?.getBoundingClientRect();
+          var visible=world ? Array.from(world.querySelectorAll('canvas')).filter(function(canvas){
+            var rect=canvas.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.right>Math.max(0,clip.left)&&
+              rect.left<Math.min(innerWidth,clip.right)&&rect.bottom>Math.max(0,clip.top)&&rect.top<Math.min(innerHeight,clip.bottom);
+          }) : [];
+          var ready=world ? visible.length>0&&visible.every(function(canvas){return canvas.dataset.sceneStatus==='ready';}) : canvas?.dataset.sceneStatus==='ready';
           return {version:state&&state.schemaVersion,createdAt:state&&state.createdAt,lastUpdate:state&&state.lastUpdate,
             valid:!!(state&&WayfarersCore.validateState(state).valid),confirmed:!!(window.WayfarersCheckpoint&&WayfarersCheckpoint.confirmed()),
             url:location.href,width:innerWidth,height:innerHeight,noOverflow:document.documentElement.scrollWidth<=innerWidth+1,
-            scene:canvas&&canvas.dataset.sceneStatus,area:state&&state.expedition.selectedArea,expeditionVersion:state&&state.expedition.version,
+            scene:ready?'ready':'loading',visibleStationScenes:visible.map(function(canvas){return {id:canvas.dataset.stationId,status:canvas.dataset.sceneStatus};}),
+            area:state&&state.expedition.selectedArea,expeditionVersion:state&&state.expedition.version,
             ranks:state&&state.expedition.areas,resources:state&&state.resources,quiet:localStorage.getItem('wayfarers-guild-quiet'),
+            stationLedger:state&&state.stations,
             guide:guide&&guide.dataset.guide,step:guide&&guide.dataset.step,
             foundations:document.querySelectorAll('[data-wx-foundation]').length,
             processing:!!document.querySelector('[data-wx-plans]')};

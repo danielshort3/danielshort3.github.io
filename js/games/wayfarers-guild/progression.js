@@ -14,7 +14,9 @@
   const areaDef = id => D.AREAS.find(a => a.id === id);
   const trackDef = (area, id) => areaDef(area)?.tracks.find(t => t.id === id);
   const projectDef = id => D.PROJECTS.find(p => p.id === id);
-  const active = state => state.expedition?.version === 3;
+  const active = state => [3, 4].includes(state.expedition?.version);
+  let stationsProvider = null;
+  const setStationsProvider = value => { stationsProvider = value; };
   const learned = (x, id, track) => x.areas[id]?.learned.includes(track);
   const built = (x, id) => x.projects.includes(id);
   const rank = (x, id, track) => x.areas[id]?.ranks[track] || 0;
@@ -305,7 +307,8 @@
     const researchRate = Object.values(areas).reduce((sum, a) => sum + (a.research || 0), 0) * .6;
     areas.greenway.skillMaps *= researchBonus * collections * (1 + .08 * Math.sqrt(state.upgrades.surveyors + state.upgrades['gear-instruments'])) * bonus('maps') * global;
     areas.greenway.skillResearch *= researchBonus * bonus('research') * global;
-    const raw = { gain, drain, areas, researchRate, global, commissionId: x.commission?.id || null };
+    let raw = { gain, drain, areas, researchRate, global, commissionId: x.commission?.id || null };
+    if (x.version === 4 && stationsProvider) raw = stationsProvider.enrichRates(state, raw, options);
     return !options.baseOnly && workRateProvider ? M.apply(state, raw, ownership.get(state), { rates: workRateProvider(state, ownership.get(state)) }) : raw;
   }
   function contribution() { return { coins: N.zero(), ore: N.zero(), knowledge: N.zero(), maps: N.zero(), production: 1, travel: 1 }; }
@@ -313,6 +316,7 @@
   function nextEvent(state, gains) {
     const x = state.expedition, r = rawRates(state), t = targets(x), a = r.areas[x.projectArea];
     let next = x.completed ? Infinity : x.work < t.work - EPS ? (t.work - x.work) / a.work : (t.finale - x.finaleWork) / a.finale;
+    if (x.version === 4 && stationsProvider) next = Math.min(next, stationsProvider.nextEvent(state, r));
     if (x.commission) next = Math.min(next, Math.max(EPS, (projectDef(x.commission.id).work - x.commission.work) / r.researchRate));
     if (x.automation.enabled) next = Math.min(next, Math.max(EPS, 60 - x.automation.clock));
     if (x.focus.unlocked && x.focus.charges < D.FOCUS.capacity) next = Math.min(next, Math.max(EPS, D.FOCUS.recharge - x.focus.recharge));
@@ -391,6 +395,7 @@
         if (voyage.work >= voyage.target - Math.max(EPS, voyage.target * 1e-9)) {
           Object.entries(voyage.payout).forEach(([key, value]) => { state.resources[key] = N.add(state.resources[key], value); if (key === 'coins') state.lifetime.coins = N.add(state.lifetime.coins, value); });
           Skills.voyageArrived(state, voyage, N.toNumber(N.add(r.areas.harbor.supply, reserve(state, 'provisions'))));
+          if (x.version === 4 && stationsProvider) stationsProvider.voyageArrived(state, voyage);
           event(x, 'stage', 'Voyage delivered', voyage.port + ' cargo arrived automatically. Supplies were paid when the ship departed.', 'harbor');
         } else remaining.push(voyage);
       }
@@ -408,6 +413,9 @@
       while (x.focus.recharge >= D.FOCUS.recharge - EPS && x.focus.charges < D.FOCUS.capacity) { x.focus.recharge = Math.max(0, x.focus.recharge - D.FOCUS.recharge); x.focus.charges += 1; }
       if (x.focus.charges === D.FOCUS.capacity) x.focus.recharge = 0;
     }
+    // Award station time while the same Focus state used by the continuous
+    // wallet quote is still active. Expiring it first would reprice this slice.
+    if (x.version === 4 && stationsProvider) stationsProvider.tick(state, seconds, r);
     x.focus.remaining = Math.max(0, x.focus.remaining - seconds);
     if (x.focus.remaining <= EPS) { if (x.focus.active !== null) x.revision += 1; x.focus.remaining = 0; x.focus.active = null; }
     Skills.tick(state, seconds, r);
@@ -417,12 +425,14 @@
     if (!active(state)) return;
     for (const id of Object.keys(state.expedition.areas)) learnIntro(state, id);
     releaseAreas(state);
+    if (state.expedition.version === 4 && stationsProvider) stationsProvider.sync(state);
   }
   function releaseAreas(state) {
     const x = state.expedition;
     for (let i = 0; i < 2; i += 1) {
       const from = ids[i], to = ids[i + 1], a = x.areas[from], third = areaDef(from).tracks[2].id;
-      if (x.cleared >= i && a && a.ranks[third] >= 1 && a.learned.includes(third) && tierProvider(state, { type: 'expedition-buy', areaId: from, id: third }) && !x.areas[to]) {
+      const qualified = x.version === 4 && stationsProvider ? stationsProvider.canRelease(state, from) : a && a.ranks[third] >= 1 && a.learned.includes(third) && tierProvider(state, { type: 'expedition-buy', areaId: from, id: third });
+      if (x.cleared >= i && a && qualified && !x.areas[to]) {
         x.areas[to] = makeArea(to); x.revision += 1;
         event(x, 'development', areaDef(to).name + ' unlocked', 'Your established ' + areaDef(from).name + ' continues producing.', to);
       }
@@ -462,6 +472,7 @@
     if (action.type === 'expedition-select') { if (!a) return { ok: false, message: 'Discover that area first.' }; x.selectedArea = id; a.seen = x.sequence; return { ok: true, message: areaDef(id).name + ' selected.' }; }
     if (action.type === 'expedition-batch') { if (!batchModes(state).some(b => b.count === action.count && b.unlocked)) return { ok: false, message: 'Earn this quantity first.' }; x.batch = action.count; return { ok: true, message: 'Exact ×' + action.count + ' purchases selected.' }; }
     if (action.type === 'expedition-buy') {
+      if(x.version===4)return {ok:false,message:'Use the station’s current upgrade button and price.'};
       const q = quote(state, id, action.id, action.count === undefined ? 1 : action.count);
       if (!q.valid || !q.affordable) return { ok: false, message: q.reason };
       if (action.quote !== undefined && action.quote !== q.token) return { ok: false, message: 'This quote changed. Review the refreshed cost and effect.' };
@@ -492,6 +503,7 @@
       x.revision += 1; return { ok: true, message: group.label + ' updated. Existing paid voyages retain their original manifest.' };
     }
     if (action.type === 'expedition-specialize') {
+      if(x.version===4)return {ok:false,message:'Station skills provide the learned specialties in this expedition.'};
       if (!a || action.id !== null && (!trackDef(id, action.id) || a.highRanks[action.id] < 25)) return { ok: false, message: 'Reach rank 25 once to learn this specialist assignment.' };
       a.specialization = action.id; x.revision += 1; return { ok: true, message: 'Specialist assignment saved: +35% to its capacity, −10% to other tracks in this area.' };
     }
@@ -522,6 +534,7 @@
     launchVoyages(state);
     if (!x.automation.enabled || !state.lifetime.refits || x.automation.clock < 60 - EPS) return;
     x.automation.clock = 0;
+    if(x.version===4&&stationsProvider) { stationsProvider.autoBuy(state,reserve);return; }
     for (let pass = 0; pass < 100; pass += 1) {
       const r = rawRates(state), options = [];
       for (const [id, a] of Object.entries(x.areas)) for (const track of a.learned) if (a.highRanks[track] > 0 && a.ranks[track] < a.cap) {
@@ -568,6 +581,7 @@
   }
   function configurations(state, id) {
     const x = state.expedition, a = x.areas[id]; if (!a) return [];
+    if(x.version===4&&stationsProvider)return stationsProvider.configurations(state,id);
     const group = (kind, label, slots, options) => ({ id: kind, label, slots, selected: clone(a.plans[kind]), options: options.map(([key, name, description, enabled = true]) => ({ id: key, label: name, description, disabled: !enabled, action: { type: 'expedition-config', areaId: id, kind, slot: 0, id: key } })) });
     if (id === 'watchtower') return [group('assignments', 'Coordination assignments', rawRates(state).areas.watchtower.capacity, [['survey', 'Survey', 'Research capacity'], ['industry', 'Industry', 'Quarry hauling'], ['trade', 'Trade', 'Trail coin deliveries'], ['discovery', 'Shared discovery', 'Survey and interpretation together', built(x, 'guild-discovery')]]), group('target', 'Survey target', 1, [['near', 'Nearlands', 'Balanced maps and research'], ['deep', 'Deep records', '+50% research, −45% maps', learned(x, id, 'optics')], ['ocean', 'Ocean routes', '+80% maps, −25% research', learned(x, id, 'forecasting')]])];
     if (id === 'workshop') return [group('templates', 'Manufacturing templates', learned(x, id, 'replication') && rank(x, id, 'replication') > 0 ? 2 : 1, [['supplies', 'Supplies', 'Turn ore into provisions'], ['tools', 'Tool parts', 'Recover useful ore and fewer provisions'], ['instruments', 'Instruments', 'Turn ore into knowledge', learned(x, 'watchtower', 'optics')]])];
@@ -577,6 +591,7 @@
   }
   function choices(state, id) {
     const x = state.expedition, a = x.areas[id]; if (!a) return [];
+    if(x.version===4&&stationsProvider)return stationsProvider.choices(state,id);
     const entries = id === 'greenway' ? [['trade', 'Trade', 'Full coin cargo'], ['freight', 'Freight', 'Trade fewer coins for quarry hauling'], ['survey', 'Survey', 'Trade coins for more maps'], ['mixed', 'Parallel routes', 'Trade and freight together'], ['continental', 'Continental', 'Supply Harbor trade while domestic routes continue'], ['trade-survey', 'Trade + survey', 'Retained Survey exchange: trade and maps together']]
       : id === 'quarry' ? [['balanced', 'Balanced', 'Balanced ore and alloys'], ['rich', 'Rich ore', 'Less raw capacity, greater yield'], ['alloy', 'Alloys', 'Less ore, stronger Workshop conversion'], ['precision', 'Precision batches', 'Retained recipe: more yield with lower furnace capacity'], ['mixed', 'Split batches', 'Retained recipe: intermediate capacity and yield'], ['optics', 'Optical batches', 'Retained recipe: ore becomes research'], ['adaptive', 'Adaptive batches', 'Retained control room switches recipes with the queues']]
       : id === 'watchtower' ? [['survey', 'Survey', 'Full research'], ['industry', 'Industry', 'Coordinate quarry hauling'], ['trade', 'Trade', 'Coordinate Trail deliveries']]
@@ -612,7 +627,9 @@
   }
   function catalog(state) {
     const x = state.expedition, rows = [];
+    if(x.version===4&&stationsProvider)rows.push(...stationsProvider.view(state).areas.flatMap(a=>a.stations.flatMap(st=>st.skills.filter(sk=>sk.visible)).concat(a.areaUpgrades.filter(row=>row.visible))));
     for (const [id, a] of Object.entries(x.areas)) for (const d of areaDef(id).tracks) {
+      if(x.version===4)continue;
       if (!a.learned.includes(d.id) || !tierProvider(state, { type: 'expedition-buy', areaId: id, id: d.id })) continue;
       const q = quote(state, id, d.id, x.batch), copy = detached(state);
       if (q.valid) copy.expedition.areas[id].ranks[d.id] = q.rankAfter;
@@ -658,7 +675,7 @@
     return { local: true, networkVersion: 3, legacy: false, sequence: x.sequence, stage: { id: id + ':' + x.index, name: areaDef(id).name, kind: id, areaId: id, index: x.index, region: 'Guild chapter ' + Math.max(1, Math.min(7, Math.floor(x.projects.length / 4) + 1)), completed: current ? x.completed : true, progress: current ? p : 1, work: current ? x.work : t.work, target: t.work, finaleWork: current ? x.finaleWork : t.finale, finaleTarget: t.finale, phase: current && !x.completed ? x.work < t.work ? 'Build' : 'Capstone' : 'Producing', progressText: current && !x.completed ? Math.floor(p * 100) + '%' : 'Producing', goal: current && !x.completed ? stageName(x) : 'Develop the network', objective: current && !x.completed ? stageName(x) : 'Develop the network', checkpoint: { label: current && !x.completed ? x.work < t.work ? 'Expand infrastructure' : 'Complete the landmark' : 'All areas keep working', progress: p } },
       cards: list.filter(row => row.group === 'area' && row.areaId === id), catalog: list, areas: areaRows, choices: workingChoices, configurations: configurationsView, blueprints: [], milestones: x.recent.slice(), recent: x.recent.slice(), events: x.recent.slice(), unseen: x.recent.filter(e => e.sequence > x.seen),
       batch: { selected: x.batch, options: batchModes(state) },
-      specializations: [{ id: null, label: 'Balanced tracks', selected: a.specialization === null, action: { type: 'expedition-specialize', areaId: id, id: null } }].concat(areaDef(id).tracks.filter(d => a.highRanks[d.id] >= 25).map(d => ({ id: d.id, label: d.name, effect: '+35% of the rank bonus; other tracks −10% of their rank bonus', selected: a.specialization === d.id, action: { type: 'expedition-specialize', areaId: id, id: d.id } }))).map(o => Object.assign({}, o, { visible: true, disabled: false, impact: comparison(o.action) })),
+      specializations: x.version===4?[]:[{ id: null, label: 'Balanced tracks', selected: a.specialization === null, action: { type: 'expedition-specialize', areaId: id, id: null } }].concat(areaDef(id).tracks.filter(d => a.highRanks[d.id] >= 25).map(d => ({ id: d.id, label: d.name, effect: '+35% of the rank bonus; other tracks −10% of their rank bonus', selected: a.specialization === d.id, action: { type: 'expedition-specialize', areaId: id, id: d.id } }))).map(o => Object.assign({}, o, { visible: true, disabled: false, impact: comparison(o.action) })),
       focus: { unlocked: x.focus.unlocked, charges: x.focus.charges, max: D.FOCUS.capacity, nextChargeSeconds: x.focus.charges < D.FOCUS.capacity ? D.FOCUS.recharge - x.focus.recharge : 0, active: x.focus.active, remaining: x.focus.remaining, actions: [{ id: 'priority', label: { greenway: 'Priority delivery', quarry: 'Target deposit', watchtower: 'Focus survey', workshop: 'Rush order', ruins: 'Study discovery', harbor: 'Advance voyage' }[id], description: 'Spend one shared Focus for 90 seconds. ' + focusContext, inputs: focusInputs, impact: focusImpact, disabled: !x.focus.unlocked || !x.focus.charges || x.focus.remaining > 0 || !focusImpact.length || id === 'harbor' && !a.voyages.length || id === 'workshop' && !(r.flow > EPS), action: { type: 'expedition-focus', areaId: id, id: 'priority' } }] },
       next: { label: 'Expand ' + areaDef(x.index + 1 < 3 ? ids[x.index + 1] : ids.filter(key => x.areas[key])[(x.index - 2) % Object.keys(x.areas).length]).name, description: canAdvance(state) ? 'All discovered areas remain available and keep producing.' : 'Finish this area and buy the first rank of its third foundation.', disabled: !canAdvance(state), action: { type: 'expedition-next' } },
       automation: Object.assign({ unlocked: state.lifetime.refits > 0, choices: ['balanced', 'progress', 'income', 'materials'].map(key => ({ id: key, label: key, action: { type: 'expedition-automation', enabled: true, priority: key } })) }, x.automation),
@@ -724,7 +741,7 @@
   }
   function validate(x, state) {
     const keys = ['version', 'index', 'cleared', 'completed', 'renewed', 'selectedArea', 'projectArea', 'work', 'finaleWork', 'areas', 'projects', 'commission', 'batch', 'revision', 'focus', 'automation', 'sequence', 'seen', 'recent', 'purchases', 'blueprints', 'mastery', 'legacyDevelopments'];
-    if (!exact(x, keys) || x.version !== 3 || !finite(x.index, 1e9, true) || !Number.isSafeInteger(x.cleared) || x.cleared < -1 || x.cleared > 1e9 || x.index > x.cleared + 1 || typeof x.completed !== 'boolean' || !object(x.areas) || !x.areas.greenway || !x.areas[x.selectedArea] || !x.areas[x.projectArea] || !finite(x.work) || !finite(x.finaleWork)) return false;
+    if (!exact(x, keys) || ![3, 4].includes(x.version) || !finite(x.index, 1e9, true) || !Number.isSafeInteger(x.cleared) || x.cleared < -1 || x.cleared > 1e9 || x.index > x.cleared + 1 || typeof x.completed !== 'boolean' || !object(x.areas) || !x.areas.greenway || !x.areas[x.selectedArea] || !x.areas[x.projectArea] || !finite(x.work) || !finite(x.finaleWork)) return false;
     if (typeof x.renewed !== 'boolean' || x.renewed && state && !(state.lifetime.refits || state.lifetime.charters) || !Array.isArray(x.projects) || new Set(x.projects).size !== x.projects.length || x.projects.some(id => !projectDef(id)) || !D.BATCHES.some(b => b.count === x.batch) || !finite(x.revision, 1e12, true)) return false;
     if (state && (!batchModes(state).some(b => b.count === x.batch && b.unlocked) || x.focus?.unlocked !== (state.lifetime.refits > 0))) return false;
     if (x.projects.some(id => !x.areas[projectDef(id).source] || !x.areas[projectDef(id).target] || projectDef(id).requires.some(required => !x.projects.includes(required)))) return false;
@@ -746,12 +763,12 @@
       if (id === 'workshop' && (a.plans.templates.length > 1 && !a.learned.includes('replication') || a.plans.templates.includes('instruments') && !learned(x, 'watchtower', 'optics'))) return false;
       if (id === 'ruins' && a.plans.loadouts.length > 1 && !a.learned.includes('resonance')) return false;
       if (id === 'harbor' && (a.voyages.length > (a.learned.includes('fleet-command') && a.ranks['fleet-command'] > 0 ? 2 : 1) || a.plans.port === 'ruins' && !a.learned.includes('navigation') || a.plans.port === 'ocean' && !learned(x, 'watchtower', 'forecasting'))) return false;
-      if (state && !choices(state, id).some(c => c.id === a.choice && !c.disabled)) return false;
+      if (state && (x.version===4&&stationsProvider?!stationsProvider.validChoice(state,id,a.choice):!choices(state, id).some(c => c.id === a.choice && !c.disabled))) return false;
     }
     if (x.commission !== null && (!exact(x.commission, ['id', 'work']) || !projectDef(x.commission.id) || x.projects.includes(x.commission.id) || !finite(x.commission.work, projectDef(x.commission.id).work))) return false;
     if (x.commission && (!x.areas[projectDef(x.commission.id).source] || !projectDef(x.commission.id).unlock.area && !x.areas[projectDef(x.commission.id).target] || projectDef(x.commission.id).requires.some(id => !x.projects.includes(id)))) return false;
     const t = targets(x);
     return x.work <= t.work + EPS && x.finaleWork <= t.finale + EPS && (x.work >= t.work - EPS || x.finaleWork === 0) && (!x.completed || x.work >= t.work - EPS && x.finaleWork >= t.finale - EPS && x.index <= x.cleared);
   }
-  return { attentionOptions, Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, sync, finish, restart, reset, autoBuy, act, view, catalog, impact, operationStages, developmentTask, canAdvance, releaseAreas, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
+  return { setStationsProvider, attentionOptions, choices, configurations, Content: D, active, create, validate, quote, cost, power, batchModes, targets, progress, stageName, rawRates, manifestPayout, contribution, localRates, rates: state => rawRates(state).areas, nextEvent, tick, sync, finish, restart, reset, autoBuy, act, view, catalog, impact, operationStages, developmentTask, canAdvance, releaseAreas, reserve, setEntitlements, setReserveProvider, setRateProvider, setWorkRateProvider, setTierProvider };
 });

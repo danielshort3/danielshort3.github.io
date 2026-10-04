@@ -42,13 +42,21 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
       journal = readJournal()
     }
     val active = optional(journal, "active")
-    if (active != null && runCatching { loadSession(active) }.isFailure) {
+    val activeFailure = active?.let { runCatching { loadSession(it) }.exceptionOrNull() }
+    if (active != null && activeFailure != null) {
       // After a committed update, keep the player's current save when selecting compatible older content.
       versionFromId(active)?.let { rejectVersion(journal, it) }
       val previous = optional(journal, "previous")?.takeIf { runCatching { loadSession(it) }.isSuccess }
+      val appUpgrade = activeFailure is GuildContentCompatibilityFailure
+      if (appUpgrade) {
+        // Retain the old immutable directory for recovery/export. Exact manifest
+        // compatibility still prevents this app from executing its older schema.
+        journal.put("appUpgradeBackup", active)
+      }
       putOptional(journal, "active", previous)
       journal.remove("previous")
-      journal.put("notice", "Game content was damaged. The previous verified version is active.")
+      journal.put("notice", if (appUpgrade) "The updated game included with this app is active. Your guild was kept."
+        else "Game content was damaged. The previous verified version is active.")
       writeJournal(journal)
     }
     journal = readJournal()
@@ -164,6 +172,8 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
     // Read and authenticate both snapshots before changing the active pointer.
     backup(pending, reason)
     val previous = optional(pending, "previous")?.takeIf { runCatching { loadSession(it) }.isSuccess }
+    optional(pending, "previous")?.takeIf { (versionFromId(it) ?: Long.MAX_VALUE) < bundledVersion }
+      ?.let { journal.put("appUpgradeBackup", it) }
     putOptional(journal, "active", previous)
     val version = pending.getLong("version")
     rejectVersion(journal, version)
@@ -210,8 +220,14 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
   private fun readJournal(): JSONObject {
     if (!journalFile.exists()) return JSONObject().put("schemaVersion", 1).put("highest", bundledVersion).put("rejected", org.json.JSONArray())
     val journal = JSONObject(GuildContentLimits.utf8(boundedRead(journalFile, 64 * 1024)))
-    require(journal.getInt("schemaVersion") == 1 && journal.getLong("highest") >= bundledVersion)
+    require(journal.getInt("schemaVersion") == 1 && journal.getLong("highest") >= 1)
     require(journal.getJSONArray("rejected").length() <= 512)
+    // An APK may carry a newer baseline than the previous content high-water
+    // mark. Advance it atomically without discarding save recovery transactions.
+    if (journal.getLong("highest") < bundledVersion) {
+      journal.put("highest", bundledVersion)
+      writeJournal(journal)
+    }
     return journal
   }
 
@@ -230,11 +246,13 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
 
   private fun pruneUnreferencedBundles(journal: JSONObject) {
     val keep = mutableSetOf<String>()
-    listOf("active", "previous", "staged").forEach { optional(journal, it)?.let(keep::add) }
-    if (journal.has("pending")) {
-      val pending = journal.getJSONObject("pending")
-      keep.add(pending.getString("target"))
-      optional(pending, "previous")?.let(keep::add)
+    listOf("active", "previous", "staged", "appUpgradeBackup").forEach { optional(journal, it)?.let(keep::add) }
+    listOf("pending", "recovery").forEach { field ->
+      if (journal.has(field)) {
+        val transaction = journal.getJSONObject(field)
+        keep.add(transaction.getString("target"))
+        optional(transaction, "previous")?.let(keep::add)
+      }
     }
     bundles.listFiles()?.forEach { directory ->
       if (directory.name !in keep && directory.isDirectory && !Files.isSymbolicLink(directory.toPath()) &&
@@ -249,7 +267,7 @@ class GuildContentStore(private val root: File, private val verifier: GuildConte
     val text = checkpoint.getString("text")
     require(checkpoint.getString("sha256") == GuildContentLimits.digest(text.toByteArray(Charsets.UTF_8)))
     val save = JSONObject(text)
-    require(save.getString("format") == "wayfarers-guild-save" && save.getInt("version") in 1..7)
+    require(save.getString("format") == "wayfarers-guild-save" && save.getInt("version") in 1..8)
     require(save.getJSONObject("state").getInt("schemaVersion") == save.getInt("version"))
   }
 

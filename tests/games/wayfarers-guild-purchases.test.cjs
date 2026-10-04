@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -10,7 +11,7 @@ const N = Core.Numbers;
 const clone = value => JSON.parse(JSON.stringify(value));
 const dependencies = { Content: Core.Content, upgradeCost: Core.upgradeCost, batchModes: P.batchModes, isOpen: () => true };
 function guild() {
-  const state = Core.createState(0);
+  const state = createReleasedState(0);
   state.lifetime.refits = 10; state.lifetime.charters = 1; state.chapter.refits = 10;
   state.premium.claimedMilestones = ['first-refit', 'first-charter'];
   for (const id of Object.keys(state.resources)) state.resources[id] = N.from('1e80');
@@ -94,7 +95,7 @@ test('invalid counts, one-time actions and batches crossing a rank limit are rej
 });
 
 test('the opening and each lifetime milestone expose only earned batch modes', () => {
-  const state = Core.createState(0);
+  const state = createReleasedState(0);
   const modes = () => P.batchModes(state).filter(item => item.unlocked).map(item => item.count);
   assert.deepEqual(modes(), [1]);
   state.lifetime.refits = 1; assert.deepEqual(modes(), [1, 5]);

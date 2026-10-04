@@ -54,8 +54,16 @@ class GuildContentUpdateManager(
     mutableState.value = GuildContentUpdateState.Checking
     val coroutine = currentCoroutineContext()
     val signed = transport.manifest(feedUrl) { coroutine.ensureActive() }
-    val manifest = store.verifyManifest(signed)
     val active = store.session()
+    val manifest = try { store.verifyManifest(signed) } catch (failure: GuildContentCompatibilityFailure) {
+      // A newer APK may supersede the previous signed feed before the next
+      // patch is published. Authenticated older content is never downloaded.
+      if (failure.contentVersion <= active.contentVersion) {
+        offer = null
+        return@start GuildContentUpdateState.Current(active.contentVersion, active.label)
+      }
+      throw failure
+    }
     if (manifest.contentVersion <= active.contentVersion) {
       offer = null
       GuildContentUpdateState.Current(active.contentVersion, active.label)

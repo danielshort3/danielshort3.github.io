@@ -12,11 +12,11 @@
   const KEYS = ['version', 'phase', 'work', 'hold', 'cargo', 'deliveries', 'lifetimeCoins', 'lastReward', 'sequence', 'lastKind', 'landmarkRunId', 'landmarkIndex'];
   function established(state) {
     const x = state.expedition;
-    return !!x && (x.version === 3 ? x.cleared >= 0 : !!x.areas?.greenway?.established);
+    return !!x && ([3,4].includes(x.version) ? x.cleared >= 0 : !!x.areas?.greenway?.established);
   }
   function initial(state, historical) {
     const x = state.expedition;
-    const cleared = x ? (x.version === 3 ? x.cleared : x.index - (x.completed ? 0 : 1)) : -1;
+    const cleared = x ? ([3,4].includes(x.version) ? x.cleared : x.index - (x.completed ? 0 : 1)) : -1;
     return { version: 1, phase: 'travel', work: 0, hold: 0, cargo: N.zero(), deliveries: 0,
       lifetimeCoins: N.zero(), lastReward: N.zero(), sequence: 0, lastKind: 'none',
       landmarkRunId: state.run.id, landmarkIndex: historical ? Math.max(-1, cleared) : -1 };

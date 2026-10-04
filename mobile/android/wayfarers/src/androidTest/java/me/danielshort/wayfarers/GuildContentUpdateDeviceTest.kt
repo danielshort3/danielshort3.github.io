@@ -43,6 +43,80 @@ class GuildContentUpdateDeviceTest {
   private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
   private val arguments get() = InstrumentationRegistry.getArguments()
 
+  @Test fun installedApkUpgradePreservesTheRealRetainedGuildAndSettings() {
+    assumeTrue("Requires the actual installed APK-16 to APK-17 upgrade and an exported baseline",
+      arguments.getString("guildAppUpgradeQa") == "true")
+    val context = instrumentation.targetContext
+    assertEquals("Check the installed package, not the test APK's build constants", 17L,
+      context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    val exported = File(context.getExternalFilesDir(null), "release-qa/guild.json")
+    val exportedSettings = File(context.getExternalFilesDir(null), "release-qa/native-settings.xml")
+    assertTrue("Export the real prior guild and settings before installing", exported.isFile && exportedSettings.isFile)
+    val baseline = JSONObject(exported.readText())
+    assertEquals("This gate must start from the published schema-7 app", 7, baseline.getInt("version"))
+    val before = baseline.getJSONObject("state")
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val after = awaitReady(scenario, 3)
+      val state = after.getJSONObject("state")
+      assertEquals(8, state.getInt("schemaVersion"))
+      assertEquals("The old run keeps its actual economy until a confirmed reset",
+        before.getJSONObject("expedition").getInt("version"), state.getJSONObject("expedition").getInt("version"))
+      assertGuildRetained(before, state)
+      val stations = state.getJSONObject("stations")
+      assertEquals("A retained run must not fabricate built stations", 0, stations.getJSONArray("built").length())
+      assertEquals(0, stations.getJSONArray("unlocked").length())
+      for (id in stations.getJSONObject("ranks").keys()) assertEquals(0, stations.getJSONObject("ranks").getInt(id))
+      assertEquals("The native update mode survives APK replacement", exportedSettings.readText(), nativeSettings())
+      assertCheckpoint(after)
+      val migrationFile = File(context.filesDir, "guild-checkpoint.json.before-schema-8")
+      val recovery = GuildCheckpointStore(migrationFile).read()
+      assertNotNull("Keep the exact prior checkpoint for recovery", recovery)
+      val old = JSONObject(recovery!!.text)
+      assertEquals(7, old.getInt("version"))
+      assertGuildRetained(before, old.getJSONObject("state"))
+      val backupBytes = migrationFile.readBytes()
+      val contentRoot = File(context.filesDir, "guild-content")
+      val journal = JSONObject(File(contentRoot, "journal.json").readText())
+      val retainedContent = journal.getString("appUpgradeBackup")
+      assertTrue("Keep the incompatible old signed snapshot without executing it", retainedContent.startsWith("v2-"))
+      assertTrue(File(contentRoot, "bundles/$retainedContent/manifest-envelope.json").isFile)
+      assertFalse("Select the compatible APK baseline", journal.has("active"))
+      assertTrue(journal.getLong("highest") >= 3)
+      val output = File(context.getExternalFilesDir(null), "content-update-qa").apply { mkdirs() }
+      File(output, "after-app-upgrade-journal.json").writeText(journal.toString(2))
+      File(output, "after-app-upgrade-schema7-backup.json").writeText(recovery.text)
+      exportEvidence("after-app-upgrade", after)
+      scenario.recreate()
+      val restored = awaitReady(scenario, 3)
+      assertGuildRetained(state, restored.getJSONObject("state"))
+      assertArrayEquals("The first migration recovery backup remains immutable", backupBytes, migrationFile.readBytes())
+      assertEquals(exportedSettings.readText(), nativeSettings())
+      exportEvidence("after-app-upgrade-recreation", restored)
+    }
+  }
+
+  @Test fun configureBackedUpDisposableBaselineThroughItsActualUpdateModeControl() {
+    assumeTrue("Requires an explicitly backed-up disposable baseline",
+      arguments.getString("guildPrepareBaselineQa") == "true")
+    val context = instrumentation.targetContext
+    val exported = File(context.getExternalFilesDir(null), "release-qa/guild.json")
+    assertTrue("Export this guild before preparing the baseline", exported.isFile)
+    ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+      val before = awaitSnapshot(scenario, "The baseline must have a confirmed guild") { it.optBoolean("confirmed") && it.optBoolean("valid") }
+      assertEquals(JSONObject(exported.readText()).getJSONObject("state").getLong("createdAt"), before.getJSONObject("state").getLong("createdAt"))
+      openUpdates(scenario)
+      clickNativeButton("Manual")
+      awaitCondition("The actual update preference must finish its asynchronous disk write") {
+        nativeSettings().contains("check-app-updates-on-launch")
+      }
+      clickNativeButton("Back to guild")
+      val after = awaitSnapshot(scenario, "The actual mode control must retain the guild") { it.optBoolean("confirmed") && it.optBoolean("valid") }
+      assertGuildRetained(before.getJSONObject("state"), after.getJSONObject("state"))
+      assertTrue("The baseline must now have explicit persisted native preferences", nativeSettings().contains("check-app-updates-on-launch"))
+      exportEvidence("prepared-baseline", after)
+    }
+  }
+
   @Test fun failedReadyRollsBackThroughTheActualActivityWithoutLosingTheGuild() {
     assumeTrue("Requires an explicitly backed-up disposable device",
       arguments.getString("guildContentFailureQa") == "true")
@@ -184,8 +258,8 @@ class GuildContentUpdateDeviceTest {
   @Test fun publishedContentAppliesWithoutReplacingTheActivityOrGuild() {
     assumeTrue("Requires an explicitly backed-up device and a published signed content update",
       arguments.getString("guildContentUpdateQa") == "true")
-    val expectedBefore = arguments.getString("guildContentBefore")?.toLong() ?: 1L
-    val expectedAfter = arguments.getString("guildContentAfter")?.toLong() ?: 2L
+    val expectedBefore = arguments.getString("guildContentBefore")?.toLong() ?: 3L
+    val expectedAfter = arguments.getString("guildContentAfter")?.toLong() ?: 4L
     assertTrue(expectedAfter > expectedBefore)
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val before = awaitReady(scenario, expectedBefore)
@@ -222,7 +296,7 @@ class GuildContentUpdateDeviceTest {
   @Test fun committedContentAndGuildSurviveOfflineColdLaunchAndRotation() {
     assumeTrue("Requires externally disabled networking and an applied signed content version",
       arguments.getString("guildContentOfflineQa") == "true")
-    val expectedVersion = arguments.getString("guildContentAfter")?.toLong() ?: 2L
+    val expectedVersion = arguments.getString("guildContentAfter")?.toLong() ?: 4L
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val before = awaitReady(scenario, expectedVersion)
       assertCheckpoint(before)
@@ -252,9 +326,10 @@ class GuildContentUpdateDeviceTest {
       (function(){
         var later=document.querySelector('.wx-sheet[open] [data-wx-do="onboarding-later"]'); if(later) later.click();
         var close=document.querySelector('.wx-sheet[open] [data-wx-close]'); if(close) close.click();
-        var button=document.querySelector('.wx-guide[open] [data-guide-settings]') || document.querySelector('[data-wx-options]');
+        var button=document.querySelector('.wx-guide[open] [data-guide-settings]') || document.querySelector('[data-wx-options]') || document.querySelector('.wg-exit');
         if(!button || button.disabled) throw new Error('Actual game settings control missing');
         button.click();
+        if(button.classList.contains('wg-exit'))return true;
         var updates=document.querySelector('[data-wx-do="native-options"]');
         if(!updates || updates.disabled) throw new Error('Actual native updates control missing');
         updates.click(); return true;
@@ -318,10 +393,17 @@ class GuildContentUpdateDeviceTest {
           var text=window.WayfarersCheckpoint?.snapshot() || localStorage.getItem('wayfarers-guild-save-v1');
           var envelope=text && JSON.parse(text), state=envelope?.state;
           var scene=document.querySelector('[data-wx-canvas]');
+          var world=document.querySelector('[data-wx-station-world]'), clip=world?.getBoundingClientRect();
+          var visible=world ? Array.from(world.querySelectorAll('canvas')).filter(function(canvas){
+            var rect=canvas.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.right>Math.max(0,clip.left)&&
+              rect.left<Math.min(innerWidth,clip.right)&&rect.bottom>Math.max(0,clip.top)&&rect.top<Math.min(innerHeight,clip.bottom);
+          }) : [];
+          var ready=world ? visible.length>0&&visible.every(function(canvas){return canvas.dataset.sceneStatus==='ready';}) : scene?.dataset.sceneStatus==='ready';
           return {contentVersion:window.WayfarersContent?.version || 0,
             documentTimeOrigin:performance.timeOrigin,url:location.href,width:innerWidth,height:innerHeight,
             state:state,checkpoint:text,valid:!!(state && WayfarersCore.validateState(state).valid),
-            confirmed:!!window.WayfarersCheckpoint?.confirmed(),scene:scene?.dataset.sceneStatus,
+            confirmed:!!window.WayfarersCheckpoint?.confirmed(),scene:ready?'ready':'loading',
+            visibleStationScenes:visible.map(function(canvas){return {id:canvas.dataset.stationId,status:canvas.dataset.sceneStatus};}),
             noOverflow:document.documentElement.scrollWidth<=innerWidth+1,
             preferences:{quiet:localStorage.getItem('wayfarers-guild-quiet'),sound:localStorage.getItem('wayfarers-guild-sound')},
             resetGeneration:window.WayfarersCheckpoint?.generation() || ''};
@@ -334,8 +416,13 @@ class GuildContentUpdateDeviceTest {
   private fun assertGuildRetained(before: JSONObject, after: JSONObject) {
     assertEquals("Content updates retain guild identity", before.getLong("createdAt"), after.getLong("createdAt"))
     assertTrue("Content activation cannot rewind saved production", after.getLong("lastUpdate") >= before.getLong("lastUpdate"))
-    for (key in listOf("upgrades", "refitUpgrades", "legacyUpgrades")) {
+    for (key in listOf("upgrades", "refitUpgrades", "legacy")) {
       if (before.has(key)) assertJsonEqual("$key stays unchanged", before.get(key), after.get(key))
+    }
+    for ((group, keys) in listOf("premium" to listOf("owned", "equipped"), "luck" to listOf("owned", "active"))) {
+      if (before.has(group)) for (key in keys) {
+        assertJsonEqual("$group $key survives", before.getJSONObject(group).get(key), after.getJSONObject(group).get(key))
+      }
     }
     val previousAreas = before.getJSONObject("expedition").getJSONObject("areas")
     val nextAreas = after.getJSONObject("expedition").getJSONObject("areas")
@@ -344,6 +431,40 @@ class GuildContentUpdateDeviceTest {
       for (key in listOf("ranks", "highRanks", "choice", "choices", "specialization", "plans")) {
         val area = previousAreas.getJSONObject(id)
         if (area.has(key)) assertJsonEqual("$id $key must survive", area.get(key), nextAreas.getJSONObject(id).get(key))
+      }
+    }
+    if (before.has("stations")) {
+      val previous = before.getJSONObject("stations")
+      val next = after.getJSONObject("stations")
+      assertEquals("Station ledger version survives", previous.getInt("version"), next.getInt("version"))
+      assertTrue("Station revision cannot rewind", next.getLong("revision") >= previous.getLong("revision"))
+      for (key in listOf("built", "unlocked", "areaUnlocked", "introduced")) {
+        val retained = next.getJSONArray(key).let { array -> (0 until array.length()).map { array.getString(it) }.toSet() }
+        val owned = previous.getJSONArray(key)
+        for (index in 0 until owned.length()) assertTrue("Station $key ${owned.getString(index)} survives", owned.getString(index) in retained)
+      }
+      for (key in listOf("ranks", "highRanks", "areaRanks", "areaHighRanks", "selected")) {
+        val owned = previous.getJSONObject(key)
+        val retained = next.getJSONObject(key)
+        for (id in owned.keys()) assertJsonEqual("Station $key.$id survives", owned.get(id), retained.get(id))
+      }
+      val oldMastery = previous.getJSONObject("mastery")
+      for (id in oldMastery.keys()) assertTrue("Station mastery $id cannot rewind", next.getJSONObject("mastery").getDouble(id) >= oldMastery.getDouble(id))
+      val oldOutput = previous.getJSONObject("output")
+      for (id in oldOutput.keys()) {
+        val old = oldOutput.getJSONObject(id)
+        val earned = next.getJSONObject("output").getJSONObject(id)
+        assertTrue("Lifetime station output $id cannot rewind", old.getDouble("m") == 0.0 ||
+          earned.getDouble("m") > 0 && (earned.getDouble("e") > old.getDouble("e") ||
+            earned.getDouble("e") == old.getDouble("e") && earned.getDouble("m") >= old.getDouble("m")))
+      }
+      val oldEncounter = previous.getJSONObject("encounter")
+      val nextEncounter = next.getJSONObject("encounter")
+      assertTrue("Encounter award sequence cannot rewind", nextEncounter.getLong("sequence") >= oldEncounter.getLong("sequence"))
+      // Production phases and boost timers advance normally during downloads.
+      if (nextEncounter.getLong("sequence") == oldEncounter.getLong("sequence")) {
+        assertJsonEqual("Encounter RNG and last reward survive", oldEncounter.get("rng"), nextEncounter.get("rng"))
+        assertJsonEqual("Encounter last reward survives", oldEncounter.get("lastReward"), nextEncounter.get("lastReward"))
       }
     }
     val previousCollection = before.getJSONObject("collection")
@@ -384,6 +505,8 @@ class GuildContentUpdateDeviceTest {
     assertNotNull("The canonical save has a valid fsynced native checkpoint", checkpoint)
     assertEquals(snapshot.getJSONObject("state").getLong("createdAt"), JSONObject(checkpoint!!.text).getJSONObject("state").getLong("createdAt"))
     assertEquals(snapshot.getString("resetGeneration"), checkpoint.generation)
+    assertEquals(arguments.getString("guildExpectedSaveSchema")?.toInt() ?: 8, JSONObject(checkpoint.text).getInt("version"))
+    assertGuildRetained(snapshot.getJSONObject("state"), JSONObject(checkpoint.text).getJSONObject("state"))
   }
 
   private fun nativeSettings(): String = File(instrumentation.targetContext.applicationInfo.dataDir, "shared_prefs/native-settings.xml")
@@ -414,7 +537,7 @@ class GuildContentUpdateDeviceTest {
 
   private class StoreFixture(val root: File) {
     private val keys: KeyPair = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
-    val verifier = GuildContentVerifier(Base64.getEncoder().encodeToString(keys.public.encoded), "me.danielshort.wayfarers", 1, 16, 7)
+    val verifier = GuildContentVerifier(Base64.getEncoder().encodeToString(keys.public.encoded), "me.danielshort.wayfarers", 1, 17, 8)
     val store = GuildContentStore(File(root, "store"), verifier)
 
     fun release(version: Long): SignedFixture {
@@ -429,7 +552,7 @@ class GuildContentUpdateDeviceTest {
         records.put(JSONObject().put("path", path).put("sha256", GuildContentLimits.digest(bytes)).put("size", bytes.size))
       }
       val payload = JSONObject().put("schemaVersion", 1).put("packageName", "me.danielshort.wayfarers")
-        .put("nativeApi", 1).put("saveSchema", 7).put("minAppVersionCode", 16).put("contentVersion", version).put("label", "Native test $version")
+        .put("nativeApi", 1).put("saveSchema", 8).put("minAppVersionCode", 17).put("contentVersion", version).put("label", "Native test $version")
         .put("archive", JSONObject().put("url", "https://github.com/danielshort3/danielshort3.github.io/releases/download/qa-content/fixture-$version.zip")
           .put("sha256", GuildContentLimits.digest(archive.readBytes())).put("size", archive.length())).put("records", records)
         .toString().toByteArray(Charsets.UTF_8)

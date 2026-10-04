@@ -1,0 +1,5401 @@
+{
+  "version": 1,
+  "logicalWidth": 384,
+  "stationHeight": 208,
+  "surfaceHeight": 320,
+  "areas": {
+    "greenway": {
+      "sky": "station-greenway-sky.webp",
+      "underground": "station-greenway-depth.webp",
+      "stations": {
+        "greenway:path": {
+          "background": "station-greenway-path-background.webp",
+          "machine": "station-greenway-path-machine.webp",
+          "addition": "station-greenway-path-addition.webp",
+          "workerRole": "scout",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "greenway:porter-camp": {
+          "background": "station-greenway-porter-camp-background.webp",
+          "machine": "station-greenway-porter-camp-machine.webp",
+          "addition": "station-greenway-porter-camp-addition.webp",
+          "workerRole": "porter",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "greenway:scout-post": {
+          "background": "station-greenway-scout-post-background.webp",
+          "machine": "station-greenway-scout-post-machine.webp",
+          "addition": "station-greenway-scout-post-addition.webp",
+          "workerRole": "scout",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "greenway:supply-depot": {
+          "background": "station-greenway-supply-depot-background.webp",
+          "machine": "station-greenway-supply-depot-machine.webp",
+          "addition": "station-greenway-supply-depot-addition.webp",
+          "workerRole": "porter",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "greenway:caravan-terminus": {
+          "background": "station-greenway-caravan-terminus-background.webp",
+          "machine": "station-greenway-caravan-terminus-machine.webp",
+          "addition": "station-greenway-caravan-terminus-addition.webp",
+          "workerRole": "porter",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    },
+    "quarry": {
+      "sky": "station-quarry-sky.webp",
+      "underground": "station-quarry-depth.webp",
+      "stations": {
+        "quarry:mine": {
+          "background": "station-quarry-mine-background.webp",
+          "machine": "station-quarry-mine-machine.webp",
+          "addition": "station-quarry-mine-addition.webp",
+          "workerRole": "miner",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "quarry:hauling": {
+          "background": "station-quarry-hauling-background.webp",
+          "machine": "station-quarry-hauling-machine.webp",
+          "addition": "station-quarry-hauling-addition.webp",
+          "workerRole": "porter",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "quarry:sorting": {
+          "background": "station-quarry-sorting-background.webp",
+          "machine": "station-quarry-sorting-machine.webp",
+          "addition": "station-quarry-sorting-addition.webp",
+          "workerRole": "miner",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "quarry:tool-forge": {
+          "background": "station-quarry-tool-forge-background.webp",
+          "machine": "station-quarry-tool-forge-machine.webp",
+          "addition": "station-quarry-tool-forge-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "quarry:crystal-lab": {
+          "background": "station-quarry-crystal-lab-background.webp",
+          "machine": "station-quarry-crystal-lab-machine.webp",
+          "addition": "station-quarry-crystal-lab-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    },
+    "watchtower": {
+      "sky": "station-watchtower-sky.webp",
+      "underground": "station-watchtower-depth.webp",
+      "stations": {
+        "watchtower:survey-deck": {
+          "background": "station-watchtower-survey-deck-background.webp",
+          "machine": "station-watchtower-survey-deck-machine.webp",
+          "addition": "station-watchtower-survey-deck-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "watchtower:signal-gallery": {
+          "background": "station-watchtower-signal-gallery-background.webp",
+          "machine": "station-watchtower-signal-gallery-machine.webp",
+          "addition": "station-watchtower-signal-gallery-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "watchtower:command-room": {
+          "background": "station-watchtower-command-room-background.webp",
+          "machine": "station-watchtower-command-room-machine.webp",
+          "addition": "station-watchtower-command-room-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "watchtower:weather-station": {
+          "background": "station-watchtower-weather-station-background.webp",
+          "machine": "station-watchtower-weather-station-machine.webp",
+          "addition": "station-watchtower-weather-station-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "watchtower:relay-observatory": {
+          "background": "station-watchtower-relay-observatory-background.webp",
+          "machine": "station-watchtower-relay-observatory-machine.webp",
+          "addition": "station-watchtower-relay-observatory-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    },
+    "workshop": {
+      "sky": "station-workshop-sky.webp",
+      "underground": "station-workshop-depth.webp",
+      "stations": {
+        "workshop:workbench": {
+          "background": "station-workshop-workbench-background.webp",
+          "machine": "station-workshop-workbench-machine.webp",
+          "addition": "station-workshop-workbench-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "workshop:tool-bench": {
+          "background": "station-workshop-tool-bench-background.webp",
+          "machine": "station-workshop-tool-bench-machine.webp",
+          "addition": "station-workshop-tool-bench-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "workshop:alloy-forge": {
+          "background": "station-workshop-alloy-forge-background.webp",
+          "machine": "station-workshop-alloy-forge-machine.webp",
+          "addition": "station-workshop-alloy-forge-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "workshop:tinker-bay": {
+          "background": "station-workshop-tinker-bay-background.webp",
+          "machine": "station-workshop-tinker-bay-machine.webp",
+          "addition": "station-workshop-tinker-bay-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "workshop:pattern-hall": {
+          "background": "station-workshop-pattern-hall-background.webp",
+          "machine": "station-workshop-pattern-hall-machine.webp",
+          "addition": "station-workshop-pattern-hall-addition.webp",
+          "workerRole": "artisan",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    },
+    "ruins": {
+      "sky": "station-ruins-sky.webp",
+      "underground": "station-ruins-depth.webp",
+      "stations": {
+        "ruins:dig-site": {
+          "background": "station-ruins-dig-site-background.webp",
+          "machine": "station-ruins-dig-site-machine.webp",
+          "addition": "station-ruins-dig-site-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "ruins:archives": {
+          "background": "station-ruins-archives-background.webp",
+          "machine": "station-ruins-archives-machine.webp",
+          "addition": "station-ruins-archives-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "ruins:recovery-camp": {
+          "background": "station-ruins-recovery-camp-background.webp",
+          "machine": "station-ruins-recovery-camp-machine.webp",
+          "addition": "station-ruins-recovery-camp-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "ruins:restoration-hall": {
+          "background": "station-ruins-restoration-hall-background.webp",
+          "machine": "station-ruins-restoration-hall-machine.webp",
+          "addition": "station-ruins-restoration-hall-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "ruins:attunement-chamber": {
+          "background": "station-ruins-attunement-chamber-background.webp",
+          "machine": "station-ruins-attunement-chamber-machine.webp",
+          "addition": "station-ruins-attunement-chamber-addition.webp",
+          "workerRole": "scholar",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    },
+    "harbor": {
+      "sky": "station-harbor-sky.webp",
+      "underground": "station-harbor-depth.webp",
+      "stations": {
+        "harbor:shipyard": {
+          "background": "station-harbor-shipyard-background.webp",
+          "machine": "station-harbor-shipyard-machine.webp",
+          "addition": "station-harbor-shipyard-addition.webp",
+          "workerRole": "sailor",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "harbor:sailing-pier": {
+          "background": "station-harbor-sailing-pier-background.webp",
+          "machine": "station-harbor-sailing-pier-machine.webp",
+          "addition": "station-harbor-sailing-pier-addition.webp",
+          "workerRole": "sailor",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "harbor:cargo-warehouse": {
+          "background": "station-harbor-cargo-warehouse-background.webp",
+          "machine": "station-harbor-cargo-warehouse-machine.webp",
+          "addition": "station-harbor-cargo-warehouse-addition.webp",
+          "workerRole": "sailor",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "harbor:trade-house": {
+          "background": "station-harbor-trade-house-background.webp",
+          "machine": "station-harbor-trade-house-machine.webp",
+          "addition": "station-harbor-trade-house-addition.webp",
+          "workerRole": "sailor",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        },
+        "harbor:chart-room": {
+          "background": "station-harbor-chart-room-background.webp",
+          "machine": "station-harbor-chart-room-machine.webp",
+          "addition": "station-harbor-chart-room-addition.webp",
+          "workerRole": "sailor",
+          "workerSize": [
+            56,
+            84
+          ],
+          "anchors": {
+            "machine": [
+              256,
+              172
+            ],
+            "worker": [
+              132,
+              156
+            ],
+            "addition": [
+              322,
+              172
+            ],
+            "effect": [
+              149,
+              120
+            ]
+          },
+          "width": 384,
+          "height": 208
+        }
+      }
+    }
+  },
+  "icons": {
+    "station-greenway-path-pathfinding": "station-greenway-path-pathfinding.webp",
+    "station-greenway-path-waymarks": "station-greenway-path-waymarks.webp",
+    "station-greenway-path-trailcraft": "station-greenway-path-trailcraft.webp",
+    "station-greenway-path-express-routes": "station-greenway-path-express-routes.webp",
+    "station-greenway-path-hidden-tracks": "station-greenway-path-hidden-tracks.webp",
+    "station-greenway-path-landmark-cairns": "station-greenway-path-landmark-cairns.webp",
+    "station-greenway-porter-camp-porters": "station-greenway-porter-camp-porters.webp",
+    "station-greenway-porter-camp-loading-harnesses": "station-greenway-porter-camp-loading-harnesses.webp",
+    "station-greenway-porter-camp-trade-ledgers": "station-greenway-porter-camp-trade-ledgers.webp",
+    "station-greenway-porter-camp-cargo-lashing": "station-greenway-porter-camp-cargo-lashing.webp",
+    "station-greenway-porter-camp-bonded-routes": "station-greenway-porter-camp-bonded-routes.webp",
+    "station-greenway-porter-camp-parcel-sorting": "station-greenway-porter-camp-parcel-sorting.webp",
+    "station-greenway-scout-post-scouting": "station-greenway-scout-post-scouting.webp",
+    "station-greenway-scout-post-survey-lines": "station-greenway-scout-post-survey-lines.webp",
+    "station-greenway-scout-post-keen-eyes": "station-greenway-scout-post-keen-eyes.webp",
+    "station-greenway-scout-post-field-journals": "station-greenway-scout-post-field-journals.webp",
+    "station-greenway-scout-post-survey-satchels": "station-greenway-scout-post-survey-satchels.webp",
+    "station-greenway-scout-post-targeted-surveys": "station-greenway-scout-post-targeted-surveys.webp",
+    "station-greenway-supply-depot-waystations": "station-greenway-supply-depot-waystations.webp",
+    "station-greenway-supply-depot-packing-stations": "station-greenway-supply-depot-packing-stations.webp",
+    "station-greenway-supply-depot-provision-standards": "station-greenway-supply-depot-provision-standards.webp",
+    "station-greenway-supply-depot-supply-depots": "station-greenway-supply-depot-supply-depots.webp",
+    "station-greenway-supply-depot-return-cargo": "station-greenway-supply-depot-return-cargo.webp",
+    "station-greenway-supply-depot-pack-recovery": "station-greenway-supply-depot-pack-recovery.webp",
+    "station-greenway-caravan-terminus-caravans": "station-greenway-caravan-terminus-caravans.webp",
+    "station-greenway-caravan-terminus-railways": "station-greenway-caravan-terminus-railways.webp",
+    "station-greenway-caravan-terminus-contract-seals": "station-greenway-caravan-terminus-contract-seals.webp",
+    "station-greenway-caravan-terminus-caravan-escorts": "station-greenway-caravan-terminus-caravan-escorts.webp",
+    "station-greenway-caravan-terminus-relay-runners": "station-greenway-caravan-terminus-relay-runners.webp",
+    "station-greenway-caravan-terminus-continental-logistics": "station-greenway-caravan-terminus-continental-logistics.webp",
+    "station-quarry-mine-deep-cut": "station-quarry-mine-deep-cut.webp",
+    "station-quarry-mine-quick-swing": "station-quarry-mine-quick-swing.webp",
+    "station-quarry-mine-rich-veins": "station-quarry-mine-rich-veins.webp",
+    "station-quarry-mine-power-drill": "station-quarry-mine-power-drill.webp",
+    "station-quarry-mine-reinforced-shafts": "station-quarry-mine-reinforced-shafts.webp",
+    "station-quarry-mine-vein-mapping": "station-quarry-mine-vein-mapping.webp",
+    "station-quarry-hauling-cart-beds": "station-quarry-hauling-cart-beds.webp",
+    "station-quarry-hauling-axle-bearings": "station-quarry-hauling-axle-bearings.webp",
+    "station-quarry-hauling-dispatch-flags": "station-quarry-hauling-dispatch-flags.webp",
+    "station-quarry-hauling-stockpiles": "station-quarry-hauling-stockpiles.webp",
+    "station-quarry-hauling-rail-transfer": "station-quarry-hauling-rail-transfer.webp",
+    "station-quarry-hauling-rail-junctions": "station-quarry-hauling-rail-junctions.webp",
+    "station-quarry-sorting-fine-sieves": "station-quarry-sorting-fine-sieves.webp",
+    "station-quarry-sorting-gem-trays": "station-quarry-sorting-gem-trays.webp",
+    "station-quarry-sorting-reclamation": "station-quarry-sorting-reclamation.webp",
+    "station-quarry-sorting-ore-sorting": "station-quarry-sorting-ore-sorting.webp",
+    "station-quarry-sorting-slag-processing": "station-quarry-sorting-slag-processing.webp",
+    "station-quarry-sorting-gem-inspection": "station-quarry-sorting-gem-inspection.webp",
+    "station-quarry-tool-forge-bellows": "station-quarry-tool-forge-bellows.webp",
+    "station-quarry-tool-forge-molds": "station-quarry-tool-forge-molds.webp",
+    "station-quarry-tool-forge-tempering": "station-quarry-tool-forge-tempering.webp",
+    "station-quarry-tool-forge-batch-kilns": "station-quarry-tool-forge-batch-kilns.webp",
+    "station-quarry-tool-forge-parallel-furnaces": "station-quarry-tool-forge-parallel-furnaces.webp",
+    "station-quarry-tool-forge-tempered-picks": "station-quarry-tool-forge-tempered-picks.webp",
+    "station-quarry-crystal-lab-crystal-cutters": "station-quarry-crystal-lab-crystal-cutters.webp",
+    "station-quarry-crystal-lab-resonance": "station-quarry-crystal-lab-resonance.webp",
+    "station-quarry-crystal-lab-sample-banks": "station-quarry-crystal-lab-sample-banks.webp",
+    "station-quarry-crystal-lab-adaptive-scheduling": "station-quarry-crystal-lab-adaptive-scheduling.webp",
+    "station-quarry-crystal-lab-discovery-protection": "station-quarry-crystal-lab-discovery-protection.webp",
+    "station-quarry-crystal-lab-resonant-blueprints": "station-quarry-crystal-lab-resonant-blueprints.webp",
+    "station-watchtower-survey-deck-surveying": "station-watchtower-survey-deck-surveying.webp",
+    "station-watchtower-survey-deck-sweep-patterns": "station-watchtower-survey-deck-sweep-patterns.webp",
+    "station-watchtower-survey-deck-optics": "station-watchtower-survey-deck-optics.webp",
+    "station-watchtower-survey-deck-field-notebooks": "station-watchtower-survey-deck-field-notebooks.webp",
+    "station-watchtower-survey-deck-triangulation": "station-watchtower-survey-deck-triangulation.webp",
+    "station-watchtower-survey-deck-mineral-cartography": "station-watchtower-survey-deck-mineral-cartography.webp",
+    "station-watchtower-signal-gallery-signals": "station-watchtower-signal-gallery-signals.webp",
+    "station-watchtower-signal-gallery-pulse-relays": "station-watchtower-signal-gallery-pulse-relays.webp",
+    "station-watchtower-signal-gallery-channel-tuning": "station-watchtower-signal-gallery-channel-tuning.webp",
+    "station-watchtower-signal-gallery-dispatch-codes": "station-watchtower-signal-gallery-dispatch-codes.webp",
+    "station-watchtower-signal-gallery-logistics-charts": "station-watchtower-signal-gallery-logistics-charts.webp",
+    "station-watchtower-signal-gallery-echo-loops": "station-watchtower-signal-gallery-echo-loops.webp",
+    "station-watchtower-command-room-command": "station-watchtower-command-room-command.webp",
+    "station-watchtower-command-room-crew-drills": "station-watchtower-command-room-crew-drills.webp",
+    "station-watchtower-command-room-shift-rosters": "station-watchtower-command-room-shift-rosters.webp",
+    "station-watchtower-command-room-long-signals": "station-watchtower-command-room-long-signals.webp",
+    "station-watchtower-command-room-crew-rotation": "station-watchtower-command-room-crew-rotation.webp",
+    "station-watchtower-command-room-focus-orders": "station-watchtower-command-room-focus-orders.webp",
+    "station-watchtower-weather-station-forecasting": "station-watchtower-weather-station-forecasting.webp",
+    "station-watchtower-weather-station-wind-readings": "station-watchtower-weather-station-wind-readings.webp",
+    "station-watchtower-weather-station-observation-windows": "station-watchtower-weather-station-observation-windows.webp",
+    "station-watchtower-weather-station-weather-stations": "station-watchtower-weather-station-weather-stations.webp",
+    "station-watchtower-weather-station-research-exchanges": "station-watchtower-weather-station-research-exchanges.webp",
+    "station-watchtower-weather-station-sail-observations": "station-watchtower-weather-station-sail-observations.webp",
+    "station-watchtower-relay-observatory-relay-grid": "station-watchtower-relay-observatory-relay-grid.webp",
+    "station-watchtower-relay-observatory-signal-archives": "station-watchtower-relay-observatory-signal-archives.webp",
+    "station-watchtower-relay-observatory-harmonic-control": "station-watchtower-relay-observatory-harmonic-control.webp",
+    "station-watchtower-relay-observatory-celestial-calendar": "station-watchtower-relay-observatory-celestial-calendar.webp",
+    "station-watchtower-relay-observatory-shared-archives": "station-watchtower-relay-observatory-shared-archives.webp",
+    "station-watchtower-relay-observatory-relay-blueprints": "station-watchtower-relay-observatory-relay-blueprints.webp",
+    "station-workshop-workbench-assembly": "station-workshop-workbench-assembly.webp",
+    "station-workshop-workbench-bench-fixtures": "station-workshop-workbench-bench-fixtures.webp",
+    "station-workshop-workbench-cutting-jigs": "station-workshop-workbench-cutting-jigs.webp",
+    "station-workshop-workbench-material-hoppers": "station-workshop-workbench-material-hoppers.webp",
+    "station-workshop-workbench-template-queue": "station-workshop-workbench-template-queue.webp",
+    "station-workshop-workbench-assembly-jigs": "station-workshop-workbench-assembly-jigs.webp",
+    "station-workshop-tool-bench-toolmaking": "station-workshop-tool-bench-toolmaking.webp",
+    "station-workshop-tool-bench-cutting-dies": "station-workshop-tool-bench-cutting-dies.webp",
+    "station-workshop-tool-bench-sharpening-wheels": "station-workshop-tool-bench-sharpening-wheels.webp",
+    "station-workshop-tool-bench-standard-tools": "station-workshop-tool-bench-standard-tools.webp",
+    "station-workshop-tool-bench-spare-parts": "station-workshop-tool-bench-spare-parts.webp",
+    "station-workshop-tool-bench-tempered-edges": "station-workshop-tool-bench-tempered-edges.webp",
+    "station-workshop-alloy-forge-metallurgy": "station-workshop-alloy-forge-metallurgy.webp",
+    "station-workshop-alloy-forge-crucible-beds": "station-workshop-alloy-forge-crucible-beds.webp",
+    "station-workshop-alloy-forge-flux-mixtures": "station-workshop-alloy-forge-flux-mixtures.webp",
+    "station-workshop-alloy-forge-offcut-recovery": "station-workshop-alloy-forge-offcut-recovery.webp",
+    "station-workshop-alloy-forge-slag-reuse": "station-workshop-alloy-forge-slag-reuse.webp",
+    "station-workshop-alloy-forge-alloy-recipes": "station-workshop-alloy-forge-alloy-recipes.webp",
+    "station-workshop-tinker-bay-mechanisms": "station-workshop-tinker-bay-mechanisms.webp",
+    "station-workshop-tinker-bay-clockwork-drives": "station-workshop-tinker-bay-clockwork-drives.webp",
+    "station-workshop-tinker-bay-precision-fittings": "station-workshop-tinker-bay-precision-fittings.webp",
+    "station-workshop-tinker-bay-instrument-cases": "station-workshop-tinker-bay-instrument-cases.webp",
+    "station-workshop-tinker-bay-export-crates": "station-workshop-tinker-bay-export-crates.webp",
+    "station-workshop-tinker-bay-survey-modules": "station-workshop-tinker-bay-survey-modules.webp",
+    "station-workshop-pattern-hall-precision": "station-workshop-pattern-hall-precision.webp",
+    "station-workshop-pattern-hall-replication": "station-workshop-pattern-hall-replication.webp",
+    "station-workshop-pattern-hall-pattern-libraries": "station-workshop-pattern-hall-pattern-libraries.webp",
+    "station-workshop-pattern-hall-precision-fixtures": "station-workshop-pattern-hall-precision-fixtures.webp",
+    "station-workshop-pattern-hall-modular-frames": "station-workshop-pattern-hall-modular-frames.webp",
+    "station-workshop-pattern-hall-pattern-replicas": "station-workshop-pattern-hall-pattern-replicas.webp",
+    "station-ruins-dig-site-delving": "station-ruins-dig-site-delving.webp",
+    "station-ruins-dig-site-field-tools": "station-ruins-dig-site-field-tools.webp",
+    "station-ruins-dig-site-strata-reading": "station-ruins-dig-site-strata-reading.webp",
+    "station-ruins-dig-site-field-camps": "station-ruins-dig-site-field-camps.webp",
+    "station-ruins-dig-site-expedition-rigs": "station-ruins-dig-site-expedition-rigs.webp",
+    "station-ruins-dig-site-echo-sounding": "station-ruins-dig-site-echo-sounding.webp",
+    "station-ruins-archives-archaeology": "station-ruins-archives-archaeology.webp",
+    "station-ruins-archives-reading-tables": "station-ruins-archives-reading-tables.webp",
+    "station-ruins-archives-translation-keys": "station-ruins-archives-translation-keys.webp",
+    "station-ruins-archives-site-catalogues": "station-ruins-archives-site-catalogues.webp",
+    "station-ruins-archives-survey-tablets": "station-ruins-archives-survey-tablets.webp",
+    "station-ruins-archives-archive-network": "station-ruins-archives-archive-network.webp",
+    "station-ruins-recovery-camp-recovery-teams": "station-ruins-recovery-camp-recovery-teams.webp",
+    "station-ruins-recovery-camp-lift-rigs": "station-ruins-recovery-camp-lift-rigs.webp",
+    "station-ruins-recovery-camp-conservation-kits": "station-ruins-recovery-camp-conservation-kits.webp",
+    "station-ruins-recovery-camp-careful-recovery": "station-ruins-recovery-camp-careful-recovery.webp",
+    "station-ruins-recovery-camp-botanical-remedies": "station-ruins-recovery-camp-botanical-remedies.webp",
+    "station-ruins-recovery-camp-safe-rigging": "station-ruins-recovery-camp-safe-rigging.webp",
+    "station-ruins-restoration-hall-restoration": "station-ruins-restoration-hall-restoration.webp",
+    "station-ruins-restoration-hall-cleaning-baths": "station-ruins-restoration-hall-cleaning-baths.webp",
+    "station-ruins-restoration-hall-salvage-grades": "station-ruins-restoration-hall-salvage-grades.webp",
+    "station-ruins-restoration-hall-reclaimed-alloys": "station-ruins-restoration-hall-reclaimed-alloys.webp",
+    "station-ruins-restoration-hall-artifact-lenses": "station-ruins-restoration-hall-artifact-lenses.webp",
+    "station-ruins-restoration-hall-restored-patterns": "station-ruins-restoration-hall-restored-patterns.webp",
+    "station-ruins-attunement-chamber-attunement": "station-ruins-attunement-chamber-attunement.webp",
+    "station-ruins-attunement-chamber-resonance": "station-ruins-attunement-chamber-resonance.webp",
+    "station-ruins-attunement-chamber-focal-crystals": "station-ruins-attunement-chamber-focal-crystals.webp",
+    "station-ruins-attunement-chamber-resonant-pairings": "station-ruins-attunement-chamber-resonant-pairings.webp",
+    "station-ruins-attunement-chamber-second-sigil": "station-ruins-attunement-chamber-second-sigil.webp",
+    "station-ruins-attunement-chamber-memory-stones": "station-ruins-attunement-chamber-memory-stones.webp",
+    "station-harbor-shipyard-shipbuilding": "station-harbor-shipyard-shipbuilding.webp",
+    "station-harbor-shipyard-hull-timbers": "station-harbor-shipyard-hull-timbers.webp",
+    "station-harbor-shipyard-dry-dock": "station-harbor-shipyard-dry-dock.webp",
+    "station-harbor-shipyard-provision-packing": "station-harbor-shipyard-provision-packing.webp",
+    "station-harbor-shipyard-scheduled-convoys": "station-harbor-shipyard-scheduled-convoys.webp",
+    "station-harbor-shipyard-slipway-cradles": "station-harbor-shipyard-slipway-cradles.webp",
+    "station-harbor-sailing-pier-seamanship": "station-harbor-sailing-pier-seamanship.webp",
+    "station-harbor-sailing-pier-sail-rigging": "station-harbor-sailing-pier-sail-rigging.webp",
+    "station-harbor-sailing-pier-coastal-knowledge": "station-harbor-sailing-pier-coastal-knowledge.webp",
+    "station-harbor-sailing-pier-coastal-tenders": "station-harbor-sailing-pier-coastal-tenders.webp",
+    "station-harbor-sailing-pier-weather-routing": "station-harbor-sailing-pier-weather-routing.webp",
+    "station-harbor-sailing-pier-trade-winds": "station-harbor-sailing-pier-trade-winds.webp",
+    "station-harbor-cargo-warehouse-stowage": "station-harbor-cargo-warehouse-stowage.webp",
+    "station-harbor-cargo-warehouse-balanced-crates": "station-harbor-cargo-warehouse-balanced-crates.webp",
+    "station-harbor-cargo-warehouse-cargo-seals": "station-harbor-cargo-warehouse-cargo-seals.webp",
+    "station-harbor-cargo-warehouse-mixed-holds": "station-harbor-cargo-warehouse-mixed-holds.webp",
+    "station-harbor-cargo-warehouse-salvage-nets": "station-harbor-cargo-warehouse-salvage-nets.webp",
+    "station-harbor-cargo-warehouse-deepwater-holds": "station-harbor-cargo-warehouse-deepwater-holds.webp",
+    "station-harbor-trade-house-contracts": "station-harbor-trade-house-contracts.webp",
+    "station-harbor-trade-house-market-brokers": "station-harbor-trade-house-market-brokers.webp",
+    "station-harbor-trade-house-trade-stamps": "station-harbor-trade-house-trade-stamps.webp",
+    "station-harbor-trade-house-exchange-houses": "station-harbor-trade-house-exchange-houses.webp",
+    "station-harbor-trade-house-standing-invoices": "station-harbor-trade-house-standing-invoices.webp",
+    "station-harbor-trade-house-return-markets": "station-harbor-trade-house-return-markets.webp",
+    "station-harbor-chart-room-navigation": "station-harbor-chart-room-navigation.webp",
+    "station-harbor-chart-room-fleet-command": "station-harbor-chart-room-fleet-command.webp",
+    "station-harbor-chart-room-chart-libraries": "station-harbor-chart-room-chart-libraries.webp",
+    "station-harbor-chart-room-twin-manifests": "station-harbor-chart-room-twin-manifests.webp",
+    "station-harbor-chart-room-distant-charts": "station-harbor-chart-room-distant-charts.webp",
+    "station-harbor-chart-room-navigation-relays": "station-harbor-chart-room-navigation-relays.webp"
+  },
+  "workers": {
+    "file": "station-workers.webp",
+    "cellWidth": 64,
+    "cellHeight": 96,
+    "columns": 4,
+    "roles": [
+      "miner",
+      "porter",
+      "scout",
+      "artisan",
+      "scholar",
+      "sailor"
+    ]
+  },
+  "records": [
+    {
+      "file": "station-greenway-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 2,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "f6c2c25f244e18313272a0bf36065cd2743348fa134915a0fdc38625d598a2c3",
+      "bytes": 32114
+    },
+    {
+      "file": "station-greenway-depth.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 2,
+        "width": 414,
+        "height": 197
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "f6c4396dc8d2b969610d03ec25b00a6eb2f66873b1f613d8606266cfdf6e629f",
+      "bytes": 109430
+    },
+    {
+      "file": "station-greenway-path-background.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 2,
+        "top": 209,
+        "width": 414,
+        "height": 203
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "8abcb2df35bf0dd98f7dc5aade57fdc50113a380c8f920174e4c8422095b69b8",
+      "bytes": 145004
+    },
+    {
+      "file": "station-greenway-path-machine.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 203,
+        "width": 414,
+        "height": 209
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "a1101cf1bd0719bead768b9604bace08867ae29e2e8141e598965912db063bdd",
+      "bytes": 28140
+    },
+    {
+      "file": "station-greenway-path-addition.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 838,
+        "top": 203,
+        "width": 414,
+        "height": 209
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "7138b46756c2e8d5d3651fbb55e99d9e5685d59dc639a691bb033ff5f605c0c3",
+      "bytes": 6692
+    },
+    {
+      "file": "station-greenway-porter-camp-background.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 2,
+        "top": 416,
+        "width": 414,
+        "height": 206
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "4bc41db582cdc6f3321db3c47a00038c9e31f934c040ff18a289602a52ae57c4",
+      "bytes": 140154
+    },
+    {
+      "file": "station-greenway-porter-camp-machine.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 416,
+        "width": 414,
+        "height": 206
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "fbb294f46b9a1d616703aba82e5e494507a87fa139106896df3e083452cabc96",
+      "bytes": 32536
+    },
+    {
+      "file": "station-greenway-porter-camp-addition.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 838,
+        "top": 416,
+        "width": 414,
+        "height": 206
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "834bef62a7bdf80f7ed4555f250a0a339da11b7607b9ec52574754212672c465",
+      "bytes": 10740
+    },
+    {
+      "file": "station-greenway-scout-post-background.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 2,
+        "top": 626,
+        "width": 414,
+        "height": 208
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "face80304c3c98903233b876d6048db6efe612d14da572151361ecb6ec274265",
+      "bytes": 142430
+    },
+    {
+      "file": "station-greenway-scout-post-machine.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 626,
+        "width": 414,
+        "height": 208
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "a94e239b39ad419f8a23695c7acf11a011232a17b0de6cf52fc2425e52fa8029",
+      "bytes": 31076
+    },
+    {
+      "file": "station-greenway-scout-post-addition.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 838,
+        "top": 626,
+        "width": 414,
+        "height": 208
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "159815639f607f730ec60e10e49871a80dad1db909f617c09637388533ad34ae",
+      "bytes": 11918
+    },
+    {
+      "file": "station-greenway-supply-depot-background.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 2,
+        "top": 838,
+        "width": 414,
+        "height": 200
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "bb669f2776e3f15d72b5d8d32250adc39ddf7a7ca25cd6b9ca4998b5bcfeb88b",
+      "bytes": 130988
+    },
+    {
+      "file": "station-greenway-supply-depot-machine.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 838,
+        "width": 414,
+        "height": 200
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "8a7befa50c9125555d7df4fb473f30cff65c540e959bea4d30fb8697475255ea",
+      "bytes": 29736
+    },
+    {
+      "file": "station-greenway-supply-depot-addition.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 838,
+        "top": 838,
+        "width": 414,
+        "height": 200
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "e3855a6fbbcea7c37d063b895ce9ce62e559914d02f22da0cce253af09afdc8b",
+      "bytes": 13080
+    },
+    {
+      "file": "station-greenway-caravan-terminus-background.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 2,
+        "top": 1042,
+        "width": 414,
+        "height": 210
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "29a25e053f800f87efdad57cfc41091be87f52f2bbfd6ae712f86c68b1c759b1",
+      "bytes": 144218
+    },
+    {
+      "file": "station-greenway-caravan-terminus-machine.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 420,
+        "top": 1042,
+        "width": 414,
+        "height": 210
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "080f91c1bbe4f9492170f48b40b1da6fb20ce949eb2a07f05ec36e009e2af04e",
+      "bytes": 23742
+    },
+    {
+      "file": "station-greenway-caravan-terminus-addition.webp",
+      "source": "greenway-master.png",
+      "sourceSha256": "fa1d07f72715ac44be94858b9160e6b9a2680ad77aec1220738512722360e198",
+      "crop": {
+        "left": 838,
+        "top": 1042,
+        "width": 414,
+        "height": 210
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "e9b0e23e61eb5b11cbef1aea9bc09bfcabb45cab41cd927bbb18cadf31bf6799",
+      "bytes": 8356
+    },
+    {
+      "file": "station-greenway-path-pathfinding.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e05c431dd9ba64c58f56432fb9c586103ed18e2923497c489ab17b930e65f76d",
+      "bytes": 23606
+    },
+    {
+      "file": "station-greenway-path-waymarks.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "2b8f1a0ef0479eb0f8c6f332cf6b6c73dbd06c90f7abda6d6d99908375cd14b2",
+      "bytes": 20934
+    },
+    {
+      "file": "station-greenway-path-trailcraft.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 3,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "2011205c0e9d3c3fac7a919cf397a8766ceca6c308afb559da427980357ff9cc",
+      "bytes": 18648
+    },
+    {
+      "file": "station-greenway-path-express-routes.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "b98d494f7e0f688c94e4a63ec6883bf1e6f6665f378a85f368f6743f6397c916",
+      "bytes": 11092
+    },
+    {
+      "file": "station-greenway-path-hidden-tracks.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d17decde10044b22ca5423861c9dc3c142e6347fe30cab2fa50d01ed952fa295",
+      "bytes": 21164
+    },
+    {
+      "file": "station-greenway-path-landmark-cairns.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "225439b99c174f220dafe5d22bee91e89c827e89bfe7ac928db13bef240b4820",
+      "bytes": 18098
+    },
+    {
+      "file": "station-greenway-porter-camp-porters.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f7b4dd9cc32392e77edc0d70453fe1b78a7d214d988f8da9646cf7d64a65513a",
+      "bytes": 27068
+    },
+    {
+      "file": "station-greenway-porter-camp-loading-harnesses.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 174,
+        "width": 302,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "24b5709fc1e47cf302d933731aae8c9c3554eccebd1ad7fe90c2df56d5ac8c7b",
+      "bytes": 15956
+    },
+    {
+      "file": "station-greenway-porter-camp-trade-ledgers.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3e779878fb0c32c446e31c640fc5f41d380bd0c1b74340129a2b371837fb96fa",
+      "bytes": 13068
+    },
+    {
+      "file": "station-greenway-porter-camp-cargo-lashing.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "7f99b48b478271c310e5b5a8436e3f94b50e71b741a58d32926a0da79f9b98eb",
+      "bytes": 22110
+    },
+    {
+      "file": "station-greenway-porter-camp-bonded-routes.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a6649742717ddaba6078ef993a2308d5b820ae30662307d7c3e407208f79c5b7",
+      "bytes": 14182
+    },
+    {
+      "file": "station-greenway-porter-camp-parcel-sorting.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c525cc0246c95224abc89d517ccf6e59aa08d685b3447bba7ae66d58ac65207e",
+      "bytes": 14894
+    },
+    {
+      "file": "station-greenway-scout-post-scouting.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 344,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a1571c2cca97469ba1b1d5899b13ee9936e5433b6d3a47a193ae76f37230967a",
+      "bytes": 10214
+    },
+    {
+      "file": "station-greenway-scout-post-survey-lines.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "eed6a4cb0836d327297cbaff339704c434afc2fa85245a8243d10f3264887739",
+      "bytes": 11018
+    },
+    {
+      "file": "station-greenway-scout-post-keen-eyes.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1ce8d575995dd4d955be5a01c226be7f133263d87d13dc85ae8925fd9a1fedda",
+      "bytes": 19206
+    },
+    {
+      "file": "station-greenway-scout-post-field-journals.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "99c92e40bad89536d3276f20ac1ad9fed5f031cb6b30b483d79dd5888f137d4d",
+      "bytes": 24174
+    },
+    {
+      "file": "station-greenway-scout-post-survey-satchels.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "83eed213ceb244eaa805c2cbaf91eeecf8cf28334757b5c6a916bf2a80d728d8",
+      "bytes": 21500
+    },
+    {
+      "file": "station-greenway-scout-post-targeted-surveys.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 515,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1c83fdd54e011936229a12ccf4f1c0c91e2e2a9b230bdb51402136e5c9a02193",
+      "bytes": 23890
+    },
+    {
+      "file": "station-greenway-supply-depot-waystations.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "84fcf6b8cfb1b508417a535e93e96484db1d24e18b8004dec673d6521a5c0b79",
+      "bytes": 16414
+    },
+    {
+      "file": "station-greenway-supply-depot-packing-stations.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "ae9327f056819a226d0de30ecf942d877ad8d983ce737d725816d6d2ecc8dfdb",
+      "bytes": 20866
+    },
+    {
+      "file": "station-greenway-supply-depot-provision-standards.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d8d58a2953b80e6c4bb3d7815d858a35b8b62e8d69e2315f91d4d49ce8724456",
+      "bytes": 19912
+    },
+    {
+      "file": "station-greenway-supply-depot-supply-depots.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "45fe98e2874835a145ec9055d105e79ce52703724eef0f18bf84a0c278b877ab",
+      "bytes": 16420
+    },
+    {
+      "file": "station-greenway-supply-depot-return-cargo.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 686,
+        "width": 302,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a6597ce8085366614b1bd11cb3f16a8cecae96370cf292d89ec5b6ba08cff840",
+      "bytes": 11278
+    },
+    {
+      "file": "station-greenway-supply-depot-pack-recovery.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "b6cb6e97514768fb42b78a85f0eed7efd1d7b09af3a1e9abad9f2e811c9e884d",
+      "bytes": 12866
+    },
+    {
+      "file": "station-greenway-caravan-terminus-caravans.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "949562f813b4ea557067eaf76ee8f13a5a0225af28796c4f262d1c618e0e0266",
+      "bytes": 18160
+    },
+    {
+      "file": "station-greenway-caravan-terminus-railways.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 3,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e4a7aec2ccef675c24d43268c9f24562bace008df4de48cd294c5df3f8effbef",
+      "bytes": 17036
+    },
+    {
+      "file": "station-greenway-caravan-terminus-contract-seals.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 310,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3302e3208d231fad844e1a71d8c5733ebbaa561f525fa6c335978b3ffe4bb858",
+      "bytes": 19640
+    },
+    {
+      "file": "station-greenway-caravan-terminus-caravan-escorts.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 617,
+        "top": 856,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "578d42c5856949a5b721fd54e5fb78880f6fa90b705a97a236e922f0713383bf",
+      "bytes": 26414
+    },
+    {
+      "file": "station-greenway-caravan-terminus-relay-runners.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 925,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "050e000914ccb51b7cc2a2311ae4505a1299d51f76ffc953f4f4ee3bb8051ba6",
+      "bytes": 9548
+    },
+    {
+      "file": "station-greenway-caravan-terminus-continental-logistics.webp",
+      "source": "greenway-icons-master.png",
+      "sourceSha256": "51984574df1e3144bae7247e9a0b43abbe21a12608131bc9d30d863db51cf381",
+      "crop": {
+        "left": 1232,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1e0154e3130e3707c6ec6ce387c1bb70380e39920bbe339158046b69b316e50b",
+      "bytes": 20860
+    },
+    {
+      "file": "station-quarry-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 258,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "5482768d3d33ba699916d1076c40d2ef1e0dbb341bb8b59bebeca25eff0c42f5",
+      "bytes": 31918
+    },
+    {
+      "file": "station-quarry-depth.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 2,
+        "width": 414,
+        "height": 233
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "d72e4c09ec6e114be4830086c458740232f8657b4cab6bb9eb93f01248db0cc7",
+      "bytes": 112092
+    },
+    {
+      "file": "station-quarry-mine-background.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 2,
+        "top": 239,
+        "width": 414,
+        "height": 193
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "338021003f391f958cd29ed372697545e7fda16d95fece0ad459b98125e4d70e",
+      "bytes": 123254
+    },
+    {
+      "file": "station-quarry-mine-machine.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 239,
+        "width": 414,
+        "height": 193
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "c64c159ea1fe833c5ac2a30ed56334847aa56b95fd5627c0dab6d38755ca6ac7",
+      "bytes": 27678
+    },
+    {
+      "file": "station-quarry-mine-addition.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 838,
+        "top": 239,
+        "width": 414,
+        "height": 193
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "ef2332b522d4a243362e5ed8ad50a38ac13c8b14bc03382ae6c7328a8dd83dc1",
+      "bytes": 12372
+    },
+    {
+      "file": "station-quarry-hauling-background.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 2,
+        "top": 436,
+        "width": 414,
+        "height": 194
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "db4dee8fe5734ea3f8f4234fdac2fb0c9b5303a8f27ed1e709007c2c950f6b53",
+      "bytes": 110480
+    },
+    {
+      "file": "station-quarry-hauling-machine.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 436,
+        "width": 414,
+        "height": 194
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "94af24bfa940870266c223cfee5206565bba35e59d5e52532548096fd9c43864",
+      "bytes": 24938
+    },
+    {
+      "file": "station-quarry-hauling-addition.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 838,
+        "top": 436,
+        "width": 414,
+        "height": 194
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "fca5d7b5678ac0b6ff891259dffb176bcb40669f504342f3480053466886c5e6",
+      "bytes": 8930
+    },
+    {
+      "file": "station-quarry-sorting-background.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 2,
+        "top": 634,
+        "width": 414,
+        "height": 198
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "6f1c7f235482feb37853d880699879f60499ab313c188cbb6fff8f25f590f648",
+      "bytes": 113292
+    },
+    {
+      "file": "station-quarry-sorting-machine.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 634,
+        "width": 414,
+        "height": 198
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "d99214e1a1e3a5f5b49beaf54f1f63447f992535dd08e41cdb0e22ec5c0a328b",
+      "bytes": 26034
+    },
+    {
+      "file": "station-quarry-sorting-addition.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 838,
+        "top": 634,
+        "width": 414,
+        "height": 198
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "9853bc4489ac3bc54783811524d0e090bec37acb0ba5217c9c2135fbc59ce42e",
+      "bytes": 11850
+    },
+    {
+      "file": "station-quarry-tool-forge-background.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 2,
+        "top": 836,
+        "width": 414,
+        "height": 196
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "34abed744e6ac35ba4ba04a4c09ea5be3e99f95d7204ec2218d4d81858b3da1d",
+      "bytes": 116702
+    },
+    {
+      "file": "station-quarry-tool-forge-machine.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 836,
+        "width": 414,
+        "height": 196
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "647aa25164ef581378bcd7c6fa00c3883d2aff798fb9f1dfccc11d3f875020ff",
+      "bytes": 27226
+    },
+    {
+      "file": "station-quarry-tool-forge-addition.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 838,
+        "top": 836,
+        "width": 414,
+        "height": 196
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "f858ff7ed449c1d894517c6d7d10fe62eccaaa6c7933f40b26e529feebed27c7",
+      "bytes": 7896
+    },
+    {
+      "file": "station-quarry-crystal-lab-background.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 2,
+        "top": 1036,
+        "width": 414,
+        "height": 216
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "4bf2fec7423b9d3657696a13217792753f296df711be109135f526d863d03182",
+      "bytes": 126998
+    },
+    {
+      "file": "station-quarry-crystal-lab-machine.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 1036,
+        "width": 414,
+        "height": 216
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "07b70669874bac2f4bf7b2931b06d414b214566476a957b9d4d3a9afac40e03f",
+      "bytes": 31866
+    },
+    {
+      "file": "station-quarry-crystal-lab-addition.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 838,
+        "top": 1036,
+        "width": 414,
+        "height": 216
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "197b9c5e8b714c62ad4cc9259b851b1fcd4ac9f931f64751b1f637063f8da9c4",
+      "bytes": 14648
+    },
+    {
+      "file": "station-quarry-mine-deep-cut.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "ebf8a64bfadea04dd075fbe2c9a2173d77c6749c7472ac8b34958e42c764dfe6",
+      "bytes": 26440
+    },
+    {
+      "file": "station-quarry-mine-quick-swing.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "56410366e2ad3b7ae7dfe8b594e2edaee6cbe306ad242efc7813a7ab6162437b",
+      "bytes": 13478
+    },
+    {
+      "file": "station-quarry-mine-rich-veins.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 3,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d7e99b0e74019f0c00e08424a4e9e5ad07a7f57fed52d9dfa43727228fbff3bd",
+      "bytes": 19860
+    },
+    {
+      "file": "station-quarry-mine-power-drill.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8c5e079b1bee9a16b7f9323f78c35add304a790ddfa36b5bacaf74c306e74b83",
+      "bytes": 11336
+    },
+    {
+      "file": "station-quarry-mine-reinforced-shafts.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 3,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "ac23e5caacb9bed4669ed7a32dd67244840c41c9e7d2476063c82a0614276aaf",
+      "bytes": 23960
+    },
+    {
+      "file": "station-quarry-mine-vein-mapping.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6fbf9e1214a0d46000bdf5530e9162b94aa9141d34357ff559ec70e25595478e",
+      "bytes": 26652
+    },
+    {
+      "file": "station-quarry-hauling-cart-beds.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a273834f491d73398ffb2dfbcd743daf9b8628aeb8289ad3fe28ee833d1ce296",
+      "bytes": 11806
+    },
+    {
+      "file": "station-quarry-hauling-axle-bearings.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 174,
+        "width": 302,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "715ac59242c2e19893e335cee1f00d670addf31dc589842aa88d18e9112a9204",
+      "bytes": 15244
+    },
+    {
+      "file": "station-quarry-hauling-dispatch-flags.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c21ec1b1fc699cadbb277e6c254cfc0854e8cfc7f017cd5c9b2580aac99266dd",
+      "bytes": 10470
+    },
+    {
+      "file": "station-quarry-hauling-stockpiles.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 174,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "cb45ce4625a9f8a3767af4a519ef4252c32d41682cc7961e10fc3d681c57ae18",
+      "bytes": 22076
+    },
+    {
+      "file": "station-quarry-hauling-rail-transfer.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c0b5dbeace1984563d1fdbb38696285bac4095ef112fbdcb034e1a798e8bc040",
+      "bytes": 18398
+    },
+    {
+      "file": "station-quarry-hauling-rail-junctions.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "70c3f9a12d10d80927cc469a0e0044c8434a79ac32a1df73b02805c345e0dee0",
+      "bytes": 12922
+    },
+    {
+      "file": "station-quarry-sorting-fine-sieves.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 344,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "48bca561be49f5506cd53503ff54efb88bb21dc9eb1b90b2df9be32139d4adcc",
+      "bytes": 21030
+    },
+    {
+      "file": "station-quarry-sorting-gem-trays.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f898a352c32984ae478cf71b1c12242c7540ea080298802ed750c007d0678c83",
+      "bytes": 11564
+    },
+    {
+      "file": "station-quarry-sorting-reclamation.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 344,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "cb4f67916837a3c3cdd1dd38afb476ac288773fe24d0f8af3ef5e236d1341756",
+      "bytes": 22102
+    },
+    {
+      "file": "station-quarry-sorting-ore-sorting.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "107bfc1d002acdc8e8a996e53c755feaba456c7afac8384f0cf6d91588c72220",
+      "bytes": 20794
+    },
+    {
+      "file": "station-quarry-sorting-slag-processing.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a0be5d8adcc0829f3e9128f9a00ceab3f8b8354e60f5b9d175b712830708f507",
+      "bytes": 14654
+    },
+    {
+      "file": "station-quarry-sorting-gem-inspection.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 515,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "69d8832a96d517b04f1bb092d80392c86aea0fdd14ebf23e4b73995e16a8e12f",
+      "bytes": 15698
+    },
+    {
+      "file": "station-quarry-tool-forge-bellows.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6589383ca5be2cd0004e396dc01f49705fbacdfe8b580b3c2e8be3bd984a03ce",
+      "bytes": 10672
+    },
+    {
+      "file": "station-quarry-tool-forge-molds.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 515,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "eb3f405c3c1958b42ca5136c06e4b0590fd0a45c1cf6752359faba72912d5d6b",
+      "bytes": 20238
+    },
+    {
+      "file": "station-quarry-tool-forge-tempering.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "149cd389368f414b932a41c0ebdbc0884fd8571110579d6266399e36ffdde900",
+      "bytes": 21528
+    },
+    {
+      "file": "station-quarry-tool-forge-batch-kilns.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "877afaad898adf6c2abd37a9f32d933223e6735d3bed9952eb245a9bce9233b3",
+      "bytes": 12318
+    },
+    {
+      "file": "station-quarry-tool-forge-parallel-furnaces.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 686,
+        "width": 302,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "261c70f73e30bf6c764edae736cc7c7e3d769c9d7c8f521547c011496a3577fe",
+      "bytes": 18024
+    },
+    {
+      "file": "station-quarry-tool-forge-tempered-picks.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "53dd5a02b2cb8fc70e0b51f0c6c30dac92d0a2232cd344e091fc1c7e12e9b881",
+      "bytes": 13510
+    },
+    {
+      "file": "station-quarry-crystal-lab-crystal-cutters.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 686,
+        "width": 301,
+        "height": 164
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1553c9a26a40b0f779dbe314a51a7f464b9bb719534ae06c0202ace1bbc08706",
+      "bytes": 22130
+    },
+    {
+      "file": "station-quarry-crystal-lab-resonance.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 3,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8a7a259449afe4b273dbca17f3a79cbf4b86543804f7c4308c52bb3bf400de85",
+      "bytes": 26728
+    },
+    {
+      "file": "station-quarry-crystal-lab-sample-banks.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 310,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "087db98bf8fd198d8c2e9f644f856ab48b667e8ad139b76562a5730ff30b2b34",
+      "bytes": 12754
+    },
+    {
+      "file": "station-quarry-crystal-lab-adaptive-scheduling.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 617,
+        "top": 856,
+        "width": 302,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f309fa518110927378e897cd688981f46a27bc98d8c5390c2a868db779655c04",
+      "bytes": 16992
+    },
+    {
+      "file": "station-quarry-crystal-lab-discovery-protection.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 925,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "9350e9d98f451dce0d9029afab16feeb637dd7631609362aa5a78c005a8a8a84",
+      "bytes": 13152
+    },
+    {
+      "file": "station-quarry-crystal-lab-resonant-blueprints.webp",
+      "source": "quarry-icons-master.png",
+      "sourceSha256": "6774c7161da0ebe87cf3306c248d32dc75c0396f65612d6cf78ffe79de73c6a1",
+      "crop": {
+        "left": 1232,
+        "top": 856,
+        "width": 301,
+        "height": 165
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "63c0ebaad00e05ee46cf77b0d91baccecb790f8bd3012ba37fda843df284e033",
+      "bytes": 10864
+    },
+    {
+      "file": "station-watchtower-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 514,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "e5f9aa7e0461efa2e1f0b261f5839cb1c7cc352328643bfa2ea0531f0268ab57",
+      "bytes": 31312
+    },
+    {
+      "file": "station-watchtower-depth.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 2,
+        "width": 414,
+        "height": 221
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "d10af0041835ec726445022e1a4a66057432ebcdb67d3eeb3f9208d1db18e502",
+      "bytes": 99774
+    },
+    {
+      "file": "station-watchtower-survey-deck-background.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 2,
+        "top": 227,
+        "width": 414,
+        "height": 213
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "19c9228c2caf32cc32aeefcfabb5f1ba87373665c1e543360522ebf75d8f03b4",
+      "bytes": 123486
+    },
+    {
+      "file": "station-watchtower-survey-deck-machine.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 227,
+        "width": 414,
+        "height": 213
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "69ccd4c0e64edea443eccb1f83a951fe24f9977c23a61f4fb1295e7a7daf2b7a",
+      "bytes": 30244
+    },
+    {
+      "file": "station-watchtower-survey-deck-addition.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 838,
+        "top": 227,
+        "width": 414,
+        "height": 213
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "393ed3c1d360ecdd80db7c4fef6a4d0d719dfb9e7918471d07fa903af76e6673",
+      "bytes": 12012
+    },
+    {
+      "file": "station-watchtower-signal-gallery-background.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 2,
+        "top": 444,
+        "width": 414,
+        "height": 202
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "8675d87f43d69ffca665dfe2eb3c19827c06c1a4c6828fef2054e3509d59cb75",
+      "bytes": 121566
+    },
+    {
+      "file": "station-watchtower-signal-gallery-machine.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 444,
+        "width": 414,
+        "height": 202
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "3bac5b19ee425200e298ff6e2dc1d8e645737c4356578a05f7da4b7278c852fe",
+      "bytes": 18644
+    },
+    {
+      "file": "station-watchtower-signal-gallery-addition.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 838,
+        "top": 444,
+        "width": 414,
+        "height": 202
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "4cca50218ca82c5739c506f1fb8ccfa723c91fb0bc61b5af0275f2c63b4d1611",
+      "bytes": 9840
+    },
+    {
+      "file": "station-watchtower-command-room-background.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 2,
+        "top": 650,
+        "width": 414,
+        "height": 188
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "6659714c12b6f24c4e3c7c8a770eef65e49e11ae3f3b767239b6f0ecef7afb67",
+      "bytes": 112742
+    },
+    {
+      "file": "station-watchtower-command-room-machine.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 650,
+        "width": 414,
+        "height": 188
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "3e508fda456d7b823aee1b8ccf640a8c0666c98c30ff19242ba2b9e10c458b9e",
+      "bytes": 21212
+    },
+    {
+      "file": "station-watchtower-command-room-addition.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 838,
+        "top": 650,
+        "width": 414,
+        "height": 188
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "daf1d2802b98d6241c96bd18040a7fe3eb615a0513df37d5ddaf60b8e290e741",
+      "bytes": 12864
+    },
+    {
+      "file": "station-watchtower-weather-station-background.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 2,
+        "top": 842,
+        "width": 414,
+        "height": 200
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "c8cf66b31927fc8ed44e19eeea03ed4839c44838f9fbcf2a7ed550628bc5c50f",
+      "bytes": 117230
+    },
+    {
+      "file": "station-watchtower-weather-station-machine.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 842,
+        "width": 414,
+        "height": 200
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "28e391744208557d622a83137e6e829e418056fdd092f0c474bf5e1d0d1eb302",
+      "bytes": 20478
+    },
+    {
+      "file": "station-watchtower-weather-station-addition.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 838,
+        "top": 842,
+        "width": 414,
+        "height": 200
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "b51a14597ccc00b18a35144a782684e3d8daf58f0106d7792079c050f8661550",
+      "bytes": 12318
+    },
+    {
+      "file": "station-watchtower-relay-observatory-background.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 2,
+        "top": 1046,
+        "width": 414,
+        "height": 206
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "e2138c3870f1f1d208cfabe7605bfa084cb3915fcaac3b84fda78b651ffd3a9f",
+      "bytes": 119266
+    },
+    {
+      "file": "station-watchtower-relay-observatory-machine.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 420,
+        "top": 1046,
+        "width": 414,
+        "height": 206
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "0eb5d54a59dbc868889adb899d60272b4b1320f13dd2efe77c5c517231368965",
+      "bytes": 32346
+    },
+    {
+      "file": "station-watchtower-relay-observatory-addition.webp",
+      "source": "watchtower-master.png",
+      "sourceSha256": "8cbdaad10f85df71f122862f31a5861da3da8fa95070790a2e3a18aa5cd997ac",
+      "crop": {
+        "left": 838,
+        "top": 1046,
+        "width": 414,
+        "height": 206
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "63209a06194ac007aa09ee833d0afc0ed1851e82cb853f679a008998795692e1",
+      "bytes": 15854
+    },
+    {
+      "file": "station-watchtower-survey-deck-surveying.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "21416dfbefb2189eef59d36a202ce00ae67b56fdb7271c0d3de5e7cdfe3caade",
+      "bytes": 19580
+    },
+    {
+      "file": "station-watchtower-survey-deck-sweep-patterns.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e2177cafcfdd775b5d1fe2bc320420f357d46f0647edf60ffdb1603a13b9442e",
+      "bytes": 20860
+    },
+    {
+      "file": "station-watchtower-survey-deck-optics.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f1abb918f75ba28dcbb102011e25e8059438ab9c8918c4211d4836d78ee04595",
+      "bytes": 17414
+    },
+    {
+      "file": "station-watchtower-survey-deck-field-notebooks.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e58f240a069364c177aeb8fbb288facf5be17a3f3df50b6a737534ea0bdca15d",
+      "bytes": 23988
+    },
+    {
+      "file": "station-watchtower-survey-deck-triangulation.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "bc25b37422ddbc7361c3be61282470fb6cf94b5da25f71f26b6edf1109a8ffbe",
+      "bytes": 15668
+    },
+    {
+      "file": "station-watchtower-survey-deck-mineral-cartography.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1cf836096bf547cdff62f230f5dcdbca1d7bcb7dda4c585db5b7a66f3f01fa3c",
+      "bytes": 23014
+    },
+    {
+      "file": "station-watchtower-signal-gallery-signals.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "051824ee0754244d7fb4b93cd4c2ac5edcf534064a146b8196473e2a78bc4853",
+      "bytes": 21454
+    },
+    {
+      "file": "station-watchtower-signal-gallery-pulse-relays.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e8e041788692d351a4e0c7c20a6572025e9600b762fffa02c52b09271537b496",
+      "bytes": 24674
+    },
+    {
+      "file": "station-watchtower-signal-gallery-channel-tuning.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d88c67cc12a4ab1dff58772f2e82389fb306b72208679eb1f86ef7cc1a20c2b7",
+      "bytes": 19040
+    },
+    {
+      "file": "station-watchtower-signal-gallery-dispatch-codes.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c40dedab07740ac08202c3b6cfd8d62aec3c94f3a358238a6c144e923dce1888",
+      "bytes": 17742
+    },
+    {
+      "file": "station-watchtower-signal-gallery-logistics-charts.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "785648377eab31342cbd466660a91fa262e58f1d211144191c1ef6c532dc9f92",
+      "bytes": 21632
+    },
+    {
+      "file": "station-watchtower-signal-gallery-echo-loops.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "9c03f5df3b9a4961c44a25722781597ee18fcfacb559871f43282277a1cd33ea",
+      "bytes": 24760
+    },
+    {
+      "file": "station-watchtower-command-room-command.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c0145be5d3582ccd89ae1f64d90fc817d033f2edda0e161dc877fbbca98065d1",
+      "bytes": 18062
+    },
+    {
+      "file": "station-watchtower-command-room-crew-drills.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "4bb48cfb2405517ae0f9317678509e4de2dbf7c1210018482b88bef29bae8ba8",
+      "bytes": 20504
+    },
+    {
+      "file": "station-watchtower-command-room-shift-rosters.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "51e75777a0ff6a902122af526ec1708c1fd5fd615f5488d670edbe06cbbe300b",
+      "bytes": 21384
+    },
+    {
+      "file": "station-watchtower-command-room-long-signals.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "838ba2987ea9b026a49351e5f7af8722ce0b2e89e5c7c4914808e7b5cecc9a70",
+      "bytes": 24264
+    },
+    {
+      "file": "station-watchtower-command-room-crew-rotation.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e37a195bbf039e20bd3df157945d0a4723b65d615082579adc4a17bb63eb0150",
+      "bytes": 23440
+    },
+    {
+      "file": "station-watchtower-command-room-focus-orders.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "eb828852eae01c7e6daad9394334161f7c504d8e9be9c5f7e8534df993f4fb2d",
+      "bytes": 20532
+    },
+    {
+      "file": "station-watchtower-weather-station-forecasting.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "51fcf388d0706d05ebc0d978947b2a2258285eb3f8f1e68791db57c380a6469b",
+      "bytes": 26484
+    },
+    {
+      "file": "station-watchtower-weather-station-wind-readings.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "25cd0985a687ada97b8dd70a834ae2fbd5832ef766eece560a7b9718d66038aa",
+      "bytes": 21036
+    },
+    {
+      "file": "station-watchtower-weather-station-observation-windows.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d8dda85942af070702b1f5d114481d2457aa648cad9c71209b1b6b7e1eea2466",
+      "bytes": 19386
+    },
+    {
+      "file": "station-watchtower-weather-station-weather-stations.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "18677994c691afcb96fe6329bcc0228df8195d931d7e399933861d953082fd80",
+      "bytes": 21338
+    },
+    {
+      "file": "station-watchtower-weather-station-research-exchanges.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c47cf337b9eaef609858f4c07ba0b03463b341ff3267c952ad77605eb5109890",
+      "bytes": 15128
+    },
+    {
+      "file": "station-watchtower-weather-station-sail-observations.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "625479ad8cac9cac3041e98e74e2970f95a8d44539f7bba035dec38d9fd120ef",
+      "bytes": 17562
+    },
+    {
+      "file": "station-watchtower-relay-observatory-relay-grid.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "11ca663f78ad666445675d6cb5ba07037372ed36826dfb9467af40340844dbc1",
+      "bytes": 19760
+    },
+    {
+      "file": "station-watchtower-relay-observatory-signal-archives.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 3,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "448fbd75db7d4c2f29aca233e4cde516d2a322b1ac5606c4a21e0d1c27f10f3f",
+      "bytes": 21510
+    },
+    {
+      "file": "station-watchtower-relay-observatory-harmonic-control.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 283,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e228d6402a1d62b4208cf3bc319dcde9ab5a31e9ac54516a0da944c3e0f5fd28",
+      "bytes": 23320
+    },
+    {
+      "file": "station-watchtower-relay-observatory-celestial-calendar.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 564,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "9a6361183179d23782da3ba16824e07abe61c233b98d9116f25fb90689151f26",
+      "bytes": 28358
+    },
+    {
+      "file": "station-watchtower-relay-observatory-shared-archives.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 844,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "acf584f3166e9ff0cf8dcd03dfaaad9f65f15be4cbf9fe973e8da92c78b974c1",
+      "bytes": 20666
+    },
+    {
+      "file": "station-watchtower-relay-observatory-relay-blueprints.webp",
+      "source": "watchtower-icons-master.png",
+      "sourceSha256": "6f445f9b14fc9417b7c71680f28250a91acee428fcb861b557769ed2c4a5f092",
+      "crop": {
+        "left": 1125,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "2200de23e42e755ae3db1c444ab6f9a162a58a19d153d9c8db29947c93b10e00",
+      "bytes": 21626
+    },
+    {
+      "file": "station-workshop-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 770,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "4db4eb11d146732201186d41e79c4a6627c67b0baaea5640973cbf64c0a779a9",
+      "bytes": 31952
+    },
+    {
+      "file": "station-workshop-depth.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 10,
+        "width": 382,
+        "height": 202
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "7e5eb70f8ec1476947c30e7748156e8808bf89961e7e30286dc6d86522cab31c",
+      "bytes": 109794
+    },
+    {
+      "file": "station-workshop-workbench-background.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 10,
+        "top": 216,
+        "width": 448,
+        "height": 199
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "832f1cc0419d96a7b2bb905032ad990ded974422e9b4ad3e1252b3cd0e2f8ec4",
+      "bytes": 129760
+    },
+    {
+      "file": "station-workshop-workbench-machine.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 216,
+        "width": 382,
+        "height": 199
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "3785d879b62c4643dcf9c10ccb84c28592bc36957643e3d185167a503dfc3f0f",
+      "bytes": 24876
+    },
+    {
+      "file": "station-workshop-workbench-addition.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 848,
+        "top": 216,
+        "width": 404,
+        "height": 199
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "078eae08ab36ee7a540346ff985582f84f26d29cf386f4061fb5f8846876b744",
+      "bytes": 14384
+    },
+    {
+      "file": "station-workshop-tool-bench-background.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 10,
+        "top": 419,
+        "width": 448,
+        "height": 202
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "5b4c13472236732694d0f925ea141e6ab5051aaa2d05e86d2b6db2ab2504fdc2",
+      "bytes": 120336
+    },
+    {
+      "file": "station-workshop-tool-bench-machine.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 419,
+        "width": 382,
+        "height": 202
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "0675f4af671b6455a0611a40ef27bbbc07d25e664622f01f181775c6a1119664",
+      "bytes": 28836
+    },
+    {
+      "file": "station-workshop-tool-bench-addition.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 848,
+        "top": 419,
+        "width": 404,
+        "height": 202
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "e2fd23df217e115cf50c7629722a2ac07162ba4a9ab56fcaf9f893a596c53a28",
+      "bytes": 8810
+    },
+    {
+      "file": "station-workshop-alloy-forge-background.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 10,
+        "top": 625,
+        "width": 448,
+        "height": 206
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "97825aaa2b88050f586857ba5456452f73616818534abde7605e87f27d0e92b6",
+      "bytes": 126460
+    },
+    {
+      "file": "station-workshop-alloy-forge-machine.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 625,
+        "width": 382,
+        "height": 206
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "11bbce5b210f391dd21ed22c618281b343ecbfc0b7c2d75ee8e3dbf9f5ad3149",
+      "bytes": 25184
+    },
+    {
+      "file": "station-workshop-alloy-forge-addition.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 848,
+        "top": 625,
+        "width": 404,
+        "height": 206
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "e19bea6aa6981a677561175550814589febaa5ab0c4ab8636e88c8afeb76433b",
+      "bytes": 12880
+    },
+    {
+      "file": "station-workshop-tinker-bay-background.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 10,
+        "top": 835,
+        "width": 448,
+        "height": 193
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "cd014878fb3dbafed9095f617a843ee71ac12b6b238b64c59f442f73ccedd17f",
+      "bytes": 123108
+    },
+    {
+      "file": "station-workshop-tinker-bay-machine.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 835,
+        "width": 382,
+        "height": 193
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "c62c562f6d43790d225445d9b835ab6011b039faf4c36850732668ce1eb06249",
+      "bytes": 26604
+    },
+    {
+      "file": "station-workshop-tinker-bay-addition.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 848,
+        "top": 835,
+        "width": 404,
+        "height": 193
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "a32d79c51793a452bb9011aeb976c1eeafe2dfabe3a7217b42888a3f97d4de34",
+      "bytes": 11754
+    },
+    {
+      "file": "station-workshop-pattern-hall-background.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 10,
+        "top": 1032,
+        "width": 448,
+        "height": 211
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "f643e718ad82690507d931f396454e394c54ad1f8efb0a97cd8c30da75ea85ee",
+      "bytes": 131962
+    },
+    {
+      "file": "station-workshop-pattern-hall-machine.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 462,
+        "top": 1032,
+        "width": 382,
+        "height": 211
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "342597455ed9d5078cbd94fd10efd2b1ebfdb7646bcb94eb20881965be80db6b",
+      "bytes": 27014
+    },
+    {
+      "file": "station-workshop-pattern-hall-addition.webp",
+      "source": "workshop-master.png",
+      "sourceSha256": "21180158f812107e99cd1287dce522e5a575d27244174b9c68457d2219afbbe4",
+      "crop": {
+        "left": 848,
+        "top": 1032,
+        "width": 404,
+        "height": 211
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "53bb11605255c486b706b780e07e551461e3008abb30cf52a23edcd3db58d466",
+      "bytes": 11400
+    },
+    {
+      "file": "station-workshop-workbench-assembly.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c6d7aa919b66ce4584f2d5c9e514a1678c13d093059e22794f84f46c5a1ff4fa",
+      "bytes": 19862
+    },
+    {
+      "file": "station-workshop-workbench-bench-fixtures.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6c736fc95368d37f7a26a06466f8c0d599e6fd347988645c1b220b02a2c4e07d",
+      "bytes": 17410
+    },
+    {
+      "file": "station-workshop-workbench-cutting-jigs.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5ebba07bcd26be67ad566f2b2f18105446988c37a6f7345ec8c30584cec09cfb",
+      "bytes": 17240
+    },
+    {
+      "file": "station-workshop-workbench-material-hoppers.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "239749e50e864983eb14806cfe2b000df5aa2af0e40d69b131f32bfe84ff064c",
+      "bytes": 24018
+    },
+    {
+      "file": "station-workshop-workbench-template-queue.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "66f7236b855d4a7eec51a8673e668df67a99cba14e836fd806537b7ec80e355f",
+      "bytes": 20658
+    },
+    {
+      "file": "station-workshop-workbench-assembly-jigs.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8bf2926878a0bd24c1bbb7bc64abd079249e9dfd874ef909dd847f94a99cfdd9",
+      "bytes": 17616
+    },
+    {
+      "file": "station-workshop-tool-bench-toolmaking.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "958790d9efd726d22bc95bc517e59cb79a10aad2f51013ceb86473360687da8e",
+      "bytes": 17866
+    },
+    {
+      "file": "station-workshop-tool-bench-cutting-dies.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3bdf16480b18ea860c43d2004ae9de61122c93ac5feecd7d9642d3feee5f0c38",
+      "bytes": 15862
+    },
+    {
+      "file": "station-workshop-tool-bench-sharpening-wheels.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "bbef1750ff8c6068f7a4484f6964f4b3fa2d20974a27a05cdd489a97d45dee8d",
+      "bytes": 19496
+    },
+    {
+      "file": "station-workshop-tool-bench-standard-tools.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "ebc1b99e5c6adc7a2ea433aacdbedec82269b86efa3565262fad49ee7cc0b63a",
+      "bytes": 18786
+    },
+    {
+      "file": "station-workshop-tool-bench-spare-parts.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8270fae937f66d3e0e37a4a8a3e0e0ef7c4a5dc455727e931cae638bf950db8f",
+      "bytes": 21606
+    },
+    {
+      "file": "station-workshop-tool-bench-tempered-edges.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "55e1444a8276d43090e60b3b1ad5a9b56d5adc08dc371489926f5dc98ab6c1d4",
+      "bytes": 21012
+    },
+    {
+      "file": "station-workshop-alloy-forge-metallurgy.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3cd19ba258b252e771b1be30a49e0cc0aa996d54b2285f7f69abfb297875a193",
+      "bytes": 19082
+    },
+    {
+      "file": "station-workshop-alloy-forge-crucible-beds.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "376f636223dc5d1f42dd2c19bc262a38d4fa62eb814abca8c5380f7e70218d8e",
+      "bytes": 20840
+    },
+    {
+      "file": "station-workshop-alloy-forge-flux-mixtures.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "31b3e90e20902655e0cc7b3aa17cc08d823f6ee767c275ac83a7bb0e9ea4b7ca",
+      "bytes": 19598
+    },
+    {
+      "file": "station-workshop-alloy-forge-offcut-recovery.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8eaf6455566b426cbecf0a3eca9ec04e380edbbe8f2f4df1d2dafc861f45c358",
+      "bytes": 20916
+    },
+    {
+      "file": "station-workshop-alloy-forge-slag-reuse.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c945dddadd5f7dc0e38c1f9e64568390621712aa997b4e84d04ed3a6ae53fa02",
+      "bytes": 19968
+    },
+    {
+      "file": "station-workshop-alloy-forge-alloy-recipes.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "50e28ad8be25a7dc5f534570d392db9c2cae9c0544a49f5dea5247bbd0cd80a0",
+      "bytes": 21544
+    },
+    {
+      "file": "station-workshop-tinker-bay-mechanisms.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "946ba13cd6437ba9a39b23aa23dc112b577cc92828e447f41baf52bcbe83e2aa",
+      "bytes": 23056
+    },
+    {
+      "file": "station-workshop-tinker-bay-clockwork-drives.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6a3724a2eaeaa6e7ac89b24d59a3f7434c411e2e9831699fa64dd79d3747cd9f",
+      "bytes": 21902
+    },
+    {
+      "file": "station-workshop-tinker-bay-precision-fittings.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3842cb7cd872197b13231a5e8c6c5d165ef56a08f1bc0358405e6a08116c58d1",
+      "bytes": 22340
+    },
+    {
+      "file": "station-workshop-tinker-bay-instrument-cases.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "19c9a5f65306583594b5d940d5bcfcb2938a98cd4333d3bef1c1cdb7f1594ee2",
+      "bytes": 21510
+    },
+    {
+      "file": "station-workshop-tinker-bay-export-crates.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "c487207238357086f2590f5b3451b7fcdadaf72a5359ae4a802b3cc3abebf503",
+      "bytes": 20474
+    },
+    {
+      "file": "station-workshop-tinker-bay-survey-modules.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "97c0e05d8e3c26f028031175ed519bc6a91b4034e4c8be625cf15462cda1874a",
+      "bytes": 19474
+    },
+    {
+      "file": "station-workshop-pattern-hall-precision.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "85ccc775c4a82dd08d2f11085567ede5a3f22364ffd4f1ddc4f922752356d68f",
+      "bytes": 20418
+    },
+    {
+      "file": "station-workshop-pattern-hall-replication.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 3,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "2d7d43456bda8c8f118f15a77cc4051259ce45d8e4f37ed06b88a390ac5d8aae",
+      "bytes": 24880
+    },
+    {
+      "file": "station-workshop-pattern-hall-pattern-libraries.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 283,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "91798625ec87fd5fca6978d6cdcd6bec7b10f41fb4e74bf522d33e3e5d01cd28",
+      "bytes": 20792
+    },
+    {
+      "file": "station-workshop-pattern-hall-precision-fixtures.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 564,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d6f76ffaae76daea1235dfcd633d414d3d10ac1ae524d069587ba744156f34a7",
+      "bytes": 16956
+    },
+    {
+      "file": "station-workshop-pattern-hall-modular-frames.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 844,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5e6ac74f91e8f2a0c0697cc8d86ed95c0168197b152b4af265ab8bc16c3ac0f7",
+      "bytes": 20484
+    },
+    {
+      "file": "station-workshop-pattern-hall-pattern-replicas.webp",
+      "source": "workshop-icons-master.png",
+      "sourceSha256": "b9dc3189293be20aa40beffc32e9846750de330c7d236bf7268c599d4b54583a",
+      "crop": {
+        "left": 1125,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "adb063db3895d126ec2273c184f086b0ef131061785252462e5ce700e73e3add",
+      "bytes": 18434
+    },
+    {
+      "file": "station-ruins-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 1026,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "802ca1c5e887a16e16ce64e3f9d70ae2ad6c71cd675c78b7882098ea59cc32fe",
+      "bytes": 31110
+    },
+    {
+      "file": "station-ruins-depth.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 10,
+        "width": 322,
+        "height": 198
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "fb5ad3c1d9a34cd04c17d265eb4a7262362a194e10355c85133abecca967fff9",
+      "bytes": 102960
+    },
+    {
+      "file": "station-ruins-dig-site-background.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 10,
+        "top": 212,
+        "width": 502,
+        "height": 225
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "e1b3f0b234e2f14ee3e153ec14840d8c90a7adbad213a0b25b4630ac1d164eb8",
+      "bytes": 133554
+    },
+    {
+      "file": "station-ruins-dig-site-machine.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 212,
+        "width": 322,
+        "height": 225
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "57aaf55b0c847d810433e08bff25b556875ff640b48ac316c138373b4320eb60",
+      "bytes": 26248
+    },
+    {
+      "file": "station-ruins-dig-site-addition.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 842,
+        "top": 212,
+        "width": 410,
+        "height": 225
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "14d8f96989b3c35ce231d2da9f395ba30c6ed6a6143f87adabf34febd8f80774",
+      "bytes": 7798
+    },
+    {
+      "file": "station-ruins-archives-background.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 10,
+        "top": 441,
+        "width": 502,
+        "height": 184
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "8ba3fadd7fe3ff1143ca5f688be59300b9eea17aba347656ac82636fe347686c",
+      "bytes": 114770
+    },
+    {
+      "file": "station-ruins-archives-machine.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 441,
+        "width": 322,
+        "height": 184
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "56bd8bf3f9aac90feafec1ff75e51b433cc98ba8b99d8cfa4203a541e1e663f8",
+      "bytes": 30430
+    },
+    {
+      "file": "station-ruins-archives-addition.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 842,
+        "top": 441,
+        "width": 410,
+        "height": 184
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "4d0febf18a78b203089a0e4a10086ec3299d2e6bcbef24c1561b24d9d15eb98d",
+      "bytes": 8826
+    },
+    {
+      "file": "station-ruins-recovery-camp-background.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 10,
+        "top": 629,
+        "width": 502,
+        "height": 194
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "1b3ed5d062805c5284278674f4b6ca674839effba3c2ef917b8ebfd456ac64ed",
+      "bytes": 121450
+    },
+    {
+      "file": "station-ruins-recovery-camp-machine.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 629,
+        "width": 322,
+        "height": 194
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "fcd477766f53d83ff551248d8665bf76c24fd26e03ae1c45d304f337a46f9f4a",
+      "bytes": 29082
+    },
+    {
+      "file": "station-ruins-recovery-camp-addition.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 842,
+        "top": 629,
+        "width": 410,
+        "height": 194
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "edfa47098870b362551c8f12a9bed18fa33e4c9050f15764561e8d7004c16993",
+      "bytes": 9780
+    },
+    {
+      "file": "station-ruins-restoration-hall-background.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 10,
+        "top": 827,
+        "width": 502,
+        "height": 198
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "0230fafed55303edddc99c572208e1690878fc7fda34d43e79ce35c0535f40a0",
+      "bytes": 125808
+    },
+    {
+      "file": "station-ruins-restoration-hall-machine.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 827,
+        "width": 322,
+        "height": 198
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "2016c50c340a460024a839d667aa729e0f807185e979c0da556db661e34b5b37",
+      "bytes": 28666
+    },
+    {
+      "file": "station-ruins-restoration-hall-addition.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 842,
+        "top": 827,
+        "width": 410,
+        "height": 198
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "8d2ef6ab3b4583689ff63cc331fc77e5ddbdc7bb9f81d7c5792af436cb41b5b4",
+      "bytes": 11518
+    },
+    {
+      "file": "station-ruins-attunement-chamber-background.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 10,
+        "top": 1029,
+        "width": 502,
+        "height": 214
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "bc460bc15a45e7fa441813900a0f76998cfd2948c733e034ee271a1914817668",
+      "bytes": 129758
+    },
+    {
+      "file": "station-ruins-attunement-chamber-machine.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 516,
+        "top": 1029,
+        "width": 322,
+        "height": 214
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "7204116414c15d78d0fb330c5005e338af552147abe2098070ae369052fb37b5",
+      "bytes": 32066
+    },
+    {
+      "file": "station-ruins-attunement-chamber-addition.webp",
+      "source": "ruins-master.png",
+      "sourceSha256": "202d66283e7d7e64e270374199e30bec2f9ce690eba380c9aecd6467b8deb075",
+      "crop": {
+        "left": 842,
+        "top": 1029,
+        "width": 410,
+        "height": 214
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "1feccd4c867d36d6ea1f39ff2ff025f54ea951f3af759bb0eb97dfc61519b517",
+      "bytes": 8826
+    },
+    {
+      "file": "station-ruins-dig-site-delving.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "4b105ed1342fa944f2328c505a2009610cd8efcfcdc1640ff8e463c355e80849",
+      "bytes": 22144
+    },
+    {
+      "file": "station-ruins-dig-site-field-tools.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "08d61bb169f790dd5a9cf010f090e1b45159fe79abdfe01f992512ac5a568017",
+      "bytes": 22000
+    },
+    {
+      "file": "station-ruins-dig-site-strata-reading.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "12d4df36320750f883fc34addb7374911fe7a31ac310a6f0907ce4be337138c1",
+      "bytes": 20144
+    },
+    {
+      "file": "station-ruins-dig-site-field-camps.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d68b3a934a5f8a1d30e6e12b255cd6df8c94524d8b6dfeeea14b655bd31edb40",
+      "bytes": 14654
+    },
+    {
+      "file": "station-ruins-dig-site-expedition-rigs.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5bd8c33119bee8e9f2be7abd4fe3f62a3eb4956ade1ec51d82480fcffefa2a8f",
+      "bytes": 22302
+    },
+    {
+      "file": "station-ruins-dig-site-echo-sounding.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "72be53ff769824163492145684a7bed1178608e0358db42bca840ce1b4319994",
+      "bytes": 21532
+    },
+    {
+      "file": "station-ruins-archives-archaeology.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "248b0681be0ea411787fed7b6bd9fda6f0b90195248871db62efaea3d88d0652",
+      "bytes": 22980
+    },
+    {
+      "file": "station-ruins-archives-reading-tables.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "4c12db2a7fbed2231a00f343971b4bbaf520389698fc14e82fb4504ec8815a66",
+      "bytes": 16598
+    },
+    {
+      "file": "station-ruins-archives-translation-keys.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "08226576ada73b8aec048d1a8fe2b711adae13ef981ce2dc091b2879183cdbaa",
+      "bytes": 20346
+    },
+    {
+      "file": "station-ruins-archives-site-catalogues.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "7b831d10e3e280542e555a36cfcbc61eede9beea2b09f1591b4a6c834088d4ee",
+      "bytes": 21696
+    },
+    {
+      "file": "station-ruins-archives-survey-tablets.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8abe319081cef8c74ed0f6638b4f7f9aab171c091c8efc10eb97ac22fad979b0",
+      "bytes": 19750
+    },
+    {
+      "file": "station-ruins-archives-archive-network.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "bcd67efdf2244ca752e0b3183bfab5ed0175b2f4fa5666ca0cd8f89f4451802b",
+      "bytes": 19586
+    },
+    {
+      "file": "station-ruins-recovery-camp-recovery-teams.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6d1e1cfd577ed22459d2f9e9ef517cb002a73acfadca9ce163b02937bc8d65bf",
+      "bytes": 23568
+    },
+    {
+      "file": "station-ruins-recovery-camp-lift-rigs.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "71f7fda1486f8b346c05b72d7f947000e8c754a50941aa90b7737ab79e2303ec",
+      "bytes": 16530
+    },
+    {
+      "file": "station-ruins-recovery-camp-conservation-kits.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "18315b18c1d8e596fd8a722694e750664d9d27ae62d2b273ed62606b1f6ea9dd",
+      "bytes": 22078
+    },
+    {
+      "file": "station-ruins-recovery-camp-careful-recovery.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "6b32fa58e67c10727ec0cdf195817a448574ea36f72b473af483741202dd6a4f",
+      "bytes": 21050
+    },
+    {
+      "file": "station-ruins-recovery-camp-botanical-remedies.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "778923fdcaf09f79f86c87fe840268289418794f1888bd667c600be0749ec18e",
+      "bytes": 24184
+    },
+    {
+      "file": "station-ruins-recovery-camp-safe-rigging.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "557a6cba97777241e3adcf3b7f7c376be1aaef82819588226942ff15038a14bd",
+      "bytes": 25596
+    },
+    {
+      "file": "station-ruins-restoration-hall-restoration.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "b257ed993660e406d63148bbcb58cad2da53691a0d9c81996f90b43db6ebd097",
+      "bytes": 23682
+    },
+    {
+      "file": "station-ruins-restoration-hall-cleaning-baths.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "4ace48c2af66f72c44a830ddb52dcf41303872d9ceec13f491cc88c6874e2c50",
+      "bytes": 23658
+    },
+    {
+      "file": "station-ruins-restoration-hall-salvage-grades.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d2f096af33dc75ae53b2945737126e8e0cd396162bfe168d2f9e9451bf94ea34",
+      "bytes": 21912
+    },
+    {
+      "file": "station-ruins-restoration-hall-reclaimed-alloys.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "054e589a55975d31f9c2a9f2d9c5c5defcca4d56811dd7f1229b748725f9f662",
+      "bytes": 17796
+    },
+    {
+      "file": "station-ruins-restoration-hall-artifact-lenses.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e1f31e214174c323053e7fceb3b2921a843e6ffc2f94f9d0a3a24337d7a2a7a4",
+      "bytes": 18896
+    },
+    {
+      "file": "station-ruins-restoration-hall-restored-patterns.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "1736030305d79445dd36cb9016c9239bee44281846e6fc018d45b4f8c6634caa",
+      "bytes": 18920
+    },
+    {
+      "file": "station-ruins-attunement-chamber-attunement.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "b5407c19576091b9e45509b91de507f771d92531577959a5b174ebf47e21ec7a",
+      "bytes": 18996
+    },
+    {
+      "file": "station-ruins-attunement-chamber-resonance.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 3,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "83276d7616536e5a6108107d8fac4d6b4073f4ead69ddedab55a9948a64c3efb",
+      "bytes": 24204
+    },
+    {
+      "file": "station-ruins-attunement-chamber-focal-crystals.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 283,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "7f964151fafeccbf413c2abe1ed9f7ecc6f7c6188bd6860b04ea879f40d9caa1",
+      "bytes": 21126
+    },
+    {
+      "file": "station-ruins-attunement-chamber-resonant-pairings.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 564,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "eba877d7c76490fd27c0b307960e9d2d90d6120cff62b4917febf47836adea25",
+      "bytes": 20748
+    },
+    {
+      "file": "station-ruins-attunement-chamber-second-sigil.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 844,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3db8e3c0dd95994fc236fdfe8ae83d9582b1f4c27760f79b8777380f5dc52cd2",
+      "bytes": 21426
+    },
+    {
+      "file": "station-ruins-attunement-chamber-memory-stones.webp",
+      "source": "ruins-icons-master.png",
+      "sourceSha256": "7cdd9b174335d3b96730a01ee250b0a751d30dd7ce6985da9f7200a2c7242bfb",
+      "crop": {
+        "left": 1125,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "37e7dfea35e4dcebda2355abcae03448f410ef909b4c8a1401b00ee929b7b567",
+      "bytes": 20194
+    },
+    {
+      "file": "station-harbor-sky.webp",
+      "source": "skies-master.png",
+      "sourceSha256": "bceee8ceae9fc4cc1f05223419903dd24ce98c02b425804ff61d564c48dd3beb",
+      "crop": {
+        "left": 2,
+        "top": 1282,
+        "width": 1020,
+        "height": 252
+      },
+      "width": 384,
+      "height": 112,
+      "sha256": "473e787465942334cc688664663afbe7ac553136449545d93af79682c82607a7",
+      "bytes": 30438
+    },
+    {
+      "file": "station-harbor-depth.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 10,
+        "width": 411,
+        "height": 243
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "d83a0c8be696c85a56de4c75a6e3d52f7650ce0e6b1de83651ef6d8fec93dcd1",
+      "bytes": 122872
+    },
+    {
+      "file": "station-harbor-shipyard-background.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 2,
+        "top": 257,
+        "width": 445,
+        "height": 211
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "8375c2851c057d0f8d837887b7939b88a211c538a6af6e274007366aceb36ea8",
+      "bytes": 136772
+    },
+    {
+      "file": "station-harbor-shipyard-machine.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 257,
+        "width": 411,
+        "height": 211
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "f674e737674c429539029aa2f4bf09a3e2ad87591c51f4490b30a13c901efae6",
+      "bytes": 28634
+    },
+    {
+      "file": "station-harbor-shipyard-addition.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 866,
+        "top": 257,
+        "width": 386,
+        "height": 211
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "554500207f03770f341dc854161b3387289355c5c3f8908ffefdc07d5dea5970",
+      "bytes": 12706
+    },
+    {
+      "file": "station-harbor-sailing-pier-background.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 2,
+        "top": 472,
+        "width": 445,
+        "height": 210
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "6cb2750f1777f4a884408ad3e6abed3cd48d6c5cabb524a9c2a802075ae4bbbb",
+      "bytes": 136080
+    },
+    {
+      "file": "station-harbor-sailing-pier-machine.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 472,
+        "width": 411,
+        "height": 210
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "2a270fcb9dd3226dde8dcf08deac623feb3544ff2f571c208ecb8a9dd4f69b94",
+      "bytes": 22144
+    },
+    {
+      "file": "station-harbor-sailing-pier-addition.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 866,
+        "top": 472,
+        "width": 386,
+        "height": 210
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "ad87f9051a1e9128dd78dde62e49e8b9f08a812946623712899d5721a88ad68d",
+      "bytes": 6494
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-background.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 2,
+        "top": 686,
+        "width": 445,
+        "height": 195
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "77deb5ee17b8651a8fb77ad97166a5b4b121b21c314b7235c8af867f16d7bb1d",
+      "bytes": 125462
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-machine.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 686,
+        "width": 411,
+        "height": 195
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "2a379e6183ceef07c3738f61c5f67fbda5740af3472a1ff45161b565f1c8c259",
+      "bytes": 22966
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-addition.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 866,
+        "top": 686,
+        "width": 386,
+        "height": 195
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "86e2bea5cf99d4195bff5fb647b56dcd7bdcbdc74891629cec223bf05ed72b7b",
+      "bytes": 10778
+    },
+    {
+      "file": "station-harbor-trade-house-background.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 2,
+        "top": 885,
+        "width": 445,
+        "height": 171
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "8bbe79bf7c94e2cfcfc46b06b0a0dc9b6330e07ca03bfc709971aed32ad8da2a",
+      "bytes": 114566
+    },
+    {
+      "file": "station-harbor-trade-house-machine.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 885,
+        "width": 411,
+        "height": 171
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "64d6436733c3fbc6a6ac8282d47e808ed4472b283da870a7d88390cda4f90639",
+      "bytes": 30748
+    },
+    {
+      "file": "station-harbor-trade-house-addition.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 866,
+        "top": 885,
+        "width": 386,
+        "height": 171
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "9cfd8790301d13575ee23689dc19c76802b29cec1612861160b9facd65c81509",
+      "bytes": 11418
+    },
+    {
+      "file": "station-harbor-chart-room-background.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 2,
+        "top": 1060,
+        "width": 445,
+        "height": 183
+      },
+      "width": 384,
+      "height": 208,
+      "sha256": "1437558a4344a131a450578d71a82176981b79ee42513ee635e52dac4ac23023",
+      "bytes": 125786
+    },
+    {
+      "file": "station-harbor-chart-room-machine.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 451,
+        "top": 1060,
+        "width": 411,
+        "height": 183
+      },
+      "width": 180,
+      "height": 112,
+      "sha256": "2d78834e26b2e82b01c4df7d8cf0e87bf026738fcbe13cbe3903d5cca1834bb0",
+      "bytes": 28366
+    },
+    {
+      "file": "station-harbor-chart-room-addition.webp",
+      "source": "harbor-master.png",
+      "sourceSha256": "079415d1553591d00fbb251812be174b7a7c8ba7473fb36aacda159b3470e47d",
+      "crop": {
+        "left": 866,
+        "top": 1060,
+        "width": 386,
+        "height": 183
+      },
+      "width": 96,
+      "height": 86,
+      "sha256": "8199bdc53055c1ccef89ce6326f7813abd5ee82a6344a2dc1b35b706bb6b743a",
+      "bytes": 9818
+    },
+    {
+      "file": "station-harbor-shipyard-shipbuilding.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5e2de15743eb8fbba716f948f51a8777463480b70a75225c3c4b2439ae55744e",
+      "bytes": 20476
+    },
+    {
+      "file": "station-harbor-shipyard-hull-timbers.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "02b85d62ac548b8ba3c3acf7d86ebe704b170ecb883eedabae25931af20d126c",
+      "bytes": 18660
+    },
+    {
+      "file": "station-harbor-shipyard-dry-dock.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d13e239aa095790cf09b94f6dbac993a6d2f00a8edaebede9ab2ff553809b701",
+      "bytes": 21848
+    },
+    {
+      "file": "station-harbor-shipyard-provision-packing.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 3,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "76d8eea7cdbf032a14c6d34ce883a358c690821deb54f93439c5d2a01dd5af3d",
+      "bytes": 21736
+    },
+    {
+      "file": "station-harbor-shipyard-scheduled-convoys.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 3,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f7557e142d584a1e66607086bb138da640f09d7eec7c8540632b916c08cb071f",
+      "bytes": 21234
+    },
+    {
+      "file": "station-harbor-shipyard-slipway-cradles.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e6f1a4d45b4a45c1b56862542d6b50f9e61f8f09d901bded2159a5162a2da646",
+      "bytes": 15736
+    },
+    {
+      "file": "station-harbor-sailing-pier-seamanship.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "f73cfe82760dcb1110513d47a2ef8414414d5da71853cbe139b21fd8a570ac41",
+      "bytes": 23670
+    },
+    {
+      "file": "station-harbor-sailing-pier-sail-rigging.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "376792bae01ebe7627ff935c9c6bea84fe50539aa013b37a05c7e66a1b026636",
+      "bytes": 20776
+    },
+    {
+      "file": "station-harbor-sailing-pier-coastal-knowledge.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 190,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "33177fa55463b06968588591d32ba182b914da4be7fac1eae238c9831aa22675",
+      "bytes": 23838
+    },
+    {
+      "file": "station-harbor-sailing-pier-coastal-tenders.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 190,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "cf43ff78b73ea2c527b6374202ae5ff34d3885cab97541bceddf5b0bd90cbc1b",
+      "bytes": 20026
+    },
+    {
+      "file": "station-harbor-sailing-pier-weather-routing.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5138598f526f7f5dd7627981b849faa6f215bc41a91cedcea1b56b9477d5f9d6",
+      "bytes": 23756
+    },
+    {
+      "file": "station-harbor-sailing-pier-trade-winds.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "263c378cb0c7d953a995ea4f1b682639a1d55664a98925e9eac4ab6e9df11c5b",
+      "bytes": 26108
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-stowage.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "3f3611363746885120db1e87aa29ac96aa07d5a3d9d9d2b0483806572dc4c0e0",
+      "bytes": 21718
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-balanced-crates.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 377,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "b5324024d668749e6e422927456ea06a5169aa2dff81753448b330c160c8c07d",
+      "bytes": 18998
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-cargo-seals.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 377,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "db069e41c018da3b11c1f35e3a9904b933ea345f1789d7d5be127065a97e225b",
+      "bytes": 23818
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-mixed-holds.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "bd94427284c3985072b444e3fcb1d64397af6e6325d61ae8de164d3f822f1b6d",
+      "bytes": 20650
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-salvage-nets.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "8d6f6af71bd262deb9292c61d9aaa433863f58c3e21d2796de0cd29c9c940a0f",
+      "bytes": 24572
+    },
+    {
+      "file": "station-harbor-cargo-warehouse-deepwater-holds.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "73f516702392f37b5422bcd978c266249ab5ac500c1ce801003cbc58845fad60",
+      "bytes": 20584
+    },
+    {
+      "file": "station-harbor-trade-house-contracts.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 564,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "ab609895bb00924c5714607e935d34c5072f312a9a03223b139dfc618401e820",
+      "bytes": 20100
+    },
+    {
+      "file": "station-harbor-trade-house-market-brokers.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 564,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "07ce0a194644cb09effb2ef3628e03bf84b257414601a664cbf6b8ad2a63500d",
+      "bytes": 25280
+    },
+    {
+      "file": "station-harbor-trade-house-trade-stamps.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "91dcb430ff3d29fe730f3ec7234ee2adc7e46d7b6d8c3ee13a91c23b90a702fa",
+      "bytes": 30822
+    },
+    {
+      "file": "station-harbor-trade-house-exchange-houses.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "5842302bc13b60bf71e3f9efd525009783419ce93bc957b641803a070ebbf562",
+      "bytes": 21022
+    },
+    {
+      "file": "station-harbor-trade-house-standing-invoices.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a2273ee7d89f3c0ea34afb2d4bed1fb288cd90583aa384e2362e5dccdec251a3",
+      "bytes": 24888
+    },
+    {
+      "file": "station-harbor-trade-house-return-markets.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 751,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "a8bc687c68afe74dce8b16804d68f129c2253cd9769d8012970d572d93c3e5f8",
+      "bytes": 24496
+    },
+    {
+      "file": "station-harbor-chart-room-navigation.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 751,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "d831bcb780d134184336e5c30379607567d0c0f4e80240c6925ca60c75e8414c",
+      "bytes": 26424
+    },
+    {
+      "file": "station-harbor-chart-room-fleet-command.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 3,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "81b1e48639679cef10f4991635b0664fd3fcb55a263e042373080036a2c5fa9d",
+      "bytes": 19564
+    },
+    {
+      "file": "station-harbor-chart-room-chart-libraries.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 283,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "2b8c010af86a695fbdf7748996b78907f2797ad0824273e6df1cc54ce23d5bc2",
+      "bytes": 20968
+    },
+    {
+      "file": "station-harbor-chart-room-twin-manifests.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 564,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "89a235e4f4bebf981cfb498793881b9418a1493d1cb167dea2910e334d94298f",
+      "bytes": 21182
+    },
+    {
+      "file": "station-harbor-chart-room-distant-charts.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 844,
+        "top": 938,
+        "width": 275,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "e85d9ce43afc42eb5fa23425bfc2ab756c5482d82ada80b485a31bd20ee4cc00",
+      "bytes": 20110
+    },
+    {
+      "file": "station-harbor-chart-room-navigation-relays.webp",
+      "source": "harbor-icons-master.png",
+      "sourceSha256": "0cb3024bd665267f0e12a5a71378573870f751c28e28cbfde93aaf618ae438c1",
+      "crop": {
+        "left": 1125,
+        "top": 938,
+        "width": 274,
+        "height": 181
+      },
+      "width": 128,
+      "height": 128,
+      "sha256": "39dc6965f95639e59f58b045a980d93e933da1b28a66fb75b522e92be4c4e26b",
+      "bytes": 17748
+    },
+    {
+      "file": "station-cart.webp",
+      "source": "quarry-master.png",
+      "sourceSha256": "74d0fa129f03212d7b4224ca1117af539b7ba901e09058ffefdcc0053f068675",
+      "crop": {
+        "left": 420,
+        "top": 436,
+        "width": 414,
+        "height": 194
+      },
+      "width": 82,
+      "height": 54,
+      "sha256": "45874f972290957efda9855490dff3c9f0d23e53ff85a4768e873171f89f1240",
+      "bytes": 6540
+    },
+    {
+      "file": "station-workers.webp",
+      "source": "workers-master.png",
+      "sourceSha256": "6abce99cbefd25392d0b6212cf028d2bb86f141e4bea7acaad7611eae0db6f61",
+      "width": 256,
+      "height": 576,
+      "sha256": "fbd26fa60acf86eba4cb0327d845a55a0339ff940116fcfbc3d33230a4b5086f",
+      "bytes": 125170
+    }
+  ],
+  "movingCart": {
+    "file": "station-cart.webp",
+    "width": 82,
+    "height": 54
+  }
+}

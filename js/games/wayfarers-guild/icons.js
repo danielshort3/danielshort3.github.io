@@ -25,6 +25,7 @@
     const found = NAMES.indexOf(name);
     const index = found < 0 ? NAMES.indexOf('crate') : found;
     const accessibility = settings.label ? 'role="img" aria-label="' + escape(settings.label) + '"' : 'aria-hidden="true"';
+    if (/^station-[a-z0-9-]+$/.test(id)) return '<span class="wg-icon wg-skill-art ' + escape(settings.className) + '" ' + accessibility + ' data-icon="' + escape(id) + '" style="display:inline-block;width:1.75em;height:1.75em;flex-shrink:0;background-image:url(&quot;img/wayfarers-guild/' + escape(id) + '.webp&quot;);background-size:contain;background-position:center;background-repeat:no-repeat;image-rendering:pixelated"></span>';
     if (/^(skill|track)-[a-z0-9-]+$/.test(id)) return '<span class="wg-icon wg-skill-art ' + escape(settings.className) + '" ' + accessibility + ' data-icon="' + escape(id) + '" style="display:inline-block;width:1.75em;height:1.75em;flex-shrink:0;background-image:url(&quot;img/wayfarers-guild/c-' + escape(id) + '.webp&quot;);background-size:contain;background-position:center;background-repeat:no-repeat;image-rendering:pixelated"></span>';
     if (COLLECTION_ART.includes(id) || id === 'cards') {
       const artId = id === 'cards' ? 'trail-courier' : id;

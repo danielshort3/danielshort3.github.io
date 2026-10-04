@@ -9,6 +9,9 @@ const { bundle } = require('../../../build/bundle-wayfarers-android.cjs');
 
 const ROOT = path.resolve(__dirname, '../../..');
 const PACKAGE_NAME = 'me.danielshort.wayfarers';
+const BUNDLED_CONTENT_VERSION = 3;
+const MIN_APP_VERSION_CODE = 17;
+const SAVE_SCHEMA = 8;
 const MAX_ARCHIVE_BYTES = 32 * 1024 * 1024;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const MAX_FILES = 512;
@@ -46,19 +49,21 @@ function validateAssetUrl(value) {
   return url.href;
 }
 
-function validateManifest(manifest) {
-  if (!manifest || manifest.schemaVersion !== 1 || manifest.packageName !== PACKAGE_NAME ||
-      !Number.isSafeInteger(manifest.contentVersion) || manifest.contentVersion < 2 ||
+function validateManifest(manifest, { allowPrevious = false } = {}) {
+  const current = manifest?.minAppVersionCode === MIN_APP_VERSION_CODE && manifest?.saveSchema === SAVE_SCHEMA && manifest?.contentVersion > BUNDLED_CONTENT_VERSION;
+  const previous = allowPrevious && manifest?.minAppVersionCode === 16 && manifest?.saveSchema === 7 && manifest?.contentVersion >= 2;
+  if (!manifest || Object.keys(manifest).length !== 9 || manifest.schemaVersion !== 1 || manifest.packageName !== PACKAGE_NAME ||
+      !Number.isSafeInteger(manifest.contentVersion) || manifest.contentVersion < 2 || manifest.contentVersion > 2147483647 ||
       typeof manifest.label !== 'string' || !manifest.label.trim() || manifest.label.length > 80 || /[\u0000-\u001f\u007f-\u009f]/.test(manifest.label) ||
-      manifest.nativeApi !== 1 || manifest.minAppVersionCode !== 16 || manifest.saveSchema !== 7) throw new Error('Invalid or incompatible Guild content identity');
-  if (!manifest.archive || !HASH.test(manifest.archive.sha256) || !Number.isSafeInteger(manifest.archive.size) ||
+      manifest.nativeApi !== 1 || (!current && !previous)) throw new Error('Invalid or incompatible Guild content identity');
+  if (!manifest.archive || Object.keys(manifest.archive).length !== 3 || !HASH.test(manifest.archive.sha256) || !Number.isSafeInteger(manifest.archive.size) ||
       manifest.archive.size < 1 || manifest.archive.size > MAX_ARCHIVE_BYTES) throw new Error('Invalid content archive');
   validateAssetUrl(manifest.archive.url);
   if (!Array.isArray(manifest.records) || manifest.records.length < 2 || manifest.records.length > MAX_FILES) throw new Error('Invalid content inventory');
   const seen = new Set();
   let total = 0;
   for (const record of manifest.records) {
-    if (!record || !HASH.test(record.sha256) || !Number.isSafeInteger(record.size) || record.size < 1 || record.size > MAX_FILE_BYTES) throw new Error('Invalid content file record');
+    if (!record || Object.keys(record).length !== 3 || !HASH.test(record.sha256) || !Number.isSafeInteger(record.size) || record.size < 1 || record.size > MAX_FILE_BYTES) throw new Error('Invalid content file record');
     validatePath(record.path);
     if (seen.has(record.path) || seen.has(record.path.toLowerCase())) throw new Error('Duplicate content path');
     seen.add(record.path.toLowerCase());
@@ -80,9 +85,9 @@ function parseArgs(argv) {
     result[name] = argv[i + 1];
   }
   for (const name of ['key', 'output', 'base-url', 'version', 'label']) if (!result[name]) throw new Error(`Missing --${name}`);
-  if (!/^[1-9]\d*$/.test(result.version) || !Number.isSafeInteger(Number(result.version)) || Number(result.version) < 2) throw new Error('Content version must be an integer of at least 2; the bundled baseline is 1');
+  if (!/^[1-9]\d*$/.test(result.version) || !Number.isSafeInteger(Number(result.version)) || Number(result.version) <= BUNDLED_CONTENT_VERSION || Number(result.version) > 2147483647) throw new Error(`Content version must be an Android integer above the bundled baseline ${BUNDLED_CONTENT_VERSION}`);
   result.version = Number(result.version);
-  if (result.version > 2 && !result['previous-envelope']) throw new Error('Versions after 2 require --previous-envelope from the published signed release');
+  if (!result['previous-envelope']) throw new Error('Require --previous-envelope from the published signed release');
   if (!result['base-url'].endsWith('/')) throw new Error('--base-url must end with /');
   result['base-url'] = validateAssetUrl(result['base-url']);
   return result;
@@ -107,7 +112,7 @@ function decodeBase64(value, maximum, name) {
   return decoded;
 }
 
-function verifyEnvelope(bytes, publicKey) {
+function verifyEnvelope(bytes, publicKey, options = {}) {
   const encoded = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
   if (encoded.length > MAX_ENVELOPE_BYTES) throw new Error('Signed content envelope exceeds 512 KiB');
   const envelope = JSON.parse(encoded.toString('utf8'));
@@ -117,7 +122,7 @@ function verifyEnvelope(bytes, publicKey) {
   if (!crypto.verify('sha256', payload, { key: publicKey, dsaEncoding: 'der' }, signature)) throw new Error('Content signature verification failed');
   const text = payload.toString('utf8');
   if (!Buffer.from(text, 'utf8').equals(payload)) throw new Error('Content manifest is not exact UTF-8');
-  return { manifest: validateManifest(JSON.parse(text)), payload, envelope };
+  return { manifest: validateManifest(JSON.parse(text), options), payload, envelope };
 }
 
 function signManifest(manifest, privateKey) {
@@ -214,8 +219,8 @@ function canonicalFiles(directory, bundleGame = bundle) {
 }
 
 function prepareBundle(options, bundleGame = bundle) {
-  if (!Number.isSafeInteger(options.version) || options.version < 2) throw new Error('Content version must be at least 2');
-  if (options.version > 2 && !options['previous-envelope']) throw new Error('Versions after 2 require the previous published signed envelope');
+  if (!Number.isSafeInteger(options.version) || options.version <= BUNDLED_CONTENT_VERSION || options.version > 2147483647) throw new Error(`Content version must be an Android integer above the bundled baseline ${BUNDLED_CONTENT_VERSION}`);
+  if (!options['previous-envelope']) throw new Error('Require the previous published signed envelope');
   const baseUrl = validateAssetUrl(options['base-url']);
   if (!baseUrl.endsWith('/')) throw new Error('--base-url must end with /');
   const key = loadSigningKey(options.key);
@@ -225,12 +230,12 @@ function prepareBundle(options, bundleGame = bundle) {
     const archiveHash = sha256(archive);
     const archiveName = `Wayfarers-content-v${options.version}-${archiveHash.slice(0, 16)}.zip`;
     const manifest = validateManifest({ schemaVersion: 1, packageName: PACKAGE_NAME, contentVersion: options.version, label: options.label,
-      nativeApi: 1, minAppVersionCode: 16, saveSchema: 7,
+      nativeApi: 1, minAppVersionCode: MIN_APP_VERSION_CODE, saveSchema: SAVE_SCHEMA,
       archive: { url: new URL(archiveName, baseUrl).href, sha256: archiveHash, size: archive.length }, records });
     if (options['previous-envelope']) {
       const filename = path.resolve(options['previous-envelope']);
       if (fs.statSync(filename).size > MAX_ENVELOPE_BYTES) throw new Error('Previous signed envelope is too large');
-      const previous = verifyEnvelope(fs.readFileSync(filename), key.publicKey).manifest;
+      const previous = verifyEnvelope(fs.readFileSync(filename), key.publicKey, { allowPrevious: true }).manifest;
       if (previous.contentVersion >= manifest.contentVersion) throw new Error('Content version must increase beyond the previously published signed release');
     }
     const envelope = signManifest(manifest, key.privateKey);
@@ -272,5 +277,5 @@ if (require.main === module) {
   }
 }
 
-module.exports = { PACKAGE_NAME, MAX_ARCHIVE_BYTES, MAX_FILE_BYTES, MAX_FILES, MAX_PAYLOAD_BYTES, MAX_ENVELOPE_BYTES, RESERVED_PATHS,
+module.exports = { PACKAGE_NAME, BUNDLED_CONTENT_VERSION, MIN_APP_VERSION_CODE, SAVE_SCHEMA, MAX_ARCHIVE_BYTES, MAX_FILE_BYTES, MAX_FILES, MAX_PAYLOAD_BYTES, MAX_ENVELOPE_BYTES, RESERVED_PATHS,
   sha256, crc32, validatePath, validateAssetUrl, validateManifest, parseArgs, loadSigningKey, signManifest, verifyEnvelope, writeStoreZip, canonicalFiles, prepareBundle, writeBundle };

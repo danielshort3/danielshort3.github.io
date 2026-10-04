@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -21,7 +22,7 @@ function established() {
 }
 
 test('paid and earned ownership improve actual Trail work once without inventing earned ownership', () => {
-  const state = Core.createState(0);
+  const state = createReleasedState(0);
   const before = P.rawRates(state).areas.greenway.work;
   const coins = Core.getRates(state).gain.coins;
   Core.setPremiumEntitlements(state, ['compass']);

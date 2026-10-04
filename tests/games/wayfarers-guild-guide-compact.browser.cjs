@@ -66,16 +66,24 @@ async function run() {
       await page.addStyleTag({ content: scaleText }); await page.setViewportSize({ width, height });
       let g = await geometry(page, 'inspect-' + width); assert.equal(g.step, 'inspect');
       await page.mouse.click(g.target.x + g.target.width / 2, g.target.y + g.target.height / 2); await page.clock.runFor(500);
-      // Match Android's retained action after Back closes the inspected sheet.
-      if (await page.locator('.wx-sheet[open] [data-wx-close]').count()) { await page.locator('.wx-sheet[open] [data-wx-close]').click(); await page.clock.runFor(500); }
+      // The current world intentionally hides purchases. Inspect follows the
+      // actual drawer, skill detail and close controls before the rank lesson.
+      for (let n = 0; n < 6 && await page.locator('.wx-guide[open]').getAttribute('data-step') === 'inspect'; n++) {
+        g = await geometry(page, 'inspect-route-' + width + '-' + n);
+        await page.mouse.click(g.target.x + g.target.width / 2, g.target.y + g.target.height / 2); await page.clock.runFor(500);
+      }
       g = await geometry(page, 'buy-' + width); assert.equal(g.step, 'upgrade');
       await page.setViewportSize({ width: 320, height: 710 }); await geometry(page, 'portrait-resume-' + width);
       await page.setViewportSize({ width, height }); g = await geometry(page, 'rotated-buy-' + width);
       await page.mouse.click(g.target.x + g.target.width / 2, g.target.y + g.target.height / 2); await page.clock.runFor(500);
       g = await geometry(page, 'operation-' + width); assert.equal(g.step, 'operate');
       await page.mouse.click(g.target.x + g.target.width / 2, g.target.y + g.target.height / 2); await page.clock.runFor(1000);
+      for (let n = 0; n < 6 && await page.locator('.wx-guide[open]').count(); n++) {
+        g = await geometry(page, 'objective-route-' + width + '-' + n);
+        await page.mouse.click(g.target.x + g.target.width / 2, g.target.y + g.target.height / 2); await page.clock.runFor(500);
+      }
       const saved = await page.evaluate(() => { document.dispatchEvent(new Event('freeze')); return JSON.parse(localStorage.getItem(WayfarersStorage.SAVE_KEY)).state; });
-      assert.equal(saved.onboarding.practice.progress.greenway, 3); assert.equal(saved.expedition.areas.greenway.ranks.boots, 1);
+      assert.equal(saved.onboarding.practice.progress.greenway, 3); assert.equal(saved.stations.ranks['station:greenway:path:pathfinding'], 1);
       assert.equal(saved.onboarding.practice.supplies.filter(id => id === 'greenway:upgrade').length, 1);
       await context.close();
     }

@@ -175,7 +175,10 @@
           if (candidate.room < (candidate.axis === 'y' ? size.height : size.width)) return false;
           if (!interactive) return true;
           const cx=Math.max(safe.left,Math.min(candidate.x,safe.right-size.width)),cy=Math.max(safe.top,Math.min(candidate.y,safe.bottom-size.height));
-          return allowedTargets.every(node=>{
+          // The coached action must stay unobstructed. Recovery is also
+          // available inside this card, so an unrelated toolbar Settings
+          // control cannot force it back over the action in short landscape.
+          return [target].filter(Boolean).every(node=>{
             const r=rect(node);
             return !r || cx+size.width<=r.left-viewport.left-4 || cx>=r.right-viewport.left+4 || cy+size.height<=r.top-viewport.top-4 || cy>=r.bottom-viewport.top+4;
           });
@@ -183,13 +186,15 @@
         let best = spaces().filter(fits).sort((a,b) => b.room-a.room)[0];
         if (!best && interactive) {
           const side=Math.max(box.left-safe.left-12,safe.right-box.right-12);
-          if (side>=180) card.style.width=Math.min(size.width,side)+'px';
+          // Leave a small rounding margin: fractional grid widths in short
+          // landscape must not fail the fit and recenter over the real action.
+          if (side>=180) card.style.width=Math.min(size.width,Math.floor(side)-2)+'px';
           else {
             const vertical=Math.max(box.top-safe.top-12,safe.bottom-box.bottom-12);
             // In short landscape a full-width sheet action can leave less than
             // 144px below it. The copy already scrolls: use that real space
             // instead of centering the coach over the required touch target.
-            if (vertical>=120) card.style.maxHeight=vertical+'px';
+            if (vertical>=120) card.style.maxHeight=(Math.floor(vertical)-2)+'px';
           }
           size=card.getBoundingClientRect();
           best=spaces().filter(fits).sort((a,b)=>b.room-a.room)[0];

@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { Core, P, N, clone, advance, fund, mature, claimTiers } = require('./helpers/wayfarers-progression.cjs');
@@ -9,7 +10,7 @@ const old = require('./fixtures/wayfarers-v4-state.json');
 const valid = state => assert.deepEqual(Core.validateState(state), {valid:true,errors:[]});
 const act = (state, action) => { const result = Core.act(state,action); assert(result.ok,result.message); return result; };
 function ready() {
-  const state = Core.createState(0); advance(state,6);
+  const state = createReleasedState(0); advance(state,6);
   act(state,{type:'expedition-buy',id:'boots'}); fund(state);
   while (state.expedition.areas.greenway.ranks.boots < 4) act(state,{type:'expedition-buy',id:'boots'});
   for(let seconds=0;!state.upgradeTiers.pending.includes('area:greenway:porters') && seconds<600;seconds+=1) advance(state,1);
@@ -128,7 +129,7 @@ test('legacy adoption preserves the learned local purchase tiers despite renamed
   act(state,{type:'buy',id:'gear-tools'}); act(state,{type:'buy',id:'gear-boots'});
   assert(Core.getRefitPreview(state).available);
   act(state,{type:'refit'});
-  assert.equal(state.expedition.version,3);
+  assert.equal(state.expedition.version,4);
   assert(T.allows(state,{type:'expedition-buy',areaId:'watchtower',id:'signals'}));
   assert(!T.view(state).ready.some(row=>row.id.startsWith('area:')),'Old local knowledge is not announced again'); valid(state);
 });

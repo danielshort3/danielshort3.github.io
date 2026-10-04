@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -9,7 +10,7 @@ const amount = value => N.toNumber(value);
 const act = (state, action) => { const result = Core.act(state, action); assert.equal(result.ok, true, result.message); return result; };
 
 test('the opening is one track, buys at six seconds and unlocks tracks through learning', () => {
-  const state = Core.createState(0);
+  const state = createReleasedState(0);
   assert.equal(P.view(state).cards.filter(row => row.visible).length, 1);
   assert.equal(P.view(state).scene.established, false);
   advance(state, 5);
@@ -81,7 +82,8 @@ test('saved areas, working choices and funded permanent research survive a real 
     assert.deepEqual(area.buffers, { input: 0, output: 0 });
   }
   assert.equal(Core.act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots', count: 5, quote: quote.token }).ok, false);
-  assert.equal(amount(state.resources.coins), amount(P.quote(state, 'greenway', 'boots', 100).costs.coins));
+  const pathfinding = Core.Stations.Content.STATIONS.find(row => row.areaId === 'greenway').skillIds[0];
+  assert.equal(amount(state.resources.coins), amount(Core.Stations.quote(state, pathfinding, 100).costs.coins));
   valid(state);
 });
 
@@ -191,7 +193,7 @@ test('Notes and Crest categories support different goals rather than universal d
 });
 
 test('strict save validation refuses stranded commissions, locked modes/caps/slots and malformed chronology', () => {
-  const fresh = Core.createState(0);
+  const fresh = createReleasedState(0);
   const cases = [
     s => { s.expedition.batch = 100; },
     s => { s.expedition.focus.unlocked = true; },
@@ -232,7 +234,7 @@ test('retained regional mastery, preparation and Field journals have their actua
 });
 
 test('milestone capacity bonuses apply on crossing but the discovery announcement is not farmed after a reset', () => {
-  const state = Core.createState(0); fund(state);
+  const state = createReleasedState(0); fund(state);
   for (let i = 0; i < 3; i += 1) act(state, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' });
   assert.ok(P.power(3) / P.power(2) > 1 + .38 / Math.pow(1 + 2 / 3, 1.1));
   assert.equal(state.expedition.recent.filter(e => e.title === 'Pathfinding 3').length, 1);
@@ -270,24 +272,14 @@ test('a saved permanent-project goal protects its material bill from conversion 
   valid(state);
 });
 
-test('the first Refit takes 30–45 minutes and sustained prior production returns in 20–40% of that time', () => {
-  const state = Core.createState(0), refits = [];
-  let firstBuy = null, originalRates = null, heldSince = null, sustainedRecovery = null;
-  for (let time = 0; time < 5400; time += 1) {
+test('released first Refit pacing is preserved and its explicit adoption funds the real earned starter batch', () => {
+  const state = createReleasedState(0);
+  let firstBuy = null, firstRefit = null;
+  for (let time = 0; time < 2701; time += 1) {
     claimTiers(state);
     if (state.expedition.completed) {
-      if (Core.getRefitPreview(state).available) {
-        if (!refits.length) {
-          refits.push(time);
-          originalRates = Core.getRates(state).gain;
-          const preview = Core.getRefitPreview(state);
-          act(state, { type: 'refit' });
-          claimTiers(state);
-          assert.equal(N.cmp(state.resources.coins, preview.starter), 0);
-          act(state, { type: 'refit-upgrade', id: 'pace' });
-          act(state, { type: 'expedition-automation', enabled: true, priority: 'balanced', dispatch: false });
-        } else if (refits.length === 1) refits.push(time);
-      } else if (P.canAdvance(state)) act(state, { type: 'expedition-next' });
+      if (Core.getRefitPreview(state).available) { firstRefit = time; break; }
+      if (P.canAdvance(state)) act(state, { type: 'expedition-next' });
     }
     const project = P.Content.PROJECTS.find(definition => {
       const task = P.developmentTask(state, definition.id);
@@ -303,41 +295,49 @@ test('the first Refit takes 30–45 minutes and sustained prior production retur
     for (const offer of offers.slice(0, 3)) {
       if (Core.act(state, { type: 'expedition-buy', areaId: offer.areaId, id: offer.id }).ok && firstBuy === null) firstBuy = time;
     }
-    if (originalRates) {
-      const current = Core.getRates(state).gain;
-      const restored = Object.entries(originalRates).every(([id, value]) => N.cmp(current[id], value) >= 0);
-      if (!restored) heldSince = null;
-      else if (heldSince === null) heldSince = time;
-      if (heldSince !== null && time - heldSince >= 60) { sustainedRecovery = heldSince - refits[0]; break; }
-    }
     advance(state, 1);
   }
   assert.ok(firstBuy >= 5 && firstBuy <= 10);
-  assert.equal(refits.length, 2);
-  assert.ok(refits[0] >= 1800 && refits[0] <= 2700, String(refits));
-  assert.ok(sustainedRecovery !== null);
-  const recovery = sustainedRecovery / refits[0];
-  assert.ok(recovery >= .2 && recovery <= .4, String(recovery));
+  assert.ok(firstRefit >= 1800 && firstRefit <= 2700, String(firstRefit));
+  const preview = Core.getRefitPreview(state), learnedAreas = Object.keys(state.expedition.areas);
+  act(state, { type: 'refit' });
+  assert.equal(state.expedition.version, 4);
+  assert.equal(preview.batch, 5);
+  assert.equal(N.cmp(state.resources.coins, preview.starter), 0);
+  const St = Core.Stations, pathfinding = St.Content.STATIONS[0].skillIds[0];
+  const quote = St.quote(state, pathfinding, preview.batch), prior = Core.getRates(state).gain.coins;
+  assert.equal(quote.affordable, true);
+  assert.equal(N.cmp(quote.costs.coins, preview.starter), 0);
+  for (const id of learnedAreas) {
+    const first = St.Content.STATIONS.find(station => station.areaId === id);
+    assert(state.stations.built.includes(first.id));
+    assert(St.stationEconomy(state, first).primary > 0, id + ' starts producing immediately');
+  }
+  act(state, { type: 'station-skill-buy', id: pathfinding, count: preview.batch, quote: quote.token });
+  assert.equal(state.stations.ranks[pathfinding], 5);
+  assert.equal(N.cmp(state.resources.coins, 0), 0);
+  assert(N.cmp(Core.getRates(state).gain.coins, prior) > 0);
   valid(state);
 });
-
 test('familiar-rank rebates apply only after reset and a mixed exact batch charges new best ranks normally', () => {
   const state = mature(), area = state.expedition.areas.quarry;
   area.ranks.picks = 23; area.highRanks.picks = 25;
-  const normal = [23, 24, 25, 26, 27].map(rank => P.cost(state, 'quarry', 'picks', rank));
+  const St = Core.Stations, definition = St.Content.SKILLS.find(row => row.areaId === 'quarry' && row.alias === 'picks');
+  const normal = [23, 24, 25, 26, 27].map(rank => St.cost(state, definition, rank));
   act(state, { type: 'refit' }); fund(state);
-  area.ranks.picks = 23;
+  state.stations.ranks[definition.id] = 23; area.ranks.picks = 23;
+  state.stations.mastery[definition.stationId] = 23;
   for (let index = 0; index < normal.length; index += 1) {
-    const price = P.cost(state, 'quarry', 'picks', 23 + index);
+    const price = St.cost(state, definition, 23 + index);
     for (const [currency, value] of Object.entries(normal[index])) {
       assert.equal(amount(price[currency]), Math.ceil(amount(value) * (index < 2 ? .5 : 1)));
     }
   }
-  const separate = clone(state), quote = P.quote(state, 'quarry', 'picks', 5);
-  act(state, { type: 'expedition-buy', areaId: 'quarry', id: 'picks', count: 5, quote: quote.token });
-  for (let index = 0; index < 5; index += 1) act(separate, { type: 'expedition-buy', areaId: 'quarry', id: 'picks' });
+  const separate = clone(state), quote = St.quote(state, definition.id, 5);
+  act(state, { type: 'station-skill-buy', id: definition.id, count: 5, quote: quote.token });
+  for (let index = 0; index < 5; index += 1) act(separate, { type: 'station-skill-buy', id: definition.id });
   for (const id of Object.keys(state.resources)) near(amount(state.resources[id]), amount(separate.resources[id]), 1e-12);
-  assert.deepEqual(P.cost(state, 'quarry', 'picks', 28), P.cost(Object.assign({}, state, { expedition: Object.assign({}, state.expedition, { renewed: false }) }), 'quarry', 'picks', 28));
+  assert.deepEqual(St.cost(state, definition, 28), St.cost(Object.assign({}, state, { expedition: Object.assign({}, state.expedition, { renewed: false }) }), definition, 28));
   valid(state);
 });
 

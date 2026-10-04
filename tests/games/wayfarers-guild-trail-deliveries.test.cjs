@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const D = require('../../js/games/wayfarers-guild/trail-deliveries.js');
@@ -71,7 +72,7 @@ test('a 400-day saved absence settles fully without a new delivery-induced event
   const Core = require('../../js/games/wayfarers-guild/core.js');
   const Storage = require('../../js/games/wayfarers-guild/persistence.js');
   const start = 1700000000000, elapsed = 400 * 86400000 + 1250;
-  const original = Core.createState(start);
+  const original = createReleasedState(start);
   original.resources.coins = N.from(1);
   const expected = clone(original), result = Core.advanceTo(expected, start + elapsed);
   assert.equal(result.seconds, elapsed / 1000);
@@ -190,7 +191,7 @@ test('Core foreground and offline partitions agree, independently of the viewed 
 
 test('first real Trail completion adds a landmark bonus before repeat deliveries begin', () => {
   const { Core, fund, advance } = require('./helpers/wayfarers-progression.cjs');
-  const s = Core.createState(0); fund(s);
+  const s = createReleasedState(0); fund(s);
   assert.ok(Core.act(s, { type: 'expedition-buy', areaId: 'greenway', id: 'boots' }).ok);
   for (let t = 0; !s.expedition.completed && t < 2000; t += 1) advance(s, 1);
   assert.equal(s.expedition.completed, true);

@@ -159,3 +159,37 @@ test('standalone Settings removes the browser file picker and its separate label
   assert.equal(label.hidden, true);
   assert.deepEqual(nativeButtons.map(button => button.textContent), ['App updates', 'Open save file']);
 });
+
+test('native content readiness waits for every visible real station and its durable checkpoint', () => {
+  let interval, cleared = 0, flushes = 0, confirmed = false;
+  const messages = [];
+  const canvas = (top, status) => ({ dataset: { sceneStatus: status },
+    getBoundingClientRect: () => ({ top, bottom: top + 300, left: 0, right: 390, width: 390, height: 300 }) });
+  const first = canvas(0, 'ready'), second = canvas(300, 'loading'), offscreen = canvas(650, 'loading');
+  const world = { getBoundingClientRect: () => ({ top: 0, bottom: 600, left: 0, right: 390 }),
+    querySelectorAll: () => [first, second, offscreen] };
+  const options = { setAttribute() {}, addEventListener() {} };
+  const document = { documentElement: { style: { setProperty() {} } }, addEventListener() {},
+    querySelector: selector => selector === '.wg-exit' ? options : selector === '[data-wx-station-world]' ? world :
+      selector === '[data-wx-canvas]' ? { dataset: { sceneStatus: 'ready' } } : null };
+  const window = { innerWidth: 390, innerHeight: 800, addEventListener() {},
+    WayfarersContent: { version: 3, documentToken: 'new-document', recoveryToken: '' },
+    WayfarersAndroid: { postMessage: text => messages.push(JSON.parse(text)) },
+    WayfarersUI: { contentReady: () => true, flushForContentUpdate: () => { flushes++; return true; } },
+    WayfarersCheckpoint: { confirmed: () => confirmed, snapshot: () => 'schema8 durable save', generation: () => '' } };
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'mobile/android/wayfarers/web/android.js'), 'utf8'), {
+    window, document, MutationObserver: class { observe() {} },
+    setInterval: callback => { interval = callback; return 1; }, clearInterval: () => { cleared++; }
+  });
+  interval();
+  assert.equal(flushes, 0, 'The hidden legacy ready canvas cannot certify a loading station');
+  second.dataset.sceneStatus = 'error'; interval();
+  assert.equal(messages.length, 0, 'A failed visible image cannot commit executable content');
+  second.dataset.sceneStatus = 'ready'; interval();
+  assert.equal(flushes, 1, 'A loading offscreen station must not prevent lazy rendering');
+  interval(); assert.equal(messages.length, 0, 'A painted scene still needs a durable native save');
+  confirmed = true; interval();
+  assert.deepEqual(messages, [{ type: 'content-ready', documentToken: 'new-document', version: 3,
+    recoveryToken: '', text: 'schema8 durable save', generation: '' }]);
+  assert.equal(cleared, 1);
+});

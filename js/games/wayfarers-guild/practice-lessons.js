@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const common = typeof module === 'object' && module.exports;
-  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./collections.js') : root.WayfarersCollections);
+  const api = factory(common ? require('./numbers.js') : root.WayfarersNumbers, common ? require('./progression-content.js') : root.WayfarersProgressionContent, common ? require('./collections.js') : root.WayfarersCollections, common ? require('./progression.js') : root.WayfarersProgression);
   if (common) module.exports = api;
   if (root) root.WayfarersPractice = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, Collection) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (N, D, Collection, P) {
   'use strict';
   const own = (x, k) => Object.prototype.hasOwnProperty.call(x, k);
   const object = x => !!x && typeof x === 'object' && !Array.isArray(x);
@@ -40,7 +40,7 @@
   };
   const currencyInfo = id => own(CURRENCIES, id) ? { id, name: CURRENCIES[id][0], label: CURRENCIES[id][0], icon: CURRENCIES[id][1], purpose: CURRENCIES[id][2], earnedFrom: CURRENCIES[id][3] } : null;
   const context = (state, supplied) => supplied || (contextProvider ? contextProvider(state) : {});
-  const TRIGGERS = { tiers: ['upgrade-tier-unlock', 'onboarding-open'], expansion: ['expedition-next'], plans: ['expedition-choice'], bulk: ['expedition-batch'], 'guild-upgrades': ['buy', 'refit-upgrade', 'legacy-upgrade', 'capability'], projects: ['expedition-development', 'project', 'research', 'luck-research'], 'technique-config': ['area-skill-config'], focus: ['expedition-focus'], automation: ['automation', 'expedition-automation'], reserves: ['plan-reserve'], crew: ['recruit', 'specialist'], companions: ['companion', 'recruit'], relics: ['relic-equip', 'relic-hunt'], meals: ['recipe'], kits: ['kit-prepare', 'kit-use'], 'card-archive': ['card-recycle'], 'card-craft': ['card-craft'], 'gear-craft': ['gear-forge'], 'gear-repair': ['gear-scroll'], specialization: ['expedition-specialize'], configuration: ['expedition-config'], supply: ['supply-plan'], planner: ['plan-goal', 'plan-priority', 'plan-queue', 'plan-kit', 'plan-preparation'], playbooks: ['loadout-save', 'loadout-use'] };
+  const TRIGGERS = { tiers: ['upgrade-tier-unlock', 'onboarding-open', 'station-build', 'station-skill-unlock', 'station-area-unlock'], techniques: ['station-skill-buy', 'station-area-buy'], expansion: ['expedition-next'], plans: ['expedition-choice'], bulk: ['expedition-batch'], 'guild-upgrades': ['buy', 'refit-upgrade', 'legacy-upgrade', 'capability'], projects: ['expedition-development', 'project', 'research', 'luck-research'], 'technique-config': ['area-skill-config'], focus: ['expedition-focus'], automation: ['automation', 'expedition-automation'], reserves: ['plan-reserve'], crew: ['recruit', 'specialist'], companions: ['companion', 'recruit'], relics: ['relic-equip', 'relic-hunt'], meals: ['recipe'], kits: ['kit-prepare', 'kit-use'], 'card-archive': ['card-recycle'], 'card-craft': ['card-craft'], 'gear-craft': ['gear-forge'], 'gear-repair': ['gear-scroll'], specialization: ['expedition-specialize'], configuration: ['expedition-config'], supply: ['supply-plan'], planner: ['plan-goal', 'plan-priority', 'plan-queue', 'plan-kit', 'plan-preparation'], playbooks: ['loadout-save', 'loadout-use'] };
   const initial = () => ({ version: 1, progress: { greenway: 0 }, active: null, bindings: {}, intentions: {}, proofs: [], supplies: [], rewards: [], helpRewards: [], currencyRead: [] });
   const ledger = state => state.onboarding?.practice;
   const hasArea = (s, id) => !!s.expedition?.areas?.[id];
@@ -51,12 +51,14 @@
     if (['equipment', 'gear-craft'].includes(id)) return !!s.collection?.equipmentUnlocked;
     if (id === 'gear-repair') return !!s.collection?.equipmentUnlocked && Object.values(s.collection.gear).some(item => item.failed > 0) || own(ledger(s)?.progress || {}, id);
     if (id === 'gear-reforge') return !!s.collection?.equipmentUnlocked && hasArea(s, 'workshop');
-    if (id === 'tiers') return (s.upgradeTiers?.pending.length || 0) > 0 || (s.upgradeTiers?.claimed.length || 0) > 1;
+    if (id === 'tiers') return s.expedition?.version===4 || (s.upgradeTiers?.pending.length || 0) > 0 || (s.upgradeTiers?.claimed.length || 0) > 1;
     if (id === 'expansion') return !!s.expedition?.completed || Object.keys(s.expedition?.areas || {}).length > 1;
-    if (['plans', 'guild-upgrades'].includes(id)) return hasArea(s, 'quarry');
-    if (id === 'techniques') return !!s.areaSkills?.unlocked?.length;
-    if (id === 'technique-config') return !!s.areaSkills && Object.values(s.areaSkills.ranks || {}).some(rank => rank > 0);
-    if (['projects', 'configuration'].includes(id)) return hasArea(s, 'watchtower');
+    if (id === 'plans') return s.expedition?.version===4?Object.keys(s.expedition.areas).some(areaId=>P.choices(s,areaId).filter(row=>row.visible!==false&&!row.disabled).length>1):hasArea(s,'quarry');
+    if (id === 'guild-upgrades') return hasArea(s,'quarry');
+    if (id === 'techniques') return s.expedition?.version===4 ? s.stations.unlocked.length>1||s.stations.areaUnlocked.length>0 : !!s.areaSkills?.unlocked?.length;
+    if (id === 'technique-config') return s.expedition?.version!==4&&!!s.areaSkills && Object.values(s.areaSkills.ranks || {}).some(rank => rank > 0);
+    if (id === 'projects') return hasArea(s,'watchtower');
+    if (id === 'configuration') return s.expedition?.version===4?Object.keys(s.expedition.areas).some(areaId=>P.configurations(s,areaId).length):hasArea(s,'watchtower');
     if (['bulk', 'focus'].includes(id)) return s.lifetime.refits > 0;
     if (id === 'automation') return s.lifetime.refits > 0 || s.rooms.includes('study');
     if (id === 'playbooks') return s.guild.capabilities.includes('loadouts');
@@ -115,6 +117,15 @@
     const action = (key, target, title, body, a, dest, data = {}, extra = {}) => makeStep(key, a ? 'action' : 'wait', target, title, body, a, dest, data, extra);
     const collection = c.collection || Collection.view(state), cardRows = collection.cards?.items || collection.cards || [];
     if (AREAS.includes(id)) {
+      if (state.expedition.version === 4 && c.stations?.active) {
+        const area = c.stations.areas.find(a => a.id === id), station = area?.stations.find(s => s.status === 'built'), local = station?.skills.find(row => row.order === 0);
+        const dest = destination('expedition', { areaId: id });
+        const data = { areaId: id, stationId: station?.id, skillId: local?.id, scope: 'station' };
+        const buy = local ? { type: 'station-skill-buy', id: local.id, areaId: id, count: 1 } : null;
+        return [inspect('inspect', 'station-detail', 'Open ' + (local?.name || 'station upgrades'), 'Open its comparison and price. Station upgrades improve this work site; its neighbors keep working.', dest, data),
+          local?.rank > 0 ? inspect('upgrade', 'station-detail', 'Review your investment', 'Inspect its next rank. Your earlier investment is already saved.', dest, { ...data, mastered: true }) : action('upgrade', 'station-buy', 'Buy the first improvement', 'Press the highlighted upgrade. This first lesson supplies the displayed materials once.', buy, dest, data, { supply: 'cost' }),
+          inspect('operate', 'area-goal', 'Develop before expanding', 'Several ranks and lifetime output unlock the next skill or station. Spending resources never removes lifetime progress.', dest, { areaId: id, stationId: station?.id, scope: 'station' })];
+      }
       const local = rows(c.globalUpgrades).find(row => row.action?.type === 'expedition-buy' && row.areaId === id && (row.trackId || row.action.id) === b.trackId);
       const dest = destination('expedition', { areaId: id });
       const bought = (state.expedition.areas[id].ranks[b.trackId] || 0) > 0;
@@ -146,16 +157,40 @@
     let dest = destination('guild'), data = { section: id }, a = null, target = 'guild-action', explanation = 'Use the real control when you are ready. Its normal effect remains in your guild.', supply = null;
     const select = list => availableRows(list).find(row => row.action && !row.disabled && !row.selected && !row.maxed) || availableRows(list).find(row => row.action && !row.selected && !row.owned && !row.maxed);
     if (id === 'tiers') { const r = rows(c.upgradeTiers?.ready)[0]; a = r?.unlockAction; dest = r?.areaId ? destination('expedition', { areaId: r.areaId }) : destination('upgrades'); target = 'tier-unlock'; data = { tierId: r?.id }; }
+    if(id==='tiers'&&c.stations?.active) {
+      const intended=x?.intentions.tiers, ready=rows(c.stations.ready).find(row=>row.id===intended?.id)||rows(c.stations.ready)[0];
+      if(ready) {
+        const build=ready.kind==='station';a=build?ready.buildAction:ready.unlockAction;
+        dest=destination('expedition',{areaId:ready.areaId,stationId:build?ready.id:ready.stationId,scope:ready.kind==='area'?'area':'station'});
+        target=build?'station-build':ready.kind==='area'?'station-area-unlock':'station-unlock';
+        data={areaId:ready.areaId,stationId:build?ready.id:ready.stationId,skillId:build?null:ready.id,scope:ready.kind==='area'?'area':'station'};
+        return [inspect('inspect',target,'Review '+ready.name,'Your purchased ranks and lifetime production earned this discovery. Review its role; earlier stations keep working.',dest,data),action('practice',target,'Unlock '+ready.name,'Press the highlighted unlock control to add this earned discovery.',a,dest,data)];
+      }
+    }
     if (id === 'expansion') { a = !c.expedition?.next?.disabled ? c.expedition.next.action : null; dest = destination('expedition', { areaId: selected }); target = 'area-expand'; explanation = 'Choose the real next expansion. Existing areas and their investments keep working.'; }
     if (['plans', 'configuration', 'specialization'].includes(id)) { const source = id === 'plans' ? rows(c.expedition?.choices).flatMap(g => g.options || [g]) : id === 'specialization' ? rows(c.expedition?.specializations) : rows(c.expedition?.configurations).flatMap(g => rows(g.slotOptions).flatMap(slot => rows(slot.options).map(option => ({ ...option, selected: option.id === slot.selected })))); const r = select(source); a = r?.action; dest = destination('expedition', { areaId: selected }); target = id === 'plans' ? 'area-plan-option' : id === 'specialization' ? 'area-specialization' : 'area-configuration'; data = { areaId: selected, choiceId: r?.id }; }
+    if(state.expedition.version===4&&['plans','configuration'].includes(id)) {
+      const areaId=Object.keys(state.expedition.areas).find(key=>id==='plans'?P.choices(state,key).filter(row=>row.visible!==false&&!row.disabled).length>1:P.configurations(state,key).length);
+      const source=id==='plans'?P.choices(state,areaId):P.configurations(state,areaId).flatMap(group=>group.options.map(option=>({...option,selected:option.id===(Array.isArray(group.selected)?group.selected[0]:group.selected)})));
+      const r=select(source);a=r?.action;dest=destination('expedition',{areaId});data={areaId,choiceId:r?.id,...(a?.kind?{kind:a.kind,slot:a.slot}:{})};
+      explanation=id==='plans'?'Choose a sorting priority. The selected recipe changes actual ore and knowledge production.':'Choose this earned working configuration. It changes the station’s real cycle speed, research, batch rewards or second-furnace output.';
+    }
     if (id === 'bulk') {
       const intendedCount = x?.intentions.bulk?.count;
-      const mode = rows(c.expedition?.batch?.options).find(row => row.unlocked && row.count > 1 && (!intendedCount || row.count === intendedCount)), count = mode?.count, row = rows(c.expedition?.cards).find(row => !row.maxed && row.rank + (count || 0) <= row.maxRank);
+      const mode = rows(c.expedition?.batch?.options).find(row => row.unlocked && row.count > 1 && (!intendedCount || row.count === intendedCount)), count = mode?.count, row = rows(c.stations?.active?c.stations.currentStation?.skills:c.expedition?.cards).find(row => row.owned!==false && !row.maxed && row.rank + (count || 0) <= row.maxRank);
       dest = destination('expedition', { areaId: selected });
+      if(c.stations?.active)return [state.expedition.batch===count?inspect('quantity','batch-select','Inspect the selected quantity','Review this earned exact quantity before purchasing.',dest,{count,mastered:true}):action('quantity','batch-select','Choose an exact quantity','The price covers every rank; purchases never silently buy a partial batch.',mode?.action,dest,{count}),action('purchase','station-buy','Buy the quoted batch','Use this exact batch on the selected station. The guild supplies its first lesson purchase.',row&&count?{type:'station-skill-buy',areaId:selected,id:row.id,count}:null,dest,{areaId:selected,stationId:row?.stationId,skillId:row?.id,count,scope:'station'},{supply:'cost',suppliesText:'Guild supplies this exact practice batch once.'})];
       return [state.expedition.batch === count ? inspect('quantity', 'batch-select', 'Inspect the selected quantity', 'This earned batch is already selected. Inspect its exact quantity before purchasing.', dest, { count, mastered: true }) : action('quantity', 'batch-select', 'Choose an exact quantity', 'Select the earned batch size. The price covers every rank; purchases never silently buy a partial batch.', mode?.action, dest, { count }), action('purchase', 'area-buy', 'Buy the quoted batch', 'Buy this exact batch. The guild supplies this first lesson purchase; future batches use your resources.', row && count ? { type: 'expedition-buy', areaId: selected, id: row.trackId || row.action.id, count } : null, dest, { areaId: selected, trackId: row?.trackId, count }, { supply: 'cost', suppliesText: 'Guild supplies this exact practice batch once.' })];
     }
     if (['guild-upgrades', 'projects'].includes(id)) { const r = select(rows(c.globalUpgrades).filter(row => id === 'projects' ? ['expedition-development', 'project', 'research'].includes(row.action?.type) : row.action?.type === 'buy')); a = r?.action; dest = destination('upgrades'); target = 'catalog-buy'; data = { catalogId: r?.id, actionId: a?.id }; }
     if (id === 'techniques' || id === 'technique-config') {
+      if(id==='techniques'&&c.stations?.active) {
+        const intended=x?.intentions.techniques, all=c.stations.areas.flatMap(area=>area.stations.flatMap(st=>st.skills).concat(area.areaUpgrades)),r=all.find(row=>row.id===intended?.id)||all.find(row=>row.owned&&!row.maxed&&!row.core);
+        if(r) {
+          const scope=r.stationId?'station':'area', dest=destination('expedition',{areaId:r.areaId,stationId:r.stationId,scope}),data={areaId:r.areaId,stationId:r.stationId,skillId:r.id,scope};
+          return [inspect('inspect','station-detail','Review '+r.name,r.effectText,dest,data),action('practice',r.stationId?'station-buy':'station-area-buy','Improve '+r.name,'Use its real upgrade button. This first practice purchase is supplied; future purchases use the shown price.',{type:r.stationId?'station-skill-buy':'station-area-buy',id:r.id,areaId:r.areaId,count:1},dest,data,{supply:'cost',suppliesText:'Guild supplies one actual upgrade purchase.'})];
+        }
+      }
       const skills = rows(c.areaSkills?.items || c.areaSkills?.rows || c.globalUpgrades).filter(row => row.skillId);
       const r = id === 'techniques'
         ? skills.find(row => row.state === 'learned' && row.rank < row.maxRank)

@@ -33,7 +33,11 @@ let cached;
 // witness. Areas and branches are created by their actual engine actions.
 function mature(options = {}) {
   if (cached && !options.untilProject) return clone(cached);
+  // Historical formula tests explicitly retain the shipped network economy.
+  // New station witnesses use wayfarers-stations.cjs instead.
   const state = Core.createState(0);
+  state.expedition.version = 3;
+  state.stations = Core.Stations.initial(state);
   fund(state);
   for (let index = 0; index < 3; index += 1) {
     while (!state.expedition.completed || index < 2 && !P.canAdvance(state)) {

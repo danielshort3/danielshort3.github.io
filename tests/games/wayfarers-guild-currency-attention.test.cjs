@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const H = require('./helpers/wayfarers-progression.cjs');
@@ -20,7 +21,7 @@ const explain = s => { const ids = []; while (active(s)?.mode === 'currency') { 
 function memory() { const map = new Map(); return { getItem: k => map.get(k) || null, setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k) }; }
 
 test('currency Next is receipt-only, precedes the real price inspection, and never buys or funds a rank', () => {
-  const s = Core.createState(123); act(s, { type: 'onboarding-visit', id: 'greenway' });
+  const s = createReleasedState(123); act(s, { type: 'onboarding-visit', id: 'greenway' });
   const info = active(s), before = clone(s); assert.equal(info.mode, 'currency'); assert.equal(info.currencyInfo.id, 'coins');
   assert.match(info.currencyInfo.coverageText, /guild supplies/i); assert.equal(info.canLeave, false); assert.equal(info.practiceAction, undefined);
   assert.equal(Core.act(s, { type: 'expedition-buy', areaId: 'greenway', id: 'boots', count: 1 }).ok, false); assert.deepEqual(s, before);
@@ -64,7 +65,7 @@ test('first-use interception stays mandatory even when the same lesson is reopen
 });
 
 test('unseen state changes only after deliberate earned-target inspection, never rendering or time', () => {
-  const s = Core.createState(10), before = clone(s), first = view(s);
+  const s = createReleasedState(10), before = clone(s), first = view(s);
   assert.deepEqual(s, before); assert.equal(first.attention.items.find(r => r.id === 'upgrade:area:greenway:boots').unseen, true);
   const item = first.attention.items.find(r => r.id === 'upgrade:area:greenway:boots'); const bad = { ...item.inspectAction, id: 'upgrade:area:harbor:shipbuilding' };
   assert.equal(Core.act(s, bad).ok, false); assert.deepEqual(s, before);
@@ -74,19 +75,19 @@ test('unseen state changes only after deliberate earned-target inspection, never
 });
 
 test('currency rail exposes only earned wallets and remembers zero balances with honest Starshard ownership', () => {
-  const fresh = Core.createState(11); assert.deepEqual(view(fresh).currencies.map(r => r.id), ['coins']); advance(fresh, 1); assert.deepEqual(view(fresh).currencies.map(r => r.id), ['coins']);
+  const fresh = createReleasedState(11); assert.deepEqual(view(fresh).currencies.map(r => r.id), ['coins']); advance(fresh, 1); assert.deepEqual(view(fresh).currencies.map(r => r.id), ['coins']);
   const s = mature(); O.sync(s); const ids = view(s).currencies.map(r => r.id); Object.keys(s.resources).forEach(id => { s.resources[id] = N.zero(); }); O.sync(s);
   assert.deepEqual(view(s).currencies.map(r => r.id), ids); const shards = view(s).currencies.find(r => r.id === 'starshards'); assert.equal(shards.balanceSource, 'earned-plus-verified-account'); assert.equal(shards.paidValue, null);
   assert.ok(!ids.includes('steady') && !ids.includes('copies') && !ids.includes('focus'));
 });
 
 test('opening an actual currency sheet records learning while a tutorial overlay needs only its Next', () => {
-  const s = Core.createState(12), item = view(s).attention.items.find(r => r.id === 'currency:coins'); act(s, item.inspectAction);
+  const s = createReleasedState(12), item = view(s).attention.items.find(r => r.id === 'currency:coins'); act(s, item.inspectAction);
   assert.deepEqual(s.onboarding.practice.currencyRead, ['coins']); act(s, { type: 'onboarding-visit', id: 'greenway' }); assert.equal(active(s).mode, 'inspect');
 });
 
 test('new upgrade claims and earlier-area options get badges without leaking locked future tracks', () => {
-  const s = Core.createState(13); readyPorters(s);
+  const s = createReleasedState(13); readyPorters(s);
   assert.ok(!view(s).attention.items.some(r => r.id === 'upgrade:area:greenway:porters'));
   act(s, { type: 'upgrade-tier-unlock', id: 'area:greenway:porters' }); assert.ok(view(s).attention.items.some(r => r.id === 'upgrade:area:greenway:porters' && r.unseen));
   const m = mature(); const options = view(m).attention.items.filter(r => r.kind === 'option');
@@ -102,12 +103,12 @@ test('migration baselines old visible content but preserves pending discoveries 
   assert.ok(rows.filter(r => r.kind === 'upgrade').every(r => !r.unseen));
   const eventCards = s.collection.recent.filter(r => r.id > s.collection.seen && r.cardId).map(r => r.cardId);
   assert.ok(eventCards.length); for (const id of eventCards) assert.ok(rows.find(r => r.id === 'card:' + id).unseen);
-  const pending = Core.createState(14); readyPorters(pending); delete pending.onboarding.attention;
+  const pending = createReleasedState(14); readyPorters(pending); delete pending.onboarding.attention;
   const migrated = Core.normalizeState(pending, pending.lastUpdate); assert.ok(view(migrated).attention.items.find(r => r.id === 'discovery:ready:area:greenway:porters').unseen);
 });
 
 test('attention and currency metadata reject unknown/prototype/duplicate records without throwing', () => {
-  const base = Core.createState(15);
+  const base = createReleasedState(15);
   const edits = [s => s.onboarding.practice.currencyRead = ['constructor'], s => s.onboarding.practice.currencyRead = ['coins', 'coins'], s => s.onboarding.attention.seen = ['card:__proto__'], s => s.onboarding.attention.seen = ['upgrade:made-up'], s => s.onboarding.attention.currencies = ['focus'], s => s.onboarding.attention.extra = true];
   for (const edit of edits) { const s = clone(base); edit(s); assert.doesNotThrow(() => Core.validateState(s)); assert.equal(Core.validateState(s).valid, false); }
 });
@@ -116,7 +117,7 @@ test('Refit keeps learned receipts and rejects old inspection tokens; Testing re
   const s = mature(); const coin = view(s).attention.items.find(r => r.id === 'currency:coins'); act(s, coin.inspectAction);
   const old = view(s).attention.items.find(r => r.kind === 'upgrade').inspectAction;
   assert.ok(Core.getView(s).refit.available); act(s, { type: 'refit' }); assert.ok(s.onboarding.practice.currencyRead.includes('coins')); assert.ok(s.onboarding.attention.seen.includes('currency:coins'));
-  assert.equal(Core.act(s, old).ok, false); const fresh = Core.createState(999); assert.deepEqual(fresh.onboarding.practice.currencyRead, []); assert.deepEqual(fresh.onboarding.attention.seen, []);
+  assert.equal(Core.act(s, old).ok, false); const fresh = createReleasedState(999); assert.deepEqual(fresh.onboarding.practice.currencyRead, []); assert.deepEqual(fresh.onboarding.attention.seen, []);
 });
 
 test('new duplicate copies re-mark only their item; capped result history cannot erase its pending inspection', () => {

@@ -1,4 +1,5 @@
 'use strict';
+const {createReleasedState}=require('./helpers/wayfarers-released.cjs');
 
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
@@ -20,6 +21,7 @@ test('released schema6 is migrated additively without changing any earned state 
   assert.deepEqual(Core.validateState(state), { valid: true, errors: [] });
   const retained = clone(state);
   delete retained.areaSkills;
+  delete retained.stations;
   retained.schemaVersion = 6;
   assert.deepEqual(retained, old);
   assert.deepEqual(state.areaSkills.unlocked, []);
@@ -35,11 +37,11 @@ test('released schema6 is migrated additively without changing any earned state 
 test('schema6 storage retains exact previous bytes as backup and schema7 round-trips idempotently', () => {
   const text = envelope(old), f = fixture(text), loaded = f.store.load({ deferOffline: true });
   assert.equal(loaded.status, 'loaded');
-  assert.equal(loaded.state.schemaVersion, 7);
+  assert.equal(loaded.state.schemaVersion, Core.VERSION);
   assert.equal(f.writes.length, 0);
   assert.ok(f.store.save(loaded.state).ok);
   assert.equal(f.values.get(Storage.BACKUP_KEY), text);
-  assert.equal(JSON.parse(f.values.get(Storage.SAVE_KEY)).version, 7);
+  assert.equal(JSON.parse(f.values.get(Storage.SAVE_KEY)).version, Core.VERSION);
   assert.deepEqual(f.store.load({ deferOffline: true }).state, loaded.state);
   const exported = f.store.export(loaded.state);
   assert.ok(exported.ok);
@@ -58,7 +60,7 @@ test('malformed schema6 and schema7 saves remain protected rather than overwritt
   for (const bad of invalidOld.concat(invalidNew)) {
     const text = envelope(bad), f = fixture(text), result = f.store.load({ deferOffline: true });
     assert.equal(result.canSave, false);
-    assert.equal(f.store.save(Core.createState(old.lastUpdate)).ok, false);
+    assert.equal(f.store.save(createReleasedState(old.lastUpdate)).ok, false);
     assert.equal(f.store.inspectImport(text).ok, false);
     assert.equal(f.store.replaceImport(text).ok, false);
     assert.equal(f.values.get(Storage.SAVE_KEY), text);
