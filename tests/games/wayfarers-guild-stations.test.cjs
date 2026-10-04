@@ -150,6 +150,27 @@ test('Harbor unlocks use actually completed frozen convoys rather than maps stoc
   St.voyageArrived(state,{convoy:1});assert.equal(St.requirements(state,second)[2].met,true);
 });
 
+test('released schemas1–3 initialize dormant stations before calculating reset introductions',()=>{
+  for(const version of [1,2,3]) {
+    const input=clone(require('./fixtures/wayfarers-v3-state.json'));input.schemaVersion=version;
+    if(version<3){delete input.luck;delete input.caravan;}
+    if(version===1){delete input.premium;delete input.resources.starshards;}
+    const before=clone(input),state=Core.migrateState(input);
+    assert(state,'Released schema'+version+' imports rather than throwing inside its introduction preview');
+    assert.deepEqual(input,before,'Migration does not alter the released save');
+    assert(Core.validateState(state).valid);assert.equal(state.schemaVersion,8);
+    assert(!St.active(state));assert.deepEqual(state.stations.built,[]);
+    for(const key of Object.keys(before).filter(key=>!['schemaVersion','luck','resources'].includes(key)))assert.deepEqual(state[key],before[key],key+' remains owned');
+    for(const id of Object.keys(before.resources))assert.deepEqual(state.resources[id],before.resources[id],id+' remains owned');
+    if(version===1)assert.deepEqual(state.resources.starshards,N.zero(),'Schema1 adds an empty premium wallet');
+    if(version===3) {
+      for(const key of Object.keys(before.luck).filter(key=>key!=='duplicateProgress'))assert.deepEqual(state.luck[key],before.luck[key],key+' schedule is retained');
+      for(const [id,rank] of Object.entries(before.luck.duplicateProgress))assert.equal(state.luck.duplicateProgress[id],rank);
+    }
+    const invalid=clone(before);invalid.upgrades.boots=-1;assert.equal(Core.migrateState(invalid),null,'Malformed historical saves remain rejected');
+  }
+});
+
 test('released6/7 imports retain all former economy until a confirmed reset adopts stations',()=>{
   for(const fixture of [require('./fixtures/wayfarers-v6-network.json'),require('./fixtures/wayfarers-v5-retained.json').state]) {
     const state=Core.migrateState(clone(fixture)),oldExp=clone(state.expedition);

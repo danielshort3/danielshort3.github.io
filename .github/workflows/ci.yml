@@ -90,6 +90,22 @@ jobs:
           path: ${{ runner.temp }}/site-browser-smoke
           if-no-files-found: ignore
 
+      - name: Verify stacked Guild scenes and taught actions
+        run: npm run test:wayfarers-guild:stations:browser
+        timeout-minutes: 8
+        env:
+          WAYFARERS_QA_DIR: ${{ runner.temp }}/wayfarers-stations
+
+      - name: Upload Guild scene and tutorial evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfarers-stations
+          path: |
+            ${{ runner.temp }}/wayfarers-stations/*.png
+            ${{ runner.temp }}/wayfarers-stations/report.json
+          if-no-files-found: ignore
+
   release-quality:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
