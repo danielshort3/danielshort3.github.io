@@ -67,7 +67,6 @@ async function main() {
     await page.goto(base + '/tools/text-compare');
     await ready();
     await expect(page.locator('#textcompare-original')).toHaveValue('Navigation draft');
-    await page.locator('details').filter({ has: page.locator('#textcompare-clear') }).locator('summary').first().click();
     await page.locator('#textcompare-clear').click();
     await page.reload(); await ready();
     await expect(page.locator('#textcompare-original')).toHaveValue('');

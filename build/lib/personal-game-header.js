@@ -1,7 +1,7 @@
 'use strict';
 
 const { unwrapPersonalAccordionHtml } = require('./personal-accordion-shell');
-const GAME_BACK_ICON = '<img src="/img/ui/site-icons/section-arrow-games-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">';
+const GAME_BACK_ICON = '<svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>';
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({

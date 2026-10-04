@@ -20,7 +20,7 @@ const toolsContentDir = path.join(root, 'content', 'tools');
 const outPath = path.join(root, 'dist', 'search-index.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const hiddenProfessionalPathPatterns = [
-  /^\/(?:analytics|data-science|tourism|destination-analytics|contributions)$/i,
+  /^\/(?:analytics|data-science|tourism|destination-analytics)$/i,
   /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i
 ];
 

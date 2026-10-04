@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const sharp = require('sharp');
-const { buildGamesDirectoryWorkbenchData } = require('./cms-renderers');
+const { buildGamesDirectoryWorkbenchData } = require('./site-renderers');
 const { normalizePathname } = require('./seo-routing');
 
 const ROOT = path.resolve(__dirname, '../..');

@@ -32,7 +32,7 @@ async function setup(browser, width) {
   return { context, page, requests, errors };
 }
 async function dismissCookies(page) {
-  const button = page.getByRole('button', { name: 'Essential only', exact: true });
+  const button = page.locator('#pcz-reject');
   if (await button.isVisible()) await button.click();
 }
 async function assertLayout(page, width) {

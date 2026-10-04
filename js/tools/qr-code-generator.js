@@ -490,7 +490,6 @@
   const FALLBACK_DESTINATIONS = [
     { path: '/', label: 'Home', group: 'Pages' },
     { path: '/portfolio', label: 'Portfolio', group: 'Portfolio' },
-    { path: '/resume', label: 'Resume', group: 'Pages' },
     { path: '/contact', label: 'Contact', group: 'Pages' },
     { path: '/tools', label: 'Tools', group: 'Tools' },
   ];

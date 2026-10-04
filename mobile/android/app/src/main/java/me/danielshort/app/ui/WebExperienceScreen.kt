@@ -18,6 +18,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.RenderProcessGoneDetail
 import android.widget.Toast
+import org.json.JSONObject
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -47,6 +48,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
+import me.danielshort.app.BuildConfig
 
 /** The website is the source of behavior for browser-ready games, demos, and project pages. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +85,7 @@ internal fun WebExperienceScreen(
   var loadAttempt by remember(url, rendererVersion) { mutableIntStateOf(0) }
   var showProjectLoadingDetails by remember(url, rendererVersion) { mutableStateOf(false) }
   val hasStarfallPlayOptions = experience.canonicalPath == WebExperience.STARFALL.canonicalPath && onOpenNative != null
+  val inlineDemoPath = inlineProjectDemoFramePath(experience, linkedDemo)
 
   LaunchedEffect(url, rendererVersion, loadAttempt, prepared, error) {
     showProjectLoadingDetails = false
@@ -116,7 +119,8 @@ internal fun WebExperienceScreen(
     Column(Modifier.fillMaxSize().safeDrawingPadding()) {
       if (fullscreenView == null) {
         TopAppBar(
-          title = { Text(experience.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+          title = { Text(if (experience.kind == WebExperienceKind.PROJECT) "Projects" else experience.title,
+            maxLines = 1, overflow = TextOverflow.Ellipsis) },
           navigationIcon = { IconButton(onClick = onBack) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back")
           } },
@@ -239,10 +243,87 @@ internal fun WebExperienceScreen(
                     val projectCss = if (experience.kind == WebExperienceKind.PROJECT)
                       ".project-parent-link, .project-question-dock { display: none !important; }"
                     else ""
+                    val inlineDemoCss = if (inlineDemoPath != null) """
+                      .project-demo-shell[data-demo-fit="content"] .project-demo-mobile-launch.android-inline-project-demo {
+                        display: block !important; height: auto !important; min-height: 0 !important;
+                        padding: 0 !important; overflow: visible !important; background: white !important;
+                      }
+                      .project-demo-mobile-launch.android-inline-project-demo::after { display: none !important; }
+                      .project-demo-mobile-launch.android-inline-project-demo .android-inline-demo-frame {
+                        display: block; box-sizing: border-box; width: 100%; border: 0; background: white;
+                      }
+                    """.trimIndent() else ""
+                    val inlineDemoScript = if (inlineDemoPath != null) """
+                      const launch = document.querySelector('.project-demo-shell[data-demo-fit="content"] .project-demo-mobile-launch');
+                      if (launch && !launch.dataset.androidInlineDemo) {
+                        launch.dataset.androidInlineDemo = 'true';
+                        launch.classList.add('android-inline-project-demo');
+                        const frame = document.createElement('iframe');
+                        frame.className = 'android-inline-demo-frame';
+                        frame.title = 'Interactive project demo';
+                        frame.loading = 'lazy';
+                        frame.style.height = '360px';
+                        let demoResizeObserver;
+                        let demoResizePending = false;
+                        const fitDemoToContent = () => {
+                          if (demoResizePending) return;
+                          demoResizePending = true;
+                          requestAnimationFrame(() => {
+                            demoResizePending = false;
+                            if (!frame.isConnected) {
+                              demoResizeObserver?.disconnect();
+                              return;
+                            }
+                            try {
+                              const doc = frame.contentDocument;
+                              const workspace = doc?.querySelector('#demo-box, #demo-shell, #demo-card, main.card, .demo-root, main, #main');
+                              if (!workspace) return;
+                              const bodyStyle = doc.defaultView.getComputedStyle(doc.body);
+                              const bottom = workspace.getBoundingClientRect().bottom + (doc.defaultView.scrollY || 0);
+                              const padding = Number.parseFloat(bodyStyle.paddingBottom) || 0;
+                              const measured = Math.ceil(bottom + padding);
+                              if (!Number.isFinite(measured) || measured <= 0) return;
+                              const height = Math.min(2400, Math.max(160, measured));
+                              if (Math.abs(frame.offsetHeight - height) > 2) frame.style.height = height + 'px';
+                            } catch (_) { /* Same-origin demo may still be loading. */ }
+                          });
+                        };
+                        frame.addEventListener('load', () => {
+                          demoResizeObserver?.disconnect();
+                          try {
+                            const workspace = frame.contentDocument?.querySelector('#demo-box, #demo-shell, #demo-card, main.card, .demo-root, main, #main');
+                            if (workspace && 'ResizeObserver' in window) {
+                              demoResizeObserver = new ResizeObserver(fitDemoToContent);
+                              demoResizeObserver.observe(workspace);
+                            }
+                            frame.contentDocument?.fonts?.ready?.then(fitDemoToContent);
+                          } catch (_) { /* Keep the demo usable if measurement is unavailable. */ }
+                          fitDemoToContent();
+                          setTimeout(fitDemoToContent, 250);
+                        });
+                        launch.replaceChildren(frame);
+                        const startDemo = () => {
+                          if (frame.isConnected && !frame.getAttribute('src')) frame.setAttribute('src', ${JSONObject.quote(inlineDemoPath)});
+                        };
+                        if ('IntersectionObserver' in window) {
+                          const observer = new IntersectionObserver((entries) => {
+                            if (entries.some((entry) => entry.isIntersecting)) { observer.disconnect(); startDemo(); }
+                          }, { rootMargin: '240px' });
+                          observer.observe(launch);
+                        } else startDemo();
+                      }
+                    """.trimIndent() else ""
                     // On the Android WebView device, CSS vh/dvh measured zero although innerHeight was valid.
                     val gameCss = if (experience.canonicalPath == "/games/stellar-dogfight")
                       "body.is-playing { height: var(--android-webview-height) !important; min-height: var(--android-webview-height) !important; } body.is-playing .site-frame__stage { height: var(--android-webview-height) !important; } body.personal-accordion-page[data-personal-item=stellar-dogfight].is-playing .site-frame__stage { grid-template-rows: 0px minmax(0, 1fr) !important; }"
                     else ""
+                    val featureCss = JSONObject.quote("""
+                      [data-site-shell-header], .mobile-site-masthead, .mobile-section-nav,
+                      .mobile-site-dock, .site-frame__tab, [data-site-shell-footer] { display: none !important; }
+                      .site-frame__stage { grid-template-rows: 0px auto !important; }
+                      .site-frame__slot { padding-top: 0 !important; }
+                      $startCss $projectCss $inlineDemoCss $gameCss
+                    """.trimIndent())
                     val featureLayout = when {
                       isStarfall -> """
                         document.querySelector('.personal-game-header')?.style.setProperty('display', 'none', 'important');
@@ -272,6 +353,7 @@ internal fun WebExperienceScreen(
                         }
                         window.androidStellarFit();
                       """.trimIndent()
+                      experience.kind == WebExperienceKind.PROJECT -> inlineDemoScript
                       else -> ""
                     }
                     val layoutTask = Runnable {
@@ -282,7 +364,7 @@ internal fun WebExperienceScreen(
                             if (!document.getElementById('android-feature-chrome')) {
                               const style = document.createElement('style');
                               style.id = 'android-feature-chrome';
-                              style.textContent = '[data-site-shell-header], .mobile-site-masthead, .mobile-section-nav, .mobile-site-dock, .site-frame__tab, [data-site-shell-footer] { display: none !important; } .site-frame__stage { grid-template-rows: 0px auto !important; } .site-frame__slot { padding-top: 0 !important; } $startCss $projectCss $gameCss';
+                              style.textContent = $featureCss;
                               document.head.appendChild(style);
                             }
                             document.body.style.setProperty('padding-top', '0', 'important');
@@ -510,6 +592,10 @@ internal fun WebExperienceScreen(
 
 private fun openExternalExperience(context: Context, uri: Uri) {
   if (uri.scheme !in setOf("https", "http", "mailto", "tel")) return
+  if (!websiteAccountLinkAllowed(uri.toString(), BuildConfig.ENABLE_WEBSITE_TOOL_ACCOUNTS)) {
+    Toast.makeText(context, "Website account tools are not included in this app.", Toast.LENGTH_SHORT).show()
+    return
+  }
   val intent = Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE)
   try {
     context.startActivity(intent)

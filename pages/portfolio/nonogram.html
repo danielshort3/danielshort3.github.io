@@ -27,18 +27,94 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/nonogram.png">
   <meta name="twitter:image:alt" content="Preview image for Nonogram Solver">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
-  <link rel="stylesheet" href="css/components/project-page.css?v=395e9786502c">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
+  <link rel="stylesheet" href="css/components/project-page.css?v=4bde5a9f0e5a">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
@@ -50,7 +126,7 @@
 
 
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
-  <script src="js/common/no-js.js"></script>
+
   <script type="application/ld+json">
     {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","@id":"https://www.danielshort.me/portfolio/nonogram#project","name":"Nonogram Solver","description":"Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.","url":"https://www.danielshort.me/portfolio/nonogram","image":"https://www.danielshort.me/img/projects/nonogram.png","mainEntityOfPage":{"@id":"https://www.danielshort.me/portfolio/nonogram#webpage"},"creator":{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/"},"keywords":"Data Science, Machine Learning, Python, PyTorch, AWS, Docker"},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/nonogram#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Nonogram Solver","item":"https://www.danielshort.me/portfolio/nonogram"}]}]}
   </script>
@@ -59,12 +135,12 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/portfolio/nonogram#webpage","url":"https://www.danielshort.me/portfolio/nonogram","name":"Nonogram Solver | Daniel Short","description":"Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/projects/nonogram.png"},"mainEntity":{"@id":"https://www.danielshort.me/portfolio/nonogram#project"},"breadcrumb":{"@id":"https://www.danielshort.me/portfolio/nonogram#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/nonogram#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Nonogram Solver","item":"https://www.danielshort.me/portfolio/nonogram"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:nonogram","path":"/portfolio/nonogram","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.9380b237.css","/css/components/project-page.css?v=395e9786502c","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.c57ddd04.js","/dist/site-consent.772887f4.js"],"module":"page:content"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:nonogram","path":"/portfolio/nonogram","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/css/components/project-page.css?v=4bde5a9f0e5a","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.7e88cd8b.js","/dist/site-consent.a6d261d1.js"],"module":"page:content"}</script>
 </head>
 <body data-page="project" class="project-page project-page--compact personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="nonogram" data-personal-fit="viewport" data-site-route-id="projects:nonogram" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="page:content">
   <a href="/portfolio/nonogram#main" class="skip-link">Skip to main content</a>
@@ -132,7 +208,7 @@
     <header class="project-hero project-hero--compact" data-page-masthead>
       <div class="wrapper">
         <a class="project-parent-link" href="/portfolio" data-page-masthead-parent aria-label="Back to project library">
-          <img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+          <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
           <span>Project library</span>
         </a>
         <div data-page-masthead-intro>
@@ -143,6 +219,7 @@
           <nav data-page-masthead-actions class="project-intro-actions" aria-label="Project actions">
         <a class="project-intro-action project-intro-action--demo" href="/nonogram-demo" data-content-open="true" data-content-id="nonogram" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_intro">Open demo</a>
         <a class="project-intro-action project-intro-action--report" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_4.pdf" target="_blank" rel="noopener noreferrer" data-content-open="true" data-content-id="nonogram" data-content-type="project_resource" data-resource-type="report" data-source-surface="project_intro">Report · PDF</a>
+
 
       </nav>
         </div>
@@ -216,14 +293,14 @@
       <h2 class="section-title" id="nonogram-links-title">Links</h2>
       <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Nonogram-Solver" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Nonogram-Solver" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="/img/icons/github-icon-64.webp?v=16ea8b5855c8" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_4.pdf" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Project report · PDF</span></a>
         <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_4.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook · IPYNB</span></a>
       </div>
       </div>
     </section>
         <nav class="project-next-steps" aria-label="Continue exploring">
-      <a class="project-next-link" href="/portfolio/website" data-content-open="true" data-content-id="website" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>danielshort.me <span aria-hidden="true">→</span></strong></a>
+      <a class="project-next-link" href="/portfolio/website" data-content-open="true" data-content-id="website" data-content-type="project" data-resource-type="case_study" data-source-surface="project_next"><span>Explore next</span><strong>danielshort.me <svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></strong></a>
       <a class="project-all-link" href="/portfolio">All projects</a>
     </nav>
       </div>
@@ -257,6 +334,6 @@
     </div>
   </footer>
 
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>

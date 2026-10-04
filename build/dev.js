@@ -5,7 +5,7 @@
   Local developer workflow:
   1) Run a full site build once.
   2) Watch source files and rebuild automatically.
-  3) Serve the static site plus the local-only CMS file API.
+  3) Serve the static site and local API proxies.
 */
 
 const fs = require('fs');
@@ -18,8 +18,6 @@ const { handleLocalJobTrackerRequest } = require('./lib/local-job-tracker-proxy'
 
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
-const adminDir = path.join(root, 'admin');
-const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
 const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
 const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
 const chatbotStreamApiPath = path.join(root, 'api', 'chatbot-stream.js');
@@ -59,7 +57,6 @@ const SOURCE_STATIC_FALLBACK_FILES = new Set([
 
 const WATCH_ROOTS = [
   'api',
-  'admin',
   'build',
   'css',
   'content',
@@ -536,6 +533,27 @@ function applyParams(value, params) {
   return next;
 }
 
+function buildRedirectLocation(destination, requestUrl) {
+  const target = new URL(destination, requestUrl);
+  if (!target.search) {
+    // Retain the original encoding and repeated values in shared-input links.
+    target.search = requestUrl.search;
+  } else {
+    const destinationKeys = new Set(target.searchParams.keys());
+    // Retain raw shared-input bytes while giving configured keys precedence.
+    // URLSearchParams.append would rewrite spaces and encoded separators.
+    const incoming = requestUrl.search.slice(1).split('&').filter((part) => {
+      const key = new URLSearchParams(part).keys().next().value;
+      return part && !destinationKeys.has(key);
+    }).join('&');
+    target.search = `?${incoming ? `${incoming}&` : ''}${target.search.slice(1)}`;
+  }
+  if (/^[a-z][a-z\d+.-]*:/i.test(destination) || destination.startsWith('//')) {
+    return target.href;
+  }
+  return `${target.pathname}${target.search}${target.hash}`;
+}
+
 function isInside(baseDir, filePath) {
   const rel = path.relative(baseDir, filePath);
   return !!rel && !rel.startsWith('..') && !path.isAbsolute(rel);
@@ -684,25 +702,6 @@ function sendNotFound(res) {
   res.statusCode = 404;
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.end('Not found');
-}
-
-function clearCmsApiCache() {
-  const prefixes = [
-    path.join(root, 'api', 'cms'),
-    path.join(root, 'api', '_lib', 'cms'),
-    path.join(root, 'build', 'generate-project-pages.js'),
-    path.join(root, 'build', 'lib', 'cms-renderers')
-  ];
-  Object.keys(require.cache).forEach((modulePath) => {
-    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
-      delete require.cache[modulePath];
-    }
-  });
-}
-
-function loadCmsApi() {
-  clearCmsApiCache();
-  return require(cmsApiPath);
 }
 
 function clearChatbotApiCache() {
@@ -962,22 +961,6 @@ function createLocalServer({ envDir = root } = {}) {
       return;
     }
 
-    if (pathname.startsWith('/api/cms/')) {
-      req.query = Object.fromEntries(url.searchParams.entries());
-      req.query.slug = pathname.slice('/api/cms/'.length).split('/')[0] || '';
-      try {
-        loadCmsApi()(req, res);
-      } catch (err) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({
-          ok: false,
-          error: err && err.message ? err.message : 'Local CMS API failed to load'
-        }));
-      }
-      return;
-    }
-
     if (pathname === '/api/demos' || pathname.startsWith('/api/demos/')) {
       req.query = Object.fromEntries(url.searchParams.entries());
       const rawSlug = pathname.startsWith('/api/demos/')
@@ -1016,22 +999,11 @@ function createLocalServer({ envDir = root } = {}) {
       return;
     }
 
-    if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-      const adminPath = pathname === '/admin' ? '/index.html' : pathname.slice('/admin'.length);
-      const filePath = resolveStaticFile(adminDir, adminPath);
-      if (filePath) {
-        sendFile(req, res, filePath);
-        return;
-      }
-      sendNotFound(res);
-      return;
-    }
-
     const redirectMatch = matchRule(pathname, redirects, req, url);
     if (redirectMatch) {
       const destination = applyParams(redirectMatch.rule.destination, redirectMatch.params);
       res.statusCode = redirectMatch.rule.permanent ? 308 : 307;
-      res.setHeader('Location', destination);
+      res.setHeader('Location', buildRedirectLocation(destination, url));
       res.end();
       return;
     }
@@ -1087,7 +1059,6 @@ function main() {
     onReady: (selectedPort) => {
       log(`Serving local site on http://${displayHost}:${selectedPort}`);
       if (displayHost !== host) log(`Bound to ${host} for WSL/host access.`);
-      log(`Local CMS available at http://${displayHost}:${selectedPort}/admin`);
     },
     onFatal: (err) => {
       log(`Local server failed: ${err && err.message ? err.message : err}`);
@@ -1113,6 +1084,7 @@ module.exports = {
   compileRoutes,
   matchRule,
   applyResponseHeaders,
+  buildRedirectLocation,
   resolveCurrentStylesheetFile,
   createLocalServer
 };

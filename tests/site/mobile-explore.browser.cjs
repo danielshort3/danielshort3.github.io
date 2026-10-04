@@ -71,10 +71,8 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
       'Tab from About enters its visible content instead of jumping to Projects below it.');
     assert(await page.evaluate(() => scrollY < 700), 'Entering About content avoids the former multi-screen jump.');
     assert.equal(await page.locator('[data-site-tab]:visible').count(), 5, 'All five mobile rails remain available around the expanded content.');
-    await page.locator('[data-mobile-section="about"]').focus();
-    await page.keyboard.press('Tab');
-    assert(await page.locator('[data-mobile-section="projects"]').evaluate(node => node === document.activeElement),
-      'The bottom navigation presents ordinary section links in category order.');
+    assert.equal(await page.locator('[data-mobile-section-nav]').count(), 0,
+      'The Explore menu replaces the bottom section navigation.');
 
     stage = 'disclosure';
     await button.click();

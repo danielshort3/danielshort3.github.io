@@ -53,7 +53,8 @@ const RETAINED_PROJECT_PREVIEW_IDS = [
   'babynames',
   'pizzaDashboard',
   'nonogram',
-  'website'
+  'website',
+  'androidApp'
 ];
 
 // All retained game previews are currently used by the public game catalog.

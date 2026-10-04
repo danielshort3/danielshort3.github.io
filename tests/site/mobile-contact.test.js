@@ -92,6 +92,10 @@ function createHarness() {
       this.before(node);
       this.remove();
     }
+    replaceChildren(...nodes) {
+      [...this.children].forEach((node) => node.remove());
+      nodes.forEach((node) => this.appendChild(node));
+    }
     remove() {
       if (this.parentNode) this.parentNode.children.splice(this.parentNode.children.indexOf(this), 1);
       this.parentNode = null;
@@ -114,18 +118,22 @@ function createHarness() {
   document.activeElement = document.body;
   document.readyState = 'loading';
   document.createComment = () => new Node('#comment');
+  document.createElement = (tag) => new Node(tag);
   document.getElementById = (id) => document.querySelector('#' + id);
   const add = (parent, tag, attributes) => parent.appendChild(new Node(tag, attributes));
-  const createScene = ({ injected = false } = {}) => {
+  const createScene = ({ injected = false, inline = false } = {}) => {
     const root = add(document.body, 'section', { 'data-site-route-content': '' });
     const main = add(root, 'main', { id: 'main' });
     const opener = add(main, 'button', { id: 'contact-form-toggle' });
-    const modal = add(injected ? document.body : main, 'div', { id: 'contact-modal', class: 'modal' });
+    const modal = add(injected ? document.body : main, 'div', inline ? { id: 'contact-inline', class: 'contact-inline', 'data-contact-inline': '' } : { id: 'contact-modal', class: 'modal' });
     if (injected) modal.dataset.contactModalInjected = 'true';
-    const content = add(modal, 'div', { class: 'modal-content' });
+    const content = inline ? modal : add(modal, 'div', { class: 'modal-content' });
     const close = add(content, 'button', { class: 'modal-close' });
-    const body = add(content, 'div', { class: 'modal-body' });
+    const body = add(content, 'div', { class: 'modal-body', 'data-contact-form-body': '' });
     const form = add(body, 'form', { id: 'contact-form', action: '/api/contact' });
+    const errors = add(form, 'div', { id: 'contact-errors', tabindex: '-1' });
+    errors.hidden = true;
+    const errorList = add(errors, 'ul', { 'data-contact-error-list': '' });
     const fields = {};
     for (const name of ['name', 'email', 'message']) {
       const field = add(form, 'div', { class: 'form-field' });
@@ -136,10 +144,12 @@ function createHarness() {
     add(form, 'p', { id: 'contact-status' });
     add(form, 'div', { id: 'contact-alt' });
     add(form, 'button', { 'data-contact-reset': '' });
-    add(form, 'button', { type: 'submit' });
+    const submit = add(form, 'button', { type: 'submit' });
+    const label = add(submit, 'span', { class: 'btn-label' });
     const success = add(body, 'div', { id: 'contact-success' });
+    success.hidden = true;
     add(success, 'button', { 'data-contact-new': '' });
-    return { root, main, opener, modal, content, close, form, fields };
+    return { root, main, opener, modal, content, close, form, fields, errors, errorList, submit, label, success };
   };
   const records = new Map();
   const registrations = new Map();

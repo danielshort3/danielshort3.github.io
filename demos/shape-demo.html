@@ -19,12 +19,11 @@
 
     <!-- Optional: your external stylesheet -->
     <meta name="theme-color" content="#F9F9FA">
-    <link rel="stylesheet" href="dist/styles.css"><!-- Icons & Fonts (async, non-blocking) -->
+    <link rel="stylesheet" href="dist/styles.css">
+    <link rel="stylesheet" href="dist/styles-demo.css">
+    <!-- Demo icons -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@600&display=swap">
 
     <style>
         /* ---------- Theme & base ---------- */
@@ -588,12 +587,12 @@
             </div>
         </header>
 
-        <div class="content demo-workspace">
+        <div class="content demo-workspace drawing-workspace">
             <div class="demo-status-actions drawing-status">
                 <button id="health-pill" class="health-pill aws-status-badge" data-state="warming" type="button" disabled>AWS · Connecting</button>
             </div>
             <!-- Left: canvas & tools -->
-            <section class="shape-input" aria-labelledby="drawing-title">
+            <section class="shape-input drawing-input" aria-labelledby="drawing-title">
                 <div class="drawing-input-header">
                     <h2 id="drawing-title">Your shape</h2>
                     <button id="erase" class="drawing-clear" type="button" aria-keyshortcuts="C" aria-label="Clear drawing (C)">Clear</button>
@@ -1218,6 +1217,6 @@
         // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
     <footer></footer>
-    <script defer src="dist/site-consent.772887f4.js"></script>
+    <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>

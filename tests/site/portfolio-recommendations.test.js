@@ -120,8 +120,7 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   );
 
   const publicProofText = [
-    read('content/audiences/data-science.json'),
-    read('content/audiences/tourism.json'),
+    read('content/audiences/personal.json'),
     read('js/portfolio/portfolio.js'),
     ...Object.keys(evaluationStatuses).map((id) => read(`content/projects/${id}.json`)),
   ].join('\n');
@@ -129,40 +128,10 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     assert(!publicProofText.includes(claim), `unsupported public claim should be removed: ${claim}`);
   });
 
-  const audienceExpectations = {
-    analytics: ['99%', '200+', '24%', '57.6%'],
-    'data-science': ['95%', '10x', '98%', '+9.4%'],
-    tourism: ['99%', '200+', '+9.4%', '10x'],
-  };
-  Object.entries(audienceExpectations).forEach(([audienceKey, values]) => {
-    const source = read(`content/audiences/${audienceKey}.json`);
-    const generated = read(`pages/${audienceKey}.html`);
-    [source, generated].forEach((html) => {
-      assert(html.includes('professional-hero-proof'), `${audienceKey} should render first-viewport proof`);
-      values.forEach((value) => assert(html.includes(value), `${audienceKey} proof missing ${value}`));
-      assert(countMatches(html, /professional-hero-proof-link/g) >= 4, `${audienceKey} hero proof should expose four links`);
-    });
-    assert(countMatches(source, /home-proof-source/g) >= 4,
-      `${audienceKey} source should retain the authored context links`);
-    assert(countMatches(generated, /home-proof-source/g) === 0,
-      `${audienceKey} rendered page should not repeat hero proof in a second outcome-card section`);
-  });
-  const homeProofCss = read('css/components/home-proof.css');
-  assert(
-    homeProofCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .professional-hero-proof-link strong') &&
-      homeProofCss.includes('color: var(--story-blue-strong'),
-    'all professional hero proof values should use a readable light-theme color',
-  );
-  const dataScienceSource = read('content/audiences/data-science.json');
-  const tourismSource = read('content/audiences/tourism.json');
-  assert(
-    dataScienceSource.includes('href=\"#work-experience\"') || dataScienceSource.includes('href=\\\"#work-experience\\\"'),
-    'data-science web-growth proof should link to the on-page work context',
-  );
-  assert(
-    countMatches(tourismSource, /#work-experience/g) >= 2,
-    'tourism organic and AI-referral proof should link to the on-page work context',
-  );
+  assert(['analytics', 'data-science', 'tourism'].every((audience) =>
+    !fs.existsSync(path.join(ROOT, `content/audiences/${audience}.json`)) &&
+    !fs.existsSync(path.join(ROOT, `pages/${audience}.html`))),
+  'Retired audience homepages and sources should be absent');
 
   const projectsData = read('js/portfolio/projects-data.js');
   const projectGenerator = read('build/generate-project-pages.js');
@@ -199,15 +168,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   });
 
   const portfolioHtml = read('pages/portfolio.html');
-  const professionalPortfolioHtml = read('pages/professional/analytics/portfolio.html');
   const portfolioJs = read('js/portfolio/portfolio.js');
   assert(
     !portfolioHtml.includes('<option value="default">Featured first</option>') &&
-      portfolioHtml.includes('data-personal-accordion-shell') &&
-      professionalPortfolioHtml.includes('<option value="default">Featured first</option>') &&
-      portfolioJs.includes('Most relevant') &&
-      portfolioJs.includes('Featured first'),
-    'professional workbench sorting should keep audience-aware labels while personal uses the direct project library',
+      portfolioHtml.includes('data-personal-accordion-shell'),
+    'The canonical project library should use the direct shared shell',
   );
   assert(
     !portfolioHtml.includes('Preview summary') &&
@@ -222,11 +187,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     'personal portfolio search and inspector should expose authored story fields',
   );
 
-  const contentModel = read('api/_lib/cms-content-model.js');
+  const { loadSiteContent } = require('../../build/lib/content-loader');
+  const loadedProject = loadSiteContent(ROOT).projectsById.chatbotLora;
   assert(
-    contentModel.includes('validateProjectPersonalStory') &&
-      contentModel.includes('validateProjectEvaluation') &&
-      contentModel.includes("'measured', 'partial', 'not-benchmarked'"),
-    'CMS validation should enforce the optional story and evaluation contracts',
+    loadedProject.personalStory?.why === readJson('content/projects/chatbotLora.json').personalStory?.why &&
+      loadedProject.evaluation?.status === readJson('content/projects/chatbotLora.json').evaluation?.status,
+    'content loading should preserve authored project story and evaluation fields',
   );
 };

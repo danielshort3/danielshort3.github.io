@@ -70,8 +70,10 @@ async function assertClosed(page, label, expectedHash = '') {
     `${label} exposes one project-library link beside the category bars.`);
   assert.equal(await browseLink.getAttribute('href'), '/portfolio',
     `${label} points that link to the canonical project library.`);
-  assert.equal((await browseLink.innerText()).replace(/\s+/g, ' ').trim(), 'Browse all projects →',
+  assert.equal((await browseLink.innerText()).replace(/\s+/g, ' ').trim(), 'Browse all projects',
     `${label} labels the single link clearly.`);
+  assert.equal(await browseLink.locator('svg.site-direction-arrow[aria-hidden="true"]').count(), 1,
+    `${label} uses the shared solid directional arrow.`);
   assert.equal(await page.locator('[data-site-home-welcome]').count(), 0,
     `${label} removes the raw source after mounting its authored welcome copy.`);
   assert.equal(await page.locator('[data-home-accordion-item]:visible').count(), 0,

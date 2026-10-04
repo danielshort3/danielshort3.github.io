@@ -32,14 +32,19 @@
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 8px 10px;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--category-projects, #005fed);
+    border-radius: var(--radius-control, 8px);
     color: var(--brand-deep-blue, #0145c8);
+    background: #ffffff;
     font-size: .875rem;
     font-weight: 600;
-    text-underline-offset: 3px;
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease;
   }
-  .project-demo-open:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  .project-demo-open:is(:hover, :focus-visible) { background: var(--category-projects, #005fed); color: #ffffff; }
+  .project-demo-open:focus-visible { outline: 3px solid var(--category-projects, #005fed); outline-offset: 3px; }
   .project-demo-shell[data-demo-fit] { min-height: 0; }
   .project-embed:is([data-embed-fit="content"], [data-embed-fit="viewport"]) .project-embed-frame { max-height: none; }
   .project-main--dashboard { --project-content-width: 1600px; --personal-content-width: 1600px; }
@@ -220,13 +225,13 @@
 
 @layer components {
   .project-next-steps a:focus-visible {
-    outline: 2px solid var(--brand-signal-blue, #005fed);
+    outline: 3px solid var(--brand-signal-blue, #005fed);
     outline-offset: 3px;
-    border-radius: 3px;
+    border-radius: var(--radius-control, 8px);
   }
   .project-next-steps a {
     color: var(--brand-deep-blue, #0145c8);
-    text-underline-offset: 3px;
+    text-decoration: none;
     overflow-wrap: anywhere;
   }
   .project-next-steps {
@@ -245,12 +250,24 @@
     justify-content: center;
     flex-direction: column;
     gap: 3px;
-    padding-block: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--category-projects, #005fed);
+    border-radius: var(--radius-control, 8px);
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease;
   }
   .project-next-link > span {
     color: var(--text-muted);
     font-size: .8125rem;
   }
+  .project-next-link strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .project-next-link .site-direction-arrow { width: 16px; height: 16px; }
   .project-next-steps .project-all-link {
     box-sizing: border-box;
     display: inline-flex;
@@ -258,17 +275,21 @@
     justify-content: center;
     min-height: 44px;
     padding: 8px 12px;
-    border: 1px solid #bfd1ee;
+    border: 1px solid var(--category-projects, #005fed);
     border-radius: var(--radius-control, 8px);
     background: #ffffff;
     color: var(--brand-deep-blue, #0145c8);
     font-weight: 650;
-    text-decoration: none;
     white-space: nowrap;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease;
   }
-  .project-next-steps .project-all-link:is(:hover, :focus-visible) {
+  .project-next-steps a:is(:hover, :focus-visible) {
     border-color: var(--brand-signal-blue, #005fed);
-    background: #edf4ff;
+    background: var(--brand-signal-blue, #005fed);
+    color: #ffffff;
+  }
+  .project-next-steps .project-next-link:is(:hover, :focus-visible) > span {
+    color: #ffffff;
   }
   @media (max-width: 480px) {
     .project-next-steps { gap: 10px 12px; }
@@ -318,6 +339,7 @@
     text-decoration: none;
     text-align: center;
     pointer-events: auto;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease, border-color var(--motion-fast, 160ms) ease;
   }
   .project-question-copy {
     display: flex;
@@ -341,7 +363,11 @@
   }
   .project-question-link:hover {
     border-color: var(--brand-signal-blue, #005fed);
-    background: #f4f7fc;
+    background: var(--brand-signal-blue, #005fed);
+    color: #ffffff;
+  }
+  .project-question-link:hover :is(.project-question-label, svg) {
+    color: #ffffff;
   }
   .project-question-link:focus-visible {
     outline: 3px solid var(--brand-signal-blue, #005fed);
@@ -2181,18 +2207,50 @@
     text-decoration: none;
     overflow-wrap: anywhere;
     box-sizing: border-box;
+    transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease, border-color var(--motion-fast, 160ms) ease;
   }
 
-  .project-main--compact .project-intro-action--demo {
+  .project-main--compact .project-intro-action--demo,
+  .project-main--compact .project-intro-action--download {
     border-color: var(--category-projects, #005fed);
     color: #ffffff;
     background: var(--category-projects, #005fed);
   }
 
-  .project-main--compact .project-intro-action:hover {
-    border-color: var(--category-projects, #005fed);
+  .project-main--compact .project-download-meta {
+    flex-basis: 100%;
+    color: #475569;
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+
+  .project-main--compact .project-download-retry:not([hidden]) {
+    border: 0;
+    padding: 0;
+    color: #0a3a88;
+    background: transparent;
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 650;
     text-decoration: underline;
-    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .project-main--compact .project-download-retry:focus-visible {
+    outline: 3px solid var(--category-projects, #005fed);
+    outline-offset: 3px;
+  }
+
+  .project-main--compact .project-intro-action:hover:not(.project-intro-action--demo):not(.project-intro-action--download) {
+    border-color: var(--category-projects, #005fed);
+    background: var(--category-projects, #005fed);
+    color: #ffffff;
+  }
+
+  .project-main--compact .project-intro-action:is(.project-intro-action--demo, .project-intro-action--download):hover {
+    border-color: #004aba;
+    background: #004aba;
+    color: #ffffff;
   }
 
   .project-main--compact .project-intro-action:focus-visible {

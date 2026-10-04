@@ -15,7 +15,6 @@
   },
   "stylesheets": [
     "dist/styles.css",
-    "css/components/destination-analytics.css",
     "css/components/contact-card.css"
   ],
   "headScripts": [
@@ -48,44 +47,20 @@
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<section class=\"hero hero--default alt-band\" data-page-masthead>\n    <div class=\"wrapper\">\n      <a href=\"/#contact\" aria-label=\"Back to categories\" data-page-masthead-parent><img src=\"/img/ui/site-icons/section-arrow-contact-left.webp\" alt=\"\" aria-hidden=\"true\" width=\"20\" height=\"20\" decoding=\"async\"><span>Back to categories</span></a>\n      <div data-page-masthead-intro>\n        <div data-page-masthead-copy>\n          <h1>Let's Connect</h1>\n          <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question. I’ll reply when I can.</p>\n        </div>\n        <div class=\"cta-group\" data-page-masthead-actions>\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\"><img src=\"/img/icons/contact-message-v2.png\" alt=\"\" width=\"256\" height=\"256\" decoding=\"async\">Send a Message</button>\n        </div>\n      </div>\n    </div>\n  </section>"
+        "html": "<section class=\"hero hero--default alt-band\" data-page-masthead>\n    <div class=\"wrapper\">\n      <a href=\"/#contact\" aria-label=\"Back to categories\" data-page-masthead-parent><img src=\"/img/ui/site-icons/section-arrow-contact-left.webp\" alt=\"\" aria-hidden=\"true\" width=\"20\" height=\"20\" decoding=\"async\"><span>Back to categories</span></a>\n      <div data-page-masthead-intro>\n        <div data-page-masthead-copy>\n          <h1>Let's Connect</h1>\n          <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question. I’ll reply when I can.</p>\n        </div>\n      </div>\n    </div>\n  </section>"
       }
     },
     {
-      "id": "contact-2",
-      "type": "legacy-html",
-      "label": "Send a Message",
+      "id": "contact-workspace",
+      "type": "contact-workspace",
+      "label": "Contact options and message form",
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<div id=\"contact-modal\" class=\"modal\">\n    <div class=\"modal-content\" role=\"dialog\" aria-modal=\"true\" tabindex=\"0\" aria-labelledby=\"contact-modal-title\">\n      <button class=\"modal-close\" aria-label=\"Close dialog\">&times;</button>\n      <div class=\"modal-title-strip\"><h3 class=\"modal-title\" id=\"contact-modal-title\">Send a Message</h3></div>\n      <div class=\"modal-body\">\n        <form id=\"contact-form\" class=\"contact-form\" method=\"post\" action=\"/api/contact\" data-endpoint=\"/api/contact\" novalidate>\n          <div class=\"form-field\">\n            <label for=\"contact-name\">Name <span class=\"field-required\" id=\"contact-name-required\" hidden>- Required</span></label>\n            <input id=\"contact-name\" name=\"name\" type=\"text\" autocomplete=\"name\" required maxlength=\"200\" placeholder=\"Jane Doe\" aria-describedby=\"contact-name-required\">\n          </div>\n          <div class=\"form-field\">\n            <label for=\"contact-email\">Email <span class=\"field-required\" id=\"contact-email-required\" hidden>- Required</span></label>\n            <input id=\"contact-email\" name=\"email\" type=\"email\" autocomplete=\"email\" required placeholder=\"you@example.com\" aria-describedby=\"contact-email-required\">\n          </div>\n          <div class=\"form-field\">\n            <label for=\"contact-message\">How can I help? <span class=\"field-required\" id=\"contact-message-required\" hidden>- Required</span></label>\n            <textarea id=\"contact-message\" name=\"message\" rows=\"5\" maxlength=\"4000\" required placeholder=\"Share a few details about your project, idea, or question.\" aria-describedby=\"contact-message-required\"></textarea>\n          </div>\n          <div class=\"form-field honeypot\" aria-hidden=\"true\">\n            <label for=\"contact-company\">Company</label>\n            <input id=\"contact-company\" name=\"company\" type=\"text\" tabindex=\"-1\" autocomplete=\"off\">\n          </div>\n          <p id=\"contact-status\" class=\"contact-form-status\" role=\"status\" aria-live=\"polite\" tabindex=\"-1\"></p>\n          <div id=\"contact-alt\" class=\"contact-form-alt\" hidden>\n            <a href=\"mailto:daniel@danielshort.me\" class=\"btn-ghost\">Email me directly</a>\n          </div>\n          <div class=\"form-actions\">\n            <button type=\"submit\" class=\"btn-primary\">\n              <span class=\"btn-spinner\" aria-hidden=\"true\"></span>\n              <span class=\"btn-label\">Send Message</span>\n            </button>\n          </div>\n        </form>\n        <div class=\"contact-form-success\" id=\"contact-success\" hidden tabindex=\"-1\" role=\"status\" aria-live=\"polite\">\n          <span class=\"success-icon\" aria-hidden=\"true\"></span>\n          <h4>Message sent</h4>\n          <p>Thanks for reaching out. I received your note and will reply shortly. If it’s urgent, feel free to send a direct email as well.</p>\n          <div class=\"form-actions\">\n            <button type=\"button\" class=\"btn-primary\" data-contact-new>Start another message</button>\n            <a href=\"mailto:daniel@danielshort.me\" class=\"btn-secondary\">Email me directly</a>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>"
-      }
-    },
-    {
-      "id": "contact-3",
-      "type": "legacy-html",
-      "label": "Contact Options",
-      "enabled": true,
-      "variant": "default",
-      "props": {
-        "html": "<section id=\"contact-options\" class=\"surface-band reveal\">\n    <div class=\"wrapper\">\n      <div class=\"contact-options-heading\">\n        <h2 class=\"section-title\">Other ways to connect</h2>\n        <p class=\"section-subtitle\">Email is fastest. I’m based in Delta, Colorado.</p>\n      </div>\n      <div class=\"contact-grid contact-big\">\n        <a href=\"mailto:daniel@danielshort.me\" class=\"contact-card\">\n          <span class=\"contact-card__icon\" aria-hidden=\"true\"><img src=\"/img/icons/contact-email-v2.png\" alt=\"\" width=\"256\" height=\"256\" decoding=\"async\"></span>\n          <span class=\"contact-card__copy\"><strong>Email</strong><small>daniel@danielshort.me</small></span>\n          <span class=\"contact-card__arrow\" aria-hidden=\"true\"><img src=\"/img/ui/site-icons/section-arrow-contact-right.webp\" alt=\"\" width=\"20\" height=\"20\" decoding=\"async\"></span>\n        </a>\n        <a href=\"https://github.com/danielshort3\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"contact-card\">\n          <span class=\"contact-card__icon\" aria-hidden=\"true\"><img src=\"/img/icons/github-icon.png\" alt=\"\" width=\"256\" height=\"256\" decoding=\"async\"></span>\n          <span class=\"contact-card__copy\"><strong>GitHub</strong><small>github.com/danielshort3</small></span>\n          <span class=\"contact-card__arrow\" aria-hidden=\"true\"><img src=\"/img/ui/site-icons/action-external.webp\" alt=\"\" width=\"20\" height=\"20\" decoding=\"async\"></span>\n        </a>\n      </div>\n    </div>\n  </section>"
-      }
-    },
-    {
-      "id": "grand-junction-location",
-      "type": "map",
-      "label": "Delta Location",
-      "enabled": true,
-      "variant": "default",
-      "props": {
-        "title": "Delta, Colorado",
-        "body": "My home base in western Colorado.",
-        "address": "Delta, CO",
-        "showLink": false,
-        "embed": true,
-        "useEmbedApi": false,
-        "persist": true,
-        "zoom": 10
+        "title": "Other ways to connect",
+        "email": "daniel@danielshort.me",
+        "location": "Delta, Colorado",
+        "address": "Delta, CO"
       }
     }
   ]

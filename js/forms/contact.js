@@ -69,7 +69,7 @@
     if (activeContact?.ownerRoot !== document && activeContact?.ownerRoot?.isConnected === false) {
       activeContact.dispose();
     }
-    const modal = query(root, '#contact-modal');
+    const modal = query(root, '[data-contact-inline]') || query(root, '#contact-modal');
     if (!modal) {
       // A route mount may run after direct-page initialization has already
       // moved its dialog out of the route scene and into the shared overlay layer.
@@ -79,6 +79,7 @@
     }
     if (activeContact?.modal === modal) return activeContact;
     activeContact?.dispose();
+    const inline = modal.hasAttribute('data-contact-inline');
 
     if (root !== document) {
       document.querySelectorAll('#contact-modal[data-contact-modal-injected="true"]').forEach((node) => {
@@ -92,12 +93,12 @@
       target.addEventListener(type, listener, options);
       cleanups.push(() => target.removeEventListener(type, listener, options));
     };
-    const content = query(modal, '.modal-content');
+    const content = inline ? modal : query(modal, '.modal-content');
     const openBtn = query(root, '#contact-form-toggle') || document.getElementById('contact-form-toggle');
     const ownerRoot = root === document
       ? modal.closest(ROUTE_CONTENT_SELECTOR) || document.querySelector(ROUTE_CONTENT_SELECTOR) || document
       : root;
-    const placeholder = modal.parentElement !== document.body
+    const placeholder = !inline && modal.parentElement !== document.body
       ? document.createComment('contact-modal')
       : null;
     if (placeholder) {
@@ -118,6 +119,8 @@
     const nameInput = query(form, '#contact-name');
     const emailInput = query(form, '#contact-email');
     const messageInput = query(form, '#contact-message');
+    const errorSummary = query(form, '#contact-errors');
+    const errorList = query(errorSummary, '[data-contact-error-list]');
     const draftKey = `contact:${String(document.body?.dataset.audience || 'personal')}`;
     const draftInputs = { name: nameInput, email: emailInput, message: messageInput };
     const previousDraft = window.SiteSessionDrafts?.read(draftKey);
@@ -126,9 +129,9 @@
       if (input && typeof previousDraft[key] === 'string') input.value = previousDraft[key];
     });
     const fieldConfigs = [
-      { input: nameInput, indicator: query(modal, '#contact-name-required') },
-      { input: emailInput, indicator: query(modal, '#contact-email-required'), invalidIndicator: '- Check email' },
-      { input: messageInput, indicator: query(modal, '#contact-message-required') }
+      { input: nameInput, indicator: query(modal, '#contact-name-required'), label: 'name', limit: 200 },
+      { input: emailInput, indicator: query(modal, '#contact-email-required'), label: 'email address', limit: 254 },
+      { input: messageInput, indicator: query(modal, '#contact-message-required'), label: 'message', limit: 4000 }
     ];
     let prevFocus = null;
     let sending = false;
@@ -141,8 +144,10 @@
     let dismissDraftNotice = null;
     let releaseDraftNotice = null;
     let hashOpenTimer = 0;
+    let pendingHashOpen = false;
     let disposed = false;
-    const modalAccessibility = typeof window.createModalAccessibility === 'function'
+    let validationSubmitted = false;
+    const modalAccessibility = !inline && typeof window.createModalAccessibility === 'function'
       ? window.createModalAccessibility(modal)
       : null;
     const persistDraft = () => {
@@ -165,9 +170,6 @@
       draftTimer = window.setTimeout(persistDraft, 500);
     };
 
-    fieldConfigs.forEach((config) => {
-      if (config.indicator) config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
-    });
     const currentPathname = () => {
       try { return String(window.location?.pathname || '').trim(); } catch (_) { return ''; }
     };
@@ -210,19 +212,17 @@
       if (!submitBtn) return;
       submitBtn.disabled = sending || !endpoint;
       submitBtn.classList.toggle('is-busy', sending);
-      if (submitLabel) submitLabel.textContent = sending ? 'Sending…' : hasFailure ? 'Retry' : 'Send Message';
+      if (submitLabel) submitLabel.textContent = sending ? 'Sending…' : hasFailure ? 'Retry sending' : 'Send message';
       Object.values(draftInputs).forEach((input) => { if (input) input.readOnly = sending; });
       const discardDraft = content?.querySelector('.draft-recovery-notice button');
       if (discardDraft) discardDraft.disabled = sending;
     };
-    const showFieldError = (config, invalid = false) => {
+    const showFieldError = (config, message) => {
       if (!config?.input) return;
       config.input.setAttribute('aria-invalid', 'true');
       config.input.closest('.form-field')?.classList.add('has-error');
       if (config.indicator) {
-        config.indicator.textContent = invalid && config.invalidIndicator
-          ? config.invalidIndicator
-          : config.defaultIndicator || '- Required';
+        config.indicator.textContent = message;
         config.indicator.hidden = false;
       }
     };
@@ -231,33 +231,53 @@
       config.input.removeAttribute('aria-invalid');
       config.input.closest('.form-field')?.classList.remove('has-error');
       if (config.indicator) {
-        config.indicator.textContent = config.defaultIndicator || '- Required';
+        config.indicator.textContent = '';
         config.indicator.hidden = true;
       }
     };
     const validateField = (config) => {
       if (!config?.input) return true;
       if (!trimmed(config.input)) {
-        showFieldError(config);
+        showFieldError(config, `Enter your ${config.label}.`);
+        return false;
+      }
+      if (trimmed(config.input).length > config.limit) {
+        showFieldError(config, `Keep your ${config.label} to ${config.limit} characters or fewer.`);
         return false;
       }
       if (config.input.type === 'email' && !emailIsValid()) {
-        showFieldError(config, true);
+        showFieldError(config, 'Enter a valid email address, like name@example.com.');
         return false;
       }
       clearFieldError(config);
       return true;
+    };
+    const updateErrorSummary = () => {
+      if (!errorSummary || !errorList) return;
+      errorList.replaceChildren();
+      const invalid = fieldConfigs.filter(({ input }) => input?.getAttribute('aria-invalid') === 'true');
+      invalid.forEach(({ input, indicator }) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.setAttribute('href', `#${input.id}`);
+        link.textContent = indicator?.textContent || 'Check this field.';
+        item.appendChild(link);
+        errorList.appendChild(item);
+      });
+      errorSummary.hidden = !validationSubmitted || !invalid.length;
     };
     const validateForm = () => {
       let firstInvalid = null;
       fieldConfigs.forEach((config) => {
         if (!validateField(config) && !firstInvalid) firstInvalid = config.input;
       });
+      validationSubmitted = true;
+      updateErrorSummary();
       return firstInvalid;
     };
     const toggleSuccess = (show = false) => {
       if (!form || !successPanel) return;
-      const body = query(modal, '.modal-body');
+      const body = query(modal, '[data-contact-form-body]') || query(modal, '.modal-body');
       const update = () => {
         form.hidden = show;
         successPanel.hidden = !show;
@@ -266,7 +286,7 @@
         modal.classList.toggle('contact-success', show);
         if (show) {
           if (body) body.scrollTop = 0;
-          if (modal.classList.contains('active')) successPanel.focus();
+          if (inline || modal.classList.contains('active')) successPanel.focus();
         }
       };
       if (window.SiteMotion && modal.classList.contains('active')) window.SiteMotion.swap(body, update);
@@ -275,6 +295,8 @@
     const clearInputs = () => {
       form?.reset();
       fieldConfigs.forEach(clearFieldError);
+      validationSubmitted = false;
+      updateErrorSummary();
       clearDraft();
     };
     const prepareForm = () => {
@@ -284,6 +306,8 @@
       toggleSuccess(false);
       setStatus('');
       fieldConfigs.forEach(clearFieldError);
+      validationSubmitted = false;
+      updateErrorSummary();
       updateSubmitState();
     };
     const syncModalOpenState = () => {
@@ -293,8 +317,27 @@
       if (!modal.classList.contains('active') || !content || content.contains(document.activeElement)) return;
       content.focus({ preventScroll: true });
     };
+    const showRecoveredDraft = () => {
+      if (!restoredDraft) return;
+      restoredDraft = false;
+      dismissDraftNotice = window.SiteSessionDrafts?.notice({ container: query(content, '[data-contact-form-body]') || content.querySelector('.modal-body') || content, duration: 0, reserve: true, onDiscard: () => {
+        if (sending) return false;
+        clearInputs();
+        setStatus('');
+        nameInput?.focus();
+      } });
+      releaseDraftNotice = dismissDraftNotice?.release || null;
+    };
     const open = () => {
       if (!content || disposed) return;
+      pendingHashOpen = false;
+      if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+      hashOpenTimer = 0;
+      if (inline) {
+        (successPanel?.hidden === false ? successPanel : nameInput)?.focus({ preventScroll: true });
+        modal.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+        return;
+      }
       if (modal.classList.contains('active')) {
         focusDialog();
         return;
@@ -312,19 +355,10 @@
       modalAccessibility?.isolateBackground();
       content.addEventListener('keydown', trap);
       window.requestAnimationFrame(focusDialog);
-      if (restoredDraft) {
-        restoredDraft = false;
-        dismissDraftNotice = window.SiteSessionDrafts?.notice({ container: content.querySelector('.modal-body') || content, duration: 0, reserve: true, onDiscard: () => {
-          if (sending) return false;
-          clearInputs();
-          setStatus('');
-          nameInput?.focus();
-        } });
-        releaseDraftNotice = dismissDraftNotice?.release || null;
-      }
+      showRecoveredDraft();
     };
     const close = ({ restoreFocus = true, immediate = false } = {}) => {
-      if (!content || !modal.classList.contains('active')) return;
+      if (inline || !content || !modal.classList.contains('active')) return;
       trackContactEvent('contact_modal_close', { page_path: currentPathname() });
       persistDraft();
       dismissDraftNotice?.();
@@ -350,12 +384,21 @@
       }
     };
     const openIfHashMatches = () => {
-      if (window.location.hash !== '#contact-modal') return;
       if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+      hashOpenTimer = 0;
+      pendingHashOpen = window.location.hash === '#contact-modal';
+      if (!pendingHashOpen) return;
       hashOpenTimer = window.setTimeout(() => {
         hashOpenTimer = 0;
+        // Automatic deep links must not isolate an unresolved consent banner
+        // or steal focus from preferences. Resume after the CMP closes its UI.
+        if (document.documentElement.hasAttribute('data-consent-reserve') || document.getElementById('pcz-banner') || document.getElementById('pcz-modal')) return;
+        pendingHashOpen = false;
         if (!modal.classList.contains('active')) open();
       }, 120);
+    };
+    const resumePendingHash = () => {
+      if (pendingHashOpen) openIfHashMatches();
     };
     const handleEscape = (event) => {
       if (event.key === 'Escape' && modal.classList.contains('active')) close();
@@ -373,7 +416,7 @@
           field_id: String(firstInvalid.id || '')
         });
         setStatus('');
-        firstInvalid.focus({ preventScroll: true });
+        (inline && errorSummary ? errorSummary : firstInvalid).focus();
         return;
       }
       trackContactEvent('contact_form_submit', { page_path: currentPathname() });
@@ -434,7 +477,7 @@
           reason: error?.message === DELIVERY_UNKNOWN ? 'delivery_unknown' : 'rejected'
         });
         const message = error?.message === 'Your message was not accepted. Check the form or email me directly.' ? error.message : DELIVERY_UNKNOWN;
-        setStatus(message, 'error', { focus: modal.classList.contains('active') });
+        setStatus(message, 'error', { focus: inline || modal.classList.contains('active') });
       } finally {
         if (token !== submissionToken) return;
         window.clearTimeout(submissionTimer);
@@ -456,14 +499,31 @@
       if (sending) event.preventDefault();
     });
     listen(window, 'hashchange', openIfHashMatches);
+    listen(window, 'consent-changed', resumePendingHash);
+    listen(window, 'consent-ui-closed', resumePendingHash);
     listen(form, 'input', () => { updateSubmitState(); scheduleDraft(); });
+    listen(errorSummary, 'click', (event) => {
+      const link = event.target.closest?.('a[href]');
+      const field = fieldConfigs.find(({ input }) => link?.getAttribute('href') === `#${input?.id}`)?.input;
+      if (!field) return;
+      event.preventDefault();
+      field.focus();
+    });
     listen(window, 'pagehide', persistDraft);
     listen(document, 'site:route-before-leave', persistDraft);
     fieldConfigs.forEach((config) => {
       listen(config.input, 'input', () => {
-        if (config.input?.getAttribute('aria-invalid') === 'true') validateField(config);
+        if (config.input?.getAttribute('aria-invalid') === 'true') {
+          validateField(config);
+          updateErrorSummary();
+        }
       });
-      listen(config.input, 'blur', () => validateField(config));
+      listen(config.input, 'blur', () => {
+        if (trimmed(config.input) || validationSubmitted) {
+          validateField(config);
+          updateErrorSummary();
+        }
+      });
     });
     listen(form, 'submit', handleSubmit);
     listen(newMessageBtn, 'click', () => {
@@ -479,6 +539,7 @@
     const controller = {
       modal,
       ownerRoot,
+      inline,
       open,
       close,
       get sending() { return sending; },
@@ -488,6 +549,7 @@
         dismissDraftNotice?.();
         if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
         hashOpenTimer = 0;
+        pendingHashOpen = false;
         submitController?.abort();
         submitController = null;
         submissionToken += 1;
@@ -519,6 +581,7 @@
     window.openContactModal = open;
     window.closeContactModal = close;
     window.__contactModalReady = true;
+    if (inline) showRecoveredDraft();
     listen(document, 'site:route-unmounted', (event) => {
       if (event.detail?.root === ownerRoot) controller.dispose();
     });
@@ -554,7 +617,7 @@
     // in the outgoing page. Explicit contact requests mount their own controller.
     const module = document.body?.dataset.siteRouteModule;
     if (window.SiteRoutes && module && module !== 'contact:contact') return;
-    const modal = document.getElementById('contact-modal');
+    const modal = document.querySelector('[data-contact-inline]') || document.getElementById('contact-modal');
     if (modal && activeContact?.modal !== modal) mountContactForm(document);
   };
   if (document.readyState === 'loading') {

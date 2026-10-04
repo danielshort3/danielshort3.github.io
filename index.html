@@ -28,18 +28,94 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/personal-social-card.png">
   <meta name="twitter:image:alt" content="Daniel Short — Solving everyday problems with data and thoughtful tools. Navy and blue DS logo beside five colored website tabs.">
   <meta name="theme-color" content="#091F3B">
-  <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
-  <link rel="stylesheet" href="dist/styles-home.2b42247d.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
+  <link rel="stylesheet" href="dist/styles-home.712f8562.css">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
@@ -47,13 +123,13 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png?v=ecc0b34a9649">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png?v=49674505c1c5">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png?v=02cddde9a923">
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
-  <script src="js/common/no-js.js"></script>
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"ProfilePage","@id":"https://www.danielshort.me/#webpage","url":"https://www.danielshort.me/","name":"Daniel Short | Data Analytics, ML Projects & Web Tools","description":"Solving everyday problems with data and thoughtful tools. Explore Daniel Short’s analytics, machine learning projects, and browser games.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"mainEntity":{"@id":"https://www.danielshort.me/#person"}}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"","view":"closed","navigation":"soft","styles":["/dist/styles.9380b237.css","/dist/styles-home.2b42247d.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.c57ddd04.js","/js/common/no-js.js","/dist/site-home.de363980.js","/dist/site-consent.772887f4.js"],"module":"home"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"home","path":"/","category":"","view":"closed","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/dist/styles-home.712f8562.css"],"scripts":["/dist/site-shell.7e88cd8b.js","/dist/site-home.9a330589.js","/dist/site-consent.a6d261d1.js"],"module":"home"}</script>
 </head>
 <body data-page="home" data-audience="personal" class="site-page audience-page home-pattern-page" data-site-route-id="home" data-site-route-category="" data-site-route-view="closed" data-site-route-navigation="soft" data-site-route-module="home">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -85,13 +161,13 @@
   <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
   <main id="main" data-site-route-content>
     <div data-site-route-toolbar hidden aria-hidden="true"></div>
-  <section class="home-accordion" data-cms-section-id="home-category-accordion" data-cms-section-type="home-accordion" data-home-accordion data-default-panel="about" data-active-panel="" data-home-view="closed" aria-labelledby="home-accordion-title">
+  <section class="home-accordion" data-home-accordion data-default-panel="about" data-active-panel="" data-home-view="closed" aria-labelledby="home-accordion-title">
     <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>
       <p class="site-frame__welcome-eyebrow">WELCOME</p>
       <h1 class="site-frame__welcome-title">Daniel Short.</h1>
       <p class="site-frame__welcome-summary">Solving everyday problems with data and thoughtful tools.</p>
       <p class="site-frame__welcome-detail">I use data, AI, and machine learning to build practical projects and browser tools.</p>
-      <a class="site-frame__welcome-browse" href="/portfolio">Browse all projects <span aria-hidden="true">→</span></a>
+      <a class="site-frame__welcome-browse" href="/portfolio">Browse all projects <span aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></a>
     </div>
     <h2 class="visually-hidden" id="home-accordion-title">Explore Daniel Short</h2>
     <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="closed">
@@ -105,7 +181,7 @@
         </h2>
         <section class="home-accordion__panel" id="home-accordion-panel-about" role="region" aria-labelledby="home-accordion-trigger-about" data-home-accordion-panel="about" hidden inert>
           <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="About content">
-            <div class="home-about">
+            <div class="home-about home-about--story-only">
               <div class="home-about__personal">
                 <header class="home-about__profile">
                   <img class="home-about__portrait" src="img/hero/head-avatar-384.jpg" alt="Daniel Short" loading="eager" decoding="async" width="384" height="384">
@@ -120,38 +196,38 @@
                   <h3 id="home-about-connections-title">Life shapes what I build.</h3>
                   <ul class="home-about__connections">
                   <li class="home-about__connection" data-home-about-connection="ai">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-ai-network-v1.webp" srcset="img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-ai-network-v1.webp?v=f1744577e681" srcset="img/hero/about-ai-network-v1-192.webp 192w, img/hero/about-ai-network-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>AI &amp; machine learning</h4>
-                      <p>Turning repetitive tasks into useful tools.</p>
+                      <p>Building useful answers with models and trustworthy sources.</p>
                     </div>
-                    <span class="home-about__connector" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                    <a class="home-about__project" href="/tools" data-content-open="true" data-content-id="tools" data-content-type="directory" data-resource-type="library" data-source-surface="home_about">
-                      <strong>Practical browser tools<span class="home-about__project-arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></strong>
-                      <span>Compare text, create QR codes, and record your screen.</span>
+                    <span class="home-about__connector" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
+                    <a class="home-about__project" href="/portfolio/chatbotLora" data-content-open="true" data-content-id="chatbotLora" data-content-type="project" data-resource-type="case_study" data-source-surface="home_about">
+                      <strong>Travel Assistant chatbot<span class="home-about__project-arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></strong>
+                      <span>Answers Grand Junction questions with source-grounded AI.</span>
                     </a>
                   </li>
                   <li class="home-about__connection" data-home-about-connection="family">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-family-frame-v1.webp" srcset="img/hero/about-family-frame-v1-192.webp 192w, img/hero/about-family-frame-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-family-frame-v1.webp?v=ffe7875d3fca" srcset="img/hero/about-family-frame-v1-192.webp 192w, img/hero/about-family-frame-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>Family</h4>
                       <p>A central part of my life.</p>
                     </div>
-                    <span class="home-about__connector" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                    <span class="home-about__connector" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                     <a class="home-about__project" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="home_about">
-                      <strong>Baby Name Predictor<span class="home-about__project-arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></strong>
+                      <strong>Baby Name Predictor<span class="home-about__project-arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></strong>
                       <span>A project inspired by naming our child.</span>
                     </a>
                   </li>
                   <li class="home-about__connection" data-home-about-connection="french-horn">
-                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-french-horn-sheet-music-v1.webp" srcset="img/hero/about-french-horn-sheet-music-v1-192.webp 192w, img/hero/about-french-horn-sheet-music-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
+                    <span class="home-about__interest-icon" aria-hidden="true"><img src="img/hero/about-french-horn-sheet-music-v1.webp?v=2ae9038dbffa" srcset="img/hero/about-french-horn-sheet-music-v1-192.webp 192w, img/hero/about-french-horn-sheet-music-v1-384.webp 384w" sizes="58px" alt="" width="512" height="512" loading="lazy" decoding="async" fetchpriority="low"></span>
                     <div class="home-about__interest">
                       <h4>French horn</h4>
                       <p>Playing for 20 years.</p>
                     </div>
-                    <span class="home-about__connector" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                    <span class="home-about__connector" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                     <a class="home-about__project" href="/portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="home_about">
-                      <strong>Sheet music restoration<span class="home-about__project-arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-about-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></strong>
+                      <strong>Sheet music restoration<span class="home-about__project-arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></strong>
                       <span>Making low-resolution sheet music easier to read.</span>
                     </a>
                   </li>
@@ -160,111 +236,6 @@
                 <div class="home-about__current"><span class="home-about__current-icon" aria-hidden="true"><img src="/img/ui/site-icons/about-code.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span><a href="/portfolio/website"><strong>Currently building:</strong> a more useful, accessible home for my projects and browser tools.</a></div>
                 </div>
               </div>
-            <section class="home-timeline" data-home-timeline data-home-timeline-layout="resume" aria-labelledby="home-timeline-about-title">
-              <h3 id="home-timeline-about-title">Experience &amp; learning</h3>
-              <div class="home-background">
-                <section class="home-background__section" data-home-background-section="experience" aria-labelledby="home-timeline-about-experience-title">
-                  <h4 class="home-background__section-title" id="home-timeline-about-experience-title">Experience</h4>
-                  <ul class="home-background__list">
-                    <li class="home-background__item" data-home-timeline-item="visit-grand-junction">
-                      <span class="home-background__icon" aria-hidden="true"><img src="/img/ui/site-icons/about-job.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                      <article class="home-background__entry" aria-describedby="home-timeline-about-visit-grand-junction-date">
-                        <strong class="home-background__title">Business Analyst</strong>
-                        <span class="home-background__subtitle">Visit Grand Junction</span>
-                      </article>
-                      <div class="home-background__date" id="home-timeline-about-visit-grand-junction-date"><time datetime="2024-02">Feb 2024</time> <span class="home-timeline__date-separator">–</span> <span class="home-timeline__current">Present</span></div>
-                    </li>
-                    <li class="home-background__item" data-home-timeline-item="randall-reilly">
-                      <span class="home-background__icon" aria-hidden="true"><img src="/img/ui/site-icons/about-job.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                      <article class="home-background__entry" aria-describedby="home-timeline-about-randall-reilly-date">
-                        <strong class="home-background__title">AI Data Quality Analyst</strong>
-                        <span class="home-background__subtitle">Randall Reilly</span>
-                      </article>
-                      <div class="home-background__date" id="home-timeline-about-randall-reilly-date"><time datetime="2023-11">Nov 2023</time> <span class="home-timeline__date-separator">–</span> <time datetime="2024-01">Jan 2024</time></div>
-                    </li>
-                    <li class="home-background__item" data-home-timeline-item="target">
-                      <span class="home-background__icon" aria-hidden="true"><img src="/img/ui/site-icons/about-job.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                      <article class="home-background__entry" aria-describedby="home-timeline-about-target-date">
-                        <strong class="home-background__title">Asset Protection Data Analyst</strong>
-                        <span class="home-background__subtitle">Target</span>
-                      </article>
-                      <div class="home-background__date" id="home-timeline-about-target-date"><time datetime="2022-06">Jun 2022</time> <span class="home-timeline__date-separator">–</span> <time datetime="2023-11">Nov 2023</time></div>
-                    </li>
-                  </ul>
-                </section>
-                <section class="home-background__section" data-home-background-section="education" aria-labelledby="home-timeline-about-education-title">
-                  <h4 class="home-background__section-title" id="home-timeline-about-education-title">Education</h4>
-                  <ul class="home-background__list">
-                    <li class="home-background__item" data-home-timeline-item="eastern-ms-data-science">
-                      <span class="home-background__icon" aria-hidden="true"><img src="/img/ui/site-icons/about-degree.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                      <article class="home-background__entry" aria-describedby="home-timeline-about-eastern-ms-data-science-date">
-                        <strong class="home-background__title">M.S. Data Science</strong>
-                        <span class="home-background__subtitle">Eastern University</span>
-                      </article>
-                      <div class="home-background__date" id="home-timeline-about-eastern-ms-data-science-date"><time datetime="2025-05">May 2025</time></div>
-                    </li>
-                    <li class="home-background__item" data-home-timeline-item="purdue-bs-data-analytics">
-                      <span class="home-background__icon" aria-hidden="true"><img src="/img/ui/site-icons/about-degree.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                      <a class="home-background__entry" aria-describedby="home-timeline-about-purdue-bs-data-analytics-date" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
-                        <strong class="home-background__title"><span>B.S. Data Analytics</span><span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></strong>
-                        <span class="home-background__subtitle">Purdue University Global</span>
-                      </a>
-                      <div class="home-background__date" id="home-timeline-about-purdue-bs-data-analytics-date"><time datetime="2023-05">May 2023</time></div>
-                    </li>
-                  </ul>
-                </section>
-                <section class="home-background__section" data-home-background-section="credentials" aria-labelledby="home-timeline-about-credentials-title">
-                  <h4 class="home-background__section-title" id="home-timeline-about-credentials-title">Credentials</h4>
-                  <div class="home-background__issuers">
-                    <section class="home-background__issuer" data-home-credential-issuer="Google" aria-labelledby="home-timeline-about-issuer-1-title">
-                      <h5 class="home-background__issuer-title" id="home-timeline-about-issuer-1-title">Google</h5>
-                      <ul class="home-background__credential-list">
-                      <li class="home-background__credential" data-home-timeline-item="google-advanced-data-analytics">
-                        <a class="home-background__credential-link" aria-describedby="home-timeline-about-google-advanced-data-analytics-date" title="Earned May 20, 2023" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
-                          <span class="home-background__credential-label"><span class="home-background__title-full visually-hidden">Google Advanced Data Analytics Professional Certificate</span><span class="home-background__title-compact" aria-hidden="true">Advanced Data Analytics</span></span>
-                          <span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                        </a>
-                        <span class="home-background__credential-date visually-hidden" id="home-timeline-about-google-advanced-data-analytics-date">Earned <time datetime="2023-05-20">May 20, 2023</time></span>
-                      </li>
-                      <li class="home-background__credential" data-home-timeline-item="google-data-analytics">
-                        <a class="home-background__credential-link" aria-describedby="home-timeline-about-google-data-analytics-date" title="Earned Jan 3, 2023" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
-                          <span class="home-background__credential-label"><span class="home-background__title-full visually-hidden">Google Data Analytics Professional Certificate</span><span class="home-background__title-compact" aria-hidden="true">Data Analytics</span></span>
-                          <span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                        </a>
-                        <span class="home-background__credential-date visually-hidden" id="home-timeline-about-google-data-analytics-date">Earned <time datetime="2023-01-03">Jan 3, 2023</time></span>
-                      </li>
-                      <li class="home-background__credential" data-home-timeline-item="google-analytics">
-                        <a class="home-background__credential-link" aria-describedby="home-timeline-about-google-analytics-date" title="Earned Apr 18, 2024" href="https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a" target="_blank" rel="noopener noreferrer">
-                          <span class="home-background__credential-label"><span class="home-background__title-full visually-hidden">Google Analytics Certification</span><span class="home-background__title-compact" aria-hidden="true">Google Analytics</span></span>
-                          <span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                        </a>
-                        <span class="home-background__credential-date visually-hidden" id="home-timeline-about-google-analytics-date">Earned <time datetime="2024-04-18">Apr 18, 2024</time></span>
-                      </li>
-                      </ul>
-                    </section>
-                    <section class="home-background__issuer" data-home-credential-issuer="IBM" aria-labelledby="home-timeline-about-issuer-2-title">
-                      <h5 class="home-background__issuer-title" id="home-timeline-about-issuer-2-title">IBM</h5>
-                      <ul class="home-background__credential-list">
-                      <li class="home-background__credential" data-home-timeline-item="ibm-machine-learning">
-                        <a class="home-background__credential-link" aria-describedby="home-timeline-about-ibm-machine-learning-date" title="Earned Feb 12, 2023" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">
-                          <span class="home-background__credential-label"><span class="home-background__title-full visually-hidden">IBM Machine Learning Professional Certificate</span><span class="home-background__title-compact" aria-hidden="true">Machine Learning</span></span>
-                          <span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                        </a>
-                        <span class="home-background__credential-date visually-hidden" id="home-timeline-about-ibm-machine-learning-date">Earned <time datetime="2023-02-12">Feb 12, 2023</time></span>
-                      </li>
-                      <li class="home-background__credential" data-home-timeline-item="ibm-data-analyst">
-                        <a class="home-background__credential-link" aria-describedby="home-timeline-about-ibm-data-analyst-date" title="Earned Jan 11, 2023" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
-                          <span class="home-background__credential-label"><span class="home-background__title-full visually-hidden">IBM Data Analyst Professional Certificate</span><span class="home-background__title-compact" aria-hidden="true">Data Analyst</span></span>
-                          <span class="home-background__arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
-                        </a>
-                        <span class="home-background__credential-date visually-hidden" id="home-timeline-about-ibm-data-analyst-date">Earned <time datetime="2023-01-11">Jan 11, 2023</time></span>
-                      </li>
-                      </ul>
-                    </section>
-                  </div>
-                </section>
-              </div>
-            </section>
             </div>
           </div>
         </section>
@@ -292,39 +263,39 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/sheetMusicUpscale.webp?v=50658c2612ad"><img src="img/projects/icons/sheetMusicUpscale.png?v=50658c2612ad" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/sheetMusicUpscale.webp?v=72c57065af22"><img src="img/projects/icons/sheetMusicUpscale.png?v=72c57065af22" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Sheet Music Watermark Removal &amp; Upscale</strong>
                     <span>I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-projects-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/handwritingRating.webp?v=582853161647"><img src="img/projects/icons/handwritingRating.png?v=582853161647" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/handwritingRating.webp?v=25918dc175e2"><img src="img/projects/icons/handwritingRating.png?v=25918dc175e2" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Handwriting Legibility Scoring</strong>
                     <span>My wife said my handwriting was hard to read, so I explored whether a model could recognize my handwritten digits.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-projects-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/babynames.webp?v=7fc79e6e3331"><img src="img/projects/icons/babynames.png?v=7fc79e6e3331" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/projects/icons/babynames.webp?v=a1972b54dcd2"><img src="img/projects/icons/babynames.png?v=a1972b54dcd2" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Baby Name Predictor</strong>
                     <span>I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-projects-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/portfolio" aria-controls="home-library-view-projects" aria-expanded="false" data-home-library-open="projects">View all projects <span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-projects-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></a>
+            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/portfolio" aria-controls="home-library-view-projects" aria-expanded="false" data-home-library-open="projects">View all projects <span aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></a>
             <section class="home-library" id="home-library-view-projects" data-home-library-view="projects" aria-labelledby="home-library-view-projects-title" hidden inert>
               <header class="home-library__header" data-page-masthead>
-                <button class="home-library__back" type="button" data-home-library-close="projects" data-page-masthead-parent><span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-projects-left.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>Projects overview</button>
+                <button class="home-library__back" type="button" data-home-library-close="projects" data-page-masthead-parent><span aria-hidden="true"><svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>Projects overview</button>
                 <div class="home-library__intro" data-page-masthead-intro>
                   <div class="home-library__heading" data-page-masthead-copy>
                     <h2 id="home-library-view-projects-title" data-home-library-heading tabindex="-1">Project library</h2>
@@ -360,39 +331,39 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/text-compare" data-content-open="true" data-content-id="text-compare" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/text-compare.webp?v=2845cf7f4c69"><img src="img/tools/icons/text-compare.png?v=2845cf7f4c69" alt="Text Compare icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/text-compare.webp?v=0c256936f045"><img src="img/tools/icons/text-compare.png?v=0c256936f045" alt="Text Compare icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Text Compare</strong>
                     <span>Compare two passages and spot changes.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-tools-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/qr-code-generator" data-content-open="true" data-content-id="qr-code-generator" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/qr-code-generator.webp?v=17c29eb950a5"><img src="img/tools/icons/qr-code-generator.png?v=17c29eb950a5" alt="QR Code Generator icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/qr-code-generator.webp?v=bd5286d7353f"><img src="img/tools/icons/qr-code-generator.png?v=bd5286d7353f" alt="QR Code Generator icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>QR Code Generator</strong>
                     <span>Turn a link or note into a scannable code.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-tools-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/screen-recorder" data-content-open="true" data-content-id="screen-recorder" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/screen-recorder.webp?v=f6e8232709d4"><img src="img/tools/icons/screen-recorder.png?v=f6e8232709d4" alt="Screen Recorder icon" loading="lazy" decoding="async"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><picture class="catalog-icon"><source type="image/webp" srcset="img/tools/icons/screen-recorder.webp?v=0fece3f75406"><img src="img/tools/icons/screen-recorder.png?v=0fece3f75406" alt="Screen Recorder icon" loading="lazy" decoding="async"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Screen Recorder</strong>
                     <span>Record your screen and download the clip in browser-supported formats with optional system audio.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-tools-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/tools" aria-controls="home-library-view-tools" aria-expanded="false" data-home-library-open="tools">View all tools <span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-tools-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></a>
+            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/tools" aria-controls="home-library-view-tools" aria-expanded="false" data-home-library-open="tools">View all tools <span aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></a>
             <section class="home-library" id="home-library-view-tools" data-home-library-view="tools" aria-labelledby="home-library-view-tools-title" hidden inert>
               <header class="home-library__header" data-page-masthead>
-                <button class="home-library__back" type="button" data-home-library-close="tools" data-page-masthead-parent><span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-tools-left.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>Tools overview</button>
+                <button class="home-library__back" type="button" data-home-library-close="tools" data-page-masthead-parent><span aria-hidden="true"><svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>Tools overview</button>
                 <div class="home-library__intro" data-page-masthead-intro>
                   <div class="home-library__heading" data-page-masthead-copy>
                     <h2 id="home-library-view-tools-title" data-home-library-heading tabindex="-1">Tool library</h2>
@@ -433,40 +404,40 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/project-starfall.webp?v=7b82f09e6c46"><img src="img/games/icons/project-starfall.png?v=7b82f09e6c46" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/project-starfall.webp?v=3881ad6276cd"><img src="img/games/icons/project-starfall.png?v=3881ad6276cd" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <span class="home-accordion__card-badge">Work in progress</span>
                     <strong>Project Starfall</strong>
                     <span>Explore a fantasy action RPG with class skills, loot, and repeatable expeditions.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-games-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/stellar-dogfight" data-content-open="true" data-content-id="stellar-dogfight" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/stellar-dogfight.webp?v=cffca10aeccc"><img src="img/games/icons/stellar-dogfight.png?v=cffca10aeccc" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/stellar-dogfight.webp?v=1ed6460df253"><img src="img/games/icons/stellar-dogfight.png?v=1ed6460df253" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Stellar Dogfight</strong>
                     <span>Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-games-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/ocean-wave-simulation" data-content-open="true" data-content-id="ocean-wave-simulation" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/ocean-wave-simulation.webp?v=3615bece01d3"><img src="img/games/icons/ocean-wave-simulation.png?v=3615bece01d3" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><picture class="catalog-icon"><source type="image/webp" srcset="img/games/icons/ocean-wave-simulation.webp?v=d661fa6fbc20"><img src="img/games/icons/ocean-wave-simulation.png?v=d661fa6fbc20" alt="" loading="lazy" decoding="async" width="256" height="256"></picture></span>
                   <span class="home-accordion__card-copy">
                     <strong>Ocean Wave Simulator</strong>
                     <span>Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-games-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/games" aria-controls="home-library-view-games" aria-expanded="false" data-home-library-open="games">View all games <span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-games-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span></a>
+            <a class="home-accordion__panel-cta home-accordion__panel-cta--primary" href="/games" aria-controls="home-library-view-games" aria-expanded="false" data-home-library-open="games">View all games <span aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span></a>
             <section class="home-library" id="home-library-view-games" data-home-library-view="games" aria-labelledby="home-library-view-games-title" hidden inert>
               <header class="home-library__header" data-page-masthead>
-                <button class="home-library__back" type="button" data-home-library-close="games" data-page-masthead-parent><span aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-games-left.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>Games overview</button>
+                <button class="home-library__back" type="button" data-home-library-close="games" data-page-masthead-parent><span aria-hidden="true"><svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>Games overview</button>
                 <div class="home-library__intro" data-page-masthead-intro>
                   <div class="home-library__heading" data-page-masthead-copy>
                     <h2 id="home-library-view-games-title" data-home-library-heading tabindex="-1">Game library</h2>
@@ -508,7 +479,7 @@
                     <strong>Send a message</strong>
                     <span>Use the short contact form and share what’s on your mind.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-contact-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
@@ -518,28 +489,28 @@
                     <strong>Email</strong>
                     <span>daniel@danielshort.me</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><img src="/img/ui/site-icons/section-arrow-contact-right.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg class="site-direction-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer">
-                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><img src="img/icons/github-icon.png" alt="" loading="lazy" decoding="async" width="256" height="256"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--icon" aria-hidden="true"><img src="img/icons/github-icon.png?v=16ea8b5855c8" alt="" loading="lazy" decoding="async" width="256" height="256"></span>
                   <span class="home-accordion__card-copy">
                     <strong>GitHub</strong>
                     <span>github.com/danielshort3</span>
                   </span>
-                  <span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><img src="/img/ui/site-icons/action-external.webp" alt="" width="128" height="128" decoding="async" loading="lazy"></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><svg class="site-external-arrow" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM19 13h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6v2H5v14h14v-6z"></path></svg></span>
                 </a>
               </li>
             </ul>
-  <section id="home-contact-location" class="surface-band cms-location" data-cms-section-id="home-contact-location" data-cms-section-type="map">
-    <div class="wrapper cms-location-inner">
-      <div class="cms-location-copy">
+  <section id="home-contact-location" class="surface-band location-section">
+    <div class="wrapper location-section-inner">
+      <div class="location-section-copy">
         <h2 class="section-title">Delta, Colorado</h2>
         <p class="section-subtitle">My home base in western Colorado.</p>
       </div>
-      <div class="cms-map-shell" data-contact-map-slot>
-        <iframe class="cms-map-iframe" title="Map of Delta, CO" data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" data-google-maps-address="Delta, CO" data-google-maps-zoom="10"></iframe>
+      <div class="location-map-shell" data-contact-map-slot>
+        <iframe class="location-map-iframe" title="Map of Delta, CO" data-home-contact-map-src="https://www.google.com/maps?q=Delta%2C%20CO&amp;output=embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" data-google-maps-address="Delta, CO" data-google-maps-zoom="10"></iframe>
       </div>
     </div>
   </section>
@@ -563,7 +534,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="dist/site-home.de363980.js" data-tools-account-src="dist/site-tools-account.2e6c9ae7.js"></script>
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-home.9a330589.js" data-tools-account-src="dist/site-tools-account.2e6c9ae7.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
 </html>

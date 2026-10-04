@@ -150,9 +150,13 @@ async function runPuzzle(page, frame, demo, state, artifactDir, label) {
 
 async function runChat(page, frame, demo, state, artifactDir, label) {
   await frame.locator('#regular-prompt').waitFor({ state: 'visible' });
-  const connection = frame.locator('.demo-status-actions .aws-status-badge');
-  assert(await connection.isVisible(), `${label} keeps the chat service state visible in its shared status area.`);
-  assert.match(await connection.innerText(), /AWS.*Ready/i, `${label} identifies the default chat service as ready.`);
+  if (label === 'chatbot-project-1440') {
+    const embed = await page.locator('iframe.project-embed-frame').boundingBox();
+    assert(embed?.height >= 500, `${label} keeps the guided conversation and composer visible in the project embed.`);
+  }
+  const connection = frame.locator('.conversation-header .aws-status-badge');
+  assert(await connection.isVisible(), `${label} keeps the chat service state visible beside the conversation.`);
+  assert.match(await connection.innerText(), /Bedrock.*Ready/i, `${label} identifies the default chat service as ready.`);
   const settings = frame.locator('#chat-settings');
   const openSettings = async () => {
     if (!await settings.evaluate(node => node.open)) await settings.locator(':scope > summary').click();

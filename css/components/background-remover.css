@@ -909,6 +909,11 @@
     color: #fff;
     border-color: var(--workspace-accent);
   }
+  body[data-page="background-remover"][data-tools-layout][data-tools-state="empty"] .tool-workspace .bgtool-pick:is(:hover, :focus-visible):not(:disabled) {
+    background: #006973;
+    color: #fff;
+    border-color: #006973;
+  }
 
   @media (max-width: 1050px) {
     body[data-page="background-remover"][data-tools-layout] .tool-workspace .bgtool-workspace { grid-template-columns: minmax(0, 1fr); }

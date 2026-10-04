@@ -10,8 +10,8 @@
     languageCode: 'en-US',
     pricePerSecond: 0.0001,
     pricePerMinute: 0.006,
-    minDurationSeconds: 15,
-    minBillableSeconds: 15,
+    minDurationSeconds: 1,
+    minBillableSeconds: 1,
     maxFilesPerRun: 10,
     maxFileBytes: 500 * 1024 * 1024,
     maxTotalCostUsd: 100,
@@ -849,7 +849,7 @@
     const duration = Number(durationSeconds);
     if (!Number.isFinite(duration) || duration <= 0) return 0;
     if (isLocalProvider()) return Math.ceil(duration);
-    return Math.max(Number(state.config.minBillableSeconds) || 15, Math.ceil(duration));
+    return Math.max(Number(state.config.minBillableSeconds) || 1, Math.ceil(duration));
   };
 
   const estimatedCost = (durationSeconds) => {
@@ -1950,9 +1950,10 @@
         renderTable();
         continue;
       }
-      if (item.durationSeconds < Number(config.minDurationSeconds || 15)) {
+      if (item.durationSeconds < Number(config.minDurationSeconds || 1)) {
         item.status = 'skipped';
-        item.skipReason = `Under ${config.minDurationSeconds || 15} seconds.`;
+        const minimumDuration = Number(config.minDurationSeconds || 1);
+        item.skipReason = `Under ${minimumDuration} second${minimumDuration === 1 ? '' : 's'}.`;
         renderTable();
         continue;
       }

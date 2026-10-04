@@ -47,7 +47,7 @@ class SiteContentParserTest {
     assertTrue(content.games.isNotEmpty())
   }
 
-  @Test fun nativeAboutPreservesThePersonalHomepageCopyAndMilestones() {
+  @Test fun nativeAboutPreservesThePersonalHomepageCopyWithoutBackground() {
     val source = JSONObject(File(repositoryRoot(), "content/audiences/personal.json").readText())
     val sections = source.getJSONObject("page").getJSONArray("sections")
     val categories = (0 until sections.length()).flatMap { index ->
@@ -61,9 +61,37 @@ class SiteContentParserTest {
     assertEquals(original.getString("context"), about.location)
     assertEquals("Playing for 20 years.", about.interests.first { it.title == "French horn" }.body)
     assertEquals("A central part of my life.", about.interests.first { it.title == "Family" }.body)
-    assertEquals("Visit Grand Junction", about.experience.first().organization)
-    assertEquals("Feb 2024–present", about.experience.first().date)
-    assertTrue(about.education.first { it.title == "B.S. Data Analytics" }.url.startsWith("https://www.credential.net/"))
+    val ai = about.interests.first { it.title == "AI & machine learning" }
+    assertEquals("chatbotLora", ai.projectId)
+    assertEquals("Travel Assistant chatbot", ai.projectLabel)
+    assertFalse(about.backgroundVisible)
+    assertTrue(about.experience.isEmpty())
+    assertTrue(about.education.isEmpty())
+    assertTrue(about.credentials.isEmpty())
+  }
+
+  @Test fun cachedBackgroundMilestonesStayHiddenUntilExplicitlyEnabled() {
+    val source = fixture()
+    val about = source.getJSONObject("about")
+    val entry = JSONObject().put("title", "Prior experience").put("organization", "Example")
+      .put("date", "Jan 2024").put("url", "")
+    about.put("experience", JSONArray().put(entry))
+    about.put("education", JSONArray().put(entry))
+    about.put("credentials", JSONArray().put(entry))
+
+    about.remove("backgroundVisible")
+    val legacy = parse(source).about
+    assertFalse(legacy.backgroundVisible)
+    assertEquals(1, legacy.experience.size)
+    assertEquals(1, legacy.education.size)
+    assertEquals(1, legacy.credentials.size)
+
+    about.put("backgroundVisible", false)
+    assertFalse(parse(source).about.backgroundVisible)
+    about.put("backgroundVisible", "true")
+    assertFalse(parse(source).about.backgroundVisible)
+    about.put("backgroundVisible", true)
+    assertTrue(parse(source).about.backgroundVisible)
   }
 
   @Test fun incompatibleOrMissingSchemaIsRejected() {
@@ -118,6 +146,14 @@ class SiteContentParserTest {
     assertEquals("", parsed.projects.first().iconUrl)
     assertTrue(parsed.projects.first().resources.isEmpty())
     assertEquals(project.getString("title"), parsed.projects.first().title)
+  }
+
+  @Test fun aboutInterestOnlyNavigatesToAProjectInTheCatalog() {
+    val source = fixture()
+    val ai = source.getJSONObject("about").getJSONArray("interests").getJSONObject(0)
+    ai.put("projectId", "notPublished").put("projectLabel", "Unsafe")
+    assertEquals("", parse(source).about.interests.first().projectId)
+    assertEquals("", parse(source).about.interests.first().projectLabel)
   }
 
   @Test fun imagesCanOnlyLoadFromTheSitesPublicImageDirectory() {

@@ -7,9 +7,9 @@ const path = require('path');
 const vm = require('vm');
 const { versionedImageUrl, versionImageContent } = require('../../build/lib/versioned-image-url');
 const { loadSiteContent } = require('../../build/lib/content-loader');
-const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
-const { renderToolsDirectoryBody, renderGamesDirectoryBody, renderProjectsDataJs } = require('../../build/lib/cms-renderers');
-const { renderVisualPageBody } = require('../../api/_lib/cms-widgets');
+const { buildHomeLibraryData } = require('../../build/generate-content-artifacts');
+const { renderToolsDirectoryBody, renderGamesDirectoryBody, renderProjectsDataJs } = require('../../build/lib/site-renderers');
+const { renderVisualPageBody } = require('../../build/lib/section-renderers');
 const { renderProjectPage, renderPortfolioStaticResults } = require('../../build/generate-project-pages');
 const { renderPersonalLibraryMain } = require('../../build/lib/personal-accordion-shell');
 const { render: renderCatalogIcon } = require('../../js/common/catalog-icons');
@@ -83,7 +83,7 @@ const library = buildHomeLibraryData(content);
 assert(library.tools.items.every(item => /\/img\/tools\/icons\/[^?]+\.png\?v=[a-f0-9]{12}$/.test(item.image)), 'every tool library image is versioned');
 assert(/\?v=[a-f0-9]{12}$/.test(library.projects.items.find(item => item.id === 'sheetMusicUpscale').image));
 const iconProjects = canonical.projects.filter(item => item.published !== false && item.iconImage);
-assert.strictEqual(iconProjects.length, 16, 'all sixteen published projects receive library icons');
+assert.strictEqual(iconProjects.length, 17, 'all seventeen published projects receive library icons');
 const homeProjects = content.audiencesByKey.personal.page.sections
   .find(section => section.type === 'home-accordion').props.categories
   .find(category => category.id === 'projects').items;
@@ -133,7 +133,7 @@ for (const featured of homeGames) {
 }
 const gamesHtml = renderGamesDirectoryBody(content.pagesById.games);
 for (const game of content.pagesById.games.games) {
-  assert(gamesHtml.includes(`src="${game.iconImage}"`), 'the direct CMS game directory renders the library icon');
+  assert(gamesHtml.includes(`src="${game.iconImage}"`), 'the generated game directory renders the library icon');
   if (game.image) assert(!gamesHtml.includes(`src="${game.image}"`), 'game directory icons do not load in-game artwork');
 }
 const fallbackGames = { ...content.pagesById.games, games: content.pagesById.games.games.map(game => ({ ...game, iconImage: '' })) };
@@ -181,5 +181,28 @@ for (const [file, startMarker, endMarker] of [
     assert(rendered.includes(versionedImageUrl(`img/projects/sheetMusicUpscale-640.${extension}`)), `${file} preserves optimized versioned sources`);
   }
   assert(context.picture('img/projects/babynames.png', 'Other', { width: 1600 }).includes('img/projects/babynames-640.webp 640w'), `${file} preserves unrelated source URLs`);
+}
+const websiteProject = canonical.projects.find(item => item.id === 'website');
+function renderedResourceIcons(project) {
+  return [...renderProjectPage(project).matchAll(/<img\b[^>]*class="project-link-icon"[^>]*src="([^"]+)"/g)]
+    .map(match => new URL(match[1].replace(/&amp;/g, '&'), 'https://www.danielshort.me'));
+}
+for (const query of ['', '?v=stale&label=Compact%20icon&tag=one&tag=two#resource-preview']) {
+  const resourceIcons = renderedResourceIcons({ ...websiteProject, resources: websiteProject.resources.map(resource => ({
+    ...resource, icon: resource.icon.replace(/[?#].*$/, '') + query
+  })) });
+  assert.strictEqual(resourceIcons.length, 2, 'Website retains both resource icons');
+  for (const [index, name] of ['github', 'website'].entries()) {
+    const icon = resourceIcons[index];
+    const expectedPath = `/img/icons/${name}-icon-64.webp`;
+    assert.strictEqual(icon.pathname, expectedPath, 'Versioned PNG inputs must still select the compact optimized resource icon');
+    assert.strictEqual(icon.searchParams.get('v'), new URL(versionedImageUrl(expectedPath), icon.origin).searchParams.get('v'),
+      'The optimized resource URL must retain the source family generation key');
+    if (query) {
+      assert.strictEqual(icon.searchParams.get('label'), 'Compact icon');
+      assert.deepStrictEqual(icon.searchParams.getAll('tag'), ['one', 'two']);
+      assert.strictEqual(icon.hash, '#resource-preview', 'Selecting optimized icons preserves other query inputs and fragments');
+    }
+  }
 }
 process.stdout.write('Image cache versions: content freshness, responsive generation, and rendered references passed.\n');

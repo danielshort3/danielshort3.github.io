@@ -1,0 +1,47 @@
+{
+  "id": "androidApp",
+  "title": "Daniel Short for Android",
+  "subtitle": "A mobile companion for my projects, tools, and games.",
+  "metaDescription": "Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.",
+  "image": "img/projects/androidApp.png",
+  "iconImage": "img/projects/icons/androidApp.png",
+  "imageWidth": 1600,
+  "imageHeight": 1000,
+  "imageAlt": "Screens from the Daniel Short Android app showing its native interface.",
+  "tools": [
+    "Kotlin",
+    "Jetpack Compose",
+    "Android"
+  ],
+  "concepts": [
+    "Product",
+    "Automation"
+  ],
+  "androidReleaseChannel": "review",
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/tree/main/mobile/android",
+      "label": "Android source on GitHub"
+    }
+  ],
+  "problem": "The website works on phones, but I wanted faster access to projects and useful tools in a familiar Android interface.",
+  "task": "Build an Android companion that keeps the portfolio easy to explore while offering useful native features and a reliable update path.",
+  "actions": [
+    "Built navigation, search, bookmarks, settings, and selected tools in Kotlin and Jetpack Compose.",
+    "Added offline project summaries and native alternatives while keeping first-party website case studies, demos, and games available in the app.",
+    "Published a review APK through a versioned feed that identifies the approved file and supports verified in-app updates."
+  ],
+  "results": [
+    "An installable Android review build supports Android 8 and newer.",
+    "Published project content can refresh from the website feed; changes to native code arrive through a signed app update."
+  ],
+  "personalStory": {
+    "why": "I wanted the site to feel useful on my own phone, with Android navigation and tools alongside the portfolio.",
+    "surprise": "Sharing content with the website was simpler than sharing behavior; native features and website experiences need different update paths.",
+    "next": "I’d continue refining the native alternatives and prepare a stable distribution channel."
+  },
+  "order": 18,
+  "notes": "This is a review-channel APK for direct installation, not a Play Store release. The page checks the public release feed for the current download.",
+  "relatedProjectId": "website"
+}

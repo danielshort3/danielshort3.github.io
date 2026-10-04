@@ -39,55 +39,7 @@
       sendErrorEvent('unhandledrejection', message);
     });
   };
-  const CONTACT_MODAL_MARKUP = `
-    <div id="contact-modal" class="modal">
-      <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-        <div class="modal-title-strip">
-          <h3 class="modal-title" id="contact-modal-title">Send a Message</h3>
-        </div>
-        <div class="modal-body">
-          <form id="contact-form" class="contact-form" method="post" action="${CONTACT_API_ENDPOINT}" data-endpoint="${CONTACT_API_ENDPOINT}" novalidate>
-            <div class="form-field">
-              <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
-              <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-required">
-            </div>
-            <div class="form-field">
-              <label for="contact-email">Email <span class="field-required" id="contact-email-required" hidden>- Required</span></label>
-              <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-required">
-            </div>
-            <div class="form-field">
-              <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
-              <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, idea, or question." aria-describedby="contact-message-required"></textarea>
-            </div>
-            <div class="form-field honeypot" aria-hidden="true">
-              <label for="contact-company">Company</label>
-              <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off">
-            </div>
-            <p id="contact-status" class="contact-form-status" role="status" aria-live="polite" tabindex="-1"></p>
-            <div id="contact-alt" class="contact-form-alt" hidden>
-              <a href="mailto:daniel@danielshort.me" class="btn-ghost">Email me directly</a>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">
-                <span class="btn-spinner" aria-hidden="true"></span>
-                <span class="btn-label">Send Message</span>
-              </button>
-            </div>
-          </form>
-          <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
-            <span class="success-icon" aria-hidden="true"></span>
-            <h4>Message sent</h4>
-            <p>Thanks for reaching out. I received your note and will reply shortly. If it&rsquo;s urgent, feel free to send a direct email as well.</p>
-            <div class="form-actions">
-              <button type="button" class="btn-primary" data-contact-new>Start another message</button>
-              <a href="mailto:daniel@danielshort.me" class="btn-secondary">Email me directly</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  const contactMarkup = () => window.SiteContactMarkup?.render() || '';
 
   const storeContactOrigin = () => {
     try {
@@ -177,401 +129,6 @@
     }
   };
 
-  const workDateRank = (value) => {
-    const text = String(value || '').trim();
-    if (/present/i.test(text)) return Number.MAX_SAFE_INTEGER;
-    const matches = [...text.matchAll(/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}\b/gi)];
-    const last = matches.length ? matches[matches.length - 1][0] : '';
-    const parsed = last ? Date.parse(`1 ${last}`) : Number.NaN;
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
-
-  const WORK_EXPERIENCE_MONTHS = Object.freeze({
-    jan: 0,
-    january: 0,
-    feb: 1,
-    february: 1,
-    mar: 2,
-    march: 2,
-    apr: 3,
-    april: 3,
-    may: 4,
-    jun: 5,
-    june: 5,
-    jul: 6,
-    july: 6,
-    aug: 7,
-    august: 7,
-    sep: 8,
-    sept: 8,
-    september: 8,
-    oct: 9,
-    october: 9,
-    nov: 10,
-    november: 10,
-    dec: 11,
-    december: 11
-  });
-
-  const parseWorkExperienceRange = (value, now = new Date()) => {
-    const text = String(value || '').trim();
-    const matches = [...text.matchAll(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\b/gi)];
-    if (!matches.length) return null;
-    const monthIndex = (match) => {
-      const month = WORK_EXPERIENCE_MONTHS[String(match?.[1] || '').toLowerCase()];
-      const year = Number.parseInt(match?.[2], 10);
-      return Number.isInteger(month) && Number.isFinite(year) ? (year * 12) + month : Number.NaN;
-    };
-    const start = monthIndex(matches[0]);
-    const currentMonth = (now.getFullYear() * 12) + now.getMonth();
-    const parsedEnd = /\bpresent\b/i.test(text)
-      ? currentMonth
-      : monthIndex(matches[matches.length - 1]);
-    const end = Math.min(parsedEnd, currentMonth);
-    if (start > currentMonth) return null;
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
-    return { start, end };
-  };
-
-  const mergeWorkExperienceIntervals = (intervals) => {
-    const sorted = intervals
-      .filter((interval) => interval && Number.isFinite(interval.start) && Number.isFinite(interval.end))
-      .map((interval) => ({ start: interval.start, end: interval.end }))
-      .sort((a, b) => (a.start - b.start) || (a.end - b.end));
-    return sorted.reduce((merged, interval) => {
-      const previous = merged[merged.length - 1];
-      if (!previous || interval.start > previous.end + 1) {
-        merged.push(interval);
-      } else {
-        previous.end = Math.max(previous.end, interval.end);
-      }
-      return merged;
-    }, []);
-  };
-
-  const formatWorkExperienceDuration = (totalMonths) => {
-    const months = Math.max(0, Math.floor(Number(totalMonths) || 0));
-    const years = Math.floor(months / 12);
-    if (years < 1) return 'Under 1 year';
-    return `${years}+ ${years === 1 ? 'year' : 'years'}`;
-  };
-
-  const updateWorkExperienceSummaries = (root = document) => {
-    $$('.work-grid', root).forEach((grid) => {
-      const section = grid.closest('#work-experience, .work-band');
-      const head = section?.querySelector('.work-head');
-      if (!head) return;
-      const timeframes = $$('.work-timeframe', grid);
-      const intervals = timeframes.map((node) => parseWorkExperienceRange(node.textContent));
-      const mergedIntervals = mergeWorkExperienceIntervals(intervals);
-      const totalMonths = mergedIntervals.reduce(
-        (total, interval) => total + Math.max(1, interval.end - interval.start + 1),
-        0
-      );
-      let summary = head.querySelector('[data-work-experience-summary]');
-      if (!mergedIntervals.length || totalMonths <= 0) {
-        summary?.remove();
-        return;
-      }
-      if (!summary) {
-        summary = document.createElement('p');
-        summary.className = 'work-experience-summary';
-        summary.dataset.workExperienceSummary = 'true';
-        const value = document.createElement('strong');
-        value.className = 'work-experience-summary__value';
-        const label = document.createElement('span');
-        label.className = 'work-experience-summary__label';
-        summary.append(value, label);
-        const heading = head.querySelector('h2');
-        if (heading) {
-          heading.insertAdjacentElement('afterend', summary);
-        } else {
-          head.appendChild(summary);
-        }
-      }
-      const duration = formatWorkExperienceDuration(totalMonths);
-      const roleCount = intervals.filter(Boolean).length;
-      const value = summary.querySelector('.work-experience-summary__value');
-      const label = summary.querySelector('.work-experience-summary__label');
-      if (value) value.textContent = duration;
-      if (label) label.textContent = ' of professional analytics experience';
-      summary.dataset.totalMonths = String(totalMonths);
-      summary.dataset.roleCount = String(roleCount);
-      summary.setAttribute(
-        'aria-label',
-        `${duration} of professional analytics experience, calculated from ${roleCount} listed ${roleCount === 1 ? 'role' : 'roles'}.`
-      );
-    });
-  };
-
-  const sortWorkCardsByRecency = (root = document) => {
-    const newestFirst = document.body?.matches('[data-page="analytics"]');
-    $$('.work-grid', root).forEach((grid) => {
-      const cards = $$('.work-card', grid);
-      if (cards.length < 2) return;
-      cards
-        .map((card, index) => ({ card, index, rank: workDateRank($('.work-timeframe', card)?.textContent) }))
-        .sort((a, b) => ((newestFirst ? b.rank - a.rank : a.rank - b.rank)) || (a.index - b.index))
-        .forEach(({ card }) => grid.appendChild(card));
-      grid.dataset.workOrder = newestFirst ? 'newest-first' : 'oldest-first';
-    });
-  };
-
-  const normalizeAudienceSectionOrder = (root = document) => {
-    if (!document.body?.matches('[data-page="analytics"], [data-page="data-science"], [data-page="tourism"]')) return;
-    const main = root.matches?.('#main') ? root : root.querySelector('#main');
-    if (!main) return;
-    const order = document.body.matches('[data-page="analytics"]')
-      ? [
-          'selected-outcomes',
-          'work-experience',
-          'project-examples',
-          'about-me',
-          'certifications',
-          'cta'
-        ]
-      : [
-          'selected-outcomes',
-          'transferability',
-          'project-examples',
-          'work-experience',
-          'about-me',
-          'certifications',
-          'cta'
-        ];
-    const children = [...main.children];
-    const orderedSections = order
-      .map((id) => children.find((node) => node.id === id))
-      .filter(Boolean);
-    if (orderedSections.length < 2) return;
-    orderedSections.forEach((section) => main.appendChild(section));
-    main.dataset.audienceSectionOrder = document.body.matches('[data-page="analytics"]')
-      ? 'proof-experience-projects'
-      : 'proof-projects-experience';
-  };
-
-  const ANALYTICS_STORY_CHAPTERS = Object.freeze([
-    { id: 'selected-outcomes', label: 'Business-Facing Results' },
-    { id: 'work-experience', label: 'Work Experience' },
-    { id: 'project-examples', label: 'Project Examples' },
-    { id: 'about-me', label: 'Skills in Practice' },
-    { id: 'certifications', label: 'Education & Credentials' },
-    { id: 'cta', label: 'Start a Conversation' }
-  ]);
-
-  const ANALYTICS_STORY_CARD_SELECTORS = Object.freeze({
-    'selected-outcomes': '.home-proof-kpis > .home-proof-item',
-    'work-experience': '.work-grid > .work-card',
-    'project-examples': '.project-examples-grid > .project-examples-card',
-    'about-me': '.grid-container > .icon-info.skill-link',
-    certifications: '.cert-track > .cert',
-    cta: '#cta-link'
-  });
-
-  const ANALYTICS_CREDENTIAL_GROUPS = Object.freeze(['degree', 'google', 'ibm']);
-
-  const groupAnalyticsWorkCardMeta = (root = document) => {
-    $$('.work-card:not([data-work-meta-grouped="true"])', root).forEach((card) => {
-      const company = card.querySelector('.work-company');
-      const role = card.querySelector('.work-role');
-      const timeframe = card.querySelector('.work-timeframe');
-      if (!company || !role || !timeframe) return;
-      const meta = document.createElement('div');
-      meta.className = 'work-card-meta';
-      company.before(meta);
-      meta.append(company, role, timeframe);
-      card.dataset.workMetaGrouped = 'true';
-    });
-  };
-
-  const getAnalyticsCredentialGroup = (card) => {
-    const text = `${card?.querySelector('img')?.alt || ''} ${card?.textContent || ''}`.toLowerCase();
-    if (text.includes('google')) return 'google';
-    if (text.includes('ibm')) return 'ibm';
-    return 'degree';
-  };
-
-  const groupAnalyticsCredentialCards = (container, selector) => {
-    if (!container || container.dataset.credentialsGrouped === 'true') return;
-    const cards = $$(selector, container);
-    cards.forEach((card) => {
-      card.dataset.credentialGroup = getAnalyticsCredentialGroup(card);
-    });
-    ANALYTICS_CREDENTIAL_GROUPS.forEach((group) => {
-      cards
-        .filter((card) => card.dataset.credentialGroup === group)
-        .forEach((card) => container.appendChild(card));
-    });
-    container.dataset.credentialsGrouped = 'true';
-  };
-
-  const ANALYTICS_SKILL_STORIES = Object.freeze([
-    {
-      href: 'portfolio/retailStore',
-      label: 'BI & Reporting',
-      tools: 'SQL, Tableau, KPI development',
-      detail: 'Built 200+ dashboards and recurring KPI reports for decision-makers.'
-    },
-    {
-      href: 'portfolio/retailStore',
-      label: 'Automation & Data Quality',
-      tools: 'Excel, Power Query, Python, Pandas',
-      detail: 'Automated recurring workflows and validation logic, saving 200+ hours annually.'
-    },
-    {
-      href: 'portfolio/targetEmptyPackage',
-      label: 'Analysis & Decision Support',
-      tools: 'Forecasting, anomaly detection, root-cause analysis',
-      detail: 'Turned operational questions into clear, actionable findings.'
-    },
-    {
-      href: 'resume',
-      label: 'Web & Marketing Analytics',
-      tools: 'GA4, campaign performance, conversion tracking',
-      detail: 'Measured campaign impact, traveler behavior, and emerging search trends.'
-    }
-  ]);
-
-  const ANALYTICS_PROJECT_EVIDENCE = Object.freeze([
-    [
-      'Question: Where are loss and margin signals changing?',
-      'Approach: SQL ETL with anomaly scoring.',
-      'Outcome: Faster, targeted investigations.'
-    ],
-    [
-      'Question: How can shrink be forecast and reduced?',
-      'Approach: Excel forecasting with live KPIs.',
-      'Outcome: Clear action drivers for teams.'
-    ],
-    [
-      'Question: How do delivery demand and staffing connect?',
-      'Approach: Tableau trend and forecast views.',
-      'Outcome: Faster shift-planning decisions.'
-    ]
-  ]);
-
-  const prepareAnalyticsStory = (root = document) => {
-    if (!document.body?.matches('[data-page="analytics"].home-pattern-page')) return;
-    const main = root.matches?.('#main') ? root : root.querySelector('#main');
-    const panel = root.querySelector('.jump-panel');
-    if (!main) return;
-
-    groupAnalyticsWorkCardMeta(main);
-    if (!panel) return;
-
-    panel.dataset.storyRail = 'true';
-    panel.setAttribute('aria-label', 'Explore Daniel Short\'s analytics story');
-    const storyOrigin = main.querySelector('.hero-identity');
-    if (storyOrigin && !storyOrigin.matches('.is-story-active, .is-story-complete')) {
-      storyOrigin.classList.add('is-story-active');
-    }
-    const hideButton = panel.querySelector('[data-jump-hide]');
-    const linkById = new Map();
-    $$('.jump-panel-link', panel).forEach((link) => {
-      const hash = samePageHashFromHref(link.getAttribute('href') || '');
-      if (hash) linkById.set(hash.slice(1), link);
-    });
-
-    ANALYTICS_STORY_CHAPTERS.forEach((chapter, index) => {
-      const target = document.getElementById(chapter.id);
-      const link = linkById.get(chapter.id);
-      if (!target || !link) return;
-      const chapterNumber = String(index + 1).padStart(2, '0');
-      target.classList.add('story-chapter');
-      target.dataset.storyChapter = chapterNumber;
-      const frame = target.querySelector(':scope > .wrapper, :scope > .cert-band-inner');
-      frame?.classList.add('story-chapter__frame');
-      const heading = target.querySelector('h2');
-      if (heading) {
-        heading.dataset.storyAnchor = 'true';
-        heading.dataset.storyIndex = chapterNumber;
-        if (chapter.id === 'certifications') heading.textContent = 'Education & Credentials';
-      }
-
-      link.dataset.storyIndex = chapterNumber;
-      link.dataset.storyTarget = chapter.id;
-      const label = link.querySelector('.jump-panel-text');
-      if (label) label.textContent = chapter.label;
-      panel.insertBefore(link, hideButton || null);
-    });
-
-    const projectCards = $$('#project-examples .project-examples-card', main);
-    projectCards.forEach((card, index) => {
-      const textPanel = card.querySelector('.project-text');
-      const evidence = ANALYTICS_PROJECT_EVIDENCE[index];
-      if (!textPanel || !evidence || textPanel.querySelector('.story-project-evidence')) return;
-      const list = document.createElement('ul');
-      list.className = 'story-project-evidence';
-      evidence.forEach((line) => {
-        const item = document.createElement('li');
-        const separator = line.indexOf(':');
-        const label = document.createElement('strong');
-        label.textContent = separator >= 0 ? line.slice(0, separator + 1) : '';
-        const detail = document.createElement('span');
-        detail.textContent = separator >= 0 ? line.slice(separator + 1).trim() : line;
-        item.append(label, detail);
-        list.appendChild(item);
-      });
-      textPanel.appendChild(list);
-    });
-
-    const skillGrid = main.querySelector('#about-me .grid-container');
-    if (skillGrid && skillGrid.dataset.storySkills !== 'true') {
-      const existingCards = $$('.skill-link', skillGrid);
-      const selectedCards = [existingCards[1], existingCards[2], existingCards[3], existingCards[5]].filter(Boolean);
-      selectedCards.forEach((card, index) => {
-        const story = ANALYTICS_SKILL_STORIES[index];
-        if (!story) return;
-        card.setAttribute('href', story.href);
-        card.setAttribute('aria-label', `View evidence for ${story.label}`);
-        const heading = card.querySelector('p');
-        if (heading) {
-          heading.textContent = story.label;
-          const tools = document.createElement('small');
-          tools.className = 'skill-link-btn';
-          tools.textContent = story.tools;
-          heading.appendChild(tools);
-        }
-        const detail = card.querySelector(':scope > small');
-        if (detail) detail.textContent = story.detail;
-      });
-      skillGrid.replaceChildren(...selectedCards);
-      skillGrid.dataset.storySkills = 'true';
-    }
-
-    groupAnalyticsCredentialCards(
-      document.querySelector('#certifications .cert-track'),
-      ':scope > .cert'
-    );
-    groupAnalyticsCredentialCards(
-      document.querySelector('#certifications-modal .cert-modal-grid'),
-      ':scope > .cert-card'
-    );
-
-    const ctaActions = main.querySelector('#cta-link > div');
-    if (ctaActions && ctaActions.dataset.storyCta !== 'true') {
-      ctaActions.classList.add('story-cta-actions');
-      const resumeLink = document.createElement('a');
-      resumeLink.className = 'btn-secondary';
-      resumeLink.href = 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf';
-      resumeLink.textContent = 'Download resume';
-      resumeLink.setAttribute('download', 'Daniel-Short-Resume.pdf');
-      ctaActions.append(resumeLink);
-      ctaActions.dataset.storyCta = 'true';
-    }
-
-    Object.entries(ANALYTICS_STORY_CARD_SELECTORS).forEach(([chapterId, selector]) => {
-      const chapter = document.getElementById(chapterId);
-      if (!chapter) return;
-      $$(selector, chapter).forEach((card, index) => {
-        card.classList.add('story-cascade-card');
-        card.style.setProperty('--story-card-index', String(index));
-        card.style.setProperty('--story-card-delay', `${90 + (index * 55)}ms`);
-        if (card.classList.contains('project-examples-card')) card.classList.remove('ripple-in');
-      });
-    });
-  };
-
   const loadedScripts = new Map();
   const portfolioBundles = new Map();
   let modalsPromise = null;
@@ -595,11 +152,7 @@
   window.addEventListener('pageshow', resetScrollLocks);
   const sharedContentModules = new Set(['page:content', 'portfolio:workbench', 'contact:contact', 'search:search']);
   const initializeRouteContent = (root = document) => {
-    normalizeAudienceSectionOrder(root);
-    prepareAnalyticsStory(root);
     initSmoothScrollLinks(root);
-    sortWorkCardsByRecency(root);
-    updateWorkExperienceSummaries(root);
     initResponsiveDisclosures(root);
     if (root.querySelector('.jump-panel')) initJumpPanelSpy(root);
     if (isPage('project')) initProjectDemoTabs(root);
@@ -611,7 +164,7 @@
     if (sharedContentModules.has(document.body?.dataset.siteRouteModule) && window.SiteRoutes) return;
     initializeRouteContent();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
-      requestContactModal();
+      requestContactModal(undefined, { fromHash: true });
     }
     if (isPage('portfolio') || isPage('games') || (document.body && document.body.matches('.portfolio-workbench-page') && document.querySelector('[data-portfolio-workbench]'))) {
       ensurePortfolioScripts(document.body.dataset.page || 'portfolio').then(() => {
@@ -654,10 +207,10 @@
 
   const ensureContactModal = () => {
     if (!document || !document.body || typeof document.createElement !== 'function') return null;
-    const existing = document.getElementById(CONTACT_MODAL_ID);
+    const existing = document.querySelector?.('[data-contact-inline]') || document.getElementById(CONTACT_MODAL_ID);
     if (existing) return existing;
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = CONTACT_MODAL_MARKUP.trim();
+    wrapper.innerHTML = contactMarkup().trim();
     const modal = wrapper.firstElementChild;
     if (!modal) return null;
     modal.dataset.contactModalInjected = 'true';
@@ -685,14 +238,17 @@
     }
   };
 
-  const requestContactModal = (payload) => {
+  const requestContactModal = (payload, { fromHash = false } = {}) => {
     storeContactOrigin();
-    const ensured = document.getElementById(CONTACT_MODAL_ID) || ensureContactModal();
+    const ensured = document.querySelector?.('[data-contact-inline]') || document.getElementById(CONTACT_MODAL_ID) || ensureContactModal();
     if (!ensured) return;
     const open = () => {
       if (typeof window.initializeContactModal === 'function') {
         window.initializeContactModal(ensured.closest('[data-site-route-content], [data-personal-detail-content]') || document);
       }
+      // Document-entry deep links use the controller's consent-aware hash
+      // opener. Explicit visitor requests still open immediately.
+      if (fromHash) return;
       if (typeof window.openContactModal === 'function') {
         window.openContactModal();
         applyContactPrefill(payload);
@@ -2324,7 +1880,8 @@
       available = screenHeight
         - heightOf(document.querySelector('.mobile-site-masthead'))
         - heightOf(frame?.querySelector('[data-site-tab][aria-current="page"]'))
-        - heightOf(frame?.querySelector('.site-frame__toolbar'));
+        - heightOf(frame?.querySelector('.site-frame__toolbar'))
+        - heightOf(document.querySelector('.mobile-site-dock'));
     }
     available = Math.min(available || screenHeight, screenHeight);
     available -= heightOf(shell?.querySelector('.project-demo-header'));
@@ -2337,7 +1894,9 @@
     try {
       const doc = ifr.contentDocument;
       const empty = doc?.querySelector('.chat-shell--regular .empty-state');
-      if (empty?.getBoundingClientRect().height > 0) {
+      // The inline greeting belongs to a full-height conversation. Keep the
+      // viewport height so its choices and composer remain usable together.
+      if (!doc?.querySelector('.chat-greeting') && empty?.getBoundingClientRect().height > 0) {
         let preferred = heightOf(empty)
           + heightOf(doc.querySelector('.demo-toolbar'))
           + heightOf(doc.querySelector('.chat-shell--regular .chat-composer'));
@@ -2532,6 +2091,7 @@
       if (!doc?.querySelector('.drawing-demo')) return;
       const compactDesktop = window.innerWidth > 768 && window.innerHeight <= 800;
       doc.documentElement.style.setProperty('--drawing-canvas-size', compactDesktop ? '260px' : '300px');
+      doc.documentElement.dataset.drawingDensity = compactDesktop ? 'compact' : 'comfortable';
     } catch {}
   };
 

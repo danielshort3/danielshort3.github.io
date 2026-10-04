@@ -131,7 +131,7 @@
       <form class="site-chatbot__form">
         <div class="site-chatbot__input-shell">
           <label class="visually-hidden" for="site-chatbot-message">Ask a question</label>
-          <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about projects, tools, games, or contact details"></textarea>
+          <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about projects, tools, games, or contact details" aria-describedby="site-chatbot-privacy"></textarea>
           <button class="site-chatbot__send" type="submit" aria-label="Send question">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="m4 12 16-8-4.8 16-3.1-6.1L4 12Z"/>
@@ -139,6 +139,7 @@
             </svg>
           </button>
         </div>
+        <p class="site-chatbot__privacy" id="site-chatbot-privacy">Questions and answers are logged on AWS. Avoid private information. <a href="/privacy#assistant-and-links">Privacy details</a></p>
         <input type="text" name="website" tabindex="-1" autocomplete="off" class="site-chatbot__website" aria-hidden="true">
       </form>
       <p class="site-chatbot__status" aria-live="polite"></p>

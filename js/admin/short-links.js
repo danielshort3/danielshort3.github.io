@@ -211,40 +211,10 @@
       resumePath: '',
       resumePreviewPath: '',
       resumeDownloadPath: ''
-    },
-    analytics: {
-      key: 'analytics',
-      label: 'Data Analytics',
-      shortLabel: 'Analytics',
-      homePath: '/analytics',
-      portfolioPath: '/portfolio?audience=analytics',
-      resumePath: '/resume-analytics',
-      resumePreviewPath: '/resume-analytics-pdf',
-      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf'
-    },
-    'data-science': {
-      key: 'data-science',
-      label: 'Data Science',
-      shortLabel: 'Data Science',
-      homePath: '/data-science',
-      portfolioPath: '/portfolio?audience=data-science',
-      resumePath: '/resume-data-science',
-      resumePreviewPath: '/resume-data-science-pdf',
-      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Data-Science.pdf'
-    },
-    tourism: {
-      key: 'tourism',
-      label: 'Tourism Analytics',
-      shortLabel: 'Tourism',
-      homePath: '/tourism',
-      portfolioPath: '/portfolio?audience=tourism',
-      resumePath: '/resume-tourism',
-      resumePreviewPath: '/resume-tourism-pdf',
-      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf'
     }
   };
-  const FALLBACK_AUDIENCE_ORDER = ['personal', 'analytics', 'data-science', 'tourism'];
-  const FALLBACK_AUDIENCE_DEFAULT = 'analytics';
+  const FALLBACK_AUDIENCE_ORDER = ['personal'];
+  const FALLBACK_AUDIENCE_DEFAULT = 'personal';
 
   const markSessionDirty = () => {
     try {
@@ -255,7 +225,6 @@
   const FALLBACK_DESTINATIONS = [
     { path: '/', label: 'Home', group: 'Pages' },
     { path: '/portfolio', label: 'Portfolio', group: 'Portfolio' },
-    { path: '/resume-analytics', label: 'Data Analytics Resume', group: 'Pages' },
     { path: '/contact', label: 'Contact', group: 'Pages' },
     { path: '/tools', label: 'Tools', group: 'Tools' }
   ];
@@ -2046,17 +2015,7 @@
   }
 
   function normalizeAudienceKey(value){
-    const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'professional' || raw === 'pro') return 'analytics';
-    const api = getAudienceApi();
-    if (api && typeof api.normalizeAudience === 'function') {
-      const normalized = api.normalizeAudience(value);
-      return normalized === 'professional' ? 'analytics' : normalized;
-    }
-    if (!raw) return FALLBACK_AUDIENCE_DEFAULT;
-    if (raw === 'datascience' || raw === 'data_science') return 'data-science';
-    if (raw === 'tourism-analytics') return 'tourism';
-    return FALLBACK_AUDIENCES[raw] ? raw : FALLBACK_AUDIENCE_DEFAULT;
+    return 'personal';
   }
 
   function getAudienceConfig(value){
@@ -2086,8 +2045,6 @@
   }
 
   function normalizeProjectShortcutMode(value){
-    const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'personal' || raw === 'professional') return raw;
     return 'canonical';
   }
 
@@ -2112,29 +2069,12 @@
   }
 
   function getProjectShortcutConfig(mode = getProjectShortcutMode()){
-    switch (normalizeProjectShortcutMode(mode)) {
-      case 'personal':
-        return {
-          mode: 'personal',
-          label: 'Personal',
-          audienceKey: 'personal',
-          slugPrefix: 'p/personal'
-        };
-      case 'professional':
-        return {
-          mode: 'professional',
-          label: 'Data Analytics',
-          audienceKey: 'analytics',
-          slugPrefix: 'p/professional'
-        };
-      default:
-        return {
-          mode: 'canonical',
-          label: 'Canonical',
-          audienceKey: '',
-          slugPrefix: PROJECT_SLUG_PREFIX
-        };
-    }
+    return {
+      mode: 'canonical',
+      label: 'Canonical',
+      audienceKey: '',
+      slugPrefix: PROJECT_SLUG_PREFIX
+    };
   }
 
   function normalizeSitePath(pathname){
@@ -4903,7 +4843,7 @@
     labelInput.type = 'text';
     labelInput.autocomplete = 'off';
     labelInput.spellcheck = false;
-    labelInput.placeholder = 'Analytics resume';
+    labelInput.placeholder = 'Project portfolio';
     labelInput.value = String(entry.label || '');
     labelInput.dataset.setRowField = 'label';
     labelField.appendChild(labelLabel);
@@ -4919,7 +4859,7 @@
     destinationEntry.type = 'text';
     destinationEntry.autocomplete = 'off';
     destinationEntry.spellcheck = false;
-    destinationEntry.placeholder = 'https://example.com or /analytics';
+    destinationEntry.placeholder = 'https://example.com or /portfolio';
     destinationEntry.value = String(entry.destination || '');
     destinationEntry.dataset.setRowField = 'destination';
     destinationField.appendChild(destinationLabel);

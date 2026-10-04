@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { renderProjectPage, loadProjects, isPublishedProject } = require('../../build/generate-project-pages');
-const { buildHomeLibraryData } = require('../../build/generate-cms-artifacts');
+const { buildHomeLibraryData } = require('../../build/generate-content-artifacts');
 
 const ROOT = path.resolve(__dirname, '../..');
 const readJson = (file) => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
@@ -50,14 +50,11 @@ function runProjectContentClarityTests({ assert }) {
 
     assert(!html.includes('project-evidence') && !html.includes('Evidence &amp; limitations'),
       `${project.id} should omit the disabled evidence section and disclosure from rendered markup`);
-    const generatedPaths = [
-      `pages/portfolio/${project.id}.html`,
-      ...['analytics', 'data-science', 'tourism'].map((audience) => `pages/professional/${audience}/portfolio/${project.id}.html`)
-    ];
+    const generatedPaths = [`pages/portfolio/${project.id}.html`];
     for (const generatedPath of generatedPaths) {
       const generated = fs.readFileSync(path.join(ROOT, generatedPath), 'utf8');
       assert(!generated.includes('project-evidence') && !generated.includes('Evidence &amp; limitations'),
-        `${generatedPath} should omit the evidence section in every audience variant`);
+        `${generatedPath} should omit the evidence section`);
       assert(generated.match(/class="project-next-link"[^>]*data-content-id="([^"]+)"/)?.[1] === nextId,
         `${generatedPath} should follow the complete project cycle`);
     }

@@ -1,4 +1,4 @@
-/** Contact network requests are intercepted; this suite never sends a message. */
+/** Inline and retained project-dialog recovery. Requests are intercepted; no messages are sent. */
 'use strict';
 
 const assert = require('node:assert/strict');
@@ -6,10 +6,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { expect } = require('@playwright/test');
 const { createLocalServer } = require('../../build/dev');
 const UNKNOWN = 'We couldn’t confirm delivery. Your message may have been sent. Your draft is still here.';
 
-async function fixture(browser, base, viewport = { width: 1440, height: 900 }) {
+async function fixture(browser, base, viewport = { width: 1440, height: 900 }, inline = false) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
   await context.route('**/api/contact', (route) => route.abort('blockedbyclient'));
   await context.route('**/*', (route) => new URL(route.request().url()).origin === base ? route.fallback() : route.abort('blockedbyclient'));
@@ -36,24 +37,36 @@ async function fixture(browser, base, viewport = { width: 1440, height: 900 }) {
   page.setDefaultTimeout(15000);
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(base + '/contact', { waitUntil: 'domcontentloaded' });
+  await page.goto(base + (inline ? '/contact' : '/portfolio/website'), { waitUntil: 'domcontentloaded' });
   if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
-  await page.locator('#contact-form-toggle').click();
-  await page.locator('#contact-modal.active').waitFor();
+  if (!inline) {
+    await page.locator('.project-question-link').click();
+    await page.locator('#contact-modal.active').waitFor();
+  } else {
+    await page.waitForFunction(() => window.__contactModalReady && document.querySelector('[data-contact-inline]'));
+    await page.locator('#contact-form [type="submit"]').click();
+    await page.locator('#contact-errors').waitFor({ state: 'visible' });
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'contact-errors', 'Inline validation focuses the visible summary.');
+    assert.equal(await page.locator('#contact-errors a').count(), 3);
+    await page.locator('#contact-errors a').first().click();
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'contact-name', 'Summary links focus the editable field.');
+    assert.equal(await page.evaluate(() => window.__contactFixture.calls), 0, 'Invalid inline input never sends.');
+  }
   await page.locator('#contact-name').fill('Contact Test');
   await page.locator('#contact-email').fill('contact-test@example.com');
   await page.locator('#contact-message').fill('A local-only draft. No email is sent by this test.');
   return { context, page, errors };
 }
 
-async function runContactRecoveryChecks({ browser, base, artifactDir }) {
+async function runSurfaceRecoveryChecks({ browser, base, artifactDir }, inline) {
   fs.mkdirSync(artifactDir, { recursive: true });
-  const recovery = await fixture(browser, base, { width: 390, height: 844 });
+  const recovery = await fixture(browser, base, { width: 390, height: 844 }, inline);
   try {
     const { page } = recovery;
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.locator('#contact-form-toggle').click();
-    assert.equal(await page.locator('#contact-message').inputValue(), 'A local-only draft. No email is sent by this test.');
+    if (!inline) await page.locator('.project-question-link').click();
+    else await page.waitForFunction(() => window.__contactModalReady);
+    await expect(page.locator('#contact-message')).toHaveValue('A local-only draft. No email is sent by this test.');
     await page.getByText('Draft restored', { exact: false }).waitFor();
     await page.screenshot({ path: path.join(artifactDir, 'contact-draft-restored-mobile.png') });
     assert.equal(await page.locator('[data-contact-reset]').count(), 0);
@@ -61,13 +74,17 @@ async function runContactRecoveryChecks({ browser, base, artifactDir }) {
     await notice.getByRole('button', { name: /discard/i }).click();
     assert.equal(await page.locator('#contact-message').inputValue(), '');
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.locator('#contact-form-toggle').click();
-    assert.equal(await page.locator('#contact-message').inputValue(), '', 'discard removes the recoverable draft');
+    if (!inline) await page.locator('.project-question-link').click();
+    else await page.waitForFunction(() => window.__contactModalReady);
+    const expectedMessage = inline ? '' : await page.locator('.project-question-link').getAttribute('data-contact-message');
+    await expect(page.locator('#contact-message'), 'Discarded text stays removed; a new project opener may supply its own prefill.').toHaveValue(expectedMessage);
+    assert.equal(await page.locator('#contact-name').inputValue(), '');
+    assert.equal(await page.locator('#contact-email').inputValue(), '');
     assert.deepEqual(recovery.errors, []);
   } finally { await recovery.context.close(); }
 
   for (const mode of ['success', 'rejection', 'invalid', 'pending', 'body']) {
-    const { context, page, errors } = await fixture(browser, base, mode === 'body' ? { width: 320, height: 844 } : undefined);
+    const { context, page, errors } = await fixture(browser, base, mode === 'body' ? { width: 320, height: 844 } : undefined, inline);
     try {
       if (mode === 'pending' || mode === 'body') await page.clock.install();
       await page.evaluate((mode) => { window.__contactFixture.mode = mode; }, mode);
@@ -78,15 +95,17 @@ async function runContactRecoveryChecks({ browser, base, artifactDir }) {
         assert.equal(await page.evaluate(() => window.SiteSessionDrafts.read('contact:personal')), null);
       } else {
         if (mode === 'pending' || mode === 'body') {
-          await page.locator('#contact-modal .modal-close').click();
-          await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
-          await page.locator('#contact-form-toggle').click();
+          if (!inline) {
+            await page.locator('#contact-modal .modal-close').click();
+            await page.locator('#contact-modal.active').waitFor({ state: 'hidden' });
+            await page.locator('.project-question-link').click();
+          }
           assert.equal(await page.locator('#contact-form [type="submit"]').isDisabled(), true);
           await page.locator('#contact-form').evaluate((form) => { form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
           assert.equal(await page.evaluate(() => window.__contactFixture.calls), 1, 'close/reopen and repeated submit do not duplicate delivery');
           await page.clock.fastForward(25001);
         }
-        await page.getByRole('button', { name: 'Retry', exact: true }).waitFor();
+        await page.getByRole('button', { name: 'Retry sending', exact: true }).waitFor();
         if (mode !== 'rejection') assert.equal(await page.locator('#contact-status').innerText(), UNKNOWN);
         assert.equal(await page.locator('#contact-alt a').isVisible(), true);
         assert.equal(await page.locator('#contact-form').getAttribute('aria-busy'), 'false');
@@ -97,14 +116,20 @@ async function runContactRecoveryChecks({ browser, base, artifactDir }) {
         await page.evaluate(() => { window.__contactFixture.pending.splice(0).forEach((complete) => complete()); });
         assert.equal(await page.locator('#contact-message').inputValue(), 'A local-only draft. No email is sent by this test.', 'late success does not clear a timed-out draft');
         await page.evaluate(() => { window.__contactFixture.mode = 'success'; });
-        await page.getByRole('button', { name: 'Retry', exact: true }).click();
+        await page.getByRole('button', { name: 'Retry sending', exact: true }).click();
         await page.locator('#contact-success').waitFor({ state: 'visible' });
         assert.equal(await page.evaluate(() => window.__contactFixture.calls), 2);
       }
       assert.deepEqual(errors, [], `${mode}: no browser exceptions`);
     } finally { await context.close(); }
   }
-  console.log('Contact browser recovery passed: refresh, discard, confirmation, rejection, malformed response, request/body deadlines, reopen, duplicate prevention, late responses and explicit retry.');
+  console.log(`Contact ${inline ? 'inline' : 'dialog'} browser recovery passed: validation, refresh, discard, confirmation, rejection, malformed response, request/body deadlines, duplicate prevention, late responses and explicit retry.`);
+}
+
+async function runContactRecoveryChecks(options) {
+  for (const inline of [false, true]) {
+    await runSurfaceRecoveryChecks({ ...options, artifactDir: path.join(options.artifactDir, inline ? 'inline' : 'dialog') }, inline);
+  }
 }
 
 async function main() {

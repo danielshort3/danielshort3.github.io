@@ -15,6 +15,7 @@ Each main link opens the authoritative public page. Its adjacent AI summary link
 
 ## Projects
 
+- [Daniel Short for Android](https://www.danielshort.me/portfolio/androidApp): Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download. ([AI summary](https://www.danielshort.me/ai/portfolio/androidApp))
 - [Baby Name Predictor](https://www.danielshort.me/portfolio/babynames): Explore a baby-name recommendation model built from family preferences and historical naming trends, with an interactive demo and project notes. ([AI summary](https://www.danielshort.me/ai/portfolio/babynames))
 - [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): Explore a Grand Junction chatbot combining retrieval and LoRA tuning, with source-linked answers, an interactive demo, and evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/chatbotLora))
 - [COVID-19 Outbreak Drivers](https://www.danielshort.me/portfolio/covidAnalysis): Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations. ([AI summary](https://www.danielshort.me/ai/portfolio/covidAnalysis))
@@ -55,6 +56,6 @@ Each main link opens the authoritative public page. Its adjacent AI summary link
 
 ## Other Pages
 
-- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website handles analytics, local tools, saved sessions, contact messages, and your data choices. ([AI summary](https://www.danielshort.me/ai/privacy))
+- [Privacy & Your Data](https://www.danielshort.me/privacy): How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices. ([AI summary](https://www.danielshort.me/ai/privacy))
 - [Sitemap](https://www.danielshort.me/sitemap): Browse indexable public pages across Daniel Short’s projects, tools, games, and site information. ([AI summary](https://www.danielshort.me/ai/sitemap))
 - [Solutions](https://www.danielshort.me/solutions): Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines. ([AI summary](https://www.danielshort.me/ai/solutions))

@@ -8,7 +8,7 @@ const readJson = (relativePath) => JSON.parse(read(relativePath));
 const countMatches = (value, pattern) => (String(value || '').match(pattern) || []).length;
 
 function runResponsiveDensityContractTests({ assert }) {
-  const cmsRenderers = require('../../build/lib/cms-renderers.js');
+  const siteRenderers = require('../../build/lib/site-renderers.js');
   const projectGenerator = require('../../build/generate-project-pages.js');
   const personalPageGenerator = require('../../build/generate-personal-accordion-pages.js');
   const personalShell = require('../../build/lib/personal-accordion-shell.js');
@@ -18,8 +18,8 @@ function runResponsiveDensityContractTests({ assert }) {
   const tools = fs.readdirSync(path.join(ROOT, 'content', 'tools'))
     .filter((fileName) => fileName.endsWith('.json'))
     .map((fileName) => readJson(path.join('content', 'tools', fileName)));
-  const toolsData = cmsRenderers.buildToolsDirectoryWorkbenchData(toolsPage, tools);
-  const toolsBody = cmsRenderers.renderToolsDirectoryBody(toolsPage, tools);
+  const toolsData = siteRenderers.buildToolsDirectoryWorkbenchData(toolsPage, tools);
+  const toolsBody = siteRenderers.renderToolsDirectoryBody(toolsPage, tools);
   const publicToolCount = toolsData.items.filter((tool) => tool.visibility === 'public').length;
 
   assert(
@@ -46,8 +46,8 @@ function runResponsiveDensityContractTests({ assert }) {
   );
 
   const gamesPage = readJson('content/pages/games.json');
-  const gamesData = cmsRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
-  const gamesBody = cmsRenderers.renderGamesDirectoryBody(gamesPage);
+  const gamesData = siteRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
+  const gamesBody = siteRenderers.renderGamesDirectoryBody(gamesPage);
   assert(
     gamesData.items.length === 7 &&
       JSON.stringify(gamesData.items.slice(0, 3).map((game) => game.id)) ===
@@ -197,7 +197,7 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile Back and context must share wrapping layout space so enlarged labels cannot overlap an absolutely centered title',
   );
 
-  const directContactHeader = cmsRenderers.renderHeader({
+  const directContactHeader = siteRenderers.renderHeader({
     settings: {},
     navigation: {
       brand: {},
@@ -280,7 +280,6 @@ function runResponsiveDensityContractTests({ assert }) {
   const baseCss = read('css/base/base.css');
   const mobileDockCss = read('css/components/mobile-site-dock.css');
   const designSystemCss = read('css/utilities/design-system-overrides.css');
-  const recruiterStoryCss = read('css/components/recruiter-story.css');
   const contactCardCss = read('css/components/contact-card.css');
   const shortLinksCss = read('css/components/short-links.css');
   const stormbreakCss = read('css/games/stormbreak.css');
@@ -362,13 +361,8 @@ function runResponsiveDensityContractTests({ assert }) {
     'mobile personal tool pages should normalize native controls, generated share actions, and file pickers to 44px targets',
   );
   assert(
-    /body \.hero\.hero--default > \.wrapper,[\s\S]*?body \.tools-hero > \.wrapper \{[^}]*width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);[^}]*max-width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);/s.test(designSystemCss) &&
-      /body\[data-page="analytics"\]\.home-pattern-page \.hero\.hero--default > \.wrapper \{[^}]*width:\s*calc\(100% - 28px\);[^}]*max-width:\s*calc\(100% - 28px\) !important;/s.test(recruiterStoryCss),
+    /body \.hero\.hero--default > \.wrapper,[\s\S]*?body \.tools-hero > \.wrapper \{[^}]*width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);[^}]*max-width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);/s.test(designSystemCss),
     'mobile hero wrappers should calculate their gutters from the containing block instead of the scrollbar-inclusive viewport',
-  );
-  assert(
-    /#certifications \.cert-band-inner \{[^}]*box-sizing:\s*border-box;[^}]*max-width:\s*100% !important;/s.test(recruiterStoryCss),
-    'the analytics certification frame should stay contained while its inner track owns horizontal scrolling',
   );
   assert(
     /\.contact-professional-links a\{[^}]*box-sizing:\s*border-box;[^}]*display:\s*inline-flex;[^}]*min-height:\s*44px;[^}]*padding-inline:\s*10px;/s.test(contactCardCss) &&
@@ -413,28 +407,29 @@ function runResponsiveDensityContractTests({ assert }) {
       modalMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
       /\.modal-content\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--modal-mobile-top-clearance\) - var\(--modal-mobile-bottom-clearance\)\)/s.test(modalMobileCss) &&
       /\.modal-body\s*\{[^}]*overflow-y\s*:\s*auto\s*;/s.test(modalCss) &&
-      privacyMobileCss.includes('max(8px, env(safe-area-inset-right))') &&
-      privacyMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
-      /#pcz-modal \.pcz-panel\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--pcz-mobile-top-clearance\) - 8px\)/s.test(privacyMobileCss) &&
-      /#pcz-modal \.pcz-panel\s*\{[^}]*overflow\s*:\s*auto\s*;/s.test(privacyCss),
+      privacyMobileCss.includes('max(16px, env(safe-area-inset-right))') &&
+      privacyMobileCss.includes('max(16px, env(safe-area-inset-left))') &&
+      privacyMobileCss.includes('max-height: calc(100svh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)))') &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*overflow\s*:\s*hidden\s*;/s.test(privacyCss) &&
+      /#pcz-modal \.pcz-panel-body\s*\{[^}]*overflow-y\s*:\s*auto\s*;/s.test(privacyCss),
     'shared modal shells should retain mobile safe-area clearance and internal scrolling',
   );
   assert(
     /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss) &&
-      consentJs.includes("const CSS_VERSION = 'v14';") &&
+      consentJs.includes("const CSS_VERSION = 'v15';") &&
       consentJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
       consentJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
       consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);') &&
       consentJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
       consentJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-    'Cookie Settings critical CSS v14 should match the shared shell without stacking the first-run backdrop',
+    'Cookie Settings critical CSS v15 should match the shared shell without stacking the first-run backdrop',
   );
   assert(
     !privacyCss.includes('@media (prefers-color-scheme: dark)') &&
       !privacyCss.includes('data-theme-scope') &&
       /#pcz-banner \.pcz-btn,\s*#pcz-modal \.pcz-save-preferences\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
       /#pcz-banner \.pcz-close\s*\{[^}]*width:\s*32px;[^}]*height:\s*32px;/s.test(privacyCss) &&
-      /#pcz-modal \.pref-info\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s.test(privacyCss) &&
+      /#pcz-modal \.pref-toggle,\s*#pcz-modal \.pref-status-row\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
       consentJs.includes('modal._pczRestoreBackground = isolateModalBackground(modal);') &&
       consentJs.includes('modal._pczReturnFocus = returnFocus;'),
     'consent surfaces should remain compact and light while the modal isolates the page and restores focus',

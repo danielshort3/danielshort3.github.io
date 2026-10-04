@@ -24,18 +24,100 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/social/game-probability-engine.png?v=b66eb43350c4">
   <meta name="twitter:image:alt" content="Probability Engine — interactive simulation by Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <script defer src="dist/site-consent.772887f4.js"></script>
+  <script defer src="dist/site-consent.a6d261d1.js"></script>
   <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
   <link rel="manifest" href="/manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Daniel Short">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.9380b237.css">
+  <script data-site-bootstrap="early">(() => {
+  'use strict';
+  try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      let canonicalSearch = String(window.location.search || '');
+      // Authored clean routes (notably tools and isolated demos) do not always
+      // share the legacy file's directory. The head publishes the real route.
+      try {
+        const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+        const canonical = canonicalHref && new URL(canonicalHref, 'https://www.danielshort.me');
+        // A custom 404 can be served for any requested clean route. Its own
+        // canonical describes the error document, not the requested location.
+        const errorDocument = canonical && /^\/404(?:\.html)?\/?$/i.test(canonical.pathname);
+        if (canonical?.origin === 'https://www.danielshort.me' && !errorDocument) {
+          canonicalPath = canonical.pathname;
+          const incoming = new URLSearchParams(canonicalSearch);
+          canonical.searchParams.forEach((value, key) => {
+            if (!incoming.has(key)) {
+              canonicalSearch += `${canonicalSearch ? '&' : '?'}${new URLSearchParams([[key, value]])}`;
+            }
+          });
+        }
+      } catch (_) {}
+      // Preserve /pages when no canonical is available so Vercel's explicit
+      // aliases can resolve it, rather than inventing a root-level tool URL.
+      canonicalPath = canonicalPath.replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${canonicalSearch}${window.location.hash || ''}`);
+      return;
+    }
+
+    const root = document.documentElement;
+    if (!root) return;
+    // Reserve the first-visit mobile banner's space before the first paint.
+    // The deferred consent bundle replaces this space with its in-flow banner.
+    const path = String(window.location.pathname || '').replace(/\.html$/i, '');
+    if (!/^(?:\/pages\/|\/tools\/|\/)job-application-tracker$/i.test(path)) {
+      let needsConsent = true;
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        needsConsent = query.get('show_consent') === '1'
+          || query.get('reset_consent') === '1'
+          || !window.localStorage.getItem('pcz_consent_v1');
+        if (window.self !== window.top && window.top.location.origin === window.location.origin) needsConsent = false;
+      } catch (_) {}
+      if (needsConsent) root.setAttribute('data-consent-reserve', 'true');
+    }
+    if (root.classList) {
+      root.classList.remove('no-js');
+      root.classList.add('js');
+      [
+        'site-is-navigating',
+        'site-page-transition-preload',
+        'site-page-transition-native-preload',
+        'site-page-transition-out',
+        'site-page-transition-in',
+        'site-page-transition-continuous-preload',
+        'site-page-transition-continuous-out',
+        'site-page-transition-continuous-in'
+      ].forEach((name) => root.classList.remove(name));
+      [
+        'siteTransitionMode',
+        'siteTransitionCategory',
+        'siteTransitionDirection',
+        'siteTransitionTransport'
+      ].forEach((name) => { delete root.dataset[name]; });
+      try { window.sessionStorage.removeItem('sitePageTransition'); } catch (_) {}
+
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio' || path.startsWith('/portfolio/') || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch (_) {}
+      return;
+    }
+    root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
+  } catch (_) {}
+})();</script>
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
   <link rel="stylesheet" href="css/components/games.css">
   <link rel="stylesheet" href="css/games/probability-engine.css?v=ac432b9a53ea">
   <meta property="og:image:type" content="image/png">
@@ -44,14 +126,14 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 
-  <script src="js/common/no-js.js"></script>
-  <script defer src="dist/site-shell.c57ddd04.js"></script>
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.8e158010.css">
+  <script defer src="dist/site-shell.7e88cd8b.js"></script>
+
+<link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/games/probability-engine#webpage","url":"https://www.danielshort.me/games/probability-engine","name":"Probability Engine | Daniel Short","description":"Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/game-probability-engine.png?v=b66eb43350c4"},"mainEntity":{"@id":"https://www.danielshort.me/games/probability-engine#game"},"breadcrumb":{"@id":"https://www.danielshort.me/games/probability-engine#breadcrumb"}},{"@type":["VideoGame","WebApplication"],"@id":"https://www.danielshort.me/games/probability-engine#game","name":"Probability Engine","description":"Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.","url":"https://www.danielshort.me/games/probability-engine","image":"https://www.danielshort.me/img/social/game-probability-engine.png?v=b66eb43350c4","creator":{"@id":"https://www.danielshort.me/#person"},"applicationCategory":"GameApplication","operatingSystem":"Any","gamePlatform":"Web browser","playMode":"SinglePlayer","isAccessibleForFree":true,"genre":["Simulation","Synergies","Prestige loops"]},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/games/probability-engine#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Games","item":"https://www.danielshort.me/games"},{"@type":"ListItem","position":3,"name":"Probability Engine","item":"https://www.danielshort.me/games/probability-engine"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:probability-engine","path":"/games/probability-engine","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.9380b237.css","/css/components/games.css","/css/games/probability-engine.css?v=ac432b9a53ea","/dist/styles-personal-accordion.8e158010.css"],"scripts":["/dist/site-consent.772887f4.js","/js/common/service-worker-register.js","/js/common/no-js.js","/dist/site-shell.c57ddd04.js","/js/games/probability-engine/constants.js","/js/games/probability-engine/big.js","/js/games/probability-engine/symbols.js","/js/games/probability-engine/content.js","/js/games/probability-engine/app.js"],"module":"games:probability-engine"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"games:probability-engine","path":"/games/probability-engine","category":"games","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/css/components/games.css","/css/games/probability-engine.css?v=ac432b9a53ea","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-consent.a6d261d1.js","/js/common/service-worker-register.js","/dist/site-shell.7e88cd8b.js","/js/games/probability-engine/constants.js","/js/games/probability-engine/big.js","/js/games/probability-engine/symbols.js","/js/games/probability-engine/content.js","/js/games/probability-engine/app.js"],"module":"games:probability-engine"}</script>
 </head>
 <body data-era="mechanical" data-page="probability-engine" class="site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="games" data-personal-item="probability-engine" data-personal-fit="viewport" data-site-route-id="games:probability-engine" data-site-route-category="games" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="games:probability-engine">
   <a class="skip-link" href="/games/probability-engine#main">Skip to gameplay</a>
@@ -117,7 +199,7 @@
 <div class="app-shell">
     <header class="personal-game-header" data-page-masthead data-personal-game-header="probability-engine">
   <a href="/games" data-page-masthead-parent aria-label="Back to game library">
-    <img src="/img/ui/site-icons/section-arrow-games-left.webp" alt="" aria-hidden="true" width="20" height="20" decoding="async">
+    <svg class="site-direction-arrow site-direction-arrow--left" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M2.5 9h10V4l9 8-9 8v-5h-10z"></path></svg>
     <span>Game library</span>
   </a>
   <div data-page-masthead-intro>

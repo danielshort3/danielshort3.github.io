@@ -97,8 +97,8 @@ const tagGroups = [
   {
     tagId: '41',
     triggerId: '27',
-    name: 'Content & Contributions',
-    trigger: '^(see_more_toggle|scroll_depth|contrib_doc_click|contrib_timeline_toggle)$'
+    name: 'Content',
+    trigger: '^(see_more_toggle|scroll_depth)$'
   },
   {
     tagId: '42',

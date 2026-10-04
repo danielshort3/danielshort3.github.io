@@ -1,5 +1,7 @@
 # Native app updates
 
+This guide describes the **review/debug APK** updater (`me.danielshort.app.debug`). The Google Play release (`me.danielshort.app`) receives app updates through Play and contains no sideload updater, install permission, or APK download flow. Its Settings page offers website-content refresh without native app-update controls.
+
 Settings opens a compact overview with **Updates**, **Reduce motion**, **Storage**, and **App information**. Open **Settings → Updates** for app-update controls and the separate website-content refresh choice. Update notices open this screen directly, including on repeat visits. See [Settings design and validation](SETTINGS.md) for the screen structure and preference mappings.
 
 **Update mode** offers **Check automatically**, **Automatic**, and **Manual**. The existing default is **Check automatically**: check the selected channel's public manifest once per cold app launch, without automatically downloading an APK. **Check now** remains available manually. Choosing **Automatic** enables verified downloads; **Automatic downloads** then selects **Unmetered connections** (the existing default) or **Any connection**. Android determines whether a connection is metered; this is not a literal Wi-Fi-only rule. These choices do not change website-content refresh preferences, and hidden network preferences are retained.
@@ -19,9 +21,10 @@ The first version containing this updater must be installed manually once. Older
 | Channel | Android package | Manifest |
 | --- | --- | --- |
 | Review | `me.danielshort.app.debug` | `https://www.danielshort.me/app-updates/review/latest.json` |
-| Stable | `me.danielshort.app` | `https://www.danielshort.me/app-updates/stable/latest.json` |
 
-Review builds currently use the existing workstation development signing key. Preserve that identity outside source control for review updates. CI's automatically generated debug key is not interchangeable with that key. A stable distribution needs a securely maintained production signing identity; it is a separate package and cannot replace the review app in place. Do not commit signing keys or passwords.
+An older stable-channel manifest may remain available for previously distributed sideload builds; the current Play release does not fetch it. The review and Play packages have different application IDs and cannot replace each other in place.
+
+Review builds currently use the existing workstation development signing key. Preserve that identity outside source control for review updates. CI's automatically generated debug key is not interchangeable with that key. Google Play uses a separate upload signing identity supplied outside source control. Do not commit signing keys or passwords.
 
 The manifest names exact APK hashes, byte sizes, package, version codes, signer identity, and any available patches. A version code alone is insufficient: several reviewed local APKs may share an old version code while containing different bytes. Recognized historical APK hashes remain in the release inventory even when no patch is retained for them, enabling a verified full download. Target version codes must always increase.
 
@@ -29,7 +32,7 @@ An unknown installed hash is reported as an unrecognized build and cannot be pat
 
 Downloads use HTTPS. Artifact URLs must belong to `danielshort.me/app-updates/`, `www.danielshort.me/app-updates/`, or this repository's GitHub release downloads. The Android network implementation permits the specific GitHub download redirects needed to retrieve release assets. Files are stored privately; only a verified ready-to-install APK is shared with the installer. Installation preserves app data through Android's normal update process.
 
-## Prepare a release locally
+## Prepare a review release locally
 
 Build and test the target APK first. Set a strictly greater `versionCode` and the intended version name in `app/build.gradle.kts`. Use the same signing identity as prior versions of that channel. Preserve previous signed APKs; recreating their source does not guarantee identical bytes.
 

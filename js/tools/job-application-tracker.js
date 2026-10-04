@@ -1146,12 +1146,10 @@
   };
 
   const inferUtmContent = (url) => {
-    if (!url) return 'resume_link';
+    if (!url) return 'site_link';
     const path = (url.pathname || '').replace(/\/+$/g, '') || '/';
     if (path === '/') return 'header_home';
     if (path === '/portfolio') return 'header_portfolio';
-    if (path === '/resume') return 'header_resume';
-    if (path === '/resume-pdf') return 'header_resume_pdf';
     if (path === '/contact') return 'header_contact';
     const projectMatch = path.match(/^\/portfolio\/([^/]+)$/i);
     if (projectMatch) {
@@ -1539,7 +1537,6 @@
       const coreLinks = [
         { label: 'Home', href: `${UTM_BASE_DOMAIN}/`, content: 'header_home' },
         { label: 'Portfolio', href: `${UTM_BASE_DOMAIN}/portfolio`, content: 'header_portfolio' },
-        { label: 'Resume (PDF)', href: `${UTM_BASE_DOMAIN}/resume-pdf`, content: 'header_resume_pdf' },
         { label: 'Contact', href: `${UTM_BASE_DOMAIN}/contact`, content: 'header_contact' }
       ];
       coreLinks.forEach((item) => {

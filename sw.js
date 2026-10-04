@@ -1,7 +1,7 @@
 /* Public offline cache. Account/API traffic and private responses never enter it. */
 'use strict';
 
-const VERSION = 'ds-site-v3';
+const VERSION = 'ds-site-v4';
 const DAY = 24 * 60 * 60 * 1000;
 const MIB = 1024 * 1024;
 const POLICIES = {
@@ -36,6 +36,7 @@ function shouldHandle(request) {
     // their cache keys, even when the returned HTML is a public static shell.
     && ![...url.searchParams.keys()].some(key => /^(?:code|state|token|access_token|id_token|refresh_token)$/i.test(key))
     && path !== '/api' && !path.startsWith('/api/') && !path.startsWith('/admin')
+    && path !== '/app-updates' && !path.startsWith('/app-updates/')
     && !HARD_DOCUMENT_PATHS.has(path)
     && !HARD_DOCUMENT_PATHS.has(path.replace(/^\/pages\//, '/tools/'));
 }
