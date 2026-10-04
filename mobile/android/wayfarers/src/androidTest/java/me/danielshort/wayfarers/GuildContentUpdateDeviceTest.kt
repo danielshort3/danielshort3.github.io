@@ -126,7 +126,18 @@ class GuildContentUpdateDeviceTest {
     assertTrue("Export the real prior guild and settings before installing", exported.isFile && exportedSettings.isFile)
     val baseline = JSONObject(exported.readText())
     assertEquals("This gate must start from the published schema-7 app", 7, baseline.getInt("version"))
-    val before = baseline.getJSONObject("state")
+    val before = if (arguments.getString("guildUpgradeUsePublicCheckBaseline") == "true") {
+      // The live guild may legitimately advance after an earlier export. Use the
+      // actual durable APK-16 snapshot captured immediately before its public upgrade.
+      val checked = JSONObject(File(context.getExternalFilesDir(null),
+        "content-update-qa/after-public-incompatible-check.json").readText())
+      assertEquals(2L, checked.getLong("contentVersion"))
+      assertTrue(checked.getBoolean("confirmed") && checked.getBoolean("valid"))
+      assertEquals(7, checked.getJSONObject("state").getInt("schemaVersion"))
+      assertEquals(baseline.getJSONObject("state").getLong("createdAt"),
+        checked.getJSONObject("state").getLong("createdAt"))
+      checked.getJSONObject("state")
+    } else baseline.getJSONObject("state")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val after = awaitReady(scenario, 3)
       val state = after.getJSONObject("state")
