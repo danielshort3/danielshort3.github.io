@@ -149,10 +149,12 @@ class GuildContentUpdateDeviceTest {
   }
 
   private fun setDebugOption(scenario: ActivityScenario<MainActivity>, enabled: Boolean) {
-    awaitSnapshot(scenario, "Settings must wait for the native committed identity") {
-      it.optJSONObject("debugPolicy")?.optJSONObject("state")?.optJSONObject("seen")?.optInt("contentVersion") == it.optLong("contentVersion").toInt()
-    }
     evaluate(scenario, "var close=document.querySelector('.wx-sheet[open] [data-wx-close]');if(close)close.click();document.querySelector('[data-wx-options]').click(); document.querySelector('[data-wx-do=\"settings\"]').click(); document.querySelector('[data-testing] summary').click(); true")
+    awaitCondition("The actual toggle must wait for native commit") {
+      var ready = false
+      evaluate(scenario, "!!document.querySelector('[data-reset-after-update]:not(:disabled)')") { ready = it == "true" }
+      ready
+    }
     evaluate(scenario, "(function(){var input=document.querySelector('[data-reset-after-update]');if(!input||input.disabled)throw new Error('Debug option must be operable after native commit');if(input.checked!==$enabled)input.click();return true;}())")
     if (enabled) evaluate(scenario, "var confirm=document.querySelector('[data-confirm-update-reset]');if(confirm)confirm.click();true")
     evaluate(scenario, "var close=document.querySelector('[data-close-dialog]');if(close)close.click();true")
@@ -200,19 +202,29 @@ class GuildContentUpdateDeviceTest {
   @Test fun enabledDebugOptionDoesNotResetAFailedOrInterruptedContentCandidate() {
     assumeTrue(arguments.getString("guildDebugRecoveryQa") == "true")
     captureCurrentDebugBackup()
-    withIsolatedApplicationStore(baseline = 5) { fixture ->
+    withIsolatedApplicationStore(baseline = 6) { fixture ->
       ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-        val before = awaitReady(scenario, 5)
+        val before = awaitReady(scenario, 6)
         setDebugOption(scenario, true)
         val nativeBackup = File(instrumentation.targetContext.filesDir, "guild-checkpoint.json.before-update-reset").readBytes()
         for (version in listOf(7L, 8L)) {
           val candidate = fixture.release(version)
           fixture.store.stage(candidate.manifest, candidate.archive)
+          (instrumentation.targetContext.applicationContext as WayfarersApplication).contentUpdates.refresh()
+          awaitCondition("The directly staged fixture must publish its real Ready state") {
+            (instrumentation.targetContext.applicationContext as WayfarersApplication).contentUpdates.state.value is GuildContentUpdateState.Ready
+          }
           openUpdates(scenario)
           clickNativeButton("Apply game update")
           awaitCondition("The failing candidate must actually enter activation") { fixture.store.currentVersion() == version }
           if (version == 8L) scenario.recreate()
-          val restored = awaitReady(scenario, 5, 65)
+          val restored = awaitReady(scenario, 6, 65)
+          awaitCondition("The rollback receipt must be durably consumed before staging another candidate") {
+            runCatching {
+              val journal = JSONObject(File(fixture.root, "store/journal.json").readText())
+              !journal.has("pending") && !journal.has("recovery")
+            }.getOrDefault(false)
+          }
           assertGuildRetained(before.getJSONObject("state"), restored.getJSONObject("state"))
           assertEquals(before.getString("resetGeneration"), restored.getString("resetGeneration"))
           assertArrayEquals("Failure cannot create a new reset backup", nativeBackup,
@@ -227,7 +239,7 @@ class GuildContentUpdateDeviceTest {
   @Test fun interruptedAutoResetResumesTheSameSeedAfterNativeFirstLostAcknowledgment() {
     assumeTrue(arguments.getString("guildDebugRecoveryQa") == "true")
     captureCurrentDebugBackup()
-    withIsolatedApplicationStore(baseline = 5) { fixture ->
+    withIsolatedApplicationStore(baseline = 6) { fixture ->
       val candidate = fixture.releaseCanonical(7)
       fixture.store.stage(candidate.manifest, candidate.archive)
       val checkpointFile = File(instrumentation.targetContext.filesDir, "guild-checkpoint.json")
@@ -237,7 +249,7 @@ class GuildContentUpdateDeviceTest {
       check(blocked.mkdir())
       try {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-          val before = awaitReady(scenario, 5)
+          val before = awaitReady(scenario, 6)
           setDebugOption(scenario, true)
           openUpdates(scenario)
           clickNativeButton("Apply game update")
@@ -287,27 +299,34 @@ class GuildContentUpdateDeviceTest {
     assumeTrue("Requires the actual published schema-8 feed and a backed-up APK-16 guild",
       arguments.getString("guildOldApkIncompatibleQa") == "true")
     val context = instrumentation.targetContext
-    assertEquals(16L, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
-    val exported = File(context.getExternalFilesDir(null), "release-qa/guild.json")
+    val installedCode = arguments.getString("guildRejectedApkCode")?.toLong() ?: 16L
+    val savedSchema = arguments.getString("guildRejectedSaveSchema")?.toInt() ?: 7
+    val baselineVersion = arguments.getString("guildRejectedContentBefore")?.toLong() ?: 2L
+    val publishedVersion = arguments.getString("guildRejectedContentAfter")?.toLong() ?: 4L
+    val minimumCode = arguments.getString("guildRejectedMinimumApk")?.toInt() ?: 17
+    assertEquals(installedCode, context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode)
+    val exported = File(context.getExternalFilesDir(null), if (installedCode == 17L) "inline-qa/before-apk18.json" else "release-qa/guild.json")
     assertTrue("Export the real older guild before checking the incompatible feed", exported.isFile)
-    assertEquals(7, JSONObject(exported.readText()).getInt("version"))
+    val backup = JSONObject(exported.readText()).let { if (it.has("checkpoint")) JSONObject(it.getString("checkpoint")) else it }
+    assertEquals(savedSchema, backup.getInt("version"))
     val envelope = GuildContentHttpsTransport().manifest(
       "https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json")
     val published = GuildContentVerifier(me.danielshort.app.BuildConfig.CONTENT_PUBLIC_KEY,
-      "me.danielshort.wayfarers", 1, 17, 8).verify(envelope)
+      "me.danielshort.wayfarers", 1, 18, 8).verify(envelope)
     val payload = JSONObject(String(Base64.getDecoder().decode(JSONObject(envelope).getString("payload")), Charsets.UTF_8))
-    assertEquals("This gate must read the actual new published signed content", 4L, published.contentVersion)
+    assertEquals("This gate must read the actual new published signed content", publishedVersion, published.contentVersion)
     assertEquals(8, payload.getInt("saveSchema"))
-    assertEquals(17, published.minAppVersionCode)
+    assertEquals(minimumCode, published.minAppVersionCode)
     val app = context.applicationContext as WayfarersApplication
     // APK 16's released verifier reports its signature/compatibility rejection
     // with this exact message. A transport error must not pass this gate.
-    val compatibilityMessage = "This game update could not be verified or is incompatible with this app."
+    val compatibilityMessage = if (installedCode <= 16L) "This game update could not be verified or is incompatible with this app."
+      else "This game update requires a compatible app version. Check for an app update first."
     val rejection = assertThrows(Exception::class.java) { app.contentStore.verifyManifest(envelope) }
     assertEquals(compatibilityMessage, rejection.message)
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-      val before = awaitReady(scenario, 2)
-      assertEquals(JSONObject(exported.readText()).getJSONObject("state").getLong("createdAt"),
+      val before = awaitReady(scenario, baselineVersion)
+      assertEquals(backup.getJSONObject("state").getLong("createdAt"),
         before.getJSONObject("state").getLong("createdAt"))
       val settings = nativeSettings()
       val pid = Process.myPid()
@@ -329,27 +348,32 @@ class GuildContentUpdateDeviceTest {
       assertNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
         it.text?.toString() in listOf("Apply game update", "Download game update") && it.isVisibleToUser && it.isEnabled
       })
-      assertEquals(2L, app.contentStore.currentVersion())
+      assertEquals(baselineVersion, app.contentStore.currentVersion())
       assertNull(app.contentStore.stagedManifest())
       val output = File(context.getExternalFilesDir(null), "content-update-qa").apply { mkdirs() }
       File(output, "public-incompatible-envelope.json").writeText(envelope)
-      File(output, "public-incompatible-result.json").writeText(JSONObject().put("installedApk", 16)
+      File(output, "public-incompatible-result.json").writeText(JSONObject().put("installedApk", installedCode)
         .put("publishedContent", published.contentVersion).put("saveSchema", payload.getInt("saveSchema"))
         .put("minimumApk", published.minAppVersionCode).put("error", failure.message).toString(2))
       File(output, "public-incompatible-ui.png").outputStream().use { stream ->
         check(instrumentation.uiAutomation.takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream))
       }
       clickNativeButton("Back to guild")
-      val after = awaitReady(scenario, 2)
+      val after = awaitReady(scenario, baselineVersion)
       assertEquals(pid, Process.myPid())
       scenario.onActivity { assertSame(activity, it) }
       assertGuildRetained(before.getJSONObject("state"), after.getJSONObject("state"))
       assertEquals(settings, nativeSettings())
       val checkpoint = GuildCheckpointStore(File(context.filesDir, "guild-checkpoint.json")).read()
       assertNotNull(checkpoint)
-      assertEquals(7, JSONObject(checkpoint!!.text).getInt("version"))
+      assertEquals(savedSchema, JSONObject(checkpoint!!.text).getInt("version"))
       assertGuildRetained(after.getJSONObject("state"), JSONObject(checkpoint.text).getJSONObject("state"))
       exportEvidence("after-public-incompatible-check", after)
+      if (installedCode == 17L) {
+        val inline = File(context.getExternalFilesDir(null), "inline-qa").apply { mkdirs() }
+        File(inline, "before-apk18.json").writeText(after.toString(2))
+        File(inline, "native-settings-before-apk18.xml").writeText(nativeSettings())
+      }
     }
   }
 
