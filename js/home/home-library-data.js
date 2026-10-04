@@ -540,6 +540,22 @@
           "resourceType": "game",
           "group": "",
           "badge": ""
+        },
+        {
+          "id": "wayfarers-guild",
+          "title": "Wayfarers' Guild",
+          "summary": "Follow an automatic trail, build your guild, and connect gathering, crafting, research, and expeditions.",
+          "href": "/games/wayfarers-guild",
+          "image": "/img/home-previews/games/wayfarers-guild.webp",
+          "imageAlt": "",
+          "iconImage": "/img/home-icons/wayfarers-guild.svg?v=dd9188f97dac",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "game",
+          "contentId": "wayfarers-guild",
+          "resourceType": "game",
+          "group": "",
+          "badge": ""
         }
       ]
     }
