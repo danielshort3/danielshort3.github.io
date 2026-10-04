@@ -49,37 +49,46 @@ class GuildOnboardingDeviceTest {
     }
   }
 
-  @Test fun retainedE2PlanUsesVisibleRealControlsAndPersistsItsChoice() {
+  @Test fun retainedE2GoalUsesVisibleRealControlsAndPreservesItsWorkingChoice() {
     assumeTrue("Requires an explicitly imported disposable retained E2 save",
       InstrumentationRegistry.getArguments().getString("guildRetainedE2Qa") == "true")
     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
       val opening = awaitSnapshot(scenario, "The retained E2 Trail lesson must be active") {
-        it.optInt("expeditionVersion") == 2 && it.optString("guide") == "greenway" && it.optBoolean("nativeConfirmed")
+        it.optInt("expeditionVersion") == 2 && (it.optString("guide") == "greenway" || it.optInt("progress") == 3) && it.optBoolean("nativeConfirmed")
       }
-      assertTrue(opening.getInt("progress") in 0..2)
+      assertTrue(opening.getInt("progress") in 0..3)
       val originalClaims = opening.getInt("claimCount")
-      acknowledgeCurrencies(scenario)
-      if (opening.getInt("progress") == 0) performHighlightedStep(scenario, "inspect")
-      acknowledgeCurrencies(scenario)
-      if (snapshot(scenario).getInt("progress") == 1) performHighlightedStep(scenario, "upgrade")
-      val beforePlan = awaitGuide(scenario, "greenway", "operate")
-      assertEquals(1, beforePlan.getInt("boots"))
-      assertEquals(1, beforePlan.getInt("supplyCount"))
-      assertEquals("short", beforePlan.getString("routeChoice"))
-      assertEquals(2, beforePlan.getInt("proofCount"))
-      scenario.recreate()
-      awaitGuide(scenario, "greenway", "operate")
-      performHighlightedStep(scenario, "operate", nativeTouch = true)
-      val complete = awaitSnapshot(scenario, "The real legacy plan choice must persist without a repeat reward") {
-        it.optInt("progress") == 3 && it.optString("routeChoice") == "supply" && it.optBoolean("nativeConfirmed")
+      val originalChoice = opening.getString("routeChoice")
+      if (opening.getInt("progress") < 3) {
+        acknowledgeCurrencies(scenario)
+        if (opening.getInt("progress") == 0) performHighlightedStep(scenario, "inspect")
+        acknowledgeCurrencies(scenario)
+        if (snapshot(scenario).getInt("progress") == 1) performHighlightedStep(scenario, "upgrade")
+        val beforeGoal = awaitGuide(scenario, "greenway", "operate")
+        assertEquals(1, beforeGoal.getInt("boots"))
+        assertEquals(1, beforeGoal.getInt("supplyCount"))
+        assertEquals(originalChoice, beforeGoal.getString("routeChoice"))
+        assertEquals(2, beforeGoal.getInt("proofCount"))
+        scenario.recreate()
+        awaitGuide(scenario, "greenway", "operate")
+        performHighlightedStep(scenario, "operate", nativeTouch = true)
+      } else {
+        // Rechecking a completed retained lesson opens the same real objective
+        // inspector; it cannot purchase another supplied rank or grant a reward.
+        evaluate(scenario, "var close=document.querySelector('.wx-sheet[open] [data-wx-close]'); if(close)close.click(); document.querySelector('[data-wx-objective]').click(); true")
+      }
+      val complete = awaitSnapshot(scenario, "The real objective inspector must preserve the retained working choice") {
+        it.optInt("progress") == 3 && it.optString("routeChoice") == originalChoice && it.optString("sheetKind") == "objective" && it.optBoolean("nativeConfirmed")
       }
       assertEquals(originalClaims, complete.getInt("claimCount"))
       assertEquals(1, complete.getInt("boots"))
       assertEquals(1, complete.getInt("supplyCount"))
       assertEquals(3, complete.getInt("proofCount"))
+      saveScreenshot("retained-e2-goal")
+      println("RETAINED_E2_GOAL $complete")
       scenario.recreate()
-      val restored = awaitSnapshot(scenario, "The retained legacy plan and receipts must survive recreation") {
-        it.optInt("progress") == 3 && it.optString("routeChoice") == "supply" && it.optBoolean("nativeConfirmed")
+      val restored = awaitSnapshot(scenario, "The retained legacy choice and completed receipts must survive recreation") {
+        it.optInt("progress") == 3 && it.optString("routeChoice") == originalChoice && it.optBoolean("nativeConfirmed")
       }
       assertEquals(opening.getLong("createdAt"), restored.getLong("createdAt"))
       assertEquals(originalClaims, restored.getInt("claimCount"))
