@@ -116,7 +116,7 @@
     root.className = (root.className || '').replace(/\bno-js\b/g, '').trim();
   } catch (_) {}
 })();</script>
-  <link rel="stylesheet" href="dist/styles.c1e77226.css">
+  <link rel="stylesheet" href="dist/styles.5d41a9e1.css">
   <link rel="stylesheet" href="css/components/privacy-page.css?v=735c1692913a">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
@@ -134,11 +134,11 @@
 
   <script defer src="dist/site-shell.7e88cd8b.js"></script>
 
-<link rel="stylesheet" href="dist/styles-personal-accordion.4d150ecd.css">
+<link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/privacy#webpage","url":"https://www.danielshort.me/privacy","name":"Privacy & Your Data | Daniel Short","description":"How Daniel Short's website and Android app handle local data, analytics, saved work, recordings, and your choices.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/personal-social-card.png"},"breadcrumb":{"@id":"https://www.danielshort.me/privacy#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/privacy#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Privacy & Your Data","item":"https://www.danielshort.me/privacy"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.c1e77226.css","/css/components/privacy-page.css?v=735c1692913a","/dist/styles-personal-accordion.4d150ecd.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.7e88cd8b.js","/dist/site-consent.a6d261d1.js","/dist/site-privacy.b6327493.js"],"module":"about:privacy"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"about:privacy","path":"/privacy","category":"about","view":"detail","navigation":"soft","styles":["/dist/styles.5d41a9e1.css","/css/components/privacy-page.css?v=735c1692913a","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.7e88cd8b.js","/dist/site-consent.a6d261d1.js","/dist/site-privacy.b6327493.js"],"module":"about:privacy"}</script>
 </head>
 <body data-page="privacy" class="policy-page privacy-page site-page personal-accordion-page" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="about" data-personal-item="privacy" data-personal-fit="viewport" data-site-route-id="about:privacy" data-site-route-category="about" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="about:privacy">
   <a href="/privacy#main" class="skip-link">Skip to main content</a>
@@ -242,6 +242,7 @@
         <h2>Accounts, uploads &amp; messages</h2>
         <p>Amazon Cognito handles sign-in; accounts can store your name, email, account ID, saved work, and activity. Cloud features send required inputs or files to their processing service. The application tracker also stores records and attachments.</p>
         <p>Contact forms send your name, email, and message through Amazon SES to my inbox. Providers including Vercel and AWS process requests and operational data to run and protect the site.</p>
+        <p>Contact abuse protection stores hashed request identifiers and counters scheduled to expire after two days, with no message text, email address or raw IP address in these quota records. AWS may take additional time to delete expired records.</p>
       </div>
 
       <div class="policy-section" id="android-app">
@@ -264,6 +265,13 @@
         <p>Clear this site's browser data to remove local preferences, sign-in state, tool settings, and game progress. Saved-work retention varies by service; download anything you need to keep.</p>
         <p>Signed-out tool text, settings, and contact drafts stay in this tab's session storage for recovery after navigation or refresh, expiring after two hours of inactivity. Clearing or discarding the draft removes it; confirmed delivery clears a contact draft. Passwords, files, recordings and binary previews are excluded. Unsynced account drafts use separate local storage until synced or deleted.</p>
         <p>Open <strong>Account</strong> and select <strong>Continue</strong> to reopen saved work. Under <strong>Privacy &amp; data</strong>, <strong>Delete saved account data</strong> removes your saved tool sessions and activity, but not your Cognito login, contact emails, or separate cloud-tool records. For full closure, follow the <a href="/privacy#account-deletion">account deletion request steps</a>.</p>
+      </div>
+
+      <div class="policy-section" id="assistant-and-links">
+        <h2>Chatbot &amp; short links</h2>
+        <p>The site chatbot and Travel Assistant send your question and conversation context to AWS for an answer. Questions, answers, conversation identifiers, the referring site, country, page context and processing details are logged in AWS for troubleshooting and abuse prevention. Chat logs use a configurable retention period, with a 30-day default; AWS may take additional time to remove expired records. Avoid sending private or sensitive information.</p>
+        <p>Opening a short link records the link, time, link or QR channel, destination without query parameters, referring site and country. Click history and aggregate totals are retained until the site owner removes them; older records may also contain browser details and a region, city or time zone. These operational records are separate from optional Google Analytics.</p>
+        <p>Clearing a conversation, deleting browser data or turning off optional cookies does not remove these server records. Email <a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a> for a data request. Provider request logs and protected backups can have separate retention periods.</p>
       </div>
 
       <div class="policy-section" id="your-choices">
@@ -333,6 +341,7 @@
           <li><a href="/privacy#android-app">Android app</a></li>
           <li><a href="/privacy#account-deletion">Request account deletion</a></li>
           <li><a href="/privacy#stored-data">Storage and deletion</a></li>
+          <li><a href="/privacy#assistant-and-links">Chatbot and short links</a></li>
           <li><a href="/privacy#your-choices">Your choices</a></li>
           <li><a href="/privacy#prefs-title">Manage preferences</a></li>
         </ul>

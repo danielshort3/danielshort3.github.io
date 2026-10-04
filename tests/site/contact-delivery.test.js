@@ -5,24 +5,32 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { createHarness } = require('./mobile-contact.test');
+const { verifySignedRequest } = require('../../api/_lib/contact-protection');
+const CONTACT_TEST_SECRET = 'offline-contact-test-secret-32-bytes-minimum';
 const apiSource = fs.readFileSync(path.join(__dirname, '../../api/contact.js'), 'utf8');
 const UNKNOWN = 'We couldn’t confirm delivery. Your message may have been sent. Your draft is still here.';
 const settle = async () => { for (let index = 0; index < 12; index += 1) await Promise.resolve(); };
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
 
-async function apiCase(fetcher, { timeout = false, body = { name: 'Test', email: 'test@example.com', message: 'Never actually sent' } } = {}) {
+async function apiCase(fetcher, {
+  timeout = false,
+  body = { name: 'Test', email: 'test@example.com', message: 'Never actually sent' },
+  headers = { origin: 'https://www.danielshort.me', host: 'www.danielshort.me', 'x-forwarded-proto': 'https', 'x-forwarded-for': '203.0.113.5' },
+  env = { CONTACT_PROXY_SECRET: CONTACT_TEST_SECRET }
+} = {}) {
   const timers = new Map();
   const requests = [];
   const module = { exports: {} };
   vm.runInNewContext(apiSource, {
-    module, process: { env: {} }, Buffer, AbortController,
+    module, process: { env }, Buffer, AbortController,
+    require: (name) => name === './_lib/contact-protection' ? require('../../api/_lib/contact-protection') : require(name),
     fetch: (...args) => { requests.push(args); return fetcher(...args); },
     setTimeout: (callback, delay) => { timers.set(1, { callback, delay }); return 1; },
     clearTimeout: (id) => timers.delete(id)
   });
   const result = { headers: {} };
   const response = { setHeader: (name, value) => { result.headers[name] = value; }, end: (body) => { result.body = JSON.parse(body); result.status = response.statusCode; } };
-  const pending = module.exports({ method: 'POST', body }, response);
+  const pending = module.exports({ method: 'POST', body, headers }, response);
   await settle();
   if (timeout) {
     assert.equal(timers.get(1)?.delay, 20000);
@@ -51,6 +59,29 @@ async function main() {
   const valid = await apiCase(async () => ({ ok: true, status: 200, text: async () => '{"ok":true}' }));
   assert.equal(valid.result.status, 200);
   assert.deepEqual(valid.result.body, { ok: true });
+  const signed = verifySignedRequest({ headers: valid.requests[0][1].headers, body: valid.requests[0][1].body }, CONTACT_TEST_SECRET);
+  assert(signed, 'the actual proxy signs the exact validated upstream body');
+  assert.equal(JSON.parse(signed.body).email, 'test@example.com');
+  assert(!JSON.stringify(valid.requests[0][1].headers).includes('203.0.113.5'), 'upstream headers contain a hashed actor instead of a raw client IP');
+  const unreachable = async () => { throw new Error('rejected submissions must not reach the email sender'); };
+  for (const origin of ['https://foreign.example', '']) {
+    const denied = await apiCase(unreachable, { headers: { origin, host: 'www.danielshort.me', 'x-forwarded-proto': 'https' } });
+    assert.equal(denied.result.status, 403);
+    assert.equal(denied.requests.length, 0);
+  }
+  const malformedFields = await apiCase(unreachable, { body: { name: [], email: 'test@example.com', message: 'Invalid name type' } });
+  assert.equal(malformedFields.result.status, 400);
+  assert.equal(malformedFields.requests.length, 0);
+  const unconfigured = await apiCase(unreachable, { env: {} });
+  assert.equal(unconfigured.result.status, 503);
+  assert.equal(unconfigured.requests.length, 0);
+  const honeypot = await apiCase(unreachable, { body: { name: 'Test', email: 'test@example.com', message: 'Honeypot', company: 'spam' } });
+  assert.equal(honeypot.result.status, 200);
+  assert.equal(honeypot.requests.length, 0);
+  const limited = await apiCase(async () => ({ ok: false, status: 429, headers: { get: () => '3599' }, text: async () => '{"error":"private quota details"}' }));
+  assert.equal(limited.result.status, 429);
+  assert.equal(limited.result.headers['Retry-After'], '3599');
+  assert(!JSON.stringify(limited.result).includes('private'));
   const oversized = await apiCase(async () => { throw new Error('oversized bodies must not reach the upstream'); }, {
     body: { name: 'Test', email: 'test@example.com', message: 'x'.repeat(40 * 1024) }
   });

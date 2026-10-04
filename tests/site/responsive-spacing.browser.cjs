@@ -88,6 +88,29 @@ function assertLibraryColumns(metrics, route) {
 
 async function assertProjectRailNavigation(page, viewport) {
   const railSelector = '.personal-library--projects .home-library__jump-links';
+  const rail = page.locator(railSelector);
+  const railState = await rail.evaluate(node => ({
+    width: node.clientWidth,
+    scrollWidth: node.scrollWidth,
+    overflowX: getComputedStyle(node).overflowX,
+    cue: getComputedStyle(node, '::before').content
+  }));
+  if (viewport.width <= 480) {
+    assert(railState.scrollWidth > railState.width && railState.overflowX === 'auto',
+      'The mobile project category links use a real horizontal scroller.');
+    assert.equal(railState.cue, '"Swipe →"', 'The mobile category rail explains the additional offscreen links.');
+    const lastLink = page.locator(`${railSelector} a[data-home-library-jump]`).last();
+    await lastLink.focus();
+    await page.waitForFunction(selector => {
+      const scroller = document.querySelector(selector);
+      const link = scroller.querySelector('a[data-home-library-jump]:last-child');
+      const railBox = scroller.getBoundingClientRect();
+      const linkBox = link.getBoundingClientRect();
+      return scroller.scrollLeft > 0 && linkBox.left >= railBox.left - 1 && linkBox.right <= railBox.right + 1;
+    }, railSelector);
+    assert.equal(await page.evaluate(() => document.activeElement.textContent.trim()), 'Practical applications',
+      'Keyboard focus can reveal the final category without requiring a swipe.');
+  } else assert.equal(railState.cue, 'none', 'The desktop category rail needs no mobile swipe instruction.');
   for (const [index, label] of [[2, 'Data stories'], [3, 'Practical applications'], [2, 'Data stories']]) {
     const link = page.locator(`${railSelector} a[data-home-library-jump]`).nth(index);
     const headingId = (await link.getAttribute('href')).slice(1);
