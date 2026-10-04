@@ -6,9 +6,10 @@
 | --- | --- |
 | Android package, both local build types | `me.danielshort.wayfarers` |
 | Generated-resource namespace | `me.danielshort.app` |
-| Default candidate | `0.11.1`, version code `15` |
+| Default candidate | `0.12.0`, version code `16` |
 | Offline game origin | `https://appassets.androidplatform.net/assets/wayfarers/index.html` |
 | Dedicated update manifest | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest.json` |
+| Signed game-content channel | `https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json` |
 
 The namespace preserves the canonical updater's `BuildConfig` import; this module generates its own `APP_UPDATE_URL`. The Android package controls installation, private data, installer callback actions, and FileProvider authority. Sharing a Kotlin namespace does not share app data.
 
@@ -22,7 +23,7 @@ The runtime is under `src/main/java/me/danielshort/wayfarers/`. Its activity and
 
 `shareUpdaterSources` copies the canonical `app/src/main/java/me/danielshort/app/updates/*.kt` and `data/AppSettings.kt` into an ignored generated source set without rewriting them. It excludes only `AutomaticInstallReceiver.kt`, whose application cast is specific to the main app. `shareUpdaterTests` compiles the original updater JVM tests in this module too. Changes to signatures, exact APK identity, patch verification, download bounds or installer recovery remain owned by the original updater sources; do not fork them here. The main application build configuration is unchanged.
 
-The game envelope uses schema 7, adding initially inactive area techniques while preserving the schema 6 card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 7, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-6 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
+The game envelope uses schema 7, adding initially inactive area techniques while preserving the schema 6 card and equipment collection. The checkpoint container remains record version 1 and accepts matching game envelope/state versions 1 through 7, so an older checkpoint can reach the canonical migration code. Retained expedition-version-2 runs keep their released economy until a confirmed Refit or Charter. Saving the migrated game atomically writes a version-7 envelope; the WebView backup retains the previous valid bytes. [Collection contracts](../../../docs/games/wayfarers-collections.md) describe permanent inventory, named decks, scroll outcomes and schema compatibility.
 
 The additive [onboarding metadata](../../../docs/games/wayfarers-onboarding.md) retains first-visit action lessons, discovery notices, consumed practice supplies and once-only help rewards in the same checkpoint. Lessons use real controls and advance after a successful saved action or opening the specified information. Existing saves keep their production and ownership. Interrupted lessons resume; completed lessons can be replayed without another reward. Testing reset clears these fields with the guild, while normal Refit and Charter retain them. Trail delivery progress uses the simulation clock; reaching the outpost pays a coin bonus online or offline. Prestige clears unfinished cargo while keeping the delivery history.
 
@@ -52,7 +53,11 @@ These properties affect only `:wayfarers`. Version codes must increase for each 
 
 ## Update and save boundaries
 
-The shared updater verifies recognized installed bytes, package, version, signer, download size and hash, then verifies the exact reconstructed APK after a binary patch. Android's installer replaces the app. No downloaded game scripts are executed independently of an APK update. The dedicated manifest and artifacts require separate publication; a successful local build does not make a phone update available. See [the updater protocol](../UPDATES.md) and the dedicated release tooling's product contract.
+The shared APK updater verifies recognized installed bytes, package, version, signer, download size and hash, then verifies the exact reconstructed APK after a binary patch. Android's installer replaces the app. The separate [signed game-content updater](CONTENT_UPDATES.md) downloads compatible HTML, JavaScript, CSS and artwork into private versioned directories. Its pinned P-256 public key authenticates the release inventory; every extracted file is verified before execution. Native bridge scripts always come from the APK. The dedicated manifests and artifacts require separate publication; a successful local build does not make a phone update available.
+
+Open **App options → Game updates → Check game updates → Download game update → Apply game update**. Downloads continue while playing. Applying saves and stops the old simulation, replaces only the WebView under a native overlay, and resumes the same guild at the same storage origin without closing the Android activity or process. A version is committed only after canonical game initialization and a durable native checkpoint. Failed or interrupted activation restores the previous content together with its pre-apply checkpoint and game storage. Recovery keeps both backup copies until acknowledgment; storage failures offer Retry and a native saved-guild export. A successfully committed bundle that later becomes corrupted falls back to compatible content while preserving current progress.
+
+Game content is versioned separately from the APK. Native API, permissions, SDK and unsupported save-schema changes require a normal APK update. The first content-enabled APK bundles content version 1; subsequent signed content versions increase monotonically. Automatic mode may download a verified content update on allowed connections, but applying always waits for the player's tap. Cancelled automatic downloads remain cancelled until a fresh check or manual download.
 
 The native **Automatic updates** option follows the shared updater's eligibility checks, including verified downloads and deferred installation only while the app is out of use and Android permits it. Its unmetered setting applies to automatic downloads. It does not bypass installation permission or the platform's confirmation requirements. Manual checking, downloading and installation remain available separately.
 

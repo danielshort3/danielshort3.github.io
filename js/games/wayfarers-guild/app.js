@@ -1598,7 +1598,23 @@
       const gains = Object.keys(loaded.offline.gains || {}).map(id => '+' + core.format(loaded.offline.gains[id]) + ' ' + id).slice(0, 4).join(', ');
       announce('Welcome back. ' + time + ' of guild progress processed. Resource increases after any automatic spending: ' + (gains || 'none') + '.' + (loaded.offline.pendingSeconds > 1 ? ' Catching up remaining guild activity.' : ''));
     }
-    root.WayfarersUI = { handleBack };
+    root.WayfarersUI = {
+      handleBack,
+      contentReady() {
+        return !disposed && !hardResetBusy && !awaitingPurchaseWallet && !saveFailure &&
+          pendingCatchup <= 1 && core.validateState(state).valid;
+      },
+      flushForContentUpdate() {
+        if (disposed || hardResetBusy || hardResetRequest || awaitingPurchaseWallet || billingBusy || caravanBusy) return false;
+        advance();
+        return save().ok && core.validateState(state).valid;
+      },
+      suspendForContentUpdate() {
+        if (!root.WayfarersUI.flushForContentUpdate()) return false;
+        active.destroy();
+        return true;
+      }
+    };
     active = {
       element,
       destroy() {

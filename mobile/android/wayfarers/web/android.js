@@ -6,7 +6,8 @@
   viewport();
   window.addEventListener('resize', viewport);
   function send(type, text) {
-    if (window.WayfarersAndroid) window.WayfarersAndroid.postMessage(JSON.stringify({ type: type, text: text || '' }));
+    if (window.WayfarersAndroid) window.WayfarersAndroid.postMessage(JSON.stringify({ type: type, text: text || '',
+      documentToken: window.WayfarersContent && window.WayfarersContent.documentToken }));
   }
   const options = document.querySelector('.wg-exit');
   options.href = '#app-options';
@@ -52,6 +53,16 @@
   });
   observer.observe(document.querySelector('[data-dialog-body]'), { childList: true, subtree: true });
   window.WayfarersAndroidUI = {
+    prepareContentUpdate: function () {
+      if (!window.WayfarersUI || !window.WayfarersUI.suspendForContentUpdate()) return null;
+      const storage = {};
+      for (let index = 0; index < localStorage.length; index++) {
+        const key = localStorage.key(index);
+        if (key && key.startsWith('wayfarers-guild-')) storage[key] = localStorage.getItem(key);
+      }
+      const text = window.WayfarersCheckpoint && window.WayfarersCheckpoint.snapshot();
+      return text ? { text, storage, generation: window.WayfarersCheckpoint.generation() } : null;
+    },
     durableSnapshot: function () {
       if (!window.WayfarersAndroidUI.flush()) return '';
       return window.WayfarersCheckpoint ? window.WayfarersCheckpoint.snapshot() : '';
@@ -70,4 +81,22 @@
       return Boolean(stored && (!warning || warning.hidden));
     }
   };
+  // Readiness requires the canonical game and a durable native save.
+  if (window.WayfarersContent && window.WayfarersAndroid) {
+    let flushed = false;
+    const timer = setInterval(function () {
+      if (window.WayfarersContent.restoreFailed || !window.WayfarersUI || !window.WayfarersUI.contentReady()) return;
+      const canvas = document.querySelector('[data-wx-canvas]');
+      if (canvas && canvas.dataset.sceneStatus !== 'ready') return;
+      if (!flushed) { flushed = window.WayfarersUI.flushForContentUpdate(); return; }
+      if (!window.WayfarersCheckpoint.confirmed()) return;
+      clearInterval(timer);
+      window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'content-ready',
+        documentToken: window.WayfarersContent.documentToken,
+        version: window.WayfarersContent.version,
+        recoveryToken: window.WayfarersContent.recoveryToken || '',
+        text: window.WayfarersCheckpoint.snapshot(), generation: window.WayfarersCheckpoint.generation() }));
+    }, 150);
+    window.addEventListener('pagehide', function () { clearInterval(timer); }, { once: true });
+  }
 })();

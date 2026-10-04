@@ -10,8 +10,8 @@ val websiteRoot = rootProject.projectDir.resolve("../..").canonicalFile
 val gameAssets = layout.buildDirectory.dir("generated/gameAssets")
 val updaterSources = layout.buildDirectory.dir("generated/sharedUpdater/main")
 val updaterTests = layout.buildDirectory.dir("generated/sharedUpdater/test")
-val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("15").get()
-val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.11.1").get()
+val versionCodeProperty = providers.gradleProperty("wayfarersVersionCode").orElse("16").get()
+val versionNameProperty = providers.gradleProperty("wayfarersVersionName").orElse("0.12.0").get()
 val gameVersionCode = versionCodeProperty.toIntOrNull()
   ?: error("wayfarersVersionCode must be a positive Android version code.")
 require(gameVersionCode > 0) { "wayfarersVersionCode must be positive." }
@@ -75,6 +75,11 @@ android {
     versionName = versionNameProperty
     buildConfigField("String", "APP_UPDATE_URL", "\"$updateFeed\"")
     buildConfigField("String", "GAME_URL", "\"https://appassets.androidplatform.net/assets/wayfarers/index.html\"")
+    buildConfigField("String", "CONTENT_UPDATE_URL", "\"https://github.com/danielshort3/danielshort3.github.io/releases/download/wayfarers-guild-updates/latest-content.json\"")
+    buildConfigField("String", "CONTENT_PUBLIC_KEY", "\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpUTtzoHygvJxs6Ebk2CETcgdJUNA87hHeteq3FM7DMWdNga3Cx3n6N03cb9xc/U0Azks22zwDNYF9dCS9D2nLA==\"")
+    buildConfigField("int", "CONTENT_NATIVE_API", "1")
+    buildConfigField("int", "CONTENT_SAVE_SCHEMA", "7")
+    buildConfigField("long", "BUNDLED_CONTENT_VERSION", "1L")
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
   signingConfigs.getByName("debug") {

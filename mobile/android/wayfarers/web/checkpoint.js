@@ -65,7 +65,8 @@
   function mirror(replacesCreatedAt) {
     const text = currentText();
     if (resetPending || !parse(text) || !window.WayfarersAndroid) return;
-    const message = { type: 'checkpoint', text: text, generation: generation, requestId: ++request };
+    const message = { type: 'checkpoint', text: text, generation: generation, requestId: ++request,
+      documentToken: window.WayfarersContent && window.WayfarersContent.documentToken };
     if (Number.isFinite(replacesCreatedAt)) message.replacesCreatedAt = replacesCreatedAt;
     window.WayfarersAndroid.postMessage(JSON.stringify(message));
   }
@@ -118,7 +119,8 @@
       const confirmed = await new Promise(resolve => {
         const timer = setTimeout(() => { resetRequests.delete(requestId); resolve(false); }, 8000);
         resetRequests.set(requestId, { resolve, timer });
-        try { window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'reset-guild', requestId, text: journal.text, generation: journal.id, previousGeneration: journal.previousId })); }
+        try { window.WayfarersAndroid.postMessage(JSON.stringify({ type: 'reset-guild', requestId, text: journal.text, generation: journal.id, previousGeneration: journal.previousId,
+          documentToken: window.WayfarersContent && window.WayfarersContent.documentToken })); }
         catch (error) { clearTimeout(timer); resetRequests.delete(requestId); resolve(false); }
       });
       if (!confirmed) { failed = true; return { ok: false, status: 'reset-pending', message: 'Android has not confirmed the reset. Retry to finish; no new guild will be rolled.' }; }
