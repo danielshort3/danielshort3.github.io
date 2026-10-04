@@ -83,9 +83,11 @@ class GuildContentUpdateDeviceTest {
       }
       val failure = app.contentUpdates.state.value as GuildContentUpdateState.Error
       assertEquals("Reject the authenticated incompatible feed, not a transient transport failure", compatibilityMessage, failure.message)
-      assertNotNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
-        it.text?.toString() == failure.message && it.isVisibleToUser
-      })
+      awaitCondition("The exact compatibility error must paint in the real update screen") {
+        findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
+          it.text?.toString() == failure.message && it.isVisibleToUser
+        } != null
+      }
       assertNull(findAccessible(instrumentation.uiAutomation.rootInActiveWindow) {
         it.text?.toString() in listOf("Apply game update", "Download game update") && it.isVisibleToUser && it.isEnabled
       })
