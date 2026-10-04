@@ -155,6 +155,7 @@ function main() {
     const manifest = readJson(cssManifestPath);
     const cssOutputs = [
       ['base', manifest && manifest.file],
+      ['demo', manifest && manifest.demoFile],
       ['home', manifest && manifest.homeFile],
       ['workbench', manifest && manifest.workbenchFile],
       ['tools', manifest && manifest.toolsFile],

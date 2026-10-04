@@ -42908,8 +42908,10 @@ try {
   });
 
   section('Project demo brand theme', () => {
+    require('./tests/site/demo-css-bundle.test.js')({ assert, published: true });
     const demoThemeCss = fs.readFileSync('css/components/project-demo-theme.css', 'utf8');
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
+    const demoStylesCss = fs.readFileSync('css/styles-demo.css', 'utf8');
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
     const projectDemoFiles = [
       'demos/baby-names-demo.html',
@@ -42938,7 +42940,9 @@ try {
       'demos/sentence-demo.html',
       'demos/target-empty-package-demo.html'
     ];
-    assert(stylesCss.includes('@import url("components/project-demo-theme.css");'), 'global CSS should import project demo brand theme');
+    assert(demoStylesCss.includes('@import url("components/project-demo-theme.css");') &&
+           !stylesCss.includes('@import url("components/project-demo-theme.css");'),
+      'project demo brand theme should load through the isolated demo bundle');
     assert(!demoThemeCss.includes('@layer overrides'), 'project demo theme must stay unlayered so it can override demo-local inline styles');
     assert(demoThemeCss.includes('html[data-project-demo-theme="brand"]') &&
            demoThemeCss.includes('--brand-midnight') &&
