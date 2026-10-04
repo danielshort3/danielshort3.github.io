@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -37,14 +38,19 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import me.danielshort.app.BuildConfig
 import me.danielshort.app.updates.*
 import org.json.JSONObject
 import org.json.JSONArray
 import java.io.ByteArrayInputStream
 import java.util.Locale
+import java.util.UUID
+import java.io.File
+import me.danielshort.wayfarers.content.*
 
-/** A standalone game shell. Only signed, installed APKs change executable game assets. */
+/** Offline shell with authenticated game content and a separate native APK updater. */
 class MainActivity : ComponentActivity() {
   private val app get() = application as WayfarersApplication
   private val checkpoints by lazy { GuildCheckpointStore(java.io.File(filesDir, "guild-checkpoint.json")) }
@@ -59,6 +65,14 @@ class MainActivity : ComponentActivity() {
   private var importing = false
   private var resumed = false
   private var lifecycleEpoch = 0L
+  private var applyingContent by mutableStateOf(false)
+  private var contentNotice by mutableStateOf("")
+  private var contentSession: ContentSession? = null
+  private var contentRecovery: Recovery? = null
+  private var applyingSessionId: String? = null
+  private var documentToken = ""
+  private var contentTimeout: Job? = null
+  private var expectedGuildId: Double? = null
 
   private val exportDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
     val text = pendingExport
@@ -115,13 +129,24 @@ class MainActivity : ComponentActivity() {
             Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
               Text("The game couldn’t open", style = MaterialTheme.typography.headlineSmall)
               Text("Your stored guild has been kept. Reopen the game to try again.")
+              if (contentNotice.isNotBlank()) Text(contentNotice)
               Button(onClick = { rendererFailed = false; rendererGeneration++ }) { Text("Reopen game") }
               OutlinedButton(onClick = { showOptions() }) { Text("App updates") }
             }
           }
-          if (options) OptionsScreen()
+          if (options && !applyingContent) OptionsScreen()
+          if (applyingContent) Surface(Modifier.fillMaxSize(), color = Color(0xFF142B43)) {
+            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
+              horizontalAlignment = Alignment.CenterHorizontally) {
+              CircularProgressIndicator(color = Color(0xFFFFDA67))
+              Spacer(Modifier.height(20.dp))
+              Text("Applying game update…", color = Color.White, style = MaterialTheme.typography.titleLarge)
+              Text("Your guild will resume here.", Modifier.padding(top = 8.dp), color = Color(0xFFBDD7E4))
+            }
+          }
         }
         BackHandler {
+          if (applyingContent) return@BackHandler
           if (options) closeOptions() else game?.evaluateJavascript("Boolean(window.WayfarersUI?.handleBack())") { handled ->
             if (handled != "true") flushGame { safe -> if (safe) moveTaskToBack(true) }
           }
@@ -160,6 +185,7 @@ class MainActivity : ComponentActivity() {
   override fun onStop() { app.coordinator.onBackground(); super.onStop() }
 
   private fun showOptions() {
+    if (applyingContent) return
     flushGame { _ -> options = true }
   }
   private fun closeOptions() {
@@ -169,8 +195,10 @@ class MainActivity : ComponentActivity() {
   }
   private fun flushGame(complete: (Boolean) -> Unit) {
     val current = game
-    if (current == null || !GuildContentPolicy.isGame(current.url.orEmpty())) { complete(false); return }
+    val token = documentToken
+    if (applyingContent || token.isBlank() || current == null || !GuildContentPolicy.isGame(current.url.orEmpty())) { complete(false); return }
     current.evaluateJavascript("JSON.stringify({text:window.WayfarersAndroidUI?.durableSnapshot() || '',generation:window.WayfarersCheckpoint?.generation() || ''})") { result ->
+      if (isDestroyed || applyingContent || game !== current || documentToken != token) { complete(false); return@evaluateJavascript }
       val snapshot = runCatching { JSONObject(JSONArray("[$result]").getString(0)) }.getOrNull()
       val text = snapshot?.optString("text")
       complete(!text.isNullOrEmpty() && checkpoints.write(text, generation = snapshot.optString("generation")))
@@ -180,6 +208,29 @@ class MainActivity : ComponentActivity() {
 
   @SuppressLint("SetJavaScriptEnabled")
   private fun createGame(): WebView {
+    val prepared = runCatching {
+      val recovery = if (applyingSessionId == null) app.contentStore.startupRecovery() else null
+      if (recovery != null) check(checkpoints.restoreForContentUpdate(recovery.checkpointBytes))
+      recovery to app.contentStore.session()
+    }
+    if (prepared.isFailure) {
+      contentStorageFailure()
+      return WebView(this).apply { game = this }
+    }
+    val (recovery, session) = prepared.getOrThrow()
+    contentRecovery = recovery
+    contentSession = session
+    expectedGuildId = checkpoints.read()?.createdAt
+    val token = UUID.randomUUID().toString()
+    documentToken = token
+    contentTimeout?.cancel()
+    if (applyingSessionId != null || recovery != null) {
+      applyingContent = !rendererFailed
+      contentTimeout = lifecycleScope.launch {
+        delay(30000)
+        if (documentToken == token && applyingContent) recoverContent("The game update did not finish opening.")
+      }
+    }
     val assets = WebViewAssetLoader.Builder()
       .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
       .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(this))
@@ -192,6 +243,7 @@ class MainActivity : ComponentActivity() {
       setBackgroundColor(android.graphics.Color.rgb(20, 43, 67))
       settings.javaScriptEnabled = true
       settings.domStorageEnabled = true
+      settings.cacheMode = WebSettings.LOAD_NO_CACHE
       settings.useWideViewPort = true
       settings.loadWithOverviewMode = true
       settings.allowFileAccess = false
@@ -205,14 +257,26 @@ class MainActivity : ComponentActivity() {
           if (!GuildContentPolicy.isAsset(request.url.toString()) || request.method != "GET") return denied()
           if (request.url.toString() == GuildContentPolicy.ORIGIN + "/assets/wayfarers/native-checkpoint.js") {
             return WebResourceResponse("application/javascript", "UTF-8", 200, "OK", mapOf("Cache-Control" to "no-store"),
-              ByteArrayInputStream(checkpoints.bootstrapScript().toByteArray(Charsets.UTF_8)))
+              ByteArrayInputStream(contentBootstrap(session, token, recovery).toByteArray(Charsets.UTF_8)))
+          }
+          val path = request.url.path.orEmpty().removePrefix("/assets/").removePrefix("/")
+          val nativeOwned = path in setOf("wayfarers/checkpoint.js", "wayfarers/android.js")
+          if (!session.isBundled && !nativeOwned) {
+            val input = session.open(path) ?: return denied()
+            val mime = when (path.substringAfterLast('.')) {
+              "js" -> "application/javascript"; "css" -> "text/css"; "html" -> "text/html"
+              "png" -> "image/png"; "webp" -> "image/webp"; "json" -> "application/json"
+              else -> "application/octet-stream"
+            }
+            return WebResourceResponse(mime, if (mime.startsWith("image/")) null else "UTF-8", 200, "OK",
+              mapOf("Cache-Control" to "no-store"), input)
           }
           return assets.shouldInterceptRequest(request.url) ?: denied()
         }
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
           !GuildContentPolicy.isGame(request.url.toString())
         override fun onPageFinished(view: WebView, url: String) {
-          if (!GuildContentPolicy.isGame(url)) return
+          if (game !== view || applyingContent || !GuildContentPolicy.isGame(url)) return
           pendingImport?.let { text ->
             pendingImport = null
             java.io.File(cacheDir, "guild-pending-import.json").delete()
@@ -220,6 +284,8 @@ class MainActivity : ComponentActivity() {
           }
         }
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+          if (game !== view) return true
+          if (applyingContent) { recoverContent("The game update could not open."); return true }
           rendererFailed = true
           app.coordinator.setSafeToInstall(false)
           return true
@@ -227,12 +293,14 @@ class MainActivity : ComponentActivity() {
       }
       if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
         WebViewCompat.addWebMessageListener(this, "WayfarersAndroid", setOf(GuildContentPolicy.ORIGIN)) { view, message, origin, mainFrame, reply ->
-          if (!mainFrame || origin.toString().trimEnd('/') != GuildContentPolicy.ORIGIN ||
+          if (game !== view || isDestroyed || !mainFrame || origin.toString().trimEnd('/') != GuildContentPolicy.ORIGIN ||
             !GuildContentPolicy.isGame(view.url.orEmpty())) return@addWebMessageListener
           val value = message.data ?: return@addWebMessageListener
           if (value.toByteArray(Charsets.UTF_8).size > GuildContentPolicy.MAX_SAVE_BYTES * 2 + 4096) return@addWebMessageListener
           val request = runCatching { JSONObject(value) }.getOrNull() ?: return@addWebMessageListener
+          if (request.optString("documentToken") != token || documentToken != token) return@addWebMessageListener
           when (request.optString("type")) {
+            "content-ready" -> acknowledgeContent(view, session, request)
             "checkpoint" -> {
               val replacement = if (request.has("replacesCreatedAt")) request.optDouble("replacesCreatedAt") else null
               val success = checkpoints.write(request.optString("text"), replacement, request.optString("generation", ""))
@@ -257,8 +325,125 @@ class MainActivity : ComponentActivity() {
         notice("Update Android System WebView to enable app options and save files.")
         options = true
       }
-      loadUrl(GuildContentPolicy.GAME_URL)
+      if (!rendererFailed) loadUrl(GuildContentPolicy.GAME_URL)
     }
+  }
+
+  private fun contentBootstrap(session: ContentSession, token: String, recovery: Recovery?): String {
+    val metadata = JSONObject().put("version", session.contentVersion).put("label", session.label)
+      .put("documentToken", token).put("recoveryToken", recovery?.token ?: "")
+    val restore = recovery?.let {
+      """
+        try {
+          var restored=JSON.parse(${JSONObject.quote(it.localStorageJson)});
+          for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(k&&k.startsWith('wayfarers-guild-'))localStorage.removeItem(k);}
+          Object.keys(restored).forEach(function(k){localStorage.setItem(k,restored[k]);});
+        }catch(error){window.WayfarersContent.restoreFailed=true;}
+      """.trimIndent()
+    } ?: ""
+    return "window.WayfarersContent=$metadata;$restore${checkpoints.bootstrapScript()}"
+  }
+
+  private fun applyContentUpdate() {
+    if (applyingContent || openingInstaller || importing || pendingImport != null || pendingExport != null) return
+    if (app.contentStore.stagedManifest() == null) return
+    val current = game ?: return
+    val token = documentToken
+    applyingContent = true
+    contentNotice = ""
+    app.coordinator.setSafeToInstall(false)
+    current.evaluateJavascript("JSON.stringify(window.WayfarersAndroidUI?.prepareContentUpdate() || null)") { result ->
+      if (isDestroyed || game !== current || documentToken != token) return@evaluateJavascript
+      val snapshot = runCatching { JSONObject(JSONArray("[$result]").getString(0)) }.getOrNull()
+      val text = snapshot?.optString("text").orEmpty()
+      val safe = text.isNotBlank() && checkpoints.write(text, generation = snapshot?.optString("generation").orEmpty())
+      val backup = if (safe) checkpoints.backupForContentUpdate() else null
+      documentToken = "" // Fence every asynchronous message from the retired document.
+      if (snapshot == null || backup == null) {
+        applyingContent = false
+        contentNotice = "Finish the current action and save your guild, then try applying again."
+        rendererGeneration++
+        return@evaluateJavascript
+      }
+      lifecycleScope.launch {
+        try {
+          val next = withContext(Dispatchers.IO) { app.contentStore.beginApply(backup, snapshot.getJSONObject("storage").toString()) }
+          applyingSessionId = next.id
+          options = false
+          rendererGeneration++
+        } catch (failure: Exception) {
+          if (failure is CancellationException) throw failure
+          applyingContent = false
+          contentNotice = "The update could not be applied. Your guild has been kept."
+          rendererGeneration++
+        }
+      }
+    }
+  }
+
+  private fun acknowledgeContent(view: WebView, session: ContentSession, request: JSONObject) {
+    if (request.optLong("version") != session.contentVersion || contentSession?.id != session.id) return
+    val text = request.optString("text")
+    val identity = runCatching { JSONObject(text).getJSONObject("state").getDouble("createdAt") }.getOrNull() ?: return
+    if (expectedGuildId != null && identity != expectedGuildId) return
+    if (!checkpoints.write(text, generation = request.optString("generation"))) return
+    val committed = runCatching { applyingSessionId != session.id || app.contentStore.commitApply(session.id) }
+    if (committed.isFailure) { contentStorageFailure(); return }
+    if (!committed.getOrThrow()) {
+      recoverContent("The update could not be confirmed.")
+      return
+    }
+    val recovery = contentRecovery
+    if (recovery != null) {
+      val consumed = runCatching { request.optString("recoveryToken") == recovery.token && app.contentStore.consumeRecovery(recovery.token) }
+      if (consumed.isFailure) { contentStorageFailure(); return }
+      if (!consumed.getOrThrow()) return
+    }
+    contentTimeout?.cancel()
+    applyingSessionId = null
+    contentRecovery = null
+    val wasApplying = applyingContent
+    applyingContent = false
+    app.contentUpdates.refresh()
+    if (wasApplying && game === view) {
+      contentNotice = if (recovery == null) "Game update applied · ${session.label}" else "Previous game restored. Your guild is ready."
+      notice(contentNotice)
+    }
+  }
+
+  private fun recoverContent(reason: String) {
+    val id = applyingSessionId
+    documentToken = ""
+    contentTimeout?.cancel()
+    lifecycleScope.launch {
+      val recovered = withContext(Dispatchers.IO) { runCatching {
+        if (id != null) app.contentStore.rollbackApply(id, reason) else app.contentStore.startupRecovery()
+      } }
+      if (recovered.isFailure) { contentStorageFailure(); return@launch }
+      val recovery = recovered.getOrNull()
+      applyingSessionId = null
+      if (recovery == null || !checkpoints.restoreForContentUpdate(recovery.checkpointBytes) || contentRecovery?.token == recovery.token) {
+        applyingContent = false
+        rendererFailed = true
+        contentNotice = "Recovery is waiting. Your saved update backup is safe; reopen the game to retry."
+        options = true
+      } else {
+        contentRecovery = recovery
+        contentNotice = reason
+        rendererFailed = false
+        rendererGeneration++
+      }
+    }
+  }
+
+  private fun contentStorageFailure() {
+    contentTimeout?.cancel()
+    documentToken = ""
+    applyingSessionId = null
+    applyingContent = false
+    rendererFailed = true
+    options = false
+    contentNotice = "Game update recovery is waiting for storage. Reopen to retry, or export your saved guild from App updates. The update backup has been kept."
   }
 
   private fun denied() = WebResourceResponse("text/plain", "UTF-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(byteArrayOf()))
@@ -273,6 +458,7 @@ class MainActivity : ComponentActivity() {
     if (uri?.scheme == "content") reviewFile(uri)
   }
   private fun reviewFile(uri: Uri) {
+    if (applyingContent) { notice("Finish applying the game update, then open your backup again."); return }
     if (importing) { notice("Wait for the current backup to open."); return }
     importing = true
     app.coordinator.setSafeToInstall(false)
@@ -288,9 +474,10 @@ class MainActivity : ComponentActivity() {
       else {
         closeOptions()
         val current = game
+        val token = documentToken
         if (current == null) pendingImport = text
         else current.evaluateJavascript("Boolean(window.WayfarersAndroidUI)") { ready ->
-          if (ready == "true") current.evaluateJavascript("window.WayfarersAndroidUI.reviewImport(${JSONObject.quote(text)})", null)
+          if (ready == "true" && !applyingContent && game === current && documentToken == token) current.evaluateJavascript("window.WayfarersAndroidUI.reviewImport(${JSONObject.quote(text)})", null)
           else pendingImport = text
         }
       }
@@ -300,6 +487,7 @@ class MainActivity : ComponentActivity() {
   @Composable
   private fun OptionsScreen() {
     val state by app.updates.state.collectAsStateWithLifecycle()
+    val contentState by app.contentUpdates.state.collectAsStateWithLifecycle()
     val preferences by app.settings.state.collectAsStateWithLifecycle()
     val automaticStatus by app.installer.status.collectAsStateWithLifecycle()
     Surface(Modifier.fillMaxSize()) {
@@ -308,6 +496,35 @@ class MainActivity : ComponentActivity() {
           TextButton(onClick = { closeOptions() }) { Text("Back to guild") }
           Text("${BuildConfig.VERSION_NAME}", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.labelLarge)
         }
+        Text("Game updates", style = MaterialTheme.typography.headlineSmall)
+        Text("Game content v${contentSession?.contentVersion ?: BuildConfig.BUNDLED_CONTENT_VERSION}", style = MaterialTheme.typography.labelLarge)
+        when (val current = contentState) {
+          is GuildContentUpdateState.Idle, is GuildContentUpdateState.Current -> {
+            Text(if (current is GuildContentUpdateState.Current) "Your game content is up to date." else "Check for new game content.")
+            OutlinedButton(onClick = { app.contentUpdates.check() }) { Text("Check game updates") }
+          }
+          is GuildContentUpdateState.Checking -> { LinearProgressIndicator(Modifier.fillMaxWidth()); TextButton(onClick = { app.contentUpdates.cancel() }) { Text("Cancel game check") } }
+          is GuildContentUpdateState.Available -> {
+            Text("${current.manifest.label} available")
+            Button(onClick = { app.contentUpdates.download() }) { Text("Download game update") }
+          }
+          is GuildContentUpdateState.Downloading -> {
+            Text("Downloading game content · ${(current.progress * 100).toInt()}%")
+            LinearProgressIndicator(progress = { current.progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+            TextButton(onClick = { app.contentUpdates.cancel() }) { Text("Cancel game download") }
+          }
+          is GuildContentUpdateState.Ready -> {
+            Text("${current.manifest.label} ready to apply")
+            Button(onClick = { applyContentUpdate() }, enabled = !openingInstaller) { Text("Apply game update") }
+          }
+          is GuildContentUpdateState.Error -> {
+            Text(current.message, color = MaterialTheme.colorScheme.error)
+            OutlinedButton(onClick = { app.contentUpdates.check() }) { Text("Check game updates") }
+          }
+        }
+        if (contentNotice.isNotBlank()) Text(contentNotice)
+        Text("Keep playing while content downloads. Applying briefly reloads your game here and preserves your guild.", style = MaterialTheme.typography.bodySmall)
+        HorizontalDivider()
         Text("App updates", style = MaterialTheme.typography.headlineSmall)
         Text(updateStatus(state), color = if (state is AppUpdateState.Error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
         when (val current = state) {
@@ -343,9 +560,13 @@ class MainActivity : ComponentActivity() {
             Switch(checked = preferences.appUpdatesUnmeteredOnly, onCheckedChange = { app.settings.update(preferences.copy(appUpdatesUnmeteredOnly = it)) })
           }
         }
-        Text("Updates preserve your guild. Patches save download size; every APK is verified before Android installs it. Automatic installation waits until you leave the app with App updates open and may need Android’s confirmation.", style = MaterialTheme.typography.bodySmall)
+        Text("Game content applies here. Native app updates use Android’s installer. Automatic downloads follow this mode; applying game content waits for your tap.", style = MaterialTheme.typography.bodySmall)
         HorizontalDivider()
         Text("Guild backups", style = MaterialTheme.typography.titleMedium)
+        if (rendererFailed && checkpoints.read() != null) OutlinedButton(onClick = {
+          pendingExport = checkpoints.read()?.text
+          if (pendingExport != null) exportDocument.launch("wayfarers-guild-backup.json")
+        }) { Text("Export saved guild") }
         OutlinedButton(onClick = { importDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }) { Text("Open save file") }
         Text("For an export, return to your guild and open Settings → Download save. Importing always shows a review before replacing a guild.", style = MaterialTheme.typography.bodySmall)
         Text("Wayfarers’ Guild · separate app and saves · offline play", style = MaterialTheme.typography.labelMedium)
@@ -354,7 +575,7 @@ class MainActivity : ComponentActivity() {
   }
 
   private fun installUpdate() {
-    if (openingInstaller) return
+    if (openingInstaller || applyingContent) return
     if (importing || pendingExport != null || pendingImport != null) {
       installNotice = "Finish opening or saving your backup before installing."
       return

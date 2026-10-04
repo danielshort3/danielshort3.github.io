@@ -115,4 +115,31 @@ class GuildCheckpointStoreTest {
     assertTrue(store.reset(envelope(createdAt = 3000, savedAt = 3000, boots = 0), "", "11111111-2222-4333-8444-555555555555"))
     assertEquals(3000.0, store.read()!!.savedAt, 0.0)
   }
+
+  @Test fun contentRollbackRestoresTheVerifiedPreApplyCheckpointEvenAfterANewerCandidateSave() {
+    val store = GuildCheckpointStore(temporary.newFile("patch-rollback.json"))
+    val original = envelope(boots = 12)
+    assertTrue(store.write(original))
+    val backup = store.backupForContentUpdate()!!
+    assertTrue(store.write(envelope(savedAt = 9000, boots = 99)))
+    assertFalse(store.write(original))
+    assertTrue(store.restoreForContentUpdate(backup))
+    assertEquals(original, store.read()!!.text)
+    val corrupt = JSONObject(backup.toString(Charsets.UTF_8)).put("text", envelope(boots = 999)).toString().toByteArray()
+    assertFalse(store.restoreForContentUpdate(corrupt))
+    assertEquals(original, store.read()!!.text)
+  }
+
+  @Test fun contentRollbackRetainsTheOriginalResetGenerationAndReplacementReceipt() {
+    val store = GuildCheckpointStore(temporary.newFile("patch-reset.json"))
+    assertTrue(store.write(envelope()))
+    val generation = "11111111-2222-4333-8444-555555555555"
+    assertTrue(store.reset(envelope(createdAt = 5000, savedAt = 5000), "", generation))
+    val backup = store.backupForContentUpdate()!!
+    assertTrue(store.write(envelope(createdAt = 5000, savedAt = 6000, boots = 42), generation = generation))
+    assertTrue(store.restoreForContentUpdate(backup))
+    assertEquals(generation, store.read()!!.generation)
+    assertEquals(1000.0, store.read()!!.replacesCreatedAt!!, 0.0)
+    assertFalse(store.write(envelope(savedAt = 9000)))
+  }
 }

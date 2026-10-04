@@ -13,13 +13,28 @@ class GuildCheckpointStore(private val file: File) {
 
   @Synchronized fun read(): Checkpoint? = runCatching {
     if (!file.isFile || file.length() !in 1..MAX_RECORD_BYTES.toLong()) return null
-    val record = JSONObject(file.readText(Charsets.UTF_8))
+    decodeRecord(file.readText(Charsets.UTF_8))
+  }.getOrNull()
+
+  private fun decodeRecord(raw: String): Checkpoint {
+    require(raw.toByteArray(Charsets.UTF_8).size in 1..MAX_RECORD_BYTES)
+    val record = JSONObject(raw)
     require(record.getInt("version") == 1)
     val text = record.getString("text")
     require(record.getString("sha256") == digest(text))
-    parse(text, if (record.has("replacesCreatedAt")) record.getDouble("replacesCreatedAt") else null).copy(
+    return parse(text, if (record.has("replacesCreatedAt")) record.getDouble("replacesCreatedAt") else null).copy(
       generation = record.optString("generation", ""), previousGeneration = if (record.has("previousGeneration")) record.getString("previousGeneration") else null)
-  }.getOrNull()
+  }
+
+  /** Only the native content transaction can restore its verified pre-apply record. */
+  @Synchronized fun restoreForContentUpdate(bytes: ByteArray): Boolean = runCatching {
+    val checkpoint = decodeRecord(bytes.toString(Charsets.UTF_8))
+    persist(checkpoint)
+    read()?.text == checkpoint.text && read()?.generation == checkpoint.generation
+  }.getOrDefault(false)
+
+  @Synchronized fun backupForContentUpdate(): ByteArray? =
+    if (read() != null) file.readBytes() else null
 
   @Synchronized fun write(text: String, replacesCreatedAt: Double? = null, generation: String = ""): Boolean = runCatching {
     val incoming = parse(text, replacesCreatedAt)
