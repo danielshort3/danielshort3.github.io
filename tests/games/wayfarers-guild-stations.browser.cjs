@@ -16,9 +16,16 @@ const Stations=require('../../js/games/wayfarers-guild/stations');
 const StationFixtures=require('./helpers/wayfarers-stations.cjs');
 const output=path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(),'guild-stations-')));
 const report={browser:'Browser plugin not available; repository Playwright workflow used.',flows:[],viewports:[],errors:[]};
-const text130='.wx-game .wx-inline-info>strong{font-size:14.3px!important;line-height:18.2px!important}.wx-game .wx-inline-rank{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-buy{font-size:15.6px!important;line-height:20.8px!important}.wx-game .wx-inline-price>span{font-size:15.6px!important;line-height:19.5px!important}.wx-game .wx-inline-buy>small{font-size:13px!important;line-height:16.9px!important}';
+const text130='.wx-game .wx-inline-rank{font-size:13px!important;line-height:18.2px!important}.wx-game .wx-inline-buy{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-price>span{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-action>small{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-requirement[data-lifetime="true"]{font-size:11.7px!important;line-height:16.9px!important}.wx-game .wx-inline-lock>b{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-count{font-size:11.7px!important;line-height:15.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero strong{font-size:22.1px!important;line-height:28.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero span{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero small{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-help-selector>span:not(.wg-icon){font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-preview strong{font-size:16.9px!important;line-height:23.4px!important}.wx-sheet[data-kind="station-help"] .wx-help-cost{font-size:15.6px!important;line-height:22.1px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate strong{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate-progress,.wx-sheet[data-kind="station-help"] .wx-help-missing{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-confirm{font-size:16.9px!important;line-height:23.4px!important}.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-action>b{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-lock>b[data-stacked="true"]{line-height:14.3px!important}';
+function progression(state) {return {ranks:state.stations.ranks,unlocked:state.stations.unlocked,built:state.stations.built,areaRanks:state.stations.areaRanks,areaUnlocked:state.stations.areaUnlocked};}
 function fresh() {const state=H.Core.createState(1000);H.fund(state);F.completeAreaGuides(state);F.announceDiscoveries(state);return state;}
 function mature() {const state=StationFixtures.mature();state.stations.encounter.remaining=0;F.announceDiscoveries(state);return state;}
+function underfundedQuarry() {
+  const state=StationFixtures.expansionReady();StationFixtures.act(state,{type:'expedition-next'});F.completeAreaGuides(state);StationFixtures.fund(state);
+  const mine=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='mine');
+  while(state.stations.ranks[mine.skillIds[0]]<60)StationFixtures.act(state,{type:'station-skill-buy',id:mine.skillIds[0],count:1});
+  state.resources.ore=H.N.zero();state.stations.encounter.remaining=600;F.announceDiscoveries(state);assert(H.Core.validateState(state).valid);return state;
+}
 function sortingOnly() {
   const state=StationFixtures.expansionReady();StationFixtures.act(state,{type:'expedition-next'});F.completeAreaGuides(state);StationFixtures.fund(state);
   const mine=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='mine'),hauling=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='hauling'),sorting=Stations.Content.STATIONS.find(station=>station.areaId==='quarry'&&station.localId==='sorting');
@@ -50,21 +57,27 @@ async function run() {
     return page.evaluate(()=>{const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {hud:rect('.wx-header'),dock:rect('.wx-nav'),world:rect('.wx-station-world'),scroll:document.querySelector('.wx-station-world').scrollTop,horizontal:document.documentElement.scrollWidth-innerWidth,vertical:document.body.scrollHeight-innerHeight};});
   }
   async function saved(page) {return page.evaluate(()=>{document.dispatchEvent(new Event('freeze'));return JSON.parse(localStorage.getItem(WayfarersStorage.SAVE_KEY)).state;});}
+  async function clickCardRegion(cell,selector) {
+    const buy=cell.locator('.wx-inline-buy'),card=await buy.boundingBox(),region=await cell.locator(selector).boundingBox();
+    assert(region && region.width>0 && region.height>0,'The requested icon or price region is visible');
+    await buy.click({position:{x:region.x-card.x+region.width/2,y:region.y-card.y+region.height/2}});
+  }
   async function inlineGeometry(page) {
     const rows=await page.evaluate(()=>[...document.querySelectorAll('.wx-station-segment')].map((segment,index)=>{
       const box=node=>{const rect=node.getBoundingClientRect();return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,bottom:rect.bottom};};
-      const art=segment.querySelector(':scope>.wx-station-illustration'),strip=segment.querySelector(':scope>.wx-station-controls'),canvas=art.querySelector('canvas');
-      return {id:segment.dataset.wxStation,index,children:[...segment.children].map(node=>node.className),segment:box(segment),art:box(art),strip:box(strip),canvas:box(canvas),scene:canvas.getAttribute('aria-label'),cells:[...strip.children].map(cell=>({id:cell.dataset.wxInlineSkill,box:box(cell),info:box(cell.querySelector('.wx-inline-info')),buy:box(cell.querySelector('.wx-inline-buy'))}))};
+      const art=segment.querySelector('.wx-station-illustration'),strip=segment.querySelector('.wx-station-controls'),canvas=art.querySelector('canvas');
+      return {id:segment.dataset.wxStation,index,segment:box(segment),art:box(art),strip:box(strip),canvas:box(canvas),scene:canvas.getAttribute('aria-label'),help:box(segment.querySelector('[data-wx-station-help]')),cells:[...strip.children].map(cell=>({id:cell.dataset.wxInlineSkill,box:box(cell),info:box(cell.querySelector('.wx-inline-info')),buy:box(cell.querySelector('.wx-inline-buy'))}))};
     }));
     for(const row of rows) {
-      assert.deepEqual(row.children,['wx-station-illustration','wx-station-controls'],'Art precedes the controls in the same station');
       assert(Math.abs(row.art.height-row.art.width*(row.index===0 ? 320 : 208)/384)<1,'Station art preserves its source aspect ratio');
-      assert(Math.abs(row.strip.height-104)<.1,'Controls reserve exactly 104px in every state');
-      assert(Math.abs(row.strip.y-row.art.bottom)<.1,'Controls sit directly below their station art');
+      assert(Math.abs(row.segment.height-row.art.height)<.1,'Scene-contained controls never add a permanent strip below the art');
+      assert(row.strip.height<=80,'Starter controls remain compact within their scene');
+      assert(row.strip.x>=row.art.x && row.strip.x+row.strip.width<=row.art.x+row.art.width+.1 && row.strip.y>=row.art.y && row.strip.bottom<=row.art.bottom+.1,'Starter controls belong inside their illustrated station');
+      assert(row.help.width>=48 && row.help.height>=48,'Each station has a reachable question-mark help control');
       assert(row.scene?.endsWith(' working'),'Each station retains its illustrated scene');
       assert.equal(row.cells.length,3,'A canonical station has three starter controls');
       for(const cell of row.cells) {
-        assert(Math.abs(cell.info.height-48)<.1 && Math.abs(cell.buy.height-48)<.1,'Info and purchase controls remain full touch targets');
+        assert(cell.buy.width>=48 && cell.buy.height>=48,'Compact purchase controls remain full touch targets');
         assert(cell.box.x>=row.strip.x && cell.box.x+cell.box.width<=row.strip.x+row.strip.width+.1,'Starter controls stay inside the strip');
       }
     }
@@ -74,14 +87,60 @@ async function run() {
     await page.evaluate(()=>{window.__inlineNodes=[...document.querySelectorAll('.wx-station-segment')].map(segment=>({segment,canvas:segment.querySelector('canvas'),cells:[...segment.querySelectorAll('.wx-inline-upgrade')].map(cell=>({cell,info:cell.querySelector('.wx-inline-info'),buy:cell.querySelector('.wx-inline-buy')}))}));});
   }
   async function sameInlineNodes(page) {
-    assert(await page.evaluate(()=>window.__inlineNodes.every(({segment,canvas,cells})=>segment.isConnected && segment.querySelector('canvas')===canvas && cells.every(({cell,info,buy})=>cell.isConnected && cell.querySelector('.wx-inline-info')===info && cell.querySelector('.wx-inline-buy')===buy))),'Purchases, unlocks and quantity updates retain the actual art and button nodes');
+    assert(await page.evaluate(()=>window.__inlineNodes.every(({segment,canvas,cells})=>segment.isConnected && segment.querySelector('canvas')===canvas && cells.every(({cell,buy})=>cell.isConnected && cell.querySelector('.wx-inline-buy')===buy))),'Purchases, unlocks and quantity updates retain the actual art and interactive button nodes');
   }
   async function readableInlinePrices(page) {
     const violations=await page.evaluate(()=>[...document.querySelectorAll('.wx-inline-buy')].flatMap(button=>{
       const box=button.getBoundingClientRect();
-      return [...button.querySelectorAll('.wx-inline-price>span,.wx-inline-buy>b')].flatMap(node=>{const rect=node.getBoundingClientRect();return node.scrollWidth>node.clientWidth+1 || rect.x<box.x || rect.right>box.right || rect.y<box.y || rect.bottom>box.bottom ? [{skill:button.closest('.wx-inline-upgrade').dataset.wxInlineSkill,text:node.textContent,width:rect.width,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth}] : [];});
+      const marker=button.querySelector('.wx-inline-count'),overlaps=[];
+      if(marker?.getClientRects().length){const count=marker.getBoundingClientRect();for(const line of button.querySelectorAll('.wx-inline-price>span'))for(const child of line.childNodes){let rect;if(child.nodeType===Node.TEXT_NODE){const range=document.createRange();range.selectNodeContents(child);rect=range.getBoundingClientRect();}else rect=child.getBoundingClientRect();if(rect.width && Math.min(count.right,rect.right)-Math.max(count.x,rect.x)>1 && Math.min(count.bottom,rect.bottom)-Math.max(count.y,rect.y)>1)overlaps.push({skill:button.closest('.wx-inline-upgrade').dataset.wxInlineSkill,text:marker.textContent,overlap:child.textContent || 'currency icon'});}}
+      if(overlaps.length)return overlaps;
+      return [...button.querySelectorAll('.wx-inline-price>span,.wx-inline-action>small,.wx-inline-action>b,.wx-inline-lock>b,.wx-inline-count,.wx-inline-rank')].flatMap(node=>{if(!node.getClientRects().length)return [];const rect=node.getBoundingClientRect();return node.scrollWidth>node.clientWidth+1 || rect.x<box.x-1 || rect.right>box.right+1 || rect.y<box.y-1 || rect.bottom>box.bottom+1 ? [{skill:button.closest('.wx-inline-upgrade').dataset.wxInlineSkill,text:node.textContent,width:rect.width,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth}] : [];});
     }));
-    assert.deepEqual(violations,[],'Every currency price and purchase marker remains fully visible inside its button');
+    assert.deepEqual(violations,[],'Every currency price, rank, batch marker and missing-gate caption remains fully visible inside its button');
+  }
+  async function helpBounds(page) {
+    const bounds=await page.evaluate(()=>{const sheet=document.querySelector('.wx-sheet[open][data-kind="station-help"]'),nav=document.querySelector('.wx-nav'),rect=sheet.getBoundingClientRect(),dock=nav.getBoundingClientRect();return {x:rect.x,right:rect.right,y:rect.y,bottom:rect.bottom,navTop:dock.top,width:innerWidth,height:innerHeight,scrollWidth:sheet.scrollWidth,clientWidth:sheet.clientWidth};});
+    assert(bounds.x>=-1 && bounds.right<=bounds.width+1 && bounds.y>=-1 && bounds.bottom<=bounds.navTop+1,'Temporary station help stays within the viewport above navigation');
+    assert(bounds.scrollWidth<=bounds.clientWidth+1,'Station help has no concealed horizontal overflow');
+    const clipped=await page.locator('.wx-sheet[open][data-kind="station-help"] .wx-help-have,.wx-sheet[open][data-kind="station-help"] .wx-help-need').evaluateAll(nodes=>nodes.filter(node=>node.scrollWidth>node.clientWidth+1).map(node=>node.textContent));
+    assert.deepEqual(clipped,[],'Have and Need amounts remain fully readable');
+    return bounds;
+  }
+  async function helpModel(page,stationId,skillId) {
+    // Read one actual foreground-rendered frame while the mocked clock is
+    // paused; a later freeze/save otherwise advances lifetime gate progress.
+    await page.clock.pauseAt(new Date(await page.evaluate(()=>Date.now())+1000));
+    try {
+      await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+      const state=await saved(page),station=H.Core.getView(state).stations.currentArea.stations.find(row=>row.id===stationId),item=station.skills.find(row=>row.id===skillId),sheet=page.locator('.wx-sheet[open][data-kind="station-help"]');
+      assert(item,'Help points to an actual engine-owned station upgrade');
+      assert.equal(await sheet.locator('[data-wx-help-skill="'+skillId+'"]').getAttribute('aria-pressed'),'true');
+      assert.equal(await sheet.locator('.wx-station-help-hero strong').innerText(),item.name || item.label || item.id);
+      assert.equal(await sheet.locator('.wx-station-help-hero span').innerText(),item.effectText || item.description || '');
+      if(item.comparison)assert.equal(await sheet.locator('.wx-station-help-preview strong').innerText(),item.comparison.text || item.comparison,'Effect preview uses the actual engine comparison');
+      assert.deepEqual(await sheet.locator('[data-wx-help-cost]').evaluateAll(nodes=>nodes.map(node=>node.dataset.wxHelpCost)),item.cost.map(cost=>cost.resource),'Help lists each currency in the actual quote');
+      for(const cost of item.cost) {
+        const node=sheet.locator('[data-wx-help-cost="'+cost.resource+'"]'),have=state.resources[cost.resource],met=H.N.cmp(have,cost.amount)>=0;
+        assert.equal(await node.locator('.wx-help-have').innerText(),H.Core.format(have),'Have reflects the canonical wallet');
+        assert.equal(await node.locator('.wx-help-need').innerText(),H.Core.format(cost.amount),'Need reflects the canonical selected quantity cost');
+        assert.equal(await node.getAttribute('data-met'),String(met));
+        if(!met)assert.equal(await node.locator('.wx-help-missing').innerText(),'Need '+H.Core.format(H.N.sub(cost.amount,have))+' more '+cost.resource,'Currency shortfall states the exact missing amount');
+      }
+      const locked=item.state==='locked' || item.state==='ready';
+      assert.equal(await sheet.locator('[data-wx-help-gate]').count(),locked ? item.requirements.length : 0);
+      if(locked)for(const [index,requirement] of item.requirements.entries()) {
+        const node=sheet.locator('[data-wx-help-gate="'+index+'"]'),target=requirement.required ?? requirement.target;
+        assert.equal(await node.locator('strong').innerText(),requirement.label);
+        assert.equal(await node.getAttribute('data-met'),String(requirement.met));
+        if(target!=null && requirement.current!=null) {
+          assert.equal(await node.locator('.wx-help-gate-progress').innerText(),'Have '+H.Core.format(requirement.current)+' / Need '+H.Core.format(target));
+          if(!requirement.met)assert.equal(await node.locator('.wx-help-missing').innerText(),'Need '+H.Core.format(H.N.sub(target,requirement.current))+' more','The missing unlock gate is exact and engine owned');
+        }
+      }
+      await helpBounds(page);
+      return item;
+    } finally {await page.clock.resume();}
   }
   try {
     for(const [width,height] of [[320,740],[390,844],[640,256]]) {
@@ -96,36 +155,85 @@ async function run() {
         assert.equal(await coach.getAttribute('data-missing'),'false','Required control exists');
         assert.equal(await page.locator('[data-guide-leave]:visible').count(),0,'Mandatory first lesson cannot be skipped');
         const target=page.locator('[data-guide-target]');assert.equal(await target.count(),1);
-        trace.push({step:await coach.getAttribute('data-step'),target:await target.getAttribute('data-wx-do') || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close')});
-        await shot(page,'first-guide-'+width+'-'+n);await target.click();await page.clock.runFor(250);
+        const question=await target.getAttribute('data-wx-station-help'),command=await target.getAttribute('data-wx-do');
+        trace.push({step:await coach.getAttribute('data-step'),target:command || question || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close')});
+        const ranksBefore=(await saved()).stations.ranks;
+        await shot(page,'first-guide-'+width+'-'+n);await target.click();await page.clock.runFor(50);
+        if(question)assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(),1,'One intended question-mark press opens the first lesson help immediately');
+        if(command?.startsWith('inline-buy:'))assert.equal((await saved()).stations.ranks[command.slice('inline-buy:'.length)],(ranksBefore[command.slice('inline-buy:'.length)] || 0)+1,'One intended highlighted upgrade press applies exactly its taught rank');
+        await page.clock.runFor(200);
       }
       const result=await saved();assert.equal(result.onboarding.practice.progress.greenway,3,JSON.stringify(trace));assert.equal(result.stations.ranks['station:greenway:path:pathfinding'],1);
       report.flows.push(width+'px first visit: '+JSON.stringify(trace));await context.close();
     }
     const opening=fresh();
-    for(const [width,height,largeText] of [[320,740],[390,844],[430,932],[915,390],[320,740,true]]) {
+    for(const [width,height,largeText] of [[320,740],[390,844],[430,932],[915,390],[640,256],[320,740,true],[640,256,true]]) {
       const {page,context}=await open(width,height,opening);
       if(largeText)await page.addStyleTag({content:text130});
       assert.equal(await page.locator('.wx-dock:visible').count(),0,'No permanent upgrade dock');assert.equal(await page.locator('.wx-inline-upgrade:visible').count(),3,'Three starters are part of the main world');assert.equal(await page.locator('.wx-inline-upgrade[data-state="locked"]').count(),2);
       assert.equal(await page.locator('.wx-inline-quantity:visible').count(),0,'Bulk selection waits for its earned unlock');
       await page.locator('.wx-inline-buy').first().scrollIntoViewIfNeeded();const before=await geometry(page);assert(before.horizontal<=1 && before.vertical<=1);const artBefore=await inlineGeometry(page);await rememberInlineNodes(page);
       const first=page.locator('.wx-inline-upgrade').first(),skill=await first.getAttribute('data-wx-inline-skill'),rankBefore=(await saved(page)).stations.ranks[skill];
-      await first.locator('.wx-inline-buy').click();assert.equal((await saved(page)).stations.ranks[skill],rankBefore+1,'Main-screen purchase changes the actual rank');assert.deepEqual(await geometry(page),before,'Inline purchase never moves the camera');assert.deepEqual(await inlineGeometry(page),artBefore,'Inline purchase preserves art and strip geometry');await sameInlineNodes(page);assert.equal(await first.locator('[data-wx-unseen]').count(),0,'Interacted purchase loses its new indicator');
-      await first.locator('.wx-inline-info').click();assert.equal(await page.locator('.wx-sheet[open][data-kind="station-detail"]').count(),1,'Inline info explains the real upgrade');assert(await page.evaluate(()=>WayfarersUI.handleBack()));assert.equal(await page.locator('[data-wx-station-drawer]:visible').count(),0,'Back from inline details returns to the world');assert.deepEqual(await geometry(page),before);
-      await page.locator('.wx-inline-upgrade[data-state="locked"]').first().locator('.wx-inline-buy').click();assert.equal(await page.locator('.wx-sheet[open][data-kind="station-detail"]').count(),1,'Locked inline control exposes requirements');await page.locator('[data-wx-close]').click();
+      await clickCardRegion(first,width===430 ? '.wx-inline-rank' : width===390 || width===915 ? '.wx-inline-price' : '.wx-inline-info');assert.equal((await saved(page)).stations.ranks[skill],rankBefore+1,'Tapping the icon, rank or price buys exactly one actual rank');assert.deepEqual(await geometry(page),before,'Inline purchase never moves the camera');assert.deepEqual(await inlineGeometry(page),artBefore,'Inline purchase preserves art and strip geometry');await sameInlineNodes(page);assert.equal(await first.locator('[data-wx-unseen]').count(),0,'Interacted purchase loses its new indicator');
+      const inspectionBefore=progression(await saved(page));
+      await page.locator('[data-wx-station-help="greenway:path"]').click();assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(),1,'Station question mark opens temporary help');await page.locator('[data-wx-help-skill="'+skill+'"]').click();await helpModel(page,'greenway:path',skill);
+      const selectors=await page.locator('[data-wx-help-skill]').evaluateAll(nodes=>nodes.map(node=>node.dataset.wxHelpSkill));assert.equal(selectors.length,3,'Station help selects each of the three actual starters');
+      for(const id of selectors){await page.locator('[data-wx-help-skill="'+id+'"]').click();await page.locator('[data-wx-help-skill="'+id+'"]').click();await helpModel(page,'greenway:path',id);assert.deepEqual(progression(await saved(page)),inspectionBefore,'Repeated help selection never buys or unlocks an upgrade');}
+      await shot(page,'opening-help-'+width+(largeText ? '-text130' : ''));assert(await page.evaluate(()=>WayfarersUI.handleBack()));assert.equal(await page.locator('[data-wx-station-drawer]:visible').count(),0,'Back from station help returns to the world');assert.deepEqual(await geometry(page),before);assert.deepEqual(progression(await saved(page)),inspectionBefore);
+      await page.locator('[data-wx-station-help="greenway:path"]').click();await helpModel(page,'greenway:path',skill);assert.deepEqual(progression(await saved(page)),inspectionBefore,'The station question mark only opens help');
+      if(largeText && width===320){const rank=(await saved(page)).stations.ranks[skill];await page.locator('[data-wx-do="station-help-buy:'+skill+'"]').click();assert.equal((await saved(page)).stations.ranks[skill],rank+1,'Only the explicit help purchase buys its canonical rank');await sameInlineNodes(page);assert.deepEqual(await geometry(page),before);}
+      await page.locator('[data-wx-close]').click();
+      await page.locator('.wx-inline-upgrade[data-state="locked"]').first().locator('.wx-inline-buy').click();assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(),1,'Locked inline control exposes requirements');await page.locator('[data-wx-close]').click();
+      await readableInlinePrices(page);
       await shot(page,'opening-world-'+width+(largeText ? '-text130' : ''));
       await page.locator('[data-wx-nav="upgrades"]').click();assert.equal(await page.locator('.wx-station-row').count(),0,'Drawer contains no duplicate starter purchases');assert.equal(await page.locator('[data-wx-do="station-core:greenway:path"]').count(),1,'Drawer points back to the station controls');
       assert.deepEqual(await geometry(page),before,'Drawer preserves HUD, dock, world and scroll');await shot(page,'opening-drawer-'+width);
       await page.locator('[data-wx-do="station-core:greenway:path"]').click();assert.equal(await page.locator('[data-wx-station-drawer]:visible').count(),0);await sameInlineNodes(page);await page.locator('[data-wx-wallet]').click();assert.equal(await page.locator('.wx-wallet-list .wx-menu').count(),H.Core.getView(opening).onboarding.currencies.length);await page.locator('[data-wx-close]').click();
       report.viewports.push({width,height,largeText:!!largeText,...before});await context.close();
     }
-    report.flows.push('320/390/430/915 and 320 text130: three inline starters, two initial locks, real main-screen purchase, stable 104px strip and art, retained button nodes; drawer has no duplicate starters and returns to core controls; wallet exposes currencies');
+    report.flows.push('320/390/430/915/short landscape and text130: three scene-contained starters, two initial locks, real main-screen purchase, no permanent strip, stable art and retained button nodes; station question mark and three selectors show canonical effect, Have/Need and missing gates without purchases; temporary help uses native Back; drawer has no duplicate starters and returns to core controls; wallet exposes currencies');
+    for(const gesture of ['drag','cancel','multitouch']) {
+      const {page,context}=await open(320,740,opening),buy=page.locator('.wx-inline-buy').first(),id=await buy.locator('..').getAttribute('data-wx-inline-skill');
+      const rank=(await saved(page)).stations.ranks[id],box=await buy.boundingBox(),pointer={pointerId:71,pointerType:'touch',button:0,buttons:1,clientX:box.x+box.width/2,clientY:box.y+box.height/2};
+      await page.clock.pauseAt(new Date(await page.evaluate(()=>Date.now())+1000));
+      try {
+        await buy.dispatchEvent('pointerdown',pointer);
+        if(gesture==='multitouch'){await buy.dispatchEvent('pointerdown',{...pointer,pointerId:72});await buy.dispatchEvent('pointerup',{...pointer,pointerId:72,buttons:0});}
+        if(gesture==='drag')await buy.dispatchEvent('pointermove',{...pointer,clientY:pointer.clientY+25});
+        await buy.dispatchEvent(gesture==='cancel' ? 'pointercancel' : 'pointerup',{...pointer,buttons:0,clientY:pointer.clientY+(gesture==='drag' ? 25 : 0)});
+        await page.mouse.click(pointer.clientX,pointer.clientY);
+        assert.equal((await saved(page)).stations.ranks[id],rank,'A '+gesture+' gesture cannot synthesize a scene purchase');
+      } finally {await page.clock.resume();}
+      await page.clock.runFor(1100);await buy.click();assert.equal((await saved(page)).stations.ranks[id],rank+1,'An ordinary intentional press works after the gesture guard expires');
+      await context.close();
+    }
+    report.flows.push('Actual control pointer drag, cancellation and multitouch suppress accidental purchases; a later ordinary press purchases once');
+    for(const [width,height,largeText] of [[320,740],[390,844],[430,932],[640,256,true]]) {
+      const seed=underfundedQuarry();
+      const {page,context}=await open(width,height,seed);await dismissNotices(page);if(largeText)await page.addStyleTag({content:text130});
+      const station=H.Core.getView(await saved(page)).stations.currentArea.stations[0],id=station.skills[0].id;
+      await page.locator('[data-wx-station-help="'+station.id+'"]').scrollIntoViewIfNeeded();
+      const before=await geometry(page),progressBefore=progression(await saved(page));await rememberInlineNodes(page);
+      await page.locator('[data-wx-station-help="'+station.id+'"]').click();const item=await helpModel(page,station.id,id);assert(item.cost.length>=2,'Mature help retains its actual two-currency quote');assert(await page.locator('[data-wx-help-cost="ore"] .wx-help-missing').count(),'Missing ore is explicitly named');
+      assert.equal(await page.locator('[data-wx-do="station-help-buy:'+id+'"]').isDisabled(),true,'An underfunded help purchase cannot execute');
+      assert.deepEqual(progression(await saved(page)),progressBefore);assert.deepEqual(await geometry(page),before,'Opening help keeps the world camera fixed');await sameInlineNodes(page);
+      await shot(page,'missing-ore-help-'+width+(largeText ? '-text130' : ''));
+      if(largeText){for(const target of await page.locator('[data-wx-help-skill]').all()){await target.click();await helpModel(page,station.id,await target.getAttribute('data-wx-help-skill'));assert.deepEqual(await geometry(page),before,'Internal help selection never scrolls the underlying short landscape world');}await page.locator('[data-wx-help-skill="'+id+'"]').click();await helpModel(page,station.id,id);const shortage=page.locator('[data-wx-help-cost="ore"]');await shortage.scrollIntoViewIfNeeded();assert(await shortage.isVisible(),'The actual two-currency shortage can be reached in short landscape');assert.deepEqual(await geometry(page),before,'Scrolling Have/Need inside help never moves the short landscape camera');const confirm=page.locator('[data-wx-do="station-help-buy:'+id+'"]'),box=await confirm.boundingBox(),nav=await page.locator('.wx-nav').boundingBox();assert(box.height>=48 && box.y+box.height<=nav.y+1,'The fixed help action remains reachable while the content scrolls');await shot(page,'short-landscape-shortage-scrolled-text130');}
+      if(largeText){await page.setViewportSize({width:320,height:740});await page.clock.runFor(1000);await helpModel(page,station.id,id);assert((await geometry(page)).horizontal<=1 && (await geometry(page)).vertical<=1);await shot(page,'help-rotated-text130-320');await readableInlinePrices(page);}
+      const help=await helpBounds(page);assert(help.y>0,'The backdrop exposes a safe dismissal region');await page.mouse.click(4,help.y-1);assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(),0,'Backdrop dismissal closes temporary help without clicking the scene');assert.deepEqual(progression(await saved(page)),progressBefore,'Dismissing an underfunded quote never buys or unlocks');await sameInlineNodes(page);if(!largeText)assert.deepEqual(await geometry(page),before);
+      if(width===320){await page.reload();await page.clock.runFor(2000);await ready(page);await dismissNotices(page);assert.deepEqual(progression(await saved(page)),progressBefore,'Refreshing after help preserves progression');assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(),0,'A temporary help sheet does not reopen after refresh');}
+      await context.close();
+    }
+    report.flows.push('320/390/430 and short landscape text130: canonical mature two-currency Have/Need, exact ore shortfall, disabled purchase, no help selection/dismissal transactions, native scene identity and camera retained; rotation keeps temporary help above navigation');
     for(const largeText of [false,true]) {
       const seed=StationFixtures.buildReady(),firstReady=H.Core.getView(seed).stations.currentStation.skills.find(row=>row.state==='ready');StationFixtures.act(seed,{type:'onboarding-visit',id:'tiers',intendedAction:firstReady.unlockAction});for(let n=0;n<40 && H.Core.getView(seed).onboarding.active;n++){const active=H.Core.getView(seed).onboarding.active;StationFixtures.act(seed,active.practiceAction || active.inspectAction || active.action);}assert.equal(H.Core.getView(seed).onboarding.active,null);F.announceDiscoveries(seed);
       const {page,context}=await open(320,740,seed);await dismissNotices(page);if(largeText)await page.addStyleTag({content:text130});
       const before=await geometry(page),artBefore=await inlineGeometry(page);await readableInlinePrices(page);await rememberInlineNodes(page);
       const id=await page.locator('.wx-inline-upgrade[data-ready="true"]').first().getAttribute('data-wx-inline-skill');assert(id,'An actually earned core upgrade becomes ready in its existing cell');const unlock=page.locator('[data-wx-inline-skill="'+id+'"]');
-      assert.match(await unlock.locator('.wx-inline-buy').getAttribute('data-wx-do'),/^inline-unlock:/);await unlock.locator('.wx-inline-buy').click();assert((await saved(page)).stations.unlocked.includes(id));assert.equal(await unlock.getAttribute('data-state'),'learned');assert.equal(await unlock.getAttribute('data-ready'),'false');
+      assert.match(await unlock.locator('.wx-inline-buy').getAttribute('data-wx-do'),/^inline-unlock:/);
+      if(largeText){const progressBefore=progression(await saved(page)),owner=id.split(':').slice(1,3).join(':');await page.locator('[data-wx-station-help="'+owner+'"]').click();await page.locator('[data-wx-help-skill="'+id+'"]').click();await helpModel(page,owner,id);assert.deepEqual(progression(await saved(page)),progressBefore,'Inspecting an earned unlock never claims it');await shot(page,'ready-unlock-help-320-text130');const confirm=page.locator('[data-wx-do="station-help-buy:'+id+'"]');assert.equal(await confirm.isDisabled(),false);await confirm.click();assert(await page.evaluate(()=>WayfarersUI.handleBack()));}
+      else await unlock.locator('.wx-inline-buy').click();
+      assert((await saved(page)).stations.unlocked.includes(id));assert.equal(await unlock.getAttribute('data-state'),'learned');assert.equal(await unlock.getAttribute('data-ready'),'false');
       await unlock.locator('.wx-inline-buy').click();assert.equal((await saved(page)).stations.ranks[id],1,'Unlocked core control buys the real first rank');assert.deepEqual(await geometry(page),before);assert.deepEqual(await inlineGeometry(page),artBefore,'Unlock and subsequent buy never alter the reserved art or strip');await sameInlineNodes(page);
       await shot(page,'inline-unlock-320'+(largeText ? '-text130' : ''));await context.close();
     }
@@ -142,7 +250,7 @@ async function run() {
       const first=station.locator('.wx-inline-upgrade').first(),id=await first.getAttribute('data-wx-inline-skill'),rank=(await saved(page)).stations.ranks[id];assert.equal(await first.locator('.wx-inline-count').innerText(),'×5');await readableInlinePrices(page);await first.locator('.wx-inline-buy').click();assert.equal((await saved(page)).stations.ranks[id],rank+5,'Inline batch button buys exactly the earned five ranks');assert.deepEqual(await geometry(page),before);assert.deepEqual(await inlineGeometry(page),artBefore);await readableInlinePrices(page);await sameInlineNodes(page);
       await shot(page,'inline-batch-320'+(largeText ? '-text130' : ''));await context.close();
     }
-    report.flows.push('320 and text130: actual ready unlock and five-rank batch purchase retain each canvas, cell, info and buy node, reserved 104px strip and scene aspect; earned title selector uses the shared batch dialog');
+    report.flows.push('320 and text130: actual ready unlock and five-rank batch purchase retain each canvas, cell and buy button, compact scene-contained controls and scene aspect; earned title selector uses the shared batch dialog');
     const established=mature();assert(H.Core.act(established,{type:'expedition-select',areaId:'quarry'}).ok);F.announceDiscoveries(established);
     const {page,context}=await open(390,844,established);
     await dismissNotices(page);
