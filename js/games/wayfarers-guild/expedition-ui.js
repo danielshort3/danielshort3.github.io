@@ -339,21 +339,40 @@
     function placeWorldInteractions() {
       const focus=q('[data-wx-focus]'),available=screen==='expedition' && stationDrawer.hidden;
       const nodes=[focus,cacheButton].filter(node=>available && !node.hidden);
-      if(!nodes.length){focus.style.visibility='hidden';return;}
+      if(!nodes.includes(focus))focus.style.visibility='hidden';
+      if(!available){for(const node of [focus,cacheButton,boostChip,cacheReward])node.style.visibility='hidden';return;}
       const bounds=stationWorld.getBoundingClientRect(),height=bounds.height;
       const blocked=Array.from(stationWorld.querySelectorAll('.wx-station-controls,.wx-station-heading,.wx-station-rate')).map(node=>node.getBoundingClientRect()).map(rect=>({top:Math.max(0,rect.top-bounds.top-6),bottom:Math.min(height,rect.bottom-bounds.top+6)})).filter(rect=>rect.bottom>0 && rect.top<height && rect.bottom>rect.top).sort((a,b)=>a.top-b.top);
       const free=[];let cursor=0;
       for(const rect of blocked){if(rect.top>cursor)free.push({top:cursor,bottom:rect.top});cursor=Math.max(cursor,rect.bottom);}
       if(cursor<height)free.push({top:cursor,bottom:height});
-      const buttonHeight=Math.max(...nodes.map(node=>node.offsetHeight || 62));
-      const slot=free.reverse().find(rect=>rect.bottom-rect.top>=buttonHeight+12);
+      // Each overlay claims its own clear artwork interval. Status pills must
+      // keep moving with the camera even after the optional cache disappears.
+      function claimSlot(contentHeight) {
+        const required=contentHeight+12;
+        for(let index=free.length-1;index>=0;index--) {
+          const rect=free[index];
+          if(rect.bottom-rect.top<required)continue;
+          const slot={top:rect.bottom-required,bottom:rect.bottom};
+          rect.bottom=slot.top;
+          return slot;
+        }
+        return null;
+      }
+      const buttonHeight=nodes.length ? Math.max(...nodes.map(node=>node.offsetHeight || 62)) : 0;
+      const slot=nodes.length ? claimSlot(buttonHeight) : null;
       for(const node of nodes)node.style.visibility=slot ? '' : 'hidden';
-      if(!slot)return;
-      const top=slot.bottom-buttonHeight-6;
-      for(const node of nodes){node.style.top=(top+buttonHeight-node.offsetHeight)+'px';node.style.bottom='auto';}
+      if(slot) {
+        const top=slot.bottom-buttonHeight-6;
+        for(const node of nodes){node.style.top=(top+buttonHeight-node.offsetHeight)+'px';node.style.bottom='auto';}
+      }
       focus.style.right='10px';cacheButton.style.right=(nodes.includes(focus) ? 18+focus.offsetWidth : 10)+'px';
-      if(!boostChip.hidden){boostChip.style.top=(slot.top+6)+'px';boostChip.style.right='auto';boostChip.style.left='10px';}
-      cacheReward.style.top=Math.max(slot.top+6,top-30)+'px';cacheReward.style.bottom='auto';
+      const rewardSlot=cacheReward.hidden ? null : claimSlot(cacheReward.offsetHeight+48);
+      cacheReward.style.visibility=rewardSlot ? '' : 'hidden';
+      if(rewardSlot){cacheReward.style.top=(rewardSlot.top+44)+'px';cacheReward.style.bottom='auto';cacheReward.style.left='10px';cacheReward.style.right='auto';}
+      const boostSlot=boostChip.hidden ? null : claimSlot(boostChip.offsetHeight);
+      boostChip.style.visibility=boostSlot ? '' : 'hidden';
+      if(boostSlot){boostChip.style.top=(boostSlot.top+6)+'px';boostChip.style.right='auto';boostChip.style.left='10px';}
     }
     function stationRow(row) {
       stationRowsById.set(row.id,row);
