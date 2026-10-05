@@ -12,7 +12,7 @@ const output = path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.
 const base = process.env.WAYFARERS_BASE_URL || 'http://127.0.0.1:4224';
 const url = new URL('/games/wayfarers-guild', base).href;
 const report = { url, browser: 'Browser plugin not available; repository Playwright workflow used.', cases: [], errors: [], consoleErrors: [], missing: [], requests: [], textScale: '130% text-only CSS emulation; installed WebView textZoom has a separate native gate' };
-const scaleText = '.wx-guide p{font-size:18.2px!important}.wx-guide h2{font-size:23.4px!important}.wx-guide button{font-size:16.9px!important}.wx-guide .wx-guide-quote{font-size:15.6px!important}.wx-guide-meta{font-size:14.3px!important;line-height:20.8px!important}.wx-game .wx-skill-tile .wx-upgrade-info strong{font-size:16.9px!important;line-height:22.1px!important}.wx-game .wx-skill-tile small{font-size:14.3px!important}.wx-game .wx-price{font-size:15.6px!important}.wx-game .wx-inline-info>strong{font-size:14.3px!important;line-height:18.2px!important}.wx-game .wx-inline-rank{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-buy{font-size:15.6px!important;line-height:20.8px!important}.wx-game .wx-inline-price>span{font-size:15.6px!important;line-height:19.5px!important}.wx-game .wx-inline-buy>small{font-size:13px!important;line-height:16.9px!important}';
+const scaleText = '.wx-guide p{font-size:18.2px!important}.wx-guide h2{font-size:23.4px!important}.wx-guide button{font-size:16.9px!important}.wx-guide .wx-guide-quote{font-size:15.6px!important}.wx-guide-meta{font-size:14.3px!important;line-height:20.8px!important}.wx-game .wx-skill-tile .wx-upgrade-info strong{font-size:16.9px!important;line-height:22.1px!important}.wx-game .wx-skill-tile small{font-size:14.3px!important}.wx-game .wx-price{font-size:15.6px!important}.wx-game .wx-inline-rank{font-size:13px!important;line-height:18.2px!important}.wx-game .wx-inline-buy{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-price>span{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-price>span[data-wide="true"]{font-size:13px!important}.wx-game .wx-inline-action>small{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-requirement[data-lifetime="true"]{font-size:11.7px!important;line-height:16.9px!important}.wx-game .wx-inline-lock>b{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-count{font-size:11.7px!important;line-height:15.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero strong{font-size:22.1px!important;line-height:28.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero span{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero small{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-help-selector>span:not(.wg-icon){font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-preview strong{font-size:16.9px!important;line-height:23.4px!important}.wx-sheet[data-kind="station-help"] .wx-help-cost{font-size:15.6px!important;line-height:22.1px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate strong{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate-progress,.wx-sheet[data-kind="station-help"] .wx-help-missing{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-confirm{font-size:16.9px!important;line-height:23.4px!important}.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-action>b{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-lock>b[data-stacked="true"]{line-height:14.3px!important}';
 
 async function saved(page) {
   return page.evaluate(() => {
@@ -27,8 +27,39 @@ async function geometry(page) {
       const rect = document.querySelector(selector)?.getBoundingClientRect();
       return rect && { x: rect.x, y: rect.y, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom };
     };
-    return { width: innerWidth, height: innerHeight, game: box('.wx-game'), hud: box('.wx-header'), dock: box('.wx-nav'), world: box('.wx-station-world'), art: box('.wx-station-illustration'), controls: box('.wx-station-controls'), canvas: box('.wx-station-segment canvas'), scroll: document.querySelector('.wx-station-world')?.scrollTop, horizontal: document.documentElement.scrollWidth - innerWidth, vertical: document.documentElement.scrollHeight - innerHeight };
+    return { width: innerWidth, height: innerHeight, game: box('.wx-game'), hud: box('.wx-header'), dock: box('.wx-nav'), world: box('.wx-station-world'), segment: box('.wx-station-segment'), art: box('.wx-station-illustration'), controls: box('.wx-station-controls'), canvas: box('.wx-station-segment canvas'), scroll: document.querySelector('.wx-station-world')?.scrollTop, horizontal: document.documentElement.scrollWidth - innerWidth, vertical: document.documentElement.scrollHeight - innerHeight };
   });
+}
+
+async function stationHelp(page, main, label) {
+  const before = await saved(page);
+  const skillId = 'station:greenway:path:pathfinding';
+  await page.locator('[data-wx-station-help="greenway:path"]').click();
+  const sheet = page.locator('.wx-sheet[open][data-kind="station-help"]');
+  assert.equal(await sheet.count(), 1, 'The station question mark opens temporary help');
+  assert.equal(await sheet.locator('[data-wx-help-skill]').count(), 3);
+  await sheet.locator('[data-wx-help-skill="' + skillId + '"]').click();
+  const state = await saved(page);
+  const model = await page.evaluate(state => WayfarersCore.getView(state).stations.currentArea.stations[0].skills[0], state);
+  assert.equal(await sheet.locator('.wx-station-help-hero strong').innerText(), model.name);
+  assert.equal(await sheet.locator('.wx-station-help-preview strong').innerText(), model.comparison, 'Public help shows the engine-owned effect preview');
+  assert.equal(await sheet.locator('[data-wx-help-cost="coins"] .wx-help-need').innerText(), await page.evaluate(amount => WayfarersCore.format(amount), model.cost[0].amount), 'Public Need uses the actual ordinary quote');
+  const have = Number((await sheet.locator('[data-wx-help-cost="coins"] .wx-help-have').innerText()).replace(/,/g, ''));
+  assert(Number.isFinite(have) && have >= Math.floor(Numbers.toNumber(before.resources.coins)) - 1 && have <= Math.ceil(Numbers.toNumber(state.resources.coins)) + 1, 'Public Have represents the live wallet during this inspection');
+  const bounds = await sheet.boundingBox(), nav = await page.locator('.wx-nav').boundingBox();
+  assert(bounds.x >= -1 && bounds.x + bounds.width <= main.width + 1 && bounds.y >= -1 && bounds.y + bounds.height <= nav.y + 1, 'Temporary public help stays above navigation');
+  assert(await sheet.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
+  await page.screenshot({ path: path.join(output, 'station-help-' + label + '.png') });
+  const locked = 'station:greenway:path:trailcraft';
+  await sheet.locator('[data-wx-help-skill="' + locked + '"]').click();
+  assert.equal(await sheet.locator('[data-wx-help-skill="' + locked + '"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await sheet.locator('[data-wx-help-gate][data-met="false"]').count() > 0, true, 'Locked help names its actual missing gates');
+  assert.equal(await sheet.locator('[data-wx-do="station-help-buy:' + locked + '"]').isDisabled(), true);
+  assert.deepEqual((await saved(page)).stations.ranks, before.stations.ranks, 'Help selection never buys a rank');
+  assert.deepEqual((await saved(page)).stations.unlocked, before.stations.unlocked, 'Help selection never claims an unlock');
+  assert(await page.evaluate(() => WayfarersUI.handleBack()));
+  assert.equal(await sheet.count(), 0, 'Native Back closes help');
+  assert.deepEqual(await geometry(page), main, 'Inspection and native Back leave the public camera and art fixed');
 }
 
 async function run() {
@@ -86,9 +117,14 @@ async function run() {
           const target = page.locator('[data-guide-target]');
           const rect = await target.boundingBox();
           assert(rect.width >= 48 && rect.height >= 48, 'Actual highlighted control has a full touch target');
-          trace.push({ step: await coach.getAttribute('data-step'), target: await target.getAttribute('data-wx-do') || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close') });
+          const question = await target.getAttribute('data-wx-station-help');
+          const command = await target.getAttribute('data-wx-do');
+          if(await target.getAttribute('data-wx-close')!==null && await coach.getAttribute('data-step')==='upgrade')assert((await coach.innerText()).includes('Close these details, then press the highlighted upgrade control in the scene.'),'The supplied purchase lesson first explains its highlighted help close');
+          trace.push({ step: await coach.getAttribute('data-step'), target: command || question || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close') });
           if (n === 0 || await coach.getAttribute('data-step') === 'upgrade') await page.screenshot({ path: path.join(output, 'lesson-' + label + '-' + n + '.png') });
           await target.click();
+          if (question) assert.equal(await page.locator('.wx-sheet[open][data-kind="station-help"]').count(), 1, 'One intended question-mark press opens the website lesson help');
+          if (command?.startsWith('inline-buy:')) assert.equal((await saved(page)).stations.ranks['station:greenway:path:pathfinding'], 1, 'One intended highlighted press purchases its first supplied rank');
           await page.waitForTimeout(200);
         }
         const taught = await saved(page);
@@ -105,9 +141,10 @@ async function run() {
         assert(main.game.width >= width - 1 && main.game.height >= height - 1, 'Game fills its native-style website viewport');
         assert.equal(await page.locator('.wx-inline-upgrade').count(), 3, 'First station owns exactly three inline starters');
         assert.equal(await page.locator('.wx-inline-upgrade[data-state="locked"]').count(), 2);
-        assert(Math.abs(main.controls.height - 104) < .1, 'Website reserves a fixed 104px strip');
+        assert(Math.abs(main.segment.height - main.art.height) < .1 && main.controls.height <= 80, 'Website has compact scene-contained controls without a permanent strip');
         assert(Math.abs(main.art.height - main.art.width * 320 / 384) < 1, 'The first illustration preserves its original canvas aspect');
-        assert(Math.abs(main.controls.y - main.art.bottom) < .1, 'Website controls sit directly beneath the illustration');
+        assert(main.controls.x >= main.art.x && main.controls.right <= main.art.right + .1 && main.controls.y >= main.art.y && main.controls.bottom <= main.art.bottom + .1, 'Website controls sit within their owner illustration');
+        await stationHelp(page, main, label);
         await page.evaluate(() => { const cell = document.querySelector('[data-wx-inline-skill="station:greenway:path:pathfinding"]'); window.__websiteInline = { cell, info: cell.querySelector('.wx-inline-info'), buy: cell.querySelector('.wx-inline-buy'), canvas: cell.closest('.wx-station-segment').querySelector('canvas') }; });
         await page.locator('[data-wx-nav="upgrades"]').click();
         assert.equal(await page.locator('.wx-station-row').count(), 0, 'Drawer excludes duplicate starter purchase controls');
@@ -120,14 +157,14 @@ async function run() {
         const purchased = await saved(page);
         assert.equal(purchased.stations.ranks['station:greenway:path:pathfinding'], 2, 'A subsequent ordinary purchase changes the real rank');
         assert.deepEqual(await geometry(page), main, 'Opening the drawer and buying inline leave the world camera, scene and strip fixed');
-        assert(await page.evaluate(() => { const prior = window.__websiteInline; return prior.cell.isConnected && prior.cell.querySelector('.wx-inline-info') === prior.info && prior.cell.querySelector('.wx-inline-buy') === prior.buy && prior.cell.closest('.wx-station-segment').querySelector('canvas') === prior.canvas; }), 'An ordinary purchase retains actual inline buttons and station canvas');
+        assert(await page.evaluate(() => { const prior = window.__websiteInline; return prior.cell.isConnected && prior.cell.querySelector('.wx-inline-buy') === prior.buy && prior.cell.closest('.wx-station-segment').querySelector('canvas') === prior.canvas; }), 'An ordinary purchase retains actual inline buttons and station canvas');
         await page.screenshot({ path: path.join(output, 'inline-purchase-' + label + '.png') });
         if (largeText) {
           await page.setViewportSize({ width: 320, height: 740 });
           await page.waitForTimeout(250);
           const portrait = await geometry(page);
           assert(portrait.horizontal <= 1 && portrait.vertical <= 1, 'Rotation and enlarged text preserve the website viewport');
-          assert(Math.abs(portrait.controls.height - 104) < .1 && Math.abs(portrait.art.height - portrait.art.width * 320 / 384) < 1, '320px with 130% text keeps the strip and art contract');
+          assert(Math.abs(portrait.segment.height - portrait.art.height) < .1 && portrait.controls.height <= 80 && Math.abs(portrait.art.height - portrait.art.width * 320 / 384) < 1, '320px with 130% text keeps compact controls inside the original art');
           await page.screenshot({ path: path.join(output, 'rotated-text130-320.png') });
         }
         report.cases.push({ label, ...main, trace, lessonRank: 1, purchasedRank: purchased.stations.ranks['station:greenway:path:pathfinding'], productionContinuedDuringConsent: true });

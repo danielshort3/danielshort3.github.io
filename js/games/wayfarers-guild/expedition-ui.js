@@ -43,6 +43,14 @@
     if (scaled >= 999.95 && power < 4) { power += 1; scaled /= 1000; }
     return scaled.toFixed(1).replace(/\.0$/, '') + ['', 'K', 'M', 'B', 'T'][power];
   }
+  function compactPrice(value) {
+    const number=root.WayfarersCore.Numbers.toNumber(value);
+    if(number<1000 || !Number.isFinite(number))return compact(value);
+    let power=Math.min(4,Math.floor(Math.log10(number)/3)),scaled=number/Math.pow(1000,power);
+    if(scaled>=999.5 && power<4){power+=1;scaled/=1000;}
+    if(scaled>=1000)return number.toExponential(0).replace('+','');
+    return (scaled<10?scaled.toFixed(1).replace(/\.0$/,''):Math.round(scaled))+['','K','M','B','T'][power];
+  }
 
   function create(options) {
     const host = options.element;
@@ -80,6 +88,9 @@
     const expandedSkillModules = new Set();
     const earnedTracks = new Map();
     const activePointers = new Set();
+    let controlGesture = null;
+    // Guide and scene transitions must not debounce real purchase controls.
+    let suppressControlTapUntil = 0;
     let swipe = null;
     let suppressSceneTapUntil = 0;
     let knownAreaCount = null;
@@ -273,6 +284,20 @@
       const track=row.trackId || (row.action?.type==='expedition-buy' ? row.action.id : null);
       return track && root.WayfarersIcons.TRACK_ART[row.areaId || selectedAreaId()]?.includes(track) ? icon('track-'+(row.areaId || selectedAreaId())+'-'+track) : stationArtIcon(row.artId || row.icon || row.id,row.icon || track);
     }
+    function requirementProgress(requirement) {
+      const required=requirement?.required ?? requirement?.target;
+      return required!=null && requirement.current!=null ? compact(requirement.current)+' / '+compact(required) : '';
+    }
+    function requirementName(requirement) {
+      return stationRequirement(requirement).replace(/^[\d.,]+[KMBT]?\s+/,'').replace(/^lifetime /i,'Lifetime ');
+    }
+    function inspectStationStarter(stationId,id) {
+      const station=stationModel().currentArea?.stations?.find(item=>item.id===stationId);
+      const rows=stationStarters(station);
+      if(!rows.length)return;
+      selectedStation=stationId;
+      open({kind:'station-help',stationId,id:rows.some(row=>row.id===id) ? id : rows[0].id});
+    }
     function renderInlineSkills(entry, station) {
       const rows=stationStarters(station),strip=entry.node.querySelector('.wx-station-controls');
       strip.setAttribute('aria-label',station.name+' core upgrades');
@@ -281,7 +306,7 @@
         let cell=Array.from(strip.children).find(node=>node.dataset.wxInlineSkill===row.id);
         if(!cell) {
           cell=document.createElement('article');cell.className='wx-inline-upgrade';cell.dataset.wxInlineSkill=row.id;
-          cell.innerHTML='<button type="button" class="wx-inline-info"></button><button type="button" class="wx-inline-buy"></button>';
+          cell.innerHTML='<button type="button" class="wx-inline-buy"><span class="wx-inline-info"></span><span class="wx-inline-action"></span></button>';
           strip.append(cell);
         }
         const state=row.status || row.state || (row.locked ? 'locked' : row.ready && row.unlockAction ? 'ready' : 'learned');
@@ -289,18 +314,23 @@
         const label=row.name || row.label || row.id,requirement=(row.requirements || row.dependencies || []).find(item=>!item.met);
         const requirementText=(requirement && stationRequirement(requirement)) || row.reason || 'Keep developing';
         const quantity=row.quantity || stationModel().batch || 1,price=(row.cost || []).map(item=>item.text).join(', ');
+        const lifetime=!!requirement && /lifetime /i.test(stationRequirement(requirement)),progress=requirementProgress(requirement);
         const info=cell.querySelector('.wx-inline-info'),buy=cell.querySelector('.wx-inline-buy');
         cell.dataset.state=state;cell.dataset.ready=String(ready);cell.dataset.complete=String(complete);
-        info.dataset.wxDo='inline-detail:'+row.id;commands.set(info.dataset.wxDo,()=>inspectStationRow(row.id));
-        info.setAttribute('aria-label','Inspect '+label+', '+(locked ? 'locked: '+requirementText : 'rank '+rank)+'. '+(row.comparison?.text || row.comparison || row.effectText || ''));
-        markup(info,stationSkillGlyph(row)+'<strong>'+esc(label)+'</strong><small class="wx-inline-rank">'+(locked ? icon('lock') : 'R'+compact(rank))+'</small>');
+        info.setAttribute('aria-hidden','true');
+        info.title=label;
+        markup(info,stationSkillGlyph(row)+'<small class="wx-inline-rank">'+(locked ? icon('lock') : compact(rank))+'</small>'+(locked && lifetime ? '<span class="wx-inline-resource-badge">'+icon(requirement.icon)+'</span>' : ''));
         buy.dataset.wxDo=(ready ? 'inline-unlock:' : 'inline-buy:')+row.id;
-        commands.set(buy.dataset.wxDo,locked ? ()=>inspectStationRow(row.id) : ()=>{selectedStation=station.id;execute(ready ? row.unlockAction : row.action);});
+        commands.set(buy.dataset.wxDo,locked ? ()=>inspectStationStarter(station.id,row.id) : ()=>{selectedStation=station.id;execute(ready ? row.unlockAction : row.action);});
         buy.disabled=!locked && !ready && (row.disabled || complete) || currentContext.saveFailure || currentContext.awaitingWallet;
-        buy.setAttribute('aria-label',locked ? 'Requirements for '+label+': '+requirementText : ready ? 'Unlock '+label : complete ? label+' is at its current rank cap' : 'Buy '+quantity+' ranks of '+label+', '+price+'. '+(row.comparison?.text || row.comparison || ''));
+        buy.setAttribute('aria-label',locked ? 'Requirements for '+label+': '+requirementText+'. '+requirementProgress(requirement) : ready ? 'Unlock '+label : complete ? label+' is at its current rank cap' : 'Buy '+quantity+' ranks of '+label+', current rank '+rank+', '+price+'. '+(row.comparison?.text || row.comparison || ''));
         buy.title=locked ? requirementText : row.comparison?.text || row.comparison || row.effectText || '';
-        const cost=(row.cost || []).map(item=>'<span>'+icon(item.resource)+esc(compact(item.amount))+'</span>').join('');
-        markup(buy,locked ? '<span class="wx-inline-lock">'+icon('lock')+(requirement?.icon ? icon(requirement.icon) : '')+'</span><small>'+esc(requirementText)+'</small>' : ready ? '<b>Unlock</b>' : complete ? '<b>✓</b>' : (quantity>1 ? '<small class="wx-inline-count">×'+quantity+'</small>' : '')+'<span class="wx-inline-price">'+cost+'</span><b>+</b>');
+        const cost=(row.cost || []).map(item=>{const text=compactPrice(item.amount);return '<span'+(text.length>3?' data-wide="true"':'')+'>'+icon(item.resource)+esc(text)+'</span>';}).join('');
+        const requirementLabel=requirement ? requirementName(requirement) : requirementText;
+        const criterion=lifetime ? 'Earned' : esc(requirementLabel===station.name+' ranks' ? 'Ranks' : requirementLabel);
+        const compactProgress=progress.replace(/\s/g,''),stackProgress=compactProgress.length>5;
+        const progressMarkup=stackProgress ? compactProgress.split('/').map((value,index)=>'<span>'+(index?'/':'')+esc(value)+'</span>').join('') : esc(compactProgress);
+        markup(cell.querySelector('.wx-inline-action'),locked ? '<small class="wx-inline-requirement"'+(lifetime?' data-lifetime="true"':'')+'>'+criterion+'</small><span class="wx-inline-lock"><b'+(stackProgress?' data-stacked="true"':'')+'>'+(!progress?icon('lock'):'')+progressMarkup+'</b></span>' : ready ? '<b>Unlock</b>' : complete ? '<b>✓</b>' : !cost ? '<small>×'+quantity+'</small><small>Rank limit</small>' : '<span class="wx-inline-price">'+cost+'</span>');
         const previous=stationBoughtRanks.get(row.id),purchased=previous!=null && previous<rank;
         if(purchased){cell.classList.remove('wx-purchased');void cell.offsetWidth;cell.classList.add('wx-purchased');}
         stationBoughtRanks.set(row.id,rank);
@@ -309,21 +339,40 @@
     function placeWorldInteractions() {
       const focus=q('[data-wx-focus]'),available=screen==='expedition' && stationDrawer.hidden;
       const nodes=[focus,cacheButton].filter(node=>available && !node.hidden);
-      if(!nodes.length){focus.style.visibility='hidden';return;}
+      if(!nodes.includes(focus))focus.style.visibility='hidden';
+      if(!available){for(const node of [focus,cacheButton,boostChip,cacheReward])node.style.visibility='hidden';return;}
       const bounds=stationWorld.getBoundingClientRect(),height=bounds.height;
-      const blocked=Array.from(stationWorld.querySelectorAll('.wx-station-controls')).map(node=>node.getBoundingClientRect()).map(rect=>({top:Math.max(0,rect.top-bounds.top-6),bottom:Math.min(height,rect.bottom-bounds.top+6)})).filter(rect=>rect.bottom>0 && rect.top<height && rect.bottom>rect.top).sort((a,b)=>a.top-b.top);
+      const blocked=Array.from(stationWorld.querySelectorAll('.wx-station-controls,.wx-station-heading,.wx-station-rate')).map(node=>node.getBoundingClientRect()).map(rect=>({top:Math.max(0,rect.top-bounds.top-6),bottom:Math.min(height,rect.bottom-bounds.top+6)})).filter(rect=>rect.bottom>0 && rect.top<height && rect.bottom>rect.top).sort((a,b)=>a.top-b.top);
       const free=[];let cursor=0;
       for(const rect of blocked){if(rect.top>cursor)free.push({top:cursor,bottom:rect.top});cursor=Math.max(cursor,rect.bottom);}
       if(cursor<height)free.push({top:cursor,bottom:height});
-      const buttonHeight=Math.max(...nodes.map(node=>node.offsetHeight || 62));
-      const slot=free.reverse().find(rect=>rect.bottom-rect.top>=buttonHeight+12);
+      // Each overlay claims its own clear artwork interval. Status pills must
+      // keep moving with the camera even after the optional cache disappears.
+      function claimSlot(contentHeight) {
+        const required=contentHeight+12;
+        for(let index=free.length-1;index>=0;index--) {
+          const rect=free[index];
+          if(rect.bottom-rect.top<required)continue;
+          const slot={top:rect.bottom-required,bottom:rect.bottom};
+          rect.bottom=slot.top;
+          return slot;
+        }
+        return null;
+      }
+      const buttonHeight=nodes.length ? Math.max(...nodes.map(node=>node.offsetHeight || 62)) : 0;
+      const slot=nodes.length ? claimSlot(buttonHeight) : null;
       for(const node of nodes)node.style.visibility=slot ? '' : 'hidden';
-      if(!slot)return;
-      const top=slot.bottom-buttonHeight-6;
-      for(const node of nodes){node.style.top=(top+buttonHeight-node.offsetHeight)+'px';node.style.bottom='auto';}
+      if(slot) {
+        const top=slot.bottom-buttonHeight-6;
+        for(const node of nodes){node.style.top=(top+buttonHeight-node.offsetHeight)+'px';node.style.bottom='auto';}
+      }
       focus.style.right='10px';cacheButton.style.right=(nodes.includes(focus) ? 18+focus.offsetWidth : 10)+'px';
-      if(!boostChip.hidden){boostChip.style.top=(slot.top+6)+'px';boostChip.style.right='auto';boostChip.style.left='10px';}
-      cacheReward.style.top=Math.max(slot.top+6,top-30)+'px';cacheReward.style.bottom='auto';
+      const rewardSlot=cacheReward.hidden ? null : claimSlot(cacheReward.offsetHeight+48);
+      cacheReward.style.visibility=rewardSlot ? '' : 'hidden';
+      if(rewardSlot){cacheReward.style.top=(rewardSlot.top+44)+'px';cacheReward.style.bottom='auto';cacheReward.style.left='10px';cacheReward.style.right='auto';}
+      const boostSlot=boostChip.hidden ? null : claimSlot(boostChip.offsetHeight);
+      boostChip.style.visibility=boostSlot ? '' : 'hidden';
+      if(boostSlot){boostChip.style.top=(boostSlot.top+6)+'px';boostChip.style.right='auto';boostChip.style.left='10px';}
     }
     function stationRow(row) {
       stationRowsById.set(row.id,row);
@@ -383,7 +432,7 @@
         let entry=stationScenes.get(station.id);
         if(!entry) {
           const segment=document.createElement('section');segment.className='wx-station-segment'+(!index ? ' wx-station-surface' : '');segment.dataset.wxStation=station.id;
-          segment.innerHTML='<div class="wx-station-illustration"><canvas role="img" aria-label="'+esc(station.name)+' working"></canvas><div class="wx-station-heading"><button class="wx-station-badge"></button><button type="button" class="wx-inline-quantity" hidden></button></div><span class="wx-station-rate"></span></div><div class="wx-station-controls" role="group"></div>';
+          segment.innerHTML='<div class="wx-station-illustration"><canvas role="img" aria-label="'+esc(station.name)+' working"></canvas><div class="wx-station-heading"><button class="wx-station-badge"></button><button type="button" class="wx-station-help-trigger">?</button><button type="button" class="wx-inline-quantity" hidden></button></div><div class="wx-station-controls" role="group"></div><span class="wx-station-rate"></span></div>';
           stationWorld.insertBefore(segment,stationWorld.querySelector('.wx-world-continuation'));
           const canvas=segment.querySelector('canvas');
           const renderer=root.WayfarersStationScene ? root.WayfarersStationScene.create(canvas,{areaId:area.id,stationId:station.id,surface:index===0,scrollRoot:stationWorld,quiet:currentContext.quiet}) : root.WayfarersExpeditionScene.create(canvas,{quiet:currentContext.quiet});
@@ -391,6 +440,7 @@
         }
         const badge=entry.node.querySelector('.wx-station-badge');
         markup(badge,stationGlyph(station)+'<span>'+esc(station.name)+'</span>');badge.dataset.wxStationOpen=station.id;badge.setAttribute('aria-label','Open '+station.name+' techniques and station expansion');badge.setAttribute('aria-pressed',String(station.id===selectedStation));
+        const help=entry.node.querySelector('.wx-station-help-trigger');help.dataset.wxStationHelp=station.id;help.setAttribute('aria-label',station.name+' upgrade help: effects, costs and unlock requirements');
         const quantity=entry.node.querySelector('.wx-inline-quantity');
         quantity.hidden=!batchAvailable();quantity.dataset.wxDo='inline-quantity:'+station.id;commands.set(quantity.dataset.wxDo,()=>open({kind:'batch'}));
         text(quantity,'×'+(model.batch || view.expedition.batch?.selected || 1)+' ▾');quantity.setAttribute('aria-label','Purchase quantity: '+(model.batch || view.expedition.batch?.selected || 1)+'. Change exact quantity for all stations.');
@@ -402,7 +452,7 @@
       if(!continuation){continuation=document.createElement('div');continuation.className='wx-world-continuation';continuation.setAttribute('aria-hidden','true');stationWorld.append(continuation);}
       const depth=root.WayfarersStationArt?.areas?.[area.id]?.underground;
       continuation.style.backgroundImage=depth ? 'linear-gradient(#102b4600,#071e3575),url("img/wayfarers-guild/'+depth+'")' : '';
-      continuation.style.setProperty('--wx-built-height','calc('+String((built.length ? 320+(built.length-1)*208 : 0)/384*100)+'cqw + '+(built.length*104)+'px)');
+      continuation.style.setProperty('--wx-built-height',String((built.length ? 320+(built.length-1)*208 : 0)/384*100)+'cqw');
       if(!selectedStation || !built.some(item=>item.id===selectedStation))selectedStation=model.selectedStation || built[0]?.id;
       const jumps=false;
       stationJumps.hidden=!jumps;
@@ -475,7 +525,7 @@
         if(model.kind==='collection-card' || model.kind==='card-equip')return item.id==='card:'+model.id;
         if(model.kind==='collection-gear')return item.id==='gear:'+model.id;
         if(model.kind==='local')return item.id==='upgrade:'+(model.catalogId || 'area:'+model.areaId+':'+model.id) || item.kind==='tier' && item.destination?.areaId===model.areaId && item.destination?.upgradeId===model.id;
-        if(model.kind==='station-detail')return item.id==='upgrade:'+model.id || item.itemId===model.id;
+        if(model.kind==='station-detail' || model.kind==='station-help')return item.id==='upgrade:'+model.id || item.itemId===model.id;
         if(model.kind==='upgrade' || model.kind==='skill-state')return item.id==='upgrade:'+model.id;
         if(model.kind==='objective')return item.id==='area:'+selectedAreaId();
         if(model.kind==='batch')return item.kind==='batch';
@@ -501,7 +551,7 @@
         if(item.kind==='card')mark(practiceCommand('card:'+item.itemId,shell),item.id);
         if(item.kind==='gear')mark(practiceCommand('gear:'+item.itemId,shell),item.id);
         if(item.kind==='upgrade') {
-          mark(practiceCommand('inline-detail:'+item.itemId,shell),item.id);
+          mark(q('[data-wx-inline-skill="'+item.itemId+'"] .wx-inline-buy'),item.id);
           mark(practiceCommand('station-detail:'+item.itemId,shell),item.id);
           mark(practiceCommand('upgrade-detail:'+item.itemId,shell),item.id);
           if(item.areaId===selectedAreaId() && item.destination?.upgradeId)mark(q('[data-upgrade="'+item.destination.upgradeId+'"] .wx-upgrade-info'),item.id);
@@ -871,7 +921,10 @@
       node.dataset.wxPractice=model.token;
       if (model.suppliesText || model.costCoverage==='guild') {
         node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
-        if(['rank','cost'].includes(model.supply) && model.practicePreview) node.innerHTML=node.classList.contains('wx-inline-buy') ? '<span class="wx-inline-price">'+(model.practicePreview.quantity>1 ? '<small>×'+model.practicePreview.quantity+'</small>' : '')+costs(model.practicePreview)+'</span><b>+</b>' : node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
+        if(['rank','cost'].includes(model.supply) && model.practicePreview) {
+          if(node.classList.contains('wx-inline-buy'))markup(node.querySelector('.wx-inline-action'),'<span class="wx-inline-price">'+(model.practicePreview.cost || []).map(cost=>{const text=compactPrice(cost.amount);return '<span'+(text.length>3?' data-wide="true"':'')+'>'+icon(cost.resource)+esc(text)+'</span>';}).join('')+'</span>');
+          else node.innerHTML=node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
+        }
         if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
       }
       return node;
@@ -937,11 +990,12 @@
       const inlineStation=stationTarget?.station && stationStarters(stationTarget.station).some(row=>row.id===stationTarget.row.id);
       if(inSheet && sheet?.kind==='station-detail' && stationTarget?.row.id===sheet.id){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
       if(inSheet && sheet?.kind==='station-proposal' && target==='station-build'){node=model.mode==='action' ? footer() : closeButton();finalAction=model.mode==='action';}
-      if(inSheet && inlineStation && (sheet?.kind==='station-detail' && stationTarget.row.id===sheet.id || sheet?.kind==='local' && (stationTarget.row.trackId || stationTarget.row.action?.id)===sheet.id)){node=closeButton();finalAction=false;}
+      if(inSheet && inlineStation && (['station-detail','station-help'].includes(sheet?.kind) && stationTarget.row.id===sheet.id || sheet?.kind==='local' && (stationTarget.row.trackId || stationTarget.row.action?.id)===sheet.id)){node=closeButton();finalAction=false;}
+      if(inSheet && inlineStation && sheet?.kind==='station-help' && sheet.id!==stationTarget.row.id){node=dialog.querySelector('[data-wx-help-skill="'+stationTarget.row.id+'"]');finalAction=false;}
       if(!inSheet && inlineStation) {
         if(screen==='upgrades')node=q('[data-wx-drawer-close]');
         else if(screen!=='expedition')node=q('[data-wx-nav="expedition"]');
-        else {node=q('[data-wx-inline-skill="'+stationTarget.row.id+'"] '+(model.mode==='action' ? '.wx-inline-buy' : '.wx-inline-info'));finalAction=model.mode==='action';}
+        else {node=model.mode==='action' ? q('[data-wx-inline-skill="'+stationTarget.row.id+'"] .wx-inline-buy') : q('[data-wx-station-help="'+stationTarget.station.id+'"]');finalAction=model.mode==='action';}
       } else if(!inSheet && (stationTarget || /^station-|^area-(upgrade|infrastructure)/.test(target))) {
         if(screen!=='upgrades')node=q('[data-wx-nav="upgrades"]');
         else {
@@ -1051,9 +1105,9 @@
       if(target==='station-open')return screen==='upgrades' && !stationDrawer.hidden;
       if(target==='station-select')return sheet?.kind==='station-picker' && dialog.open;
       if(!dialog.open || !dialog.getClientRects().length || !sheet) return false;
-      if(target==='area-upgrades') return sheet.kind==='local' && sheet.id===data.trackId && (!sheet.areaId || sheet.areaId===data.areaId) || sheet.kind==='station-detail' && (stationRowsById.get(sheet.id)?.alias===data.trackId || sheet.id===data.skillId);
+      if(target==='area-upgrades') return sheet.kind==='local' && sheet.id===data.trackId && (!sheet.areaId || sheet.areaId===data.areaId) || ['station-detail','station-help'].includes(sheet.kind) && ([stationRowsById.get(sheet.id)?.alias,stationRowsById.get(sheet.id)?.trackId,stationRowsById.get(sheet.id)?.action?.id].includes(data.trackId) && !!data.trackId || sheet.id===data.skillId);
       if(target==='station-build')return sheet.kind==='station-proposal' && sheet.id===data.stationId;
-      if(/^station-|^area-(upgrade|infrastructure)/.test(target))return sheet.kind==='station-detail' && (!data.skillId || sheet.id===data.skillId);
+      if(/^station-|^area-(upgrade|infrastructure)/.test(target))return ['station-detail','station-help'].includes(sheet.kind) && (!data.skillId || sheet.id===data.skillId);
       if(target==='area-goal') return sheet.kind==='objective';
       if(['area-plans','area-plan-option'].includes(target)) return ['choice','plan-choice'].includes(sheet.kind);
       if(target==='area-configuration') return sheet.kind==='configuration';
@@ -1186,6 +1240,11 @@
         if(quote)model.body='Use the highlighted upgrade button. This improvement remains in your guild.';
         if(!model.quoteText && model.suppliesText)model.rewardText=model.suppliesText;
       } else if(model.suppliesText) model.rewardText=model.suppliesText;
+      if(model.mode==='action' && dialog.open && sheet?.kind==='station-help' && ['station-skill-buy','station-skill-unlock','expedition-buy'].includes(model.requiredAction?.type)) {
+        const row=stationRowsById.get(sheet.id),requiredId=model.targetData?.skillId || model.requiredAction.id;
+        const selected=[row?.id,row?.alias,row?.trackId,row?.action?.id].includes(requiredId);
+        model.body=selected ? 'Close these details, then press the highlighted '+(model.requiredAction.type==='station-skill-unlock'?'Unlock':'upgrade')+' control in the scene.' : 'Choose the highlighted upgrade to see its details. Then return to its control in the scene.';
+      }
       cancelSwipe(); suppressSceneTapUntil=root.performance.now()+500;
       if (!guideScroll) guideScroll={scope:guideScopeId(),destination:screen !== 'expedition',top:q(screen !== 'expedition' ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop};
       guide.show(model);
@@ -1495,7 +1554,8 @@
     }
     function startPointer(event) {
       activePointers.add(event.pointerId);
-      if (activePointers.size > 1) { suppressSceneTapUntil = root.performance.now() + 1000; cancelSwipe(); return; }
+      if(event.target.closest?.('.wx-station-controls,.wx-station-heading,.wx-sheet[data-kind="station-help"]') && event.button<=0)controlGesture={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false};
+      if (activePointers.size > 1) { suppressControlTapUntil = suppressSceneTapUntil = root.performance.now() + 1000; cancelSwipe(); return; }
       if (!event.target.closest?.('[data-wx-station-world]') || event.target.closest('button') || event.button > 0 || screen !== 'expedition' || dialog.open || options.overlayOpen() || guide?.isOpen() || mandatoryLesson()) return;
       const bounds = q('.wx-world').getBoundingClientRect();
       const edge = 28;
@@ -1503,6 +1563,7 @@
       swipe = { id:event.pointerId, x:event.clientX, y:event.clientY, moved:false, cancelled:false, locked:false };
     }
     function movePointer(event) {
+      if(controlGesture?.id===event.pointerId && Math.hypot(event.clientX-controlGesture.x,event.clientY-controlGesture.y)>=12)controlGesture.moved=true;
       if (!swipe || event.pointerId !== swipe.id) return;
       const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
       if (Math.hypot(dx,dy) < 12) return;
@@ -1517,6 +1578,7 @@
     }
     function endPointer(event) {
       activePointers.delete(event.pointerId);
+      if(controlGesture?.id===event.pointerId){if(controlGesture.moved || event.type!=='pointerup')suppressControlTapUntil=suppressSceneTapUntil=root.performance.now()+500;controlGesture=null;}
       if (!swipe || event.pointerId !== swipe.id) return;
       const gesture = swipe;
       const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
@@ -1642,6 +1704,46 @@
       }
       return html;
     }
+    function stationHelpBody(model) {
+      const station=stationModel().currentArea?.stations?.find(entry=>entry.id===model.stationId);
+      const rows=stationStarters(station),item=rows.find(row=>row.id===model.id) || rows[0];
+      if(!item)return {title:'Station upgrades',html:'<p>This station is no longer available.</p>'};
+      model.id=item.id;
+      const numbers=root.WayfarersCore.Numbers;
+      const state=item.status || item.state || (item.locked ? 'locked' : item.ready && item.unlockAction ? 'ready' : 'learned');
+      const locked=state==='locked',ready=state==='ready',rank=Number(item.rank ?? item.level ?? 0),cap=item.maxRank ?? item.maxLevel ?? Infinity;
+      const label=item.name || item.label || item.id;
+      const comparison=item.comparison?.text || item.comparison || gainLabel(item);
+      const selectors='<div class="wx-station-help-select" role="group" aria-label="'+esc(station.name)+' starter upgrades">'+rows.map(row=>button(stationSkillGlyph(row)+'<span>'+esc(row.name || row.label || row.id)+'</span>',()=>open({kind:'station-help',stationId:station.id,id:row.id},true),{key:'station-help-select:'+row.id,className:'wx-help-selector',selected:row.id===item.id,aria:'Inspect '+(row.name || row.label || row.id)}).replace('<button ','<button data-wx-help-skill="'+esc(row.id)+'" ')).join('')+'</div>';
+      let html='<div class="wx-station-help-overview"><div class="wx-station-help-hero">'+stationSkillGlyph(item)+'<div><strong>'+esc(label)+'</strong><span>'+esc(item.effectText || item.description || '')+'</span><small>Rank '+rank+' / '+(Number.isFinite(cap)?cap:'∞')+'</small></div></div>';
+      if(comparison)html+='<div class="wx-station-help-preview"><span>Next ×'+(item.quantity || stationModel().batch || 1)+'</span><strong>'+esc(comparison)+'</strong></div>';
+      html+='</div>'+selectors;
+      if(locked || ready) {
+        const requirements=item.requirements || item.dependencies || [];
+        html+='<div class="wx-help-requirements" aria-label="Unlock requirements">'+requirements.map((requirement,index)=>{
+          const target=requirement.required ?? requirement.target,current=requirement.current;
+          const numeric=target!=null && current!=null;
+          const missing=numeric ? numbers.max(numbers.zero(),numbers.sub(target,current)) : null;
+          return '<div class="wx-help-gate" data-wx-help-gate="'+index+'" data-met="'+!!requirement.met+'"><b aria-hidden="true">'+(requirement.met?'✓':'◇')+'</b><span><strong>'+esc(stationRequirement(requirement))+'</strong>'+(numeric?'<small class="wx-help-gate-progress">Have '+esc(root.WayfarersCore.format(current))+' / Need '+esc(root.WayfarersCore.format(target))+'</small>':'')+(!requirement.met && numeric?'<small class="wx-help-missing">Need '+esc(root.WayfarersCore.format(missing))+' more</small>':'')+'</span></div>';
+        }).join('')+'</div>';
+      }
+      const costs=item.cost || [];
+      if(costs.length) {
+        html+='<div class="wx-help-costs" aria-label="'+(locked || ready?'Next rank costs':'Purchase costs')+'">'+(locked || ready?'<small class="wx-help-cost-caption">Next rank costs · unlocking does not spend currency</small>':'')+'<div class="wx-help-cost-labels"><span>Currency</span><span>Have / Need</span></div>'+costs.map(cost=>{
+          const resource=(view.resources || []).find(entry=>entry.id===cost.resource) || currencies().find(entry=>entry.id===cost.resource);
+          const have=resource?.value ?? numbers.zero(),met=numbers.cmp(have,cost.amount)>=0,missing=numbers.max(numbers.zero(),numbers.sub(cost.amount,have));
+          return '<div class="wx-help-cost" data-wx-help-cost="'+esc(cost.resource)+'" data-met="'+met+'"><b aria-hidden="true">'+(met?'✓':'!')+'</b>'+icon(cost.resource)+'<span class="wx-help-resource">'+esc(resource?.name || resource?.label || cost.resource)+'</span><strong><span class="wx-help-have">'+esc(root.WayfarersCore.format(have))+'</span><span aria-hidden="true"> / </span><span class="wx-help-need">'+esc(root.WayfarersCore.format(cost.amount))+'</span></strong>'+(!met?'<small class="wx-help-missing">Need '+esc(root.WayfarersCore.format(missing))+' more '+esc(cost.resource)+'</small>':'')+'</div>';
+        }).join('')+'</div>';
+      }
+      const disabled=locked || !ready && (item.disabled || rank>=cap) || currentContext.saveFailure || currentContext.awaitingWallet;
+      const missingCosts=costs.filter(cost=>numbers.cmp((view.resources || []).find(resource=>resource.id===cost.resource)?.value ?? numbers.zero(),cost.amount)<0);
+      if(!locked && !ready && disabled && item.reason && !missingCosts.length)html+='<p class="wx-help-reason">'+esc(item.reason)+'</p>';
+      const purchaseText=locked ? 'Requirements not met' : ready ? 'Unlock '+label : rank>=cap ? 'Current rank cap reached' : disabled && missingCosts.length ? 'Need '+missingCosts.map(cost=>root.WayfarersCore.format(numbers.sub(cost.amount,(view.resources || []).find(resource=>resource.id===cost.resource)?.value ?? numbers.zero()))+' '+cost.resource).join(' + ') : 'Upgrade ×'+(item.quantity || stationModel().batch || 1);
+      detailFooter=button(esc(purchaseText),()=>{selectedStation=station.id;execute(ready?item.unlockAction:item.action);},{key:'station-help-buy:'+item.id,className:'wx-confirm',disabled,aria:(ready?'Unlock ':locked?'Requirements for ':'Buy exactly '+(item.quantity || 1)+' ranks of ')+label});
+      if(item.fittingQuantityAction)detailFooter+=button('Use ×'+item.fittingQuantityAction.count,item.fittingQuantityAction,{key:'station-help-fit:'+item.id,className:'wx-fit-quantity',aria:'Change purchase quantity to '+item.fittingQuantityAction.count+'. This does not buy an upgrade.'});
+      dialog.dataset.helpReady=String(ready);
+      return {title:station.name+' upgrades',html};
+    }
     function crewBody() {
       const slots = view.progression.specialists || [null,null];
       return '<div class="wx-roster-slots">' + slots.map((id, slot) => button(icon(id || 'crew') + '<strong>' + esc(id ? (root.WayfarersCore.Content.SPECIALISTS.find(s => s.id === id)?.name || id) : 'Choose explorer') + '</strong><small>Explorer ' + (slot + 1) + '</small>', () => open({ kind:'roster', slot }), { key:'crew-slot:' + slot, className:'wx-portrait-slot' })).join('') + '</div>' +
@@ -1756,6 +1858,9 @@
         const item=stationModel().currentArea?.stations?.find(entry=>entry.id===model.id);
         title=item?.name || 'New station';
         if(item){html='<div class="wx-detail-hero">'+stationGlyph(item)+'</div><p>'+esc(item.description || 'Adds an independent work site. Your earlier stations keep producing.')+'</p>'+(item.requirements || []).map(req=>'<div class="wx-station-gate" data-met="'+!!req.met+'">'+esc(stationRequirement(req))+'</div>').join('');detailFooter=button('Build '+esc(item.name),item.buildAction,{key:'station-proposal-build:'+item.id,className:'wx-confirm',disabled:item.status!=='ready' || !item.buildAction || currentContext.saveFailure || currentContext.awaitingWallet});}
+      }
+      else if(model.kind==='station-help') {
+        const content=stationHelpBody(model);title=content.title;html=content.html;
       }
       else if(model.kind==='station-detail') {
         const item=stationRowsById.get(model.id);title=item?.name || 'Station upgrade';
@@ -1920,6 +2025,12 @@
       }
       text(dialog.querySelector('h2'), title);
       dialog.dataset.kind = model.kind;
+      if(model.kind==='station-help') {
+        const nav=q('.wx-nav').getBoundingClientRect(),bounds=shell.getBoundingClientRect();
+        dialog.style.setProperty('--wx-help-bottom',Math.max(0,root.innerHeight-nav.top)+'px');
+        dialog.style.setProperty('--wx-help-space',Math.max(120,nav.top-bounds.top-8)+'px');
+        dialog.style.setProperty('--wx-help-width',bounds.width+'px');
+      }
       dialog.querySelector('[data-wx-back]').hidden = !stack.length;
       markup(dialog.querySelector('[data-wx-sheet-content]'), html);
       const footer = dialog.querySelector('[data-wx-sheet-footer]');
@@ -2122,12 +2233,14 @@
       const target = event.target.closest('button');
       if (!target || target.disabled) return;
       event.stopPropagation();
+      if(root.performance.now()<suppressControlTapUntil && target.closest('.wx-station-controls,.wx-station-heading,.wx-sheet[data-kind="station-help"]')){event.preventDefault();return;}
       if (target.dataset.wxPractice && target.dataset.wxPractice===practice()?.token) execute(Object.assign({},practice().practiceAction,{onboardingEpoch:currentContext.onboardingEpoch}));
       else if (target.dataset.wxDo) execute(commands.get(target.dataset.wxDo));
       else if (target.dataset.wxBuy) execute(view.expedition.cards.find(c => c.id === target.dataset.wxBuy)?.action);
       else if (target.dataset.wxArea) selectArea(target.dataset.wxArea);
       else if (target.dataset.wxNav) { if(mandatoryLesson()&&!target.hasAttribute('data-guide-target')){showGuide();return;}close(); guildOrigin = null; if(target.dataset.wxNav==='upgrades'&&screen==='expedition'){upgradeArea='current';stationScope='station';} screen = target.dataset.wxNav; update(view); }
       else if (target.dataset.wxStationOpen) openStation(target.dataset.wxStationOpen);
+      else if (target.dataset.wxStationHelp) inspectStationStarter(target.dataset.wxStationHelp);
       else if (target.hasAttribute('data-wx-station-cache')) execute(stationModel().encounter?.action);
       else if (target.hasAttribute('data-wx-drawer-close')) closeStationDrawer();
       else if (target.dataset.wxCollection) showGuildPage(target.dataset.wxCollection);
@@ -2155,13 +2268,14 @@
     document.addEventListener('pointermove', movePointer, { capture:true, passive:false, signal:controller.signal });
     document.addEventListener('pointerup', endPointer, { capture:true, signal:controller.signal });
     document.addEventListener('pointercancel', endPointer, { capture:true, signal:controller.signal });
-    root.addEventListener('blur', () => { cancelSwipe(); activePointers.clear(); }, {signal:controller.signal});
-    root.addEventListener('resize', () => {cancelSwipe();motion?.finish();currencyOverflow();}, {signal:controller.signal});
+    root.addEventListener('blur', () => { cancelSwipe(); activePointers.clear();controlGesture=null; }, {signal:controller.signal});
+    root.addEventListener('resize', () => {cancelSwipe();motion?.finish();currencyOverflow();if(sheet?.kind==='station-help')renderSheet();}, {signal:controller.signal});
     q('.wx-world').addEventListener('keydown', event => { if (event.target.closest('button') || dialog.open) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); stepArea(event.key === 'ArrowLeft' ? -1 : 1); } }, {signal:controller.signal});
     function saveStationScroll() {try {root.localStorage?.setItem('wayfarers-world-scroll-v1',JSON.stringify({identity:onboardingIdentity,areas:Object.fromEntries(stationScroll)}));}catch(_){} }
     stationWorld.addEventListener('scroll',()=>{placeWorldInteractions();if(stationWorldArea)stationScroll.set(stationWorldArea,stationWorld.scrollTop);root.clearTimeout(stationScrollTimer);stationScrollTimer=root.setTimeout(saveStationScroll,150);},{passive:true,signal:controller.signal});
     shell.addEventListener('input', event => { if (event.target.hasAttribute('data-wx-search')) { upgradeSearch = event.target.value; markup(q('[data-wx-destination]'), destinationBody()); } }, { signal:controller.signal });
     dialog.addEventListener('click', click, { signal:controller.signal });
+    dialog.addEventListener('click',event=>{if(event.target!==dialog || sheet?.kind!=='station-help')return;const bounds=dialog.getBoundingClientRect();if(event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom){event.preventDefault();event.stopPropagation();back();}},{signal:controller.signal});
     dialog.addEventListener('input',()=>guide?.refresh(),{signal:controller.signal});
     dialog.addEventListener('cancel', event => { event.preventDefault(); back(); }, { signal:controller.signal });
     return {
