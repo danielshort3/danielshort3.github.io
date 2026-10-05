@@ -330,7 +330,7 @@
         const criterion=lifetime ? icon(requirement.icon)+'<span>Earned</span>' : esc(requirementLabel===station.name+' ranks' ? 'Ranks' : requirementLabel);
         const compactProgress=progress.replace(/\s/g,''),stackProgress=compactProgress.length>6;
         const progressMarkup=stackProgress ? compactProgress.split('/').map((value,index)=>'<span>'+(index?'/':'')+esc(value)+'</span>').join('') : esc(compactProgress);
-        markup(cell.querySelector('.wx-inline-action'),locked ? '<small class="wx-inline-requirement"'+(lifetime?' data-lifetime="true"':'')+'>'+criterion+'</small><span class="wx-inline-lock"><b'+(stackProgress?' data-stacked="true"':'')+'>'+(!progress?icon('lock'):'')+progressMarkup+'</b></span>' : ready ? '<b>Unlock</b>' : complete ? '<b>✓</b>' : !cost ? '<small>×'+quantity+'</small><small>Rank limit</small>' : (quantity>1 ? '<small class="wx-inline-count">×'+quantity+'</small>' : '')+'<span class="wx-inline-price">'+cost+'</span>');
+        markup(cell.querySelector('.wx-inline-action'),locked ? '<small class="wx-inline-requirement"'+(lifetime?' data-lifetime="true"':'')+'>'+criterion+'</small><span class="wx-inline-lock"><b'+(stackProgress?' data-stacked="true"':'')+'>'+(!progress?icon('lock'):'')+progressMarkup+'</b></span>' : ready ? '<b>Unlock</b>' : complete ? '<b>✓</b>' : !cost ? '<small>×'+quantity+'</small><small>Rank limit</small>' : '<span class="wx-inline-price">'+cost+'</span>');
         const previous=stationBoughtRanks.get(row.id),purchased=previous!=null && previous<rank;
         if(purchased){cell.classList.remove('wx-purchased');void cell.offsetWidth;cell.classList.add('wx-purchased');}
         stationBoughtRanks.set(row.id,rank);
@@ -903,7 +903,7 @@
       if (model.suppliesText || model.costCoverage==='guild') {
         node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
         if(['rank','cost'].includes(model.supply) && model.practicePreview) {
-          if(node.classList.contains('wx-inline-buy'))markup(node.querySelector('.wx-inline-action'),'<span class="wx-inline-price">'+(model.practicePreview.quantity>1 ? '<small>×'+model.practicePreview.quantity+'</small>' : '')+(model.practicePreview.cost || []).map(cost=>'<span>'+icon(cost.resource)+esc(compactPrice(cost.amount))+'</span>').join('')+'</span>');
+          if(node.classList.contains('wx-inline-buy'))markup(node.querySelector('.wx-inline-action'),'<span class="wx-inline-price">'+(model.practicePreview.cost || []).map(cost=>'<span>'+icon(cost.resource)+esc(compactPrice(cost.amount))+'</span>').join('')+'</span>');
           else node.innerHTML=node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
         }
         if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
@@ -1221,6 +1221,11 @@
         if(quote)model.body='Use the highlighted upgrade button. This improvement remains in your guild.';
         if(!model.quoteText && model.suppliesText)model.rewardText=model.suppliesText;
       } else if(model.suppliesText) model.rewardText=model.suppliesText;
+      if(model.mode==='action' && dialog.open && sheet?.kind==='station-help' && ['station-skill-buy','station-skill-unlock','expedition-buy'].includes(model.requiredAction?.type)) {
+        const row=stationRowsById.get(sheet.id),requiredId=model.targetData?.skillId || model.requiredAction.id;
+        const selected=[row?.id,row?.alias,row?.trackId,row?.action?.id].includes(requiredId);
+        model.body=selected ? 'Close these details, then press the highlighted '+(model.requiredAction.type==='station-skill-unlock'?'Unlock':'upgrade')+' control in the scene.' : 'Choose the highlighted upgrade to see its details. Then return to its control in the scene.';
+      }
       cancelSwipe(); suppressSceneTapUntil=root.performance.now()+500;
       if (!guideScroll) guideScroll={scope:guideScopeId(),destination:screen !== 'expedition',top:q(screen !== 'expedition' ? '[data-wx-destination]' : '[data-wx-tray]').scrollTop};
       guide.show(model);

@@ -119,6 +119,7 @@ async function run() {
           assert(rect.width >= 48 && rect.height >= 48, 'Actual highlighted control has a full touch target');
           const question = await target.getAttribute('data-wx-station-help');
           const command = await target.getAttribute('data-wx-do');
+          if(await target.getAttribute('data-wx-close')!==null && await coach.getAttribute('data-step')==='upgrade')assert((await coach.innerText()).includes('Close these details, then press the highlighted upgrade control in the scene.'),'The supplied purchase lesson first explains its highlighted help close');
           trace.push({ step: await coach.getAttribute('data-step'), target: command || question || await target.getAttribute('data-wx-nav') || await target.getAttribute('data-wx-close') });
           if (n === 0 || await coach.getAttribute('data-step') === 'upgrade') await page.screenshot({ path: path.join(output, 'lesson-' + label + '-' + n + '.png') });
           await target.click();
