@@ -845,19 +845,21 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'homepage should expose one accessible H1');
   const welcomeHtml = html.match(/<div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>([\s\S]*?)<\/div>/)?.[1] || '';
   const browseLink = personal.page.sections[0].props.welcome.browseLink;
-  assert(welcomeHtml.includes(`<h1 class="site-frame__welcome-title">${personal.page.sections[0].props.welcome.title}</h1>`) &&
-    welcomeHtml.includes(personal.brandTagline) &&
-    welcomeHtml.includes(personal.page.sections[0].props.welcome.detail) &&
+  const welcomeTitle = welcomeHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  assert(welcomeTitle === personal.page.sections[0].props.welcome.title &&
+    welcomeHtml.includes(personal.page.sections[0].props.welcome.summary) &&
+    !/site-frame__welcome-(?:eyebrow|detail|hint)/.test(welcomeHtml) &&
     html.indexOf('data-site-home-welcome') < html.indexOf('hidden inert') &&
     !/\s(?:hidden|inert)(?=[\s>])/.test(welcomeHtml) &&
     /<h2 class="visually-hidden" id="home-accordion-title">/.test(html),
   'closed homepage should contain a visible authored introduction before hidden panels');
-  assert(personal.page.sections[0].props.welcome.summary === personal.brandTagline &&
+  assert(welcomeTitle === 'Daniel Short' &&
+    personal.page.sections[0].props.welcome.summary === 'I build tools, explore data, and make games.' &&
     browseLink.href === '/portfolio' && browseLink.label === 'Browse all projects' &&
     welcomeHtml.includes(`<a class="site-frame__welcome-browse" href="${browseLink.href}">${browseLink.label} <span aria-hidden="true"><svg class="site-direction-arrow"`) &&
     !welcomeHtml.includes('site-frame__welcome-links') && !welcomeHtml.includes('Start exploring') &&
     html.includes('<noscript><nav class="home-accordion__noscript" aria-label="Explore the site">'),
-  'closed homepage should use the canonical tagline, one project link, and no-script library navigation');
+  'closed homepage should use the selected short introduction, one project link, and no-script library navigation');
   [
     ['projects', '/portfolio', 'View all projects'],
     ['tools', '/tools', 'View all tools'],
