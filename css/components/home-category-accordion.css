@@ -1,6 +1,6 @@
 @layer components {
   body[data-page="home"].home-pattern-page {
-    --home-canvas: #f9f9fa;
+    --home-canvas: #ffffff;
     --home-ink: #091f3b;
     --home-muted: #475569;
     --home-border: #cbd5e1;

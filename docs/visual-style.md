@@ -52,9 +52,12 @@ color for graphics or a suitable contrasting fill.
 
 The personal-site brand message is **“Solving everyday problems with data and
 thoughtful tools.”** Its authored `brandTagline` lives in
-`content/audiences/personal.json` and flows through the generated audience config
-to the closed homepage. About and page metadata use the same plain, personal
-voice. Describe concrete work without repeating the tagline on every page.
+`content/audiences/personal.json` and flows through the generated audience config.
+The closed homepage uses the shorter introduction **“I build tools, explore data,
+and make games.”** Keep its Open white composition: bold navy name, stacked on
+desktop and on one line on phones, the existing outlined project button, and the
+original category navigation. Do not add a grid, panel, margin rule or eyebrow.
+About and page metadata retain the same plain, personal voice.
 
 Mobile demo launch previews should show the current working interface. Capture
 the live layout, keep black drawing canvases and current controls, and use neutral
