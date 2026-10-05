@@ -71,6 +71,7 @@ async function assertLayout(page) {
       };
     }).filter(Boolean);
     const frame = SiteFrame.root();
+    const welcome = frame?.querySelector('.site-frame__welcome');
     const viewportBox = SiteFrame.viewport()?.getBoundingClientRect();
     const mainBox = document.querySelector('#main')?.getBoundingClientRect();
     return {
@@ -78,6 +79,12 @@ async function assertLayout(page) {
       height: innerHeight,
       pageWidth: document.documentElement.scrollWidth,
       mainText: document.querySelector('#main')?.innerText.trim().length || 0,
+      welcome: welcome ? {
+        title: welcome.querySelector('h1')?.textContent.replace(/\s+/g, ' ').trim(),
+        summary: welcome.querySelector('.site-frame__welcome-summary')?.textContent.trim(),
+        href: welcome.querySelector('.site-frame__welcome-browse')?.getAttribute('href'),
+        visible: welcome.getClientRects().length > 0 && !welcome.hidden && !welcome.inert
+      } : null,
       demo: document.body.classList.contains('project-demo-wrapper-page'),
       embeddedDemo: Boolean(document.querySelector('#main iframe[title][src]')),
       mainBox: mainBox ? { top: mainBox.top, bottom: mainBox.bottom } : null,
@@ -97,8 +104,15 @@ async function assertLayout(page) {
       tabs
     };
   });
-  assert(layout.demo ? layout.embeddedDemo : layout.mainText > 80,
-    'The route must contain meaningful content or its named, loaded demo iframe.');
+  if (layout.closed) {
+    const welcome = personalContent.page.sections.find(section => section.type === 'home-accordion').props.welcome;
+    assert.deepEqual(layout.welcome, {
+      title: welcome.title, summary: welcome.summary, href: welcome.browseLink.href, visible: true
+    }, 'The closed homepage must show its authored name, introduction and project-library link.');
+  } else {
+    assert(layout.demo ? layout.embeddedDemo : layout.mainText > 80,
+      'The route must contain meaningful content or its named, loaded demo iframe.');
+  }
   assert(layout.mainBox && layout.mainBox.top < layout.height - 120 && layout.mainBox.bottom > 80,
     `Page content remains visible below the compact navigation: ${JSON.stringify(layout)}`);
   assert.equal(layout.frames, 1, 'Exactly one shared frame is mounted.');

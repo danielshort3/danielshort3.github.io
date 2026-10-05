@@ -836,6 +836,8 @@ function renderHomeAccordion(section) {
   const props = section.props || {};
   const categories = Array.isArray(props.categories) ? props.categories : [];
   const welcome = props.welcome || {};
+  const welcomeTitle = (welcome.title || 'Daniel Short').trim().split(/\s+/)
+    .map((word) => `<span class="site-frame__welcome-name">${escapeHtml(word)}</span>`).join(' ');
   const browseLink = welcome.browseLink && welcome.browseLink.href && welcome.browseLink.label
     ? welcome.browseLink : null;
   const initialView = props.initialView === 'closed' ? 'closed' : 'overview';
@@ -966,9 +968,9 @@ function renderHomeAccordion(section) {
   return [
     `<section${classAttr('home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${initialView === 'closed' ? '' : escapeHtml(defaultPanel)}" data-home-view="${initialView}" aria-labelledby="home-accordion-title">`,
     '  <div class="site-frame__welcome home-accordion__welcome" data-site-home-welcome>',
-    `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow || 'WELCOME')}</p>`,
-    `    <h1 class="site-frame__welcome-title">${escapeHtml(welcome.title || 'Daniel Short.')}</h1>`,
-    `    <p class="site-frame__welcome-summary">${escapeHtml(welcome.summary || 'Solving everyday problems with data and thoughtful tools.')}</p>`,
+    welcome.eyebrow ? `    <p class="site-frame__welcome-eyebrow">${escapeHtml(welcome.eyebrow)}</p>` : '',
+    `    <h1 class="site-frame__welcome-title">${welcomeTitle}</h1>`,
+    `    <p class="site-frame__welcome-summary">${escapeHtml(welcome.summary || 'I build tools, explore data, and make games.')}</p>`,
     welcome.detail ? `    <p class="site-frame__welcome-detail">${escapeHtml(welcome.detail)}</p>` : '',
     browseLink ? `    <a class="site-frame__welcome-browse" href="${escapeHtml(normalizeHref(browseLink.href))}">${escapeHtml(browseLink.label)} <span aria-hidden="true">${sectionArrowImage('projects')}</span></a>` : '',
     '  </div>',
