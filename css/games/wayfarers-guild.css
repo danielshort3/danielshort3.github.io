@@ -1071,44 +1071,101 @@ dialog.wx-guide-surface { position:fixed!important; inset:0!important; transform
 .wx-station-illustration { position:relative; width:100%; aspect-ratio:384/208; }
 .wx-station-surface .wx-station-illustration { aspect-ratio:384/320; }
 .wx-game[data-station-layout="true"] .wx-station-segment canvas { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; touch-action:pan-y; }
-.wx-station-heading { position:absolute; left:12px; right:12px; top:12px; display:flex; align-items:center; gap:6px; pointer-events:none; }
+.wx-station-heading { position:absolute; left:8px; width:calc(48% - 18px); top:10px; display:flex; align-items:center; gap:0; pointer-events:none; }
 .wx-station-surface .wx-station-heading { top:calc(112/320 * 100% + 10px); }
-.wx-game[data-station-layout="true"] .wx-station-badge { position:relative; left:auto; top:auto; display:flex; align-items:center; gap:6px; min-width:0; max-width:calc(100% - 58px); min-height:48px; padding:4px 8px; border:1px solid #67c9f1; border-radius:7px; background:linear-gradient(#0d3b58f2,#05223bee); box-shadow:inset 0 0 0 1px #031427,0 2px 4px #00152988; font-size:13px; color:#f1f9ff; pointer-events:auto; }
+.wx-game[data-station-layout="true"] .wx-station-badge { position:relative; left:auto; top:auto; display:flex; align-items:center; gap:5px; min-width:0; flex:1; max-width:calc(100% - 48px); min-height:48px; height:48px; padding:4px 6px; border:1px solid #67c9f1; border-radius:5px; background:linear-gradient(#0d3b58f2,#05223bee); box-shadow:inset 0 0 0 1px #031427,0 2px 4px #00152988; font-size:12px; color:#f1f9ff; pointer-events:auto; }
 .wx-station-badge>span:not(.wg-icon) { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.wx-game .wx-inline-quantity { min-width:48px; min-height:48px; padding:4px; font:750 12px/16px system-ui,sans-serif; border:1px solid #48d5df; background:#063048ee; color:#6cf4ed; pointer-events:auto; }
-.wx-station-badge>.wg-icon,.wx-station-badge>.wx-station-icon { width:25px!important; height:25px!important; font-size:25px; }
+.wx-game .wx-station-help-trigger { position:relative; width:48px; height:48px; min-width:48px; min-height:48px; padding:0; border:0; border-radius:0; color:#dffbff; background:transparent; font:800 23px/48px system-ui,sans-serif; pointer-events:auto; isolation:isolate; }
+.wx-station-help-trigger::before { content:''; position:absolute; z-index:-1; inset:7px; border:2px solid #46e8f0; border-radius:50%; background:#082b46; box-shadow:0 0 7px #38cce84d; }
+.wx-game .wx-inline-quantity { position:absolute; top:52px; left:0; min-width:48px; min-height:48px; height:48px; padding:4px; font:750 11px/16px system-ui,sans-serif; border:1px solid #48d5df; background:#063048ee; color:#6cf4ed; pointer-events:auto; }
+.wx-station-badge>.wg-icon,.wx-station-badge>.wx-station-icon { width:22px!important; height:22px!important; font-size:22px; }
 .wx-game[data-station-layout="true"] .wx-station-badge[aria-pressed="true"],.wx-game[data-station-layout="true"] .wx-station-jump[aria-pressed="true"] { border-color:#67fff4; box-shadow:inset 0 0 0 1px #1ae6e066,0 0 8px #21dce040; }
 .wx-station-rate { position:absolute; right:11px; bottom:12px; max-width:65%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:3px 6px; background:#051d32c9; border:1px solid #4c86a580; border-radius:3px; color:#d4f9f9; font:600 11px/16px system-ui,sans-serif; }
 .wx-station-rate:empty { display:none; }
-.wx-station-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:6px; height:104px; padding:3px 8px; border-block:1px solid #227eab; background:linear-gradient(#082d46,#051d30); box-sizing:border-box; }
-.wx-inline-upgrade { min-width:0; display:grid; grid-template-rows:48px 48px; border:0; box-shadow:inset 0 0 0 1px #286c94; border-radius:6px; overflow:hidden; background:#072840; }
-.wx-game .wx-inline-info,.wx-game .wx-inline-buy { width:100%; min-width:0; min-height:48px; height:48px; margin:0; padding:2px 4px; border:0; border-radius:0; box-sizing:border-box; }
-.wx-game .wx-inline-info { position:relative; display:grid; justify-items:center; grid-template-rows:28px 14px; align-content:center; background:linear-gradient(#0e3a55,#082840); color:#f0f8ff; }
-.wx-inline-info>.wg-icon,.wx-inline-info>.wx-station-icon { width:28px!important; height:28px!important; font-size:28px; }
-.wx-inline-info>strong { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:750 11px/14px system-ui,sans-serif; }
-.wx-inline-rank { position:absolute; right:3px; top:3px; color:#79eee9; font:750 10px/13px system-ui,sans-serif; }
+.wx-station-controls { position:absolute; top:10px; right:8px; width:52%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:4px; height:76px; padding:0; border:0; background:transparent; box-sizing:border-box; }
+.wx-station-surface .wx-station-controls { top:calc(112/320 * 100% + 10px); }
+.wx-inline-upgrade { min-width:0; border:1px solid #386992; box-shadow:inset 0 0 0 1px #041b31; border-radius:5px; overflow:hidden; background:#072840ee; }
+.wx-game .wx-inline-buy { width:100%; min-width:0; min-height:74px; height:74px; margin:0; padding:0; border:0; border-radius:0; box-sizing:border-box; }
+.wx-inline-info { position:relative; display:flex; justify-content:center; align-items:center; width:100%; height:32px; min-height:32px; background:linear-gradient(#0e3a55e8,#082840ed); color:#f0f8ff; }
+.wx-inline-info>.wg-icon,.wx-inline-info>.wx-station-icon { width:33px!important; height:33px!important; font-size:33px; }
+.wx-inline-rank { position:absolute; right:1px; top:1px; min-width:16px; padding:0 2px; border:1px solid #379ba9; border-radius:4px; color:#c2fff3; background:#062c47; font:750 10px/14px system-ui,sans-serif; }
 .wx-inline-rank>.wg-icon { width:12px!important; height:12px!important; font-size:12px; }
 .wx-inline-info[data-wx-unseen]::after { left:4px; right:auto; top:4px; }
-.wx-game .wx-inline-buy { position:relative; display:flex; align-items:center; justify-content:center; gap:5px; border-top:1px solid #31babc; background:linear-gradient(#27e5df,#10c9c9); color:#032338; font:800 12px/16px system-ui,sans-serif; }
+.wx-inline-buy[data-wx-unseen]::after { left:3px; right:auto; top:3px; }
+.wx-game .wx-inline-buy { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:0; background:linear-gradient(#073951f5,#03273ded); color:#e7fffb; font:800 11px/15px system-ui,sans-serif; }
+.wx-inline-action { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:42px; border-top:1px solid #27d4d7; padding:1px; }
+.wx-inline-upgrade[data-state="learned"]:not([data-complete="true"]):has(.wx-inline-buy:not(:disabled)) { border-color:#29e8dd; box-shadow:inset 0 0 0 1px #18b2c04d; }
 .wx-inline-count { position:absolute; top:0; left:3px; font:750 9px/12px system-ui,sans-serif!important; color:inherit; }
 .wx-inline-buy>b { flex-shrink:0; font-size:24px; line-height:1; }
 .wx-inline-price { display:grid; gap:1px; min-width:0; }
-.wx-inline-price>span { display:flex; justify-content:center; align-items:center; gap:3px; white-space:nowrap; font:800 12px/15px system-ui,sans-serif; }
-.wx-inline-price .wg-icon { width:15px!important; height:15px!important; font-size:15px; }
+.wx-inline-price>span { display:flex; justify-content:center; align-items:center; gap:2px; white-space:nowrap; font:750 11px/15px system-ui,sans-serif; }
+.wx-inline-price .wg-icon { width:12px!important; height:12px!important; font-size:12px; }
 .wx-game .wx-inline-buy:disabled { background:#0d344c; border-color:#20526d; color:#829baa; opacity:1; }
 .wx-inline-buy:disabled>.wx-inline-price .wg-icon { opacity:.55; }
-.wx-game .wx-inline-upgrade[data-state="locked"] .wx-inline-buy { flex-direction:column; gap:0; background:#0b2b42; color:#a9c8da; border-color:#254e68; }
+.wx-game .wx-inline-upgrade[data-state="locked"] .wx-inline-buy { gap:0; background:#0b2b42; color:#a9c8da; border-color:#254e68; }
+.wx-inline-upgrade[data-state="locked"] .wx-inline-action { border-color:#254e68; }
 .wx-inline-lock { display:flex; align-items:center; justify-content:center; gap:4px; }
-.wx-inline-lock .wg-icon { width:16px!important; height:16px!important; font-size:16px; }
-.wx-inline-buy>small { min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font:600 10px/13px system-ui,sans-serif; }
+.wx-inline-lock .wg-icon { width:12px!important; height:12px!important; font-size:12px; }
+.wx-inline-lock>b { font:750 10px/13px system-ui,sans-serif; }
+.wx-inline-lock>b[data-stacked="true"] { display:flex; flex-direction:column; align-items:center; line-height:11px; }
+.wx-inline-action>small { min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font:600 10px/13px system-ui,sans-serif; }
+.wx-inline-requirement[data-lifetime="true"] { display:flex; align-items:center; gap:2px; font-size:9px; }
+.wx-inline-requirement .wg-icon { width:10px!important; height:10px!important; font-size:10px; }
 .wx-inline-upgrade[data-ready="true"] { box-shadow:inset 0 0 0 1px #ffe181,0 0 9px #ffde6555; }
-.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-buy { background:linear-gradient(#ffe994,#f5c642); border-color:#ffe993; animation:wx-station-ready 1.9s ease-in-out infinite; }
-.wx-inline-upgrade[data-ready="true"] .wx-inline-buy>b { font-size:12px; }
+.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-action { background:linear-gradient(#ffe994,#f5c642); color:#05233a; border-color:#ffe993; animation:wx-station-ready 1.9s ease-in-out infinite; }
+.wx-inline-upgrade[data-ready="true"] .wx-inline-action>b { font-size:11px; }
 .wx-inline-upgrade.wx-purchased { animation:wx-inline-purchase .55s ease-out; }
 .wx-core-location { margin-bottom:8px; }
 @keyframes wx-inline-purchase { from { box-shadow:inset 0 0 0 2px #8fffea,0 0 12px #42e9d277; } to { box-shadow:none; } }
-@media (prefers-reduced-motion:reduce) { .wx-game .wx-inline-upgrade .wx-inline-buy,.wx-inline-upgrade.wx-purchased { animation:none!important; } }
-.wx-game[data-quiet="true"] .wx-inline-upgrade .wx-inline-buy,.wx-game[data-quiet="true"] .wx-inline-upgrade.wx-purchased { animation:none!important; }
+@media (prefers-reduced-motion:reduce) { .wx-game .wx-inline-upgrade .wx-inline-action,.wx-inline-upgrade.wx-purchased { animation:none!important; } }
+.wx-game[data-quiet="true"] .wx-inline-upgrade .wx-inline-action,.wx-game[data-quiet="true"] .wx-inline-upgrade.wx-purchased { animation:none!important; }
+.wx-sheet[data-kind="station-help"] { bottom:var(--wx-help-bottom,66px); width:min(var(--wx-help-width,480px),480px,100%); max-height:min(480px,var(--wx-help-space,calc(100dvh - 132px))); border:1px solid #279bca; border-bottom:1px solid #279bca; border-radius:16px 16px 0 0; background:linear-gradient(115deg,#072b44f7,#05243afc); box-shadow:0 -2px 0 #011a2d,0 -6px 18px #001b344d; color:#eaf5ff; }
+.wx-sheet[data-kind="station-help"]::backdrop { background:transparent; }
+.wx-sheet[data-kind="station-help"]::before { content:''; position:absolute; top:5px; left:calc(50% - 18px); width:36px; height:4px; border-radius:4px; background:#608eac; }
+.wx-sheet[data-kind="station-help"]>header { min-height:44px; padding:4px 7px; border-bottom:0; }
+.wx-sheet[data-kind="station-help"]>header h2 { font:750 14px/20px system-ui,sans-serif; color:#beddec; }
+.wx-sheet[data-kind="station-help"]>header button { width:48px; height:48px; min-width:48px; min-height:48px; color:#c5f3ff; }
+.wx-sheet[data-kind="station-help"] .wx-sheet-content { padding:0 12px 8px; scroll-padding-block:8px; }
+.wx-station-help-select { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:7px 0; }
+.wx-station-help-overview { display:grid; grid-template-columns:minmax(0,1fr) 34%; gap:9px; align-items:center; }
+.wx-sheet .wx-help-selector { display:flex; align-items:center; gap:4px; min-width:48px; min-height:48px; padding:3px 5px; border:1px solid #255677; background:#05233a; border-radius:5px; text-align:left; color:#badbe8; }
+.wx-help-selector>.wg-icon,.wx-help-selector>.wx-station-icon { width:24px!important; height:24px!important; font-size:24px; }
+.wx-help-selector>span:not(.wg-icon) { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:650 10px/14px system-ui,sans-serif; }
+.wx-sheet .wx-help-selector[aria-pressed="true"] { border-color:#42e3ea; box-shadow:inset 0 0 0 1px #18acb833; color:#e9ffff; }
+.wx-station-help-hero { display:flex; gap:10px; align-items:center; min-width:0; padding:0 0 5px; }
+.wx-station-help-hero>.wg-icon,.wx-station-help-hero>.wx-station-icon { width:52px!important; height:52px!important; font-size:52px; flex:0 0 52px; padding:4px; border:1px solid #29b7da; border-radius:5px; background:#05213a; }
+.wx-station-help-hero>div { display:grid; gap:1px; min-width:0; }
+.wx-station-help-hero strong { font:800 17px/22px system-ui,sans-serif; color:#f5f9ff; }
+.wx-station-help-hero span { font:500 11px/15px system-ui,sans-serif; color:#d0e6f6; overflow-wrap:anywhere; }
+.wx-station-help-hero small { font:600 10px/14px system-ui,sans-serif; color:#7bbbd4; }
+.wx-station-help-preview { display:grid; gap:3px; padding:5px 0 5px 9px; border-left:1px solid #1b9fc0; font:600 11px/16px system-ui,sans-serif; }
+.wx-station-help-preview>span { white-space:nowrap; color:#a9cada; }
+.wx-station-help-preview strong { font:750 13px/18px system-ui,sans-serif; color:#67edbd; overflow-wrap:anywhere; }
+.wx-help-costs,.wx-help-requirements { padding:5px 8px; border:1px solid #187dad; border-radius:7px; background:#05233bcc; }
+.wx-help-requirements { margin-bottom:8px; }
+.wx-help-cost-labels { display:flex; justify-content:space-between; gap:8px; margin-bottom:3px; color:#86b2c8; font:650 10px/14px system-ui,sans-serif; }
+.wx-help-cost-caption { display:block; margin:0 0 5px; color:#beddec; font:500 10px/14px system-ui,sans-serif; }
+.wx-help-cost { display:grid; grid-template-columns:16px 20px minmax(0,1fr) auto; gap:3px 6px; align-items:center; min-height:30px; padding:2px 0; font:650 12px/17px system-ui,sans-serif; }
+.wx-help-cost+.wx-help-cost { border-top:1px solid #17658b; }
+.wx-help-cost>.wg-icon { width:20px!important; height:20px!important; font-size:20px; }
+.wx-help-cost>b,.wx-help-gate>b { color:#ffcf62; font-size:16px; text-align:center; }
+.wx-help-cost[data-met="true"]>b,.wx-help-gate[data-met="true"]>b,.wx-help-cost[data-met="true"] .wx-help-have { color:#62edb6; }
+.wx-help-cost[data-met="false"] .wx-help-have { color:#ff796e; }
+.wx-help-cost>strong { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.wx-help-cost .wx-help-missing { grid-column:3/-1; text-align:right; }
+.wx-help-missing { display:block; color:#ffcf65; font:600 10px/14px system-ui,sans-serif; }
+.wx-help-reason { margin:7px 0 0; color:#ffcf65; font:600 11px/16px system-ui,sans-serif; }
+.wx-help-gate { display:flex; gap:7px; align-items:center; padding:4px 0; min-width:0; }
+.wx-help-gate+.wx-help-gate { border-top:1px solid #185779; }
+.wx-help-gate>b { flex:0 0 16px; }
+.wx-help-gate>span { min-width:0; }
+.wx-help-gate strong { display:block; font:650 11px/15px system-ui,sans-serif; color:#e1f2fa; overflow-wrap:anywhere; }
+.wx-help-gate-progress { display:block; color:#8ec8df; font:600 10px/14px system-ui,sans-serif; }
+.wx-sheet[data-kind="station-help"] .wx-purchase-footer { padding:7px 12px 10px; border-top:1px solid #1b5574; background:#06283f; }
+.wx-sheet[data-kind="station-help"] .wx-confirm { min-height:48px; margin:0; background:linear-gradient(#23e3dc,#11bfc6); color:#022537; border:1px solid #4bffef; font:750 13px/18px system-ui,sans-serif; }
+.wx-sheet[data-kind="station-help"][data-help-ready="true"] .wx-confirm { background:linear-gradient(#ffe28a,#efc449); border-color:#fff0aa; }
+.wx-sheet[data-kind="station-help"] .wx-confirm:disabled { background:linear-gradient(#254c67,#193950); border-color:#557c97; color:#afc8dc; }
+.wx-sheet[data-kind="station-help"] .wx-fit-quantity { margin-top:5px; }
 .wx-station-icon { width:36px; height:36px; object-fit:contain; image-rendering:pixelated; flex-shrink:0; }
 .wx-station-jumps { position:absolute; z-index:3; top:12px; right:8px; display:flex; flex-direction:column; gap:5px; }
 .wx-game[data-station-layout="true"] .wx-station-jump { width:48px; min-width:48px; height:48px; min-height:48px; padding:5px; border:1px solid #61b8d2; border-radius:6px; background:#07253eeb; box-shadow:0 1px 4px #001b31aa; }
