@@ -325,7 +325,7 @@
         buy.disabled=!locked && !ready && (row.disabled || complete) || currentContext.saveFailure || currentContext.awaitingWallet;
         buy.setAttribute('aria-label',locked ? 'Requirements for '+label+': '+requirementText+'. '+requirementProgress(requirement) : ready ? 'Unlock '+label : complete ? label+' is at its current rank cap' : 'Buy '+quantity+' ranks of '+label+', current rank '+rank+', '+price+'. '+(row.comparison?.text || row.comparison || ''));
         buy.title=locked ? requirementText : row.comparison?.text || row.comparison || row.effectText || '';
-        const cost=(row.cost || []).map(item=>'<span>'+icon(item.resource)+esc(compactPrice(item.amount))+'</span>').join('');
+        const cost=(row.cost || []).map(item=>{const text=compactPrice(item.amount);return '<span'+(text.length>3?' data-wide="true"':'')+'>'+icon(item.resource)+esc(text)+'</span>';}).join('');
         const requirementLabel=requirement ? requirementName(requirement) : requirementText;
         const criterion=lifetime ? 'Earned' : esc(requirementLabel===station.name+' ranks' ? 'Ranks' : requirementLabel);
         const compactProgress=progress.replace(/\s/g,''),stackProgress=compactProgress.length>5;
@@ -922,7 +922,7 @@
       if (model.suppliesText || model.costCoverage==='guild') {
         node.disabled=!!currentContext.saveFailure || !!currentContext.awaitingWallet;
         if(['rank','cost'].includes(model.supply) && model.practicePreview) {
-          if(node.classList.contains('wx-inline-buy'))markup(node.querySelector('.wx-inline-action'),'<span class="wx-inline-price">'+(model.practicePreview.cost || []).map(cost=>'<span>'+icon(cost.resource)+esc(compactPrice(cost.amount))+'</span>').join('')+'</span>');
+          if(node.classList.contains('wx-inline-buy'))markup(node.querySelector('.wx-inline-action'),'<span class="wx-inline-price">'+(model.practicePreview.cost || []).map(cost=>{const text=compactPrice(cost.amount);return '<span'+(text.length>3?' data-wide="true"':'')+'>'+icon(cost.resource)+esc(text)+'</span>';}).join('')+'</span>');
           else node.innerHTML=node.classList.contains('wx-station-buy') ? '<span class="wx-station-price">'+costs(model.practicePreview)+'</span><b>+</b>' : node.hasAttribute('data-wx-buy') ? purchaseLabel(model.practicePreview,true) : 'Buy ×'+(model.practicePreview.quantity || 1);
         }
         if(model.practicePreview)node.setAttribute('aria-label','Buy exactly '+model.practicePreview.quantity+' ranks of '+(model.practicePreview.label || model.practicePreview.name)+', '+(model.practicePreview.cost || []).map(cost=>cost.text).join(', '));
