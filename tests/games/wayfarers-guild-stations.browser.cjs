@@ -120,15 +120,15 @@ async function run() {
     assert.deepEqual(clipped,[],'Have and Need amounts remain fully readable');
     return bounds;
   }
-  async function clearWorldStatus(page,label) {
-    const status=await page.evaluate(()=>{
+  async function clearWorldStatus(page,label,claimedAt) {
+    const status=await page.evaluate(claimedAt=>{
       const world=document.querySelector('.wx-station-world').getBoundingClientRect();
       const box=node=>{const rect=node.getBoundingClientRect();return {x:rect.x,y:rect.y,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height};};
       const protectedNodes=[...document.querySelectorAll('.wx-station-controls,.wx-station-heading,.wx-station-rate')].filter(node=>node.getClientRects().length).map(node=>({kind:node.className,...box(node)})).filter(rect=>rect.bottom>world.top && rect.y<world.bottom);
       const overlays=['cache','boost','reward'].map(kind=>{const node=document.querySelector('[data-wx-station-'+kind+']'),rect=box(node),style=getComputedStyle(node),visible=!node.hidden && style.visibility!=='hidden' && rect.width>0 && rect.height>0;const baseline=world.top+parseFloat(node.style.top || 0);return {kind,text:node.textContent,hidden:node.hidden,visible,visibility:style.visibility,...rect,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,envelope:kind==='reward' && visible ? {x:rect.x-rect.width*.04,right:rect.right+rect.width*.04,y:baseline-38,bottom:baseline+node.offsetHeight+10} : rect};});
       const blockers=protectedNodes.map(rect=>({top:Math.max(world.top,rect.y-6),bottom:Math.min(world.bottom,rect.bottom+6)})).sort((a,b)=>a.top-b.top);let cursor=world.top,maxFree=0;for(const rect of blockers){maxFree=Math.max(maxFree,rect.top-cursor);cursor=Math.max(cursor,rect.bottom);}maxFree=Math.max(maxFree,world.bottom-cursor);
-      return {world:{x:world.x,y:world.y,right:world.right,bottom:world.bottom},protectedNodes,overlays,maxFree};
-    });
+      const now=Date.now();return {world:{x:world.x,y:world.y,right:world.right,bottom:world.bottom},protectedNodes,overlays,maxFree,clock:{now,claimedAt,elapsed:now-claimedAt}};
+    },claimedAt);
     report.status ||= [];report.status.push({label,...status});
     const intersects=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1 && Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
     for(const overlay of status.overlays.filter(item=>item.visible)) {
@@ -303,14 +303,21 @@ async function run() {
       const {page,context}=await open(390,844,statusSeed);await dismissNotices(page);if(largeText){await page.addStyleTag({content:text130+statusText130});await page.clock.runFor(300);}
       await page.locator('.wx-station-world').evaluate(node=>node.scrollTop=0);await page.waitForTimeout(100);await page.clock.runFor(150);
       const cache=page.locator('[data-wx-station-cache]');assert(await cache.isVisible(),'The actual ready cache is reachable in the first scene');
-      const cacheHeight=(await cache.boundingBox()).height,camera=await geometry(page),before=H.Core.getView(await saved(page)).stations.encounter;assert(before.ready);
-      await cache.click();await page.clock.runFor(50);const encounter=H.Core.getView(await saved(page)).stations.encounter;assert.equal(encounter.sequence,before.sequence+1,'The visible cache claims its actual reward once');assert(encounter.boost.remaining>0,'The actual claim earns an area boost');assert.deepEqual(await geometry(page),camera,'Claiming the real cache preserves the camera');
-      const label='390'+(largeText?'-text130':''),claim=await clearWorldStatus(page,label+' actual claim');assert(claim.overlays.find(item=>item.kind==='boost').visible && claim.overlays.find(item=>item.kind==='reward').visible,'Actual reward and boost each have separate visible artwork after the claim');await shot(page,'status-claim-'+label);
-      for(const scroll of [328,380]) {
-        await page.locator('.wx-station-world').evaluate((node,value)=>node.scrollTop=value,scroll);await page.waitForTimeout(100);await page.clock.runFor(150);
-        const result=await clearWorldStatus(page,label+' scroll'+scroll),boost=result.overlays.find(item=>item.kind==='boost'),reward=result.overlays.find(item=>item.kind==='reward');assert(boost.visible,'The smaller boost moves into a safe interval after the cache disappears');assert.equal(reward.hidden,false,'The reward is still active while its own placement is checked');assert(result.maxFree<cacheHeight+12,'This lower-art interval cannot accommodate the larger cache control');assert.equal((await geometry(page)).scroll,scroll);await shot(page,'status-scroll-'+scroll+'-'+label);
-      }
-      await page.clock.runFor(1700);const expired=await clearWorldStatus(page,label+' reward expired');assert(expired.overlays.find(item=>item.kind==='reward').hidden);assert(expired.overlays.find(item=>item.kind==='boost').visible,'Boost placement still updates when Focus/cache/reward are absent');await context.close();
+      // Rendering and image capture can outlast the real1600ms reward on CI.
+      // Pause before the actual claim; each lifetime sample advances only by
+      // its explicit clock step, while native scroll events still settle.
+      await page.clock.pauseAt(new Date(await page.evaluate(()=>Date.now())+1000));
+      try {
+        const cacheHeight=(await cache.boundingBox()).height,camera=await geometry(page),before=H.Core.getView(await saved(page)).stations.encounter;assert(before.ready);
+        const claimedAt=await page.evaluate(()=>Date.now());await cache.click();await page.clock.runFor(50);const encounter=H.Core.getView(await saved(page)).stations.encounter;assert.equal(encounter.sequence,before.sequence+1,'The visible cache claims its actual reward once');assert(encounter.boost.remaining>0,'The actual claim earns an area boost');assert.deepEqual(await geometry(page),camera,'Claiming the real cache preserves the camera');
+        const label='390'+(largeText?'-text130':''),claim=await clearWorldStatus(page,label+' actual claim',claimedAt);assert(claim.clock.elapsed<1600,'The claim placement sample precedes the actual reward expiry');assert(claim.overlays.find(item=>item.kind==='boost').visible && claim.overlays.find(item=>item.kind==='reward').visible,'Actual reward and boost each have separate visible artwork after the claim');await shot(page,'status-claim-'+label);
+        for(const scroll of [328,380]) {
+          await page.locator('.wx-station-world').evaluate((node,value)=>node.scrollTop=value,scroll);await page.waitForTimeout(100);await page.clock.runFor(150);
+          const result=await clearWorldStatus(page,label+' scroll'+scroll,claimedAt),boost=result.overlays.find(item=>item.kind==='boost'),reward=result.overlays.find(item=>item.kind==='reward');assert(result.clock.elapsed<1600,'The scrolled placement sample precedes the actual reward expiry');assert(boost.visible,'The smaller boost moves into a safe interval after the cache disappears');assert.equal(reward.hidden,false,'The reward is still active while its own placement is checked');assert(result.maxFree<cacheHeight+12,'This lower-art interval cannot accommodate the larger cache control');assert.equal((await geometry(page)).scroll,scroll);await shot(page,'status-scroll-'+scroll+'-'+label);
+        }
+        await page.clock.runFor(1700);const expired=await clearWorldStatus(page,label+' reward expired',claimedAt);assert(expired.clock.elapsed>=1600,'The expiry sample reaches the actual reward lifetime');assert(expired.overlays.find(item=>item.kind==='reward').hidden);assert(expired.overlays.find(item=>item.kind==='boost').visible,'Boost placement still updates when Focus/cache/reward are absent');
+      } finally {await page.clock.resume();}
+      await context.close();
     }
     report.flows.push('Normal and text130: actual cache reward, boost and reward animation envelope occupy independent clear artwork; scroll328/380 never covers starter triplets, station headings or rates; smaller boost remains visible where the larger cache cannot fit');
     const established=mature();assert(H.Core.act(established,{type:'expedition-select',areaId:'quarry'}).ok);F.announceDiscoveries(established);
