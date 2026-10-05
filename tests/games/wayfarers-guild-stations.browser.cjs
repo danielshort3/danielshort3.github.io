@@ -17,6 +17,7 @@ const StationFixtures=require('./helpers/wayfarers-stations.cjs');
 const output=path.resolve(process.env.WAYFARERS_QA_DIR || fs.mkdtempSync(path.join(os.tmpdir(),'guild-stations-')));
 const report={browser:'Browser plugin not available; repository Playwright workflow used.',flows:[],viewports:[],errors:[]};
 const text130='.wx-game .wx-inline-rank{font-size:13px!important;line-height:18.2px!important}.wx-game .wx-inline-buy{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-price>span{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-action>small{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-requirement[data-lifetime="true"]{font-size:11.7px!important;line-height:16.9px!important}.wx-game .wx-inline-lock>b{font-size:13px!important;line-height:16.9px!important}.wx-game .wx-inline-count{font-size:11.7px!important;line-height:15.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero strong{font-size:22.1px!important;line-height:28.6px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero span{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-hero small{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-help-selector>span:not(.wg-icon){font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-station-help-preview strong{font-size:16.9px!important;line-height:23.4px!important}.wx-sheet[data-kind="station-help"] .wx-help-cost{font-size:15.6px!important;line-height:22.1px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate strong{font-size:14.3px!important;line-height:19.5px!important}.wx-sheet[data-kind="station-help"] .wx-help-gate-progress,.wx-sheet[data-kind="station-help"] .wx-help-missing{font-size:13px!important;line-height:18.2px!important}.wx-sheet[data-kind="station-help"] .wx-confirm{font-size:16.9px!important;line-height:23.4px!important}.wx-game .wx-inline-upgrade[data-ready="true"] .wx-inline-action>b{font-size:14.3px!important;line-height:19.5px!important}.wx-game .wx-inline-lock>b[data-stacked="true"]{line-height:14.3px!important}';
+const statusText130='.wx-game .wx-station-boost{font-size:15.6px!important;line-height:22.1px!important}.wx-game .wx-station-reward{font-size:28.6px!important;line-height:36.4px!important}.wx-game .wx-station-cache{font-size:14.3px!important;line-height:19.5px!important}';
 function progression(state) {return {ranks:state.stations.ranks,unlocked:state.stations.unlocked,built:state.stations.built,areaRanks:state.stations.areaRanks,areaUnlocked:state.stations.areaUnlocked};}
 function fresh() {const state=H.Core.createState(1000);H.fund(state);F.completeAreaGuides(state);F.announceDiscoveries(state);return state;}
 function mature() {const state=StationFixtures.mature();state.stations.encounter.remaining=0;F.announceDiscoveries(state);return state;}
@@ -106,6 +107,26 @@ async function run() {
     const clipped=await page.locator('.wx-sheet[open][data-kind="station-help"] .wx-help-have,.wx-sheet[open][data-kind="station-help"] .wx-help-need').evaluateAll(nodes=>nodes.filter(node=>node.scrollWidth>node.clientWidth+1).map(node=>node.textContent));
     assert.deepEqual(clipped,[],'Have and Need amounts remain fully readable');
     return bounds;
+  }
+  async function clearWorldStatus(page,label) {
+    const status=await page.evaluate(()=>{
+      const world=document.querySelector('.wx-station-world').getBoundingClientRect();
+      const box=node=>{const rect=node.getBoundingClientRect();return {x:rect.x,y:rect.y,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height};};
+      const protectedNodes=[...document.querySelectorAll('.wx-station-controls,.wx-station-heading,.wx-station-rate')].filter(node=>node.getClientRects().length).map(node=>({kind:node.className,...box(node)})).filter(rect=>rect.bottom>world.top && rect.y<world.bottom);
+      const overlays=['cache','boost','reward'].map(kind=>{const node=document.querySelector('[data-wx-station-'+kind+']'),rect=box(node),style=getComputedStyle(node),visible=!node.hidden && style.visibility!=='hidden' && rect.width>0 && rect.height>0;const baseline=world.top+parseFloat(node.style.top || 0);return {kind,text:node.textContent,hidden:node.hidden,visible,visibility:style.visibility,...rect,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,envelope:kind==='reward' && visible ? {x:rect.x-rect.width*.04,right:rect.right+rect.width*.04,y:baseline-38,bottom:baseline+node.offsetHeight+10} : rect};});
+      const blockers=protectedNodes.map(rect=>({top:Math.max(world.top,rect.y-6),bottom:Math.min(world.bottom,rect.bottom+6)})).sort((a,b)=>a.top-b.top);let cursor=world.top,maxFree=0;for(const rect of blockers){maxFree=Math.max(maxFree,rect.top-cursor);cursor=Math.max(cursor,rect.bottom);}maxFree=Math.max(maxFree,world.bottom-cursor);
+      return {world:{x:world.x,y:world.y,right:world.right,bottom:world.bottom},protectedNodes,overlays,maxFree};
+    });
+    const intersects=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1 && Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
+    for(const overlay of status.overlays.filter(item=>item.visible)) {
+      const rect=overlay.envelope;
+      assert(rect.x>=status.world.x-1 && rect.right<=status.world.right+1 && rect.y>=status.world.y-1 && rect.bottom<=status.world.bottom+1,label+' keeps '+overlay.kind+' and its motion inside the world');
+      assert(overlay.scrollWidth<=overlay.clientWidth+1,label+' displays the full '+overlay.kind+' text');
+      assert.deepEqual(status.protectedNodes.filter(target=>intersects(rect,target)),[],label+' keeps '+overlay.kind+' clear of real upgrade triplets, station headings and rate labels');
+    }
+    const visible=status.overlays.filter(item=>item.visible);
+    for(let index=0;index<visible.length;index++)for(const next of visible.slice(index+1))assert(!intersects(visible[index].envelope,next.envelope),label+' reserves separate artwork for '+visible[index].kind+' and '+next.kind);
+    report.status ||= [];report.status.push({label,...status});return status;
   }
   async function helpModel(page,stationId,skillId) {
     // Read one actual foreground-rendered frame while the mocked clock is
@@ -252,6 +273,21 @@ async function run() {
       await shot(page,'inline-batch-320'+(largeText ? '-text130' : ''));await context.close();
     }
     report.flows.push('320 and text130: actual ready unlock and five-rank batch purchase retain each canvas, cell and buy button, compact scene-contained controls and scene aspect; earned title selector uses the shared batch dialog');
+    for(const largeText of [false,true]) {
+      const statusSeed=mature();assert(H.Core.act(statusSeed,{type:'expedition-select',areaId:'quarry'}).ok);F.announceDiscoveries(statusSeed);
+      const {page,context}=await open(390,844,statusSeed);await dismissNotices(page);if(largeText){await page.addStyleTag({content:text130+statusText130});await page.clock.runFor(300);}
+      await page.locator('.wx-station-world').evaluate(node=>node.scrollTop=0);await page.clock.runFor(100);
+      const cache=page.locator('[data-wx-station-cache]');assert(await cache.isVisible(),'The actual ready cache is reachable in the first scene');
+      const cacheHeight=(await cache.boundingBox()).height,camera=await geometry(page),before=H.Core.getView(await saved(page)).stations.encounter;assert(before.ready);
+      await cache.click();await page.clock.runFor(50);const encounter=H.Core.getView(await saved(page)).stations.encounter;assert.equal(encounter.sequence,before.sequence+1,'The visible cache claims its actual reward once');assert(encounter.boost.remaining>0,'The actual claim earns an area boost');assert.deepEqual(await geometry(page),camera,'Claiming the real cache preserves the camera');
+      const label='390'+(largeText?'-text130':''),claim=await clearWorldStatus(page,label+' actual claim');assert(claim.overlays.find(item=>item.kind==='boost').visible && claim.overlays.find(item=>item.kind==='reward').visible,'Actual reward and boost each have separate visible artwork after the claim');await shot(page,'status-claim-'+label);
+      for(const scroll of [328,380]) {
+        await page.locator('.wx-station-world').evaluate((node,value)=>node.scrollTop=value,scroll);await page.clock.runFor(100);
+        const result=await clearWorldStatus(page,label+' scroll'+scroll),boost=result.overlays.find(item=>item.kind==='boost'),reward=result.overlays.find(item=>item.kind==='reward');assert(boost.visible,'The smaller boost moves into a safe interval after the cache disappears');assert.equal(reward.hidden,false,'The reward is still active while its own placement is checked');assert(result.maxFree<cacheHeight+12,'This lower-art interval cannot accommodate the larger cache control');assert.equal((await geometry(page)).scroll,scroll);await shot(page,'status-scroll-'+scroll+'-'+label);
+      }
+      await page.clock.runFor(1700);const expired=await clearWorldStatus(page,label+' reward expired');assert(expired.overlays.find(item=>item.kind==='reward').hidden);assert(expired.overlays.find(item=>item.kind==='boost').visible,'Boost placement still updates when Focus/cache/reward are absent');await context.close();
+    }
+    report.flows.push('Normal and text130: actual cache reward, boost and reward animation envelope occupy independent clear artwork; scroll328/380 never covers starter triplets, station headings or rates; smaller boost remains visible where the larger cache cannot fit');
     const established=mature();assert(H.Core.act(established,{type:'expedition-select',areaId:'quarry'}).ok);F.announceDiscoveries(established);
     const {page,context}=await open(390,844,established);
     await dismissNotices(page);
