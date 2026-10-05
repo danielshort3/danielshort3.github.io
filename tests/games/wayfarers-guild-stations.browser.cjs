@@ -117,6 +117,7 @@ async function run() {
       const blockers=protectedNodes.map(rect=>({top:Math.max(world.top,rect.y-6),bottom:Math.min(world.bottom,rect.bottom+6)})).sort((a,b)=>a.top-b.top);let cursor=world.top,maxFree=0;for(const rect of blockers){maxFree=Math.max(maxFree,rect.top-cursor);cursor=Math.max(cursor,rect.bottom);}maxFree=Math.max(maxFree,world.bottom-cursor);
       return {world:{x:world.x,y:world.y,right:world.right,bottom:world.bottom},protectedNodes,overlays,maxFree};
     });
+    report.status ||= [];report.status.push({label,...status});
     const intersects=(a,b)=>Math.min(a.right,b.right)-Math.max(a.x,b.x)>1 && Math.min(a.bottom,b.bottom)-Math.max(a.y,b.y)>1;
     for(const overlay of status.overlays.filter(item=>item.visible)) {
       const rect=overlay.envelope;
@@ -126,7 +127,7 @@ async function run() {
     }
     const visible=status.overlays.filter(item=>item.visible);
     for(let index=0;index<visible.length;index++)for(const next of visible.slice(index+1))assert(!intersects(visible[index].envelope,next.envelope),label+' reserves separate artwork for '+visible[index].kind+' and '+next.kind);
-    report.status ||= [];report.status.push({label,...status});return status;
+    return status;
   }
   async function helpModel(page,stationId,skillId) {
     // Read one actual foreground-rendered frame while the mocked clock is
@@ -276,13 +277,13 @@ async function run() {
     for(const largeText of [false,true]) {
       const statusSeed=mature();assert(H.Core.act(statusSeed,{type:'expedition-select',areaId:'quarry'}).ok);F.announceDiscoveries(statusSeed);
       const {page,context}=await open(390,844,statusSeed);await dismissNotices(page);if(largeText){await page.addStyleTag({content:text130+statusText130});await page.clock.runFor(300);}
-      await page.locator('.wx-station-world').evaluate(node=>node.scrollTop=0);await page.clock.runFor(100);
+      await page.locator('.wx-station-world').evaluate(node=>node.scrollTop=0);await page.waitForTimeout(100);await page.clock.runFor(150);
       const cache=page.locator('[data-wx-station-cache]');assert(await cache.isVisible(),'The actual ready cache is reachable in the first scene');
       const cacheHeight=(await cache.boundingBox()).height,camera=await geometry(page),before=H.Core.getView(await saved(page)).stations.encounter;assert(before.ready);
       await cache.click();await page.clock.runFor(50);const encounter=H.Core.getView(await saved(page)).stations.encounter;assert.equal(encounter.sequence,before.sequence+1,'The visible cache claims its actual reward once');assert(encounter.boost.remaining>0,'The actual claim earns an area boost');assert.deepEqual(await geometry(page),camera,'Claiming the real cache preserves the camera');
       const label='390'+(largeText?'-text130':''),claim=await clearWorldStatus(page,label+' actual claim');assert(claim.overlays.find(item=>item.kind==='boost').visible && claim.overlays.find(item=>item.kind==='reward').visible,'Actual reward and boost each have separate visible artwork after the claim');await shot(page,'status-claim-'+label);
       for(const scroll of [328,380]) {
-        await page.locator('.wx-station-world').evaluate((node,value)=>node.scrollTop=value,scroll);await page.clock.runFor(100);
+        await page.locator('.wx-station-world').evaluate((node,value)=>node.scrollTop=value,scroll);await page.waitForTimeout(100);await page.clock.runFor(150);
         const result=await clearWorldStatus(page,label+' scroll'+scroll),boost=result.overlays.find(item=>item.kind==='boost'),reward=result.overlays.find(item=>item.kind==='reward');assert(boost.visible,'The smaller boost moves into a safe interval after the cache disappears');assert.equal(reward.hidden,false,'The reward is still active while its own placement is checked');assert(result.maxFree<cacheHeight+12,'This lower-art interval cannot accommodate the larger cache control');assert.equal((await geometry(page)).scroll,scroll);await shot(page,'status-scroll-'+scroll+'-'+label);
       }
       await page.clock.runFor(1700);const expired=await clearWorldStatus(page,label+' reward expired');assert(expired.overlays.find(item=>item.kind==='reward').hidden);assert(expired.overlays.find(item=>item.kind==='boost').visible,'Boost placement still updates when Focus/cache/reward are absent');await context.close();
