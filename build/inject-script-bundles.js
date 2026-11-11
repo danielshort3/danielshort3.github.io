@@ -368,7 +368,7 @@ function processHtml(html, relPath) {
   const requiredPageBundles = [];
   if (relPath === 'pages/contact.html') requiredPageBundles.push(['site-contact', managedHrefs.contact]);
   if (relPath === 'pages/search.html') requiredPageBundles.push(['site-search', managedHrefs.search]);
-  if (relPath === 'pages/sitemap-pretty.html' || relPath === 'pages/sitemap.html') {
+  if (relPath === 'pages/sitemap.html') {
     requiredPageBundles.push(['site-sitemap', managedHrefs.sitemap]);
   }
   if (relPath === 'pages/privacy.html') requiredPageBundles.push(['site-privacy', managedHrefs.privacy]);

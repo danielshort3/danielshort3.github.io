@@ -48,7 +48,6 @@ const SOURCE_STATIC_FALLBACK_FILES = new Set([
   'favicon.ico',
   'index.html',
   'llms.txt',
-  'privacy.html',
   'robots.txt',
   'sitemap.html',
   'sitemap.xml',

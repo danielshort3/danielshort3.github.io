@@ -19,7 +19,6 @@ const writeRetrySignal = new Int32Array(new SharedArrayBuffer(4));
 
 const PAIRS = [
   { from: 'pages/contact.html', to: 'contact.html' },
-  { from: 'pages/privacy.html', to: 'privacy.html' },
   { from: 'pages/sitemap.html', to: 'sitemap.html' }
 ];
 

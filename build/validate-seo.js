@@ -18,8 +18,7 @@ const RASTER_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const NON_SITEMAP_UTILITY_SOURCES = new Set([
   '404.html',
   'dshort.html',
-  'pages/search.html',
-  'pages/sitemap-pretty.html'
+  'pages/search.html'
 ]);
 
 const PERSONAL_LIBRARY_CONTRACTS = [

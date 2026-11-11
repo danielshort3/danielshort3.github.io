@@ -77,12 +77,6 @@ const UTILITY_PAGE_CONFIGS = Object.freeze([
     backHref: '/#about'
   }),
   Object.freeze({
-    relPath: path.join('pages', 'sitemap-pretty.html'),
-    itemId: 'sitemap-pretty',
-    category: 'about',
-    backHref: '/#about'
-  }),
-  Object.freeze({
     relPath: path.join('pages', 'solutions.html'),
     itemId: 'solutions',
     category: 'projects',
