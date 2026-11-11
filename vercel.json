@@ -64,8 +64,6 @@
     { "source": "/search.html",       "destination": "/pages/search" },
     { "source": "/sitemap",           "destination": "/pages/sitemap" },
     { "source": "/sitemap.html",      "destination": "/pages/sitemap" },
-    { "source": "/sitemap-pretty",    "destination": "/pages/sitemap-pretty" },
-    { "source": "/sitemap-pretty.html","destination": "/pages/sitemap-pretty" },
     { "source": "/word-frequency",    "destination": "/pages/word-frequency" },
     { "source": "/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/word-frequency","destination": "/pages/word-frequency" },
@@ -153,6 +151,10 @@
     { "source": "/retail-loss-sales-demo.html", "destination": "/pages/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
+    { "source": "/sitemap-pretty", "destination": "/sitemap", "permanent": true },
+    { "source": "/sitemap-pretty.html", "destination": "/sitemap", "permanent": true },
+    { "source": "/pages/sitemap-pretty", "destination": "/sitemap", "permanent": true },
+    { "source": "/pages/sitemap-pretty.html", "destination": "/sitemap", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },

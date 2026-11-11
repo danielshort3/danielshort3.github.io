@@ -13,9 +13,6 @@
   "/sitemap": [
     "css/components/sitemap-page.css"
   ],
-  "/sitemap-pretty": [
-    "css/components/sitemap-page.css"
-  ],
   "/privacy": [
     "css/components/privacy-page.css"
   ],

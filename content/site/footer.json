@@ -99,7 +99,7 @@
   "utilityLinks": [
     {
       "label": "Sitemap",
-      "href": "sitemap-pretty"
+      "href": "sitemap"
     },
     {
       "label": "Cookie settings",
@@ -174,7 +174,7 @@
       "links": [
         {
           "label": "Sitemap",
-          "href": "sitemap-pretty"
+          "href": "sitemap"
         },
         {
           "label": "Cookie settings",

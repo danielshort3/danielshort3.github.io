@@ -1527,7 +1527,7 @@ try {
     assert(!commonCode.includes('--jump-link-progress') && !commonCode.includes('updateLinkProgress'),
       'common.js should not add scroll-progress styling to the homepage jump rail');
 
-    const htmlFiles = ['index.html','contact.html','privacy.html','pages/portfolio.html','pages/contact.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
+    const htmlFiles = ['index.html','contact.html','pages/portfolio.html','pages/contact.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should not load analytics helpers outside the consent bundle`);
@@ -39413,7 +39413,6 @@ try {
   section('Root/pages drift guard', () => {
     [
       ['contact.html', 'pages/contact.html'],
-      ['privacy.html', 'pages/privacy.html'],
       ['sitemap.html', 'pages/sitemap.html']
     ].forEach(([rootFile, pageFile]) => {
       assert(fs.existsSync(rootFile), `${rootFile} missing`);
@@ -39422,6 +39421,10 @@ try {
       const pageHtml = fs.readFileSync(pageFile, 'utf8');
       assert(rootHtml === pageHtml, `${rootFile} differs from ${pageFile}; run node build/sync-root-pages.js`);
     });
+  });
+
+  section('Retired duplicate page cleanup', () => {
+    require('./tests/site/public-page-cleanup.test.js')({ assert });
   });
 
   section('Portfolio featured no-JS cards stay in sync', () => {
@@ -41084,14 +41087,12 @@ try {
       'dshort.html',
       'index.html',
       'contact.html',
-      'privacy.html',
       'sitemap.html',
       'pages/contact.html',
       'pages/portfolio.html',
       'pages/privacy.html',
       'pages/search.html',
       'pages/sitemap.html',
-      'pages/sitemap-pretty.html',
       'pages/solutions.html',
       'pages/tools.html',
       'build/build-site.js',
@@ -41260,7 +41261,6 @@ try {
 
     assert(htmlHasManagedBundle(readFile('pages/contact.html'), 'site-contact'), 'pages/contact.html missing contact bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/search.html'), 'site-search'), 'pages/search.html missing search bundle reference');
-    assert(htmlHasManagedBundle(readFile('pages/sitemap-pretty.html'), 'site-sitemap'), 'pages/sitemap-pretty.html missing sitemap bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/privacy.html'), 'site-privacy'), 'pages/privacy.html missing privacy bundle reference');
 
     const toolsIndexHtml = readFile('pages/tools.html');
@@ -41376,7 +41376,6 @@ try {
       'index.html',
       '404.html',
       'contact.html',
-      'privacy.html',
       ...fs.readdirSync('pages')
         .filter((name) => name.endsWith('.html'))
         .map((name) => `pages/${name}`)
@@ -43544,8 +43543,8 @@ try {
   });
 
   section('Privacy CMP', () => {
-    checkFileContainsOneOf('privacy.html', ['js/privacy/config.js', 'dist/site-consent.'], 'privacy.html missing consent loader reference');
-    checkFileContainsOneOf('privacy.html', ['js/privacy/consent_manager.js', 'dist/site-consent.'], 'privacy.html missing consent manager reference');
+    checkFileContainsOneOf('pages/privacy.html', ['js/privacy/config.js', 'dist/site-consent.'], 'pages/privacy.html missing consent loader reference');
+    checkFileContainsOneOf('pages/privacy.html', ['js/privacy/consent_manager.js', 'dist/site-consent.'], 'pages/privacy.html missing consent manager reference');
     const pcfg = evalScript('js/privacy/config.js');
     const consentCode = readFile('js/privacy/consent_manager.js');
     const analyticsCode = readFile('js/analytics/ga4-events.js');

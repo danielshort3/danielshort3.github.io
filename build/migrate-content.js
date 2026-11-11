@@ -388,7 +388,7 @@ function buildFooter() {
         id: 'site',
         title: 'Site',
         links: [
-          { label: 'Sitemap', href: 'sitemap-pretty' },
+          { label: 'Sitemap', href: 'sitemap' },
           { label: 'Cookie settings', type: 'button', id: 'privacy-settings-link-footer', ariaHaspopup: 'dialog' },
           {
             label: 'Back to top',

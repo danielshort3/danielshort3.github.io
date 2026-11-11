@@ -391,7 +391,7 @@ function copyStatic(){
   const htmlFiles = listRootHtmlFiles(root);
   htmlFiles.forEach(src => {
     const rel = path.relative(root, src);
-    if (rel === 'contact.html') return;
+    if (rel === 'contact.html' || rel === 'privacy.html') return;
     copyFile(src, path.join(outDir, rel));
   });
 
