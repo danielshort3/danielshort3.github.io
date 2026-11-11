@@ -134,7 +134,7 @@ The complete build order lives in [build-site.js](../build/build-site.js). Some 
 | `dist/` CSS/JS and derived assets | [build-css.js](../build/build-css.js), [build-js.js](../build/build-js.js), [JS entries](../build/entries/), [image optimizer](../build/optimize-site-images.js) |
 | `js/tools/utm-batch-builder.js` and its worker bundle | [src/utm-batch-builder](../src/utm-batch-builder/) → [build-utm-batch-builder.js](../build/build-utm-batch-builder.js) |
 | `dist/app-content/v1/catalog.json`, deployed `/app-content/v1/catalog.json`, Android offline catalog | [generate-mobile-content.js](../build/generate-mobile-content.js); website copy step publishes the feed; Android Gradle generates/copies its bundled fallback |
-| `public/` deployment tree | [copy-to-public.js](../build/copy-to-public.js). New shipped asset directories must be included here; `docs/` and Android sources are not published |
+| `public/` deployment tree | [copy-to-public.js](../build/copy-to-public.js). New shipped asset directories must be included here; [exact-file deployment exclusions](../build/public-deployment-exclusions.json) retain reviewed authoring/reference sources while omitting their public copies. Keep canonical Sitemap routes, shared private-preview packaging inputs and license/attribution files; `docs/` and Android sources are not published |
 | Android `build/` directories, APKs, reports | Gradle. Debug APK: `mobile/android/app/build/outputs/apk/debug/app-debug.apk` |
 
 ## Validation and local preview

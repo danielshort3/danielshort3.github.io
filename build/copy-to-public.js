@@ -8,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const { BROWSER_PROJECT_DOCUMENTS } = require('./lib/browser-project-assets');
 const { copyAppUpdateFeeds } = require('./lib/app-update-feeds.cjs');
+// Retain authoring/reference sources while omitting only reviewed deployment copies.
+const deploymentExclusions = new Set(require('./public-deployment-exclusions.json'));
 
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public');
@@ -54,6 +56,7 @@ function ensureCleanDir(dir){
 }
 
 function copyFile(src, dest){
+  if (shouldSkipPublicCopy(src)) return;
   const transientCodes = new Set(['EBUSY', 'ENOENT', 'EPERM']);
   let lastError = null;
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -72,7 +75,8 @@ function copyFile(src, dest){
 
 function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
-  return rel === 'img/project-starfall/review'
+  return deploymentExclusions.has(rel)
+    || rel === 'img/project-starfall/review'
     || rel.startsWith('img/project-starfall/review/')
     || (!includeStarfallBackups && (rel === 'img/project-starfall/backups' || rel.startsWith('img/project-starfall/backups/')))
     || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel);
@@ -462,4 +466,4 @@ if (require.main === module) {
   log('Prepared public/ output for Vercel');
 }
 
-module.exports = { resolveApprovedDocuments, copyApprovedDocuments, collectDistArtifacts, rewriteCssLinksInHtml };
+module.exports = { resolveApprovedDocuments, copyApprovedDocuments, collectDistArtifacts, rewriteCssLinksInHtml, shouldSkipPublicCopy };
