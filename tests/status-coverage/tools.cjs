@@ -70,7 +70,10 @@ async function statusTool({ context, page, base, item }) {
   const snapshot = {
     ok: true, region: 'us-east-2', checkedAt, days: 90,
     connections: [{ label: 'Fixture connection', days: [{ date, state: 'operational', from: checkedAt, to: checkedAt, issue: '' }] }],
-    catalog: [{ label: 'Fixture tool', group: 'Tools', state: 'unknown', lastChecked: null, issue: 'No fixture reading' }]
+    catalog: [
+      { label: 'Fixture tool', group: 'Tools', state: 'unknown', lastChecked: null, issue: 'No fixture reading' },
+      { label: 'Browser-checked tool', group: 'Tools', state: 'operational', lastChecked: checkedAt, issue: '', source: 'browser' }
+    ]
   };
   await context.route(base + '/api/tools/aws-status', (route) => {
     queries++;
@@ -93,6 +96,7 @@ async function statusTool({ context, page, base, item }) {
   const directory = page.locator('#aws-status-directory');
   await expect(directory).toContainText('Fixture tool');
   await expect(directory).toContainText('Unknown');
+  await expect(directory.getByText('Browser check passed', { exact: true })).toBeVisible();
   assert.equal(queries, 1);
   return local('The fixture verified the ordinary-account gate, 90-day history, and catalog status tab.');
 }
