@@ -52,6 +52,9 @@
   "/short-links": [
     "css/components/short-links.css"
   ],
+  "/tools/aws-status": [
+    "css/components/aws-status.css"
+  ],
   "/tools/short-links": [
     "css/components/short-links.css"
   ],

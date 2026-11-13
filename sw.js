@@ -12,7 +12,7 @@ const POLICIES = {
 const SHELL = ['/', '/index.html', '/portfolio', '/tools', '/games'];
 const HARD_DOCUMENT_PATHS = new Set([
   '/tools/background-remover', '/tools/transcribe', '/tools/job-application-tracker',
-  '/tools/dashboard', '/tools-dashboard', '/pages/tools-dashboard'
+  '/tools/dashboard', '/tools-dashboard', '/pages/tools-dashboard', '/tools/aws-status'
 ]);
 let maintenance = Promise.resolve();
 let lastUse = 0;

@@ -20,8 +20,8 @@ async function run() {
   // Compare both production render paths without writing generated artifacts.
   const homeItems = buildHomeLibraryData(content).tools.items;
   const restricted = items.filter((item) => item.visibility !== 'public');
-  check(restricted.length === 5, 'The dedicated Tools library must retain all five account and admin tools.');
-  ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance'].forEach((id) => {
+  check(restricted.length === 6, 'The dedicated Tools library must retain all six account and admin tools.');
+  ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance', 'aws-status'].forEach((id) => {
     check(items.some((item) => item.id === id && item.visibility === 'admin'), `${id} must retain its admin restriction.`);
   });
   ['job-application-tracker', 'transcribe'].forEach((id) => {
@@ -34,7 +34,7 @@ async function run() {
     Images: ['image-optimizer', 'background-remover'],
     Links: ['utm-batch-builder'],
     'Account tools': ['job-application-tracker', 'transcribe'],
-    'Admin tools': ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance']
+    'Admin tools': ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance', 'aws-status']
   };
   const groups = [...html.matchAll(/<section class="home-library__group" aria-label="([^"]+)">([\s\S]*?)<\/section>/g)]
     .map((match) => ({
