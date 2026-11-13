@@ -48,6 +48,16 @@ jobs:
         with:
           ref: ${{ steps.release.outputs.sha }}
           persist-credentials: false
+      - name: Check out the report transport
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          path: report-transport
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/status-report-public.pem
+            /build/status-report-transport.cjs
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
@@ -64,9 +74,10 @@ jobs:
           result=0
           node tests/status-coverage/run.cjs --site-root "$GITHUB_WORKSPACE" --report "$report" || result=$?
           [[ "$result" == 0 || "$result" == 1 ]] && [[ -s "$report" ]] || exit 2
-          safe=$(jq -ce '{schemaVersion, environment, checkedAt, checks: [.checks[] | {id, status, method}]}' "$report")
-          [[ "${#safe}" -le 16384 ]] || exit 2
-          printf 'report=%s\nfailed=%s\n' "$safe" "$result" >> "$GITHUB_OUTPUT"
+          jq -ce '{schemaVersion, environment, checkedAt, checks: [.checks[] | {id, status, method}]}' "$report" > "$RUNNER_TEMP/catalog-safe.json"
+          transport="$GITHUB_WORKSPACE/report-transport"
+          sealed=$(node "$transport/build/status-report-transport.cjs" seal "$RUNNER_TEMP/catalog-safe.json" "$transport/.github/status-report-public.pem")
+          printf 'report=%s\nfailed=%s\n' "$sealed" "$result" >> "$GITHUB_OUTPUT"
 
   publish:
     needs: check
@@ -75,6 +86,8 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/status-report-publish.yml
+    secrets:
+      report_key: ${{ secrets.AWS_STATUS_REPORT_PRIVATE_KEY }}
     with:
       release: ${{ needs.check.outputs.release }}
       report: ${{ needs.check.outputs.report }}
