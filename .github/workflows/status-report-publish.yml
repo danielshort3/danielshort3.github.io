@@ -1,0 +1,71 @@
+name: Publish browser status evidence
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        type: string
+        required: true
+      report:
+        type: string
+        required: true
+      check_failed:
+        type: boolean
+        required: true
+
+permissions: {}
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main' && github.repository_id == '698339955' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.workflow_ref == 'danielshort3/danielshort3.github.io/.github/workflows/status-coverage-hourly.yml@refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the trusted publisher
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read the production catalog
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.release }}
+          path: production-catalog
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /content/tools/*.json
+            /content/projects/*.json
+            /content/pages/games.json
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Obtain a temporary report-only role
+        id: aws
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::886623862678:role/website-aws-status-report-github
+          role-session-name: status-${{ github.run_id }}-${{ github.run_attempt }}
+          role-duration-seconds: 900
+          output-credentials: true
+          allowed-account-ids: "886623862678"
+          retry-max-attempts: 2
+      - name: Publish the browser outcomes
+        env:
+          REPORT_JSON: ${{ inputs.report }}
+          AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION: ${{ steps.aws.outputs.aws-expiration }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/catalog-report.json"
+          expiration=${AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION#\"}
+          export AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION=${expiration%\"}
+          (umask 077 && printf '%s\n' "$REPORT_JSON" > "$report")
+          node build/publish-aws-status-report.cjs "$report" --github-oidc "$GITHUB_WORKSPACE/production-catalog"
+      - name: Mark a completed report with failures as failed
+        if: inputs.check_failed
+        run: exit 1

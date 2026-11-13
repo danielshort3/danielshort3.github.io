@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const gamePage = require('../../content/pages/games.json');
+const CONTENT_DIR = path.join(__dirname, '..', '..', 'content');
 
 const GROUPS = [
   { prefix: 'tool', label: 'Tools', directory: 'tools', key: 'slug' },
@@ -10,7 +11,9 @@ const GROUPS = [
 ];
 const GROUP_ORDER = ['Tools', 'Projects', 'Games'];
 
-function loadStatusCatalog(contentDir = path.join(__dirname, '..', '..', 'content')) {
+function loadStatusCatalog(contentDir = CONTENT_DIR) {
+  const games = contentDir === CONTENT_DIR ? gamePage
+    : JSON.parse(fs.readFileSync(path.join(contentDir, 'pages', 'games.json'), 'utf8'));
   const entries = GROUPS.flatMap(({ prefix, label, directory, key }) => {
     const root = path.join(contentDir, directory);
     return fs.readdirSync(root)
@@ -20,7 +23,7 @@ function loadStatusCatalog(contentDir = path.join(__dirname, '..', '..', 'conten
       .map((item) => ({ id: `${prefix}:${item[key]}`, label: item.title, group: label }));
   });
 
-  entries.push(...gamePage.games
+  entries.push(...games.games
     .filter((item) => item.published !== false && typeof item.id === 'string' && typeof item.title === 'string')
     .map((item) => ({ id: `game:${item.id}`, label: item.title, group: 'Games' })));
   return entries.sort((left, right) =>

@@ -7,6 +7,7 @@
   const HISTORY_ZONE = 'America/Denver';
   const DAY_MS = 24 * 60 * 60 * 1000;
   const STALE_MS = 2 * 60 * 60 * 1000;
+  const REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
   const GROUPS = ['Tools', 'Projects', 'Games'];
@@ -124,6 +125,8 @@
     let request = null;
     let staleTimer;
     let accessTimer;
+    let refreshTimer;
+    let nextRefreshAt = 0;
     let tooltipTimer;
     let activeTick;
     let pinnedTick;
@@ -174,6 +177,8 @@
       snapshot = null;
       failed = false;
       clearTimeout(staleTimer);
+      clearTimeout(refreshTimer);
+      nextRefreshAt = 0;
       readings.hidden = true;
       freshness.textContent = '';
       historyGrid.replaceChildren();
@@ -403,13 +408,23 @@
       window.addEventListener('scroll', positionTooltip, { capture: true, passive: true });
     }
 
+    function scheduleRefresh() {
+      clearTimeout(refreshTimer);
+      if (!owner || request || document.visibilityState !== 'visible') return;
+      const delay = nextRefreshAt - Date.now();
+      if (delay > 0) refreshTimer = setTimeout(scheduleRefresh, delay);
+      else loadStatus();
+    }
+
     async function loadStatus() {
       const { owner: currentOwner } = getAccess();
       if (currentOwner !== owner) {
         syncAccess();
         return;
       }
-      if (!currentOwner || request) return;
+      if (!currentOwner || request || document.visibilityState !== 'visible') return;
+      clearTimeout(refreshTimer);
+      nextRefreshAt = Date.now() + REFRESH_MS;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       const isCurrent = () => request === controller && getAccess().owner === currentOwner;
@@ -450,6 +465,7 @@
         if (request === controller) {
           request = null;
           setBusy(false);
+          scheduleRefresh();
         }
       }
     }
@@ -498,6 +514,7 @@
     document.addEventListener('tools:auth-changed', syncAccess);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') syncAccess();
+      scheduleRefresh();
     });
     window.addEventListener('pagehide', () => {
       owner = '';

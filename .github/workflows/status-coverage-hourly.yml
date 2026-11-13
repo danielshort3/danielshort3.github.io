@@ -1,0 +1,81 @@
+name: Hourly project and tool status
+
+on:
+  schedule:
+    - cron: "37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hourly-project-status
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main' && github.repository_id == '698339955'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: read
+    outputs:
+      release: ${{ steps.release.outputs.sha }}
+      report: ${{ steps.check.outputs.report }}
+      check_failed: ${{ steps.check.outputs.failed }}
+    steps:
+      - name: Select the last successful Vercel production release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployment_rows=$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=Production&per_page=10" --jq '.[] | select(.creator.login == "vercel[bot]" and .environment == "Production") | [.id, .sha] | @tsv')
+          while IFS=$'\t' read -r deployment sha; do
+            [[ "$deployment" =~ ^[0-9]+$ && "$sha" =~ ^[a-f0-9]{40}$ ]] || continue
+            result=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$deployment/statuses?per_page=1" --jq '.[0] | select(.creator.login == "vercel[bot]" and .state == "success") | .environment_url')
+            if [[ "$result" =~ ^https://website-[a-z0-9]+-daniel-shorts-projects\.vercel\.app/?$ ]]; then
+              echo "sha=$sha" >> "$GITHUB_OUTPUT"
+              echo "Testing production source $sha"
+              exit 0
+            fi
+          done <<< "$deployment_rows"
+          echo "Could not verify a successful Vercel production deployment." >&2
+          exit 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Run the catalog browser checks
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/catalog-report.json"
+          result=0
+          node tests/status-coverage/run.cjs --site-root "$GITHUB_WORKSPACE" --report "$report" || result=$?
+          [[ "$result" == 0 || "$result" == 1 ]] && [[ -s "$report" ]] || exit 2
+          safe=$(jq -ce '{schemaVersion, environment, checkedAt, checks: [.checks[] | {id, status, method}]}' "$report")
+          [[ "${#safe}" -le 16384 ]] || exit 2
+          printf 'report=%s\nfailed=%s\n' "$safe" "$result" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: check
+    if: needs.check.outputs.report != ''
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/status-report-publish.yml
+    with:
+      release: ${{ needs.check.outputs.release }}
+      report: ${{ needs.check.outputs.report }}
+      check_failed: ${{ needs.check.outputs.check_failed == '1' }}
