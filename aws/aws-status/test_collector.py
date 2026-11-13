@@ -194,6 +194,13 @@ class CollectorTests(TestCase):
     for call in self.cloudwatch.get_metric_statistics.call_args_list:
       self.assertEqual(call.kwargs["Period"], 3600)
       self.assertEqual(call.kwargs["EndTime"], NOW.replace(minute=0))
+      dimensions = {row["Name"]: row["Value"] for row in call.kwargs["Dimensions"]}
+      if call.kwargs["Namespace"] == "AWS/Transcribe":
+        self.assertEqual(dimensions, {"ServiceType": "Batch", "Operation": "StartTranscriptionJob", "Domain": "Transcribe"})
+      else:
+        self.assertEqual(set(dimensions), {"EndpointName", "VariantName"})
+        self.assertIn(dimensions["EndpointName"], self.writer.ENDPOINTS.values())
+        self.assertEqual(dimensions["VariantName"], "AllTraffic")
     self.assertEqual({call.kwargs["EndpointName"] for call in self.sagemaker.describe_endpoint.call_args_list},
                      set(self.writer.ENDPOINTS.values()))
     self.assertEqual(set(self.table.rows[("chatbot", "2026-11-12")]["samples"]) - {"-"}, {"i"})
