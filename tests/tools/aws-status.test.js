@@ -5,6 +5,7 @@ const { randomBytes } = require('node:crypto');
 const { test } = require('node:test');
 const { createAwsStatusHandler } = require('../../api/_lib/tools-endpoints/aws-status');
 const { loadStatusCatalog } = require('../../api/_lib/aws-status-catalog');
+const { sanitizeSnapshot } = require('../../api/_lib/aws-status-snapshot');
 const { COOKIE_NAME, createSessionFromClaims } = require('../../api/_lib/tools-auth-session');
 const { prepareReport } = require('../../build/publish-aws-status-report.cjs');
 
@@ -104,6 +105,22 @@ test('publishing strips fixture content and rejects forged or duplicate catalog 
   }] });
   assert.throws(() => prepareReport({ ...report, checks: [...report.checks, report.checks[0]] }, Date.parse(CHECKED_AT)), /duplicate/);
   assert.throws(() => prepareReport({ ...report, checks: [{ id: 'tool:unknown-tool', status: 'pass' }] }, Date.parse(CHECKED_AT)), /unrecognized/);
+});
+
+test('homepage reachability preserves fuller results and still surfaces observed failures', () => {
+  const id = 'project:website';
+  const catalog = [{ id, label: 'Website', group: 'Projects' }];
+  const now = Date.parse(CHECKED_AT);
+  const browser = { id, state: 'outage', source: 'browser', lastChecked: CHECKED_AT };
+  const head = { id, state: 'operational', source: 'production', method: 'homepage-head', lastChecked: CHECKED_AT };
+  const full = { id, state: 'degraded', source: 'production', lastChecked: '2026-11-11T22:00:00Z' };
+  const status = (...checks) => sanitizeSnapshot({ ...SNAPSHOT, checks }, catalog, now).catalog[0];
+
+  assert.equal(status(browser, head).state, 'outage');
+  assert.equal(status({ ...browser, state: 'operational' }, { ...head, state: 'outage' }).state, 'outage');
+  assert.equal(status(full, head).state, 'degraded');
+  assert.equal(status(...Array(210).fill(browser), head).state, 'outage');
+  assert.throws(() => status(...Array(211).fill(browser), head), /invalid AWS history snapshot/i);
 });
 
 test('invalid and failed sources never appear as all-clear status', async (t) => {

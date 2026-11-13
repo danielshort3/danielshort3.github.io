@@ -1,0 +1,1081 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private website AWS Status history, scheduled collector, and report ingestion in Ohio.
+
+Parameters:
+  ScheduleEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable periodic probes, hourly metadata, and selected CloudWatch state change collection.
+  ProbeShortLinkSlug:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
+    MaxLength: 64
+    Description: Optional approved dshort.me slug redirecting to https://www.danielshort.me/tools/aws-status. Empty disables the check.
+
+Conditions:
+  InOhio: !Equals [!Ref 'AWS::Region', us-east-2]
+  CollectAutomatically: !Equals [!Ref ScheduleEnabled, 'true']
+
+Resources:
+  History:
+    Type: AWS::DynamoDB::Table
+    Condition: InOhio
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: website-aws-status-history
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: pk, AttributeType: S}
+        - {AttributeName: sk, AttributeType: S}
+      KeySchema:
+        - {AttributeName: pk, KeyType: HASH}
+        - {AttributeName: sk, KeyType: RANGE}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+
+  CollectorLogs:
+    Type: AWS::Logs::LogGroup
+    Condition: InOhio
+    Properties:
+      LogGroupName: /aws/lambda/website-aws-status
+      RetentionInDays: 14
+
+  CollectorRole:
+    Type: AWS::IAM::Role
+    Condition: InOhio
+    Properties:
+      RoleName: website-aws-status-runtime
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: read-status-history
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:Query
+                Resource: !GetAtt History.Arn
+                Condition:
+                  'ForAllValues:StringEquals':
+                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, catalog, homepage]
+                  'Null':
+                    'dynamodb:LeadingKeys': 'false'
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub 'arn:${AWS::Partition}:logs:us-east-2:${AWS::AccountId}:log-group:/aws/lambda/website-aws-status:log-stream:*'
+
+  Collector:
+    Type: AWS::Lambda::Function
+    Condition: InOhio
+    DependsOn: CollectorLogs
+    Properties:
+      FunctionName: website-aws-status
+      Handler: index.handler
+      Runtime: python3.14
+      MemorySize: 128
+      Timeout: 12
+      Role: !GetAtt CollectorRole.Arn
+      Environment:
+        Variables:
+          HISTORY_TABLE: !Ref History
+      LoggingConfig:
+        LogFormat: JSON
+        ApplicationLogLevel: WARN
+        SystemLogLevel: WARN
+      Code:
+        ZipFile: |
+          import logging
+          import os
+          from concurrent.futures import ThreadPoolExecutor
+          from datetime import date, datetime, time, timedelta, timezone
+
+          import boto3
+          from boto3.dynamodb.types import TypeDeserializer
+          from botocore.config import Config
+          from botocore.exceptions import BotoCoreError, ClientError
+
+          REGION = "us-east-2"
+          DAYS = 90
+          SERVICES = (
+              ("cognito", "Cognito", 300), ("tracker", "Job Application Tracker", 3600),
+              ("short-links", "Short Links", 300), ("contact", "Contact", 3600),
+              ("transcribe", "Transcribe", 3600), ("chatbot", "Chatbot", 3600),
+              ("markdown", "Markdown", 3600),
+          )
+          STATES = ("unknown", "operational", "degraded", "outage")
+          SAMPLES = {
+              "-": ("unknown", "No check recorded."),
+              "u": ("unknown", "The status source could not be verified."),
+              "n": ("unknown", "No activity data in the measured hour."),
+              "o": ("operational", "The scheduled check passed."),
+              "a": ("operational", "Selected alarms reported OK."),
+              "s": ("operational", "SageMaker endpoint reported InService."),
+              "i": ("operational", "SageMaker endpoint reported InService with zero active instances."),
+              "b": ("operational", "Amazon Transcribe accepted batch requests in the measured hour."),
+              "m": ("degraded", "A selected CloudWatch alarm reported ALARM."),
+              "t": ("degraded", "SageMaker endpoint status was transitional."),
+              "e": ("degraded", "Amazon Transcribe reported batch server errors in the measured hour."),
+              "d": ("degraded", "The scheduled HTTPS check returned an unexpected response."),
+              "f": ("outage", "The scheduled HTTPS check returned a server error."),
+              "x": ("outage", "SageMaker endpoint reported Failed or OutOfService."),
+          }
+          ALARMS = {
+              "te": "Tracker Lambda errors alarm",
+              "tt": "Tracker Lambda throttling alarm",
+              "td": "Tracker Lambda duration alarm",
+              "ta": "Tracker API 5xx alarm",
+              "cd": "Contact Lambda duration alarm",
+          }
+          REPORT_ISSUES = {
+              "operational": "The reported check passed.",
+              "degraded": "The reported check had a partial failure.",
+              "outage": "The reported check failed.",
+              "unknown": "The reported result is inconclusive.",
+          }
+          ERRORS = (BotoCoreError, ClientError, KeyError, TypeError, ValueError, OverflowError)
+          LOGGER = logging.getLogger(__name__)
+          TABLE = os.environ["HISTORY_TABLE"]
+          DYNAMODB = boto3.client("dynamodb", region_name=REGION, config=Config(
+              connect_timeout=1, read_timeout=2, retries={"total_max_attempts": 1}
+          ))
+          DESERIALIZER = TypeDeserializer()
+
+
+          def iso(value):
+              return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+          def parse_time(value):
+              result = datetime.fromisoformat(value)
+              if result.utcoffset() != timedelta(0):
+                  raise ValueError("Expected UTC")
+              return result
+
+
+          def mountain_midnight(day):
+              # Current US Mountain rules: clocks change after midnight.
+              march = date(day.year, 3, 1)
+              november = date(day.year, 11, 1)
+              spring = march + timedelta(days=(6 - march.weekday()) % 7 + 7)
+              fall = november + timedelta(days=(6 - november.weekday()) % 7)
+              return datetime.combine(day, time(6 if spring < day <= fall else 7), timezone.utc)
+
+
+          def mountain_day(at):
+              day = at.date()
+              return day if at >= mountain_midnight(day) else day - timedelta(days=1)
+
+
+          def day_bounds(day):
+              return mountain_midnight(day), mountain_midnight(day + timedelta(days=1))
+
+
+          def query(partition, first, last, limit):
+              page = DYNAMODB.query(
+                  TableName=TABLE,
+                  KeyConditionExpression="pk = :partition AND sk BETWEEN :first AND :last",
+                  ExpressionAttributeValues={":partition": {"S": partition}, ":first": {"S": first}, ":last": {"S": last}},
+                  ConsistentRead=True,
+                  Limit=limit,
+              )
+              items = page["Items"]
+              if page.get("LastEvaluatedKey") or not isinstance(items, list) or len(items) >= limit:
+                  raise ValueError("Status history exceeds its read limit")
+              return [DESERIALIZER.deserialize({"M": item}) for item in items]
+
+
+          def sample_incidents(samples, start, cadence, checked):
+              incidents = []
+              previous = None
+              for index, code in enumerate(samples):
+                  at = start + timedelta(seconds=index * cadence)
+                  state, issue = SAMPLES[code]
+                  if state in ("outage", "degraded"):
+                      if previous is None or previous[0] != state:
+                          if previous is not None:
+                              incidents.append(previous)
+                          previous = [state, at, at, issue, False]
+                      previous[2] = at
+                      if previous[3] != issue:
+                          previous[3] = "Multiple issues appeared in consecutive checks."
+                      if checked and at <= checked < at + timedelta(seconds=cadence):
+                          previous[2] = checked
+                  elif previous is not None:
+                      if state == "operational":
+                          previous[2] = at
+                          previous[4] = previous[2] >= previous[1]
+                      incidents.append(previous)
+                      previous = None
+              if previous is not None:
+                  incidents.append(previous)
+              return incidents
+
+
+          def alarm_incidents(events, checked):
+              incidents = []
+              opened = {}
+              for when, alarm, state in events:
+                  at = parse_time(when)
+                  if state == "ALARM":
+                      opened.setdefault(alarm, at)
+                  elif alarm in opened:
+                      incidents.append(["degraded", opened.pop(alarm), at, ALARMS[alarm] + " entered ALARM.", state == "OK"])
+              for alarm, at in opened.items():
+                  incidents.append(["degraded", at, max(at, checked or at), ALARMS[alarm] + " entered ALARM.", False])
+              return incidents
+
+
+          def tile(day, row, cadence, now):
+              start, end = day_bounds(day)
+              result = {"date": day.isoformat(), "state": "unknown", "from": iso(start), "to": iso(end), "issue": "No check recorded."}
+              if not row:
+                  return result
+              checked = parse_time(row["checked"])
+              if not start <= checked < end or checked > now + timedelta(minutes=1):
+                  raise ValueError("Invalid status observation time")
+              samples = row.get("samples", "")
+              capacity = int((end - start).total_seconds()) // cadence
+              if len(samples) > capacity:
+                  raise ValueError("Invalid status day length")
+              observed = [code for code in samples if code != "-"]
+              events = row.get("events", [])
+              if len(events) > 32:
+                  raise ValueError("Invalid alarm history length")
+              transitions = alarm_incidents(events, checked)
+              incidents = sample_incidents(samples, start, cadence, checked)
+              # Prefer exact transition bounds over coarse samples from the same alarm episode.
+              incidents = [
+                  item for item in incidents
+                  if not (item[0] == "degraded" and transitions
+                          and any(item[1] <= event[2] and event[1] <= item[2] for event in transitions))
+              ] + transitions
+              result["observedAt"] = iso(checked)
+              if incidents:
+                  state, since, until, issue, recovered = max(
+                      incidents, key=lambda item: (STATES.index(item[0]), item[2], item[1])
+                  )
+                  if not recovered:
+                      issue += " Recovery was not observed."
+                  if len(incidents) > 1 or row.get("truncated"):
+                      issue += " Other issues also occurred."
+                  result.update(state=state, issue=issue, **{"from": iso(since), "to": iso(until)})
+                  return result
+              elapsed = int((min(now, end) - start).total_seconds())
+              grace = 120 if cadence == 300 else 1200
+              expected = min(capacity, max(0, (elapsed - grace) // cadence + 1))
+              complete = bool(observed) and len(samples) >= expected and all(
+                  SAMPLES[code][0] == "operational" for code in samples[:expected]
+              )
+              if complete and all(SAMPLES[code][0] == "operational" for code in observed) and not row.get("truncated"):
+                  latest = observed[-1]
+                  result.update(state="operational", issue=SAMPLES[latest][1])
+                  max_ms = row.get("maxMs")
+                  if max_ms is not None and 0 < max_ms <= 86400000:
+                      result["issue"] += f" Highest observed processing time: {max_ms / 1000:.1f} s."
+              elif observed:
+                  result["issue"] = (
+                      SAMPLES[observed[-1]][1] if all(SAMPLES[code][0] == "unknown" for code in observed)
+                      else "Monitoring coverage for this day is incomplete."
+                  )
+              return result
+
+
+          def connection(identifier, label, cadence, first, today, now):
+              records = {}
+              for row in query(identifier, first.isoformat(), today.isoformat(), DAYS + 1):
+                  day = date.fromisoformat(row["sk"])
+                  if row["pk"] != identifier or not first <= day <= today or day in records:
+                      raise ValueError("Invalid status day")
+                  if int(row["expires"]) > int(now.timestamp()):
+                      records[day] = row
+              return {
+                  "id": identifier, "label": label,
+                  "days": [
+                      tile(first + timedelta(days=offset), records.get(first + timedelta(days=offset)), cadence, now)
+                      for offset in range(DAYS)
+                  ],
+              }
+
+
+          def catalog_checks(now):
+              checks = []
+              for row in query("catalog", "browser", "production", 4):
+                  source = row["sk"]
+                  if source not in ("production", "browser", "local") or len(row["results"]) > 70:
+                      raise ValueError("Invalid catalog source")
+                  for identifier, record in sorted(row["results"].items()):
+                      state, last, expires = record
+                      if parse_time(last) <= now + timedelta(minutes=1) and parse_time(expires) > now:
+                          checks.append({"id": identifier, "state": state, "lastChecked": last,
+                                         "source": source, "expiresAt": expires, "issue": REPORT_ISSUES[state]})
+              for row in query("homepage", "latest", "latest", 2):
+                  state, checked = SAMPLES[row["code"]][0], parse_time(row["checked"])
+                  expires = checked + timedelta(minutes=15)
+                  if checked <= now + timedelta(minutes=1) and expires > now:
+                      checks.append({
+                          "id": "project:website", "state": state, "lastChecked": iso(checked),
+                          "source": "production", "method": "homepage-head", "expiresAt": iso(expires),
+                          "issue": SAMPLES[row["code"]][1],
+                      })
+              return checks
+
+
+          def handler(_event, _context):
+              now = datetime.now(timezone.utc)
+              today = mountain_day(now)
+              first = today - timedelta(days=DAYS - 1)
+              try:
+                  with ThreadPoolExecutor(max_workers=8) as executor:
+                      pending = [executor.submit(connection, *service, first, today, now) for service in SERVICES]
+                      checks_future = executor.submit(catalog_checks, now)
+                      connections = [result.result() for result in pending]
+                      checks = checks_future.result()
+                  seen = [day["observedAt"] for item in connections for day in item["days"] if "observedAt" in day]
+                  seen.extend(check["lastChecked"] for check in checks)
+                  return {"ok": True, "checkedAt": max(seen, default=None), "region": REGION,
+                          "days": DAYS, "connections": connections, "checks": checks}
+              except ERRORS:
+                  LOGGER.warning("AWS Status history read failed")
+                  return {"ok": False, "error": "Status history is unavailable."}
+
+  WriterLogs:
+    Type: AWS::Logs::LogGroup
+    Condition: InOhio
+    Properties:
+      LogGroupName: /aws/lambda/website-aws-status-writer
+      RetentionInDays: 14
+
+  WriterRole:
+    Type: AWS::IAM::Role
+    Condition: InOhio
+    Properties:
+      RoleName: website-aws-status-writer-runtime
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: collect-status-history
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem]
+                Resource: !GetAtt History.Arn
+                Condition:
+                  'ForAllValues:StringEquals':
+                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, homepage]
+                  'Null':
+                    'dynamodb:LeadingKeys': 'false'
+              - Effect: Allow
+                Action: cloudwatch:DescribeAlarms
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:cloudwatch:us-east-2:${AWS::AccountId}:alarm:job-application-tracker-lambda-errors'
+                  - !Sub 'arn:${AWS::Partition}:cloudwatch:us-east-2:${AWS::AccountId}:alarm:job-application-tracker-lambda-throttles'
+                  - !Sub 'arn:${AWS::Partition}:cloudwatch:us-east-2:${AWS::AccountId}:alarm:job-application-tracker-lambda-duration-high'
+                  - !Sub 'arn:${AWS::Partition}:cloudwatch:us-east-2:${AWS::AccountId}:alarm:website-job-tracker-api-5xx'
+                  - !Sub 'arn:${AWS::Partition}:cloudwatch:us-east-2:${AWS::AccountId}:alarm:website-contact-form-handler-duration-high'
+              - Effect: Allow
+                Action: cloudwatch:GetMetricStatistics
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': us-east-2
+              - Effect: Allow
+                Action: sagemaker:DescribeEndpoint
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:sagemaker:us-east-2:${AWS::AccountId}:endpoint/VGJ-Chatbot-Async'
+                  - !Sub 'arn:${AWS::Partition}:sagemaker:us-east-2:${AWS::AccountId}:endpoint/VGJ-Markdown-Async'
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub 'arn:${AWS::Partition}:logs:us-east-2:${AWS::AccountId}:log-group:/aws/lambda/website-aws-status-writer:log-stream:*'
+
+  Writer:
+    Type: AWS::Lambda::Function
+    Condition: InOhio
+    DependsOn: WriterLogs
+    Properties:
+      FunctionName: website-aws-status-writer
+      Handler: index.handler
+      Runtime: python3.14
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt WriterRole.Arn
+      Environment:
+        Variables:
+          HISTORY_TABLE: !Ref History
+          STACK_ACCOUNT: !Ref 'AWS::AccountId'
+          SHORT_LINK_SLUG: !Ref ProbeShortLinkSlug
+      LoggingConfig:
+        LogFormat: JSON
+        ApplicationLogLevel: WARN
+        SystemLogLevel: WARN
+      Code:
+        ZipFile: |
+          import http.client
+          import json
+          import logging
+          import math
+          import os
+          import re
+          from concurrent.futures import ThreadPoolExecutor
+          from datetime import date, datetime, time, timedelta, timezone
+
+          import boto3
+          from botocore.config import Config
+          from botocore.exceptions import BotoCoreError, ClientError
+
+          REGION = "us-east-2"
+          ALARM_STATES = {"OK", "ALARM", "INSUFFICIENT_DATA"}
+          ALARMS = {
+              "job-application-tracker-lambda-errors": ("tracker", "te"),
+              "job-application-tracker-lambda-throttles": ("tracker", "tt"),
+              "job-application-tracker-lambda-duration-high": ("tracker", "td"),
+              "website-job-tracker-api-5xx": ("tracker", "ta"),
+              "website-contact-form-handler-duration-high": ("contact", "cd"),
+          }
+          ENDPOINTS = {
+              "chatbot": "VGJ-Chatbot-Async",
+              "markdown": "VGJ-Markdown-Async",
+          }
+          TRANSITIONAL = {"Creating", "Updating", "SystemUpdating", "RollingBack", "Deleting"}
+          HOME_HOST = "www.danielshort.me"
+          COGNITO_HOST = "cognito-idp.us-east-2.amazonaws.com"
+          COGNITO_ISSUER = "https://" + COGNITO_HOST + "/us-east-2_y80EG3pKd"
+          COGNITO_PATH = "/us-east-2_y80EG3pKd/.well-known/openid-configuration"
+          SHORT_HOST = "dshort.me"
+          SHORT_TARGET = "https://www.danielshort.me/tools/aws-status"
+          SHORT_SLUG = os.environ["SHORT_LINK_SLUG"]
+          STACK_ACCOUNT = os.environ["STACK_ACCOUNT"]
+          LOGGER = logging.getLogger(__name__)
+          ERRORS = (BotoCoreError, ClientError, ValueError, TypeError, KeyError, OverflowError)
+          CONFIG = Config(connect_timeout=1, read_timeout=2, retries={"total_max_attempts": 1})
+          TABLE = boto3.resource("dynamodb", region_name=REGION, config=CONFIG).Table(os.environ["HISTORY_TABLE"])
+          CLOUDWATCH = boto3.client("cloudwatch", region_name=REGION, config=CONFIG)
+          SAGEMAKER = boto3.client("sagemaker", region_name=REGION, config=CONFIG)
+
+
+          def iso(value):
+              return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+          def parse_time(value):
+              result = datetime.fromisoformat(value)
+              if result.utcoffset() != timedelta(0):
+                  raise ValueError("Expected UTC")
+              return result
+
+
+          def guard(context):
+              if context.get_remaining_time_in_millis() < 3500:
+                  raise TimeoutError("Status writer reached its deadline")
+
+
+          def mountain_midnight(day):
+              # Current US Mountain rules: clocks change after midnight.
+              march = date(day.year, 3, 1)
+              november = date(day.year, 11, 1)
+              spring = march + timedelta(days=(6 - march.weekday()) % 7 + 7)
+              fall = november + timedelta(days=(6 - november.weekday()) % 7)
+              return datetime.combine(day, time(6 if spring < day <= fall else 7), timezone.utc)
+
+
+          def mountain_day(at):
+              day = at.date()
+              return day if at >= mountain_midnight(day) else day - timedelta(days=1)
+
+
+          def day_range(at):
+              day = mountain_day(at)
+              expires = mountain_midnight(day + timedelta(days=90))
+              return day.isoformat(), mountain_midnight(day), mountain_midnight(day + timedelta(days=1)), int(expires.timestamp())
+
+
+          def save(partition, key, update, context):
+              for _ in range(3):
+                  guard(context)
+                  current = TABLE.get_item(Key={"pk": partition, "sk": key}, ConsistentRead=True).get("Item")
+                  replacement = update(dict(current or {}))
+                  if replacement is None:
+                      return
+                  guard(context)
+                  replacement.update(pk=partition, sk=key, rev=int((current or {}).get("rev", 0)) + 1)
+                  condition = {"ConditionExpression": "attribute_not_exists(pk)"}
+                  if current:
+                      condition = {"ConditionExpression": "rev = :expected",
+                                   "ExpressionAttributeValues": {":expected": current["rev"]}}
+                  try:
+                      TABLE.put_item(Item=replacement, **condition)
+                      return
+                  except ClientError as error:
+                      if error.response.get("Error", {}).get("Code") != "ConditionalCheckFailedException":
+                          raise
+              raise ValueError("Status write contention")
+
+
+          def sample(service, cadence, scheduled, observed, code, context, max_ms=None):
+              day, start, end, expires = day_range(scheduled)
+              slot = int((scheduled - start).total_seconds()) // cadence
+              seen = iso(observed if start <= observed < end else scheduled)
+
+              def update(row):
+                  samples = row.get("samples", "")
+                  if slot < len(samples) and samples[slot] != "-":
+                      return None
+                  padded = samples.ljust(slot + 1, "-")
+                  row["samples"] = padded[:slot] + code + padded[slot + 1:]
+                  row["checked"] = max(row.get("checked", seen), seen)
+                  row["expires"] = expires
+                  if max_ms is not None:
+                      row["maxMs"] = max(row.get("maxMs", 0), max_ms)
+                  return row
+
+              save(service, day, update, context)
+
+
+          def homepage_sample(code, observed, context):
+              seen = iso(observed)
+              expires = int((observed + timedelta(minutes=15)).timestamp())
+              save("homepage", "latest", lambda row: (
+                  {"code": code, "checked": seen, "expires": expires} if row.get("checked", "") < seen else None
+              ), context)
+
+
+          def https_probe(host, path, method, check, context):
+              guard(context)
+              connection = http.client.HTTPSConnection(host, 443, timeout=3)
+              try:
+                  connection.request(method, path, headers={"User-Agent": "WebsiteStatus/1.0", "Accept": "application/json, */*"})
+                  response = connection.getresponse()
+                  if 500 <= response.status < 600:
+                      return "f"
+                  return "o" if check(response) else "d"
+              except (OSError, http.client.HTTPException):
+                  return "u"
+              finally:
+                  connection.close()
+
+
+          def cognito_response(response):
+              if response.status != 200:
+                  return False
+              try:
+                  body = response.read(8193)
+                  if len(body) > 8192:
+                      return False
+                  config = json.loads(body)
+                  return (isinstance(config, dict) and config.get("issuer") == COGNITO_ISSUER
+                          and config.get("jwks_uri") == COGNITO_ISSUER + "/.well-known/jwks.json")
+              except (ValueError, UnicodeError):
+                  return False
+
+
+          def redirect_response(response):
+              location = response.getheader("Location", "")
+              return response.status in (301, 302, 307, 308) and location == SHORT_TARGET
+
+
+          def probes(scheduled, context):
+              with ThreadPoolExecutor(max_workers=3) as executor:
+                  homepage = executor.submit(https_probe, HOME_HOST, "/", "HEAD", lambda response: response.status == 200, context)
+                  cognito = executor.submit(https_probe, COGNITO_HOST, COGNITO_PATH, "GET", cognito_response, context)
+                  short = None
+                  if SHORT_SLUG and re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", SHORT_SLUG) and len(SHORT_SLUG) <= 64:
+                      short = executor.submit(https_probe, SHORT_HOST, "/" + SHORT_SLUG, "HEAD", redirect_response, context)
+              observed = datetime.now(timezone.utc)
+              homepage_sample(homepage.result(), observed, context)
+              sample("cognito", 300, scheduled, observed, cognito.result(), context)
+              if short:
+                  sample("short-links", 300, scheduled, observed, short.result(), context)
+              return 3 if short else 2
+
+
+          def read_alarms(context):
+              try:
+                  guard(context)
+                  page = CLOUDWATCH.describe_alarms(AlarmNames=list(ALARMS), AlarmTypes=["MetricAlarm"], MaxRecords=100)
+                  if page.get("NextToken") or page.get("CompositeAlarms") or page.get("LogAlarms"):
+                      raise ValueError("Incomplete alarm status")
+                  output = {}
+                  for item in page["MetricAlarms"]:
+                      name, state = item["AlarmName"], item["StateValue"]
+                      if name not in ALARMS or name in output or state not in ALARM_STATES:
+                          raise ValueError("Unexpected alarm status")
+                      output[name] = state
+                  return output
+              except ERRORS:
+                  return {}
+
+
+          def alarm_sample(service, states):
+              matched = [states.get(name) for name, (identifier, _code) in ALARMS.items() if identifier == service]
+              if "ALARM" in matched:
+                  return "m"
+              return "a" if all(state == "OK" for state in matched) else "u"
+
+
+          def read_endpoint(endpoint, context):
+              try:
+                  guard(context)
+                  result = SAGEMAKER.describe_endpoint(EndpointName=endpoint)
+                  state = result["EndpointStatus"]
+                  if result["EndpointName"] != endpoint:
+                      raise ValueError("Unexpected endpoint")
+                  if state == "InService":
+                      variants = result.get("ProductionVariants", [])
+                      counts = [variant.get("CurrentInstanceCount") for variant in variants]
+                      if counts and all(type(count) is int and count == 0 for count in counts):
+                          return "i"
+                      return "s"
+                  if state in TRANSITIONAL:
+                      return "t"
+                  if state in ("OutOfService", "Failed", "UpdateRollbackFailed"):
+                      return "x"
+              except ERRORS:
+                  pass
+              return "u"
+
+
+          def metric(namespace, name, dimensions, stat, end, context):
+              try:
+                  guard(context)
+                  start = end - timedelta(hours=1)
+                  result = CLOUDWATCH.get_metric_statistics(
+                      Namespace=namespace, MetricName=name, Dimensions=dimensions, Period=3600,
+                      StartTime=start, EndTime=end, Statistics=[stat],
+                  )
+                  points = result["Datapoints"]
+                  if not isinstance(points, list) or len(points) > 1:
+                      raise ValueError("Unexpected hourly metric")
+                  if not points:
+                      return True, None
+                  value = points[0][stat]
+                  if points[0]["Timestamp"] != start or type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                      raise ValueError("Unexpected hourly metric")
+                  return True, value
+              except ERRORS:
+                  return False, None
+
+
+          def transcribe_status(successes, errors):
+              success_available, success_count = successes
+              errors_available, error_count = errors
+              if error_count is not None and error_count > 0:
+                  return "e"
+              if not success_available or not errors_available:
+                  return "u"
+              if success_count is not None and success_count > 0:
+                  return "b"
+              return "n"
+
+
+          def hourly(scheduled, context):
+              end = scheduled.replace(minute=0, second=0, microsecond=0)
+              dimensions = [{"Name": "Operation", "Value": "StartTranscriptionJob"}]
+              with ThreadPoolExecutor(max_workers=7) as executor:
+                  alarms = executor.submit(read_alarms, context)
+                  successes = executor.submit(metric, "AWS/Transcribe", "SuccessfulRequestCount", dimensions, "Sum", end, context)
+                  errors = executor.submit(metric, "AWS/Transcribe", "SyncServerErrorCount", dimensions, "Sum", end, context)
+                  endpoints = {
+                      service: (
+                          executor.submit(read_endpoint, name, context),
+                          executor.submit(metric, "AWS/SageMaker", "TotalProcessingTime",
+                                          [{"Name": "EndpointName", "Value": name}], "Maximum", end, context),
+                      )
+                      for service, name in ENDPOINTS.items()
+                  }
+              observed = datetime.now(timezone.utc)
+              states = alarms.result()
+              for service in ("tracker", "contact"):
+                  sample(service, 3600, scheduled, observed, alarm_sample(service, states), context)
+              metric_hour = end - timedelta(hours=1)
+              metric_checked = min(observed, end - timedelta(milliseconds=1))
+              sample("transcribe", 3600, metric_hour, metric_checked, transcribe_status(successes.result(), errors.result()), context)
+              for service, (status, performance) in endpoints.items():
+                  _, max_ms = performance.result()
+                  same_day = mountain_day(metric_hour) == mountain_day(scheduled)
+                  value = round(max_ms) if same_day and max_ms is not None and 0 <= max_ms <= 86400000 else None
+                  sample(service, 3600, scheduled, observed, status.result(), context, value)
+              return 5
+
+
+          def alarm_event(event, now, context):
+              detail = event.get("detail")
+              if (event.get("region") != REGION or event.get("account") != STACK_ACCOUNT or not isinstance(detail, dict)
+                  or detail.get("alarmName") not in ALARMS):
+                  raise ValueError("Unexpected alarm source")
+              service, alarm = ALARMS[detail["alarmName"]]
+              state = detail["state"]["value"]
+              at = parse_time(detail["state"]["timestamp"])
+              if state not in ALARM_STATES or not now - timedelta(days=1) <= at <= now + timedelta(minutes=1):
+                  raise ValueError("Unexpected alarm transition")
+              day, start, end, expires = day_range(at)
+              observed = iso(min(max(now, at), end - timedelta(milliseconds=1)))
+              entry = [iso(at), alarm, state]
+              previous = detail.get("previousState", {})
+              previous_entry = None
+              if previous.get("value") == "ALARM":
+                  before = parse_time(previous["timestamp"])
+                  if before < at:
+                      previous_entry = [iso(max(start, before)), alarm, "ALARM"]
+
+              def update(row):
+                  events = row.get("events", [])
+                  additions = [item for item in (previous_entry, entry) if item is not None and item not in events]
+                  if not additions:
+                      return None
+                  combined = sorted(events + additions)
+                  row["events"] = combined[-32:]
+                  if len(combined) > 32:
+                      row["truncated"] = True
+                  row["checked"] = max(row.get("checked", observed), observed)
+                  row["expires"] = expires
+                  return row
+
+              save(service, day, update, context)
+              return 1
+
+
+          def handler(event, context):
+              now = datetime.now(timezone.utc)
+              try:
+                  if not isinstance(event, dict):
+                      raise ValueError("Unexpected status event")
+                  if event.get("source") == "aws.cloudwatch" and event.get("detail-type") == "CloudWatch Alarm State Change":
+                      return {"ok": True, "collected": alarm_event(event, now, context)}
+                  operation = event.get("operation")
+                  if set(event) - {"operation", "scheduledAt"} or operation not in ("probes", "hourly"):
+                      raise ValueError("Unexpected status operation")
+                  scheduled = parse_time(event["scheduledAt"]) if "scheduledAt" in event else now
+                  if not now - timedelta(minutes=3) <= scheduled <= now + timedelta(seconds=20):
+                      raise ValueError("Unexpected scheduled time")
+                  collected = probes(scheduled, context) if operation == "probes" else hourly(scheduled, context)
+                  return {"ok": True, "collected": collected}
+              except ERRORS + (TimeoutError,):
+                  LOGGER.warning("AWS Status collection failed")
+                  return {"ok": False, "error": "Status collection did not complete."}
+
+  WriterAsyncConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Condition: InOhio
+    Properties:
+      FunctionName: !Ref Writer
+      Qualifier: '$LATEST'
+      MaximumEventAgeInSeconds: 60
+      MaximumRetryAttempts: 0
+
+  PeriodicProbes:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    DependsOn: WriterAsyncConfig
+    Properties:
+      Name: website-aws-status-probes
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      ScheduleExpression: 'cron(0/5 * * * ? *)'
+      Targets:
+        - Id: Writer
+          Arn: !GetAtt Writer.Arn
+          InputTransformer:
+            InputPathsMap: {scheduledAt: '$.time'}
+            InputTemplate: '{"operation":"probes","scheduledAt":<scheduledAt>}'
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 60
+            MaximumRetryAttempts: 0
+
+  HourlyMetadata:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    DependsOn: WriterAsyncConfig
+    Properties:
+      Name: website-aws-status-hourly
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      ScheduleExpression: 'cron(10 * * * ? *)'
+      Targets:
+        - Id: Writer
+          Arn: !GetAtt Writer.Arn
+          InputTransformer:
+            InputPathsMap: {scheduledAt: '$.time'}
+            InputTemplate: '{"operation":"hourly","scheduledAt":<scheduledAt>}'
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 60
+            MaximumRetryAttempts: 0
+
+  SelectedAlarmTransitions:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    DependsOn: WriterAsyncConfig
+    Properties:
+      Name: website-aws-status-alarm-transitions
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      EventPattern:
+        source: [aws.cloudwatch]
+        detail-type: ['CloudWatch Alarm State Change']
+        region: [us-east-2]
+        account: [!Ref 'AWS::AccountId']
+        detail:
+          alarmName:
+            - job-application-tracker-lambda-errors
+            - job-application-tracker-lambda-throttles
+            - job-application-tracker-lambda-duration-high
+            - website-job-tracker-api-5xx
+            - website-contact-form-handler-duration-high
+      Targets:
+        - Id: Writer
+          Arn: !GetAtt Writer.Arn
+          RetryPolicy:
+            MaximumEventAgeInSeconds: 60
+            MaximumRetryAttempts: 0
+
+  AllowPeriodicProbes:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PeriodicProbes.Arn
+
+  AllowHourlyMetadata:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt HourlyMetadata.Arn
+
+  AllowSelectedAlarmTransitions:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt SelectedAlarmTransitions.Arn
+
+  ReportLogs:
+    Type: AWS::Logs::LogGroup
+    Condition: InOhio
+    Properties:
+      LogGroupName: /aws/lambda/website-aws-status-report
+      RetentionInDays: 14
+
+  ReportRole:
+    Type: AWS::IAM::Role
+    Condition: InOhio
+    Properties:
+      RoleName: website-aws-status-report-runtime
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-catalog-reports
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem]
+                Resource: !GetAtt History.Arn
+                Condition:
+                  'ForAllValues:StringEquals':
+                    'dynamodb:LeadingKeys': [catalog]
+                  'Null':
+                    'dynamodb:LeadingKeys': 'false'
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub 'arn:${AWS::Partition}:logs:us-east-2:${AWS::AccountId}:log-group:/aws/lambda/website-aws-status-report:log-stream:*'
+
+  Report:
+    Type: AWS::Lambda::Function
+    Condition: InOhio
+    DependsOn: ReportLogs
+    Properties:
+      FunctionName: website-aws-status-report
+      Handler: index.handler
+      Runtime: python3.14
+      MemorySize: 128
+      Timeout: 15
+      Role: !GetAtt ReportRole.Arn
+      Environment:
+        Variables:
+          HISTORY_TABLE: !Ref History
+      LoggingConfig:
+        LogFormat: JSON
+        ApplicationLogLevel: WARN
+        SystemLogLevel: WARN
+      Code:
+        ZipFile: |
+          import logging
+          import os
+          import re
+          from datetime import datetime, timedelta, timezone
+
+          import boto3
+          from botocore.config import Config
+          from botocore.exceptions import BotoCoreError, ClientError
+
+          REGION = "us-east-2"
+          MAX_CHECKS = 70
+          MAX_AGE = timedelta(days=90)
+          SOURCES = ("production", "browser", "local")
+          STATES = {"operational", "degraded", "outage", "unknown"}
+          FIELDS = {"id", "state", "lastChecked", "source", "expiresAt"}
+          ID_PATTERN = re.compile(r"(?:tool:[a-z0-9][a-z0-9-]{0,63}|(?:project|game):[A-Za-z0-9][A-Za-z0-9_-]{0,63})")
+          TIME_PATTERN = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?(?:Z|\+00:00)")
+          LOGGER = logging.getLogger(__name__)
+          TABLE = boto3.resource("dynamodb", region_name=REGION, config=Config(
+              connect_timeout=1, read_timeout=2, retries={"total_max_attempts": 1}
+          )).Table(os.environ["HISTORY_TABLE"])
+
+
+          def parse_time(value):
+              if not isinstance(value, str) or not TIME_PATTERN.fullmatch(value):
+                  raise ValueError("Expected an ISO UTC timestamp")
+              return datetime.fromisoformat(value)
+
+
+          def iso(value):
+              return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+          def validate(event, now):
+              if not isinstance(event, dict) or set(event) != {"checks"}:
+                  raise ValueError("Invalid catalog report")
+              checks = event["checks"]
+              if not isinstance(checks, list) or not 1 <= len(checks) <= MAX_CHECKS:
+                  raise ValueError("Invalid number of checks")
+              seen = set()
+              groups = {}
+              for check in checks:
+                  if not isinstance(check, dict) or set(check) != FIELDS:
+                      raise ValueError("Invalid catalog check fields")
+                  identifier, state, source = check["id"], check["state"], check["source"]
+                  if (not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier) or identifier in seen
+                      or not isinstance(state, str) or state not in STATES or source not in SOURCES):
+                      raise ValueError("Invalid catalog check")
+                  seen.add(identifier)
+                  checked, expires = parse_time(check["lastChecked"]), parse_time(check["expiresAt"])
+                  if not now - MAX_AGE <= checked <= now + timedelta(minutes=1) or not now < expires <= checked + MAX_AGE or expires <= checked:
+                      raise ValueError("Invalid catalog result lifetime")
+                  groups.setdefault(source, {})[identifier] = [state, iso(checked), iso(expires)]
+              return groups
+
+
+          def record_source(source, incoming, now, context):
+              key = {"pk": "catalog", "sk": source}
+              now_iso = iso(now)
+              for _ in range(3):
+                  if context.get_remaining_time_in_millis() < 6500:
+                      raise TimeoutError("Catalog report deadline reached")
+                  item = TABLE.get_item(Key=key, ConsistentRead=True).get("Item")
+                  original = (item or {}).get("results", {})
+                  merged = {identifier: value for identifier, value in original.items() if value[2] > now_iso}
+                  accepted = 0
+                  for identifier, report in incoming.items():
+                      current = merged.get(identifier)
+                      if current == report:
+                          accepted += 1
+                      elif current is None or current[1] < report[1]:
+                          merged[identifier] = report
+                          accepted += 1
+                  if len(merged) > MAX_CHECKS:
+                      raise ValueError("Catalog source has too many unexpired entries")
+                  if merged == original:
+                      return accepted
+                  revision = (item or {}).get("rev", 0)
+                  request = {"ConditionExpression": "attribute_not_exists(pk)"}
+                  if item:
+                      request = {"ConditionExpression": "rev = :expected",
+                                 "ExpressionAttributeValues": {":expected": revision}}
+                  expires = max(int(parse_time(value[2]).timestamp()) for value in merged.values())
+                  try:
+                      TABLE.put_item(Item={**key, "rev": revision + 1, "results": merged, "expires": expires}, **request)
+                      return accepted
+                  except ClientError as error:
+                      if error.response.get("Error", {}).get("Code") != "ConditionalCheckFailedException":
+                          raise
+              raise ValueError("Catalog report write contention")
+
+
+          def handler(event, context):
+              now = datetime.now(timezone.utc)
+              try:
+                  groups = validate(event, now)
+                  accepted = sum(record_source(source, reports, now, context) for source, reports in groups.items())
+                  return {"ok": True, "accepted": accepted}
+              except (BotoCoreError, ClientError, KeyError, TypeError, ValueError, TimeoutError, OverflowError):
+                  LOGGER.warning("AWS Status catalog report was not completed")
+                  return {"ok": False, "error": "Status report was not accepted."}
+
+  ReportInvokePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: InOhio
+    Properties:
+      ManagedPolicyName: website-aws-status-report-invoke
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: !GetAtt Report.Arn
+
+  WebsiteInvokerRole:
+    Type: AWS::IAM::Role
+    Condition: InOhio
+    Properties:
+      RoleName: website-aws-status-vercel
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/oidc.vercel.com/daniel-shorts-projects'
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': sts.amazonaws.com
+                'oidc.vercel.com/daniel-shorts-projects:sub': 'owner:daniel-shorts-projects:project:website:environment:production'
+      Policies:
+        - PolicyName: invoke-aws-status-collector
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt Collector.Arn
+
+Outputs:
+  AwsStatusFunctionArn:
+    Condition: InOhio
+    Description: Production Vercel AWS_STATUS_FUNCTION_ARN
+    Value: !GetAtt Collector.Arn
+  AwsStatusAwsRoleArn:
+    Condition: InOhio
+    Description: Production Vercel AWS_STATUS_AWS_ROLE_ARN
+    Value: !GetAtt WebsiteInvokerRole.Arn
+  AwsStatusWriterFunctionArn:
+    Condition: InOhio
+    Value: !GetAtt Writer.Arn
+  AwsStatusReportFunctionArn:
+    Condition: InOhio
+    Value: !GetAtt Report.Arn
+  AwsStatusReportInvokePolicyArn:
+    Condition: InOhio
+    Value: !Ref ReportInvokePolicy
+  AwsStatusHistoryTableName:
+    Condition: InOhio
+    Value: !Ref History
