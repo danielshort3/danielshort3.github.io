@@ -2,12 +2,15 @@
 
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const { test } = require('node:test');
 const { createAwsStatusHandler } = require('../../api/_lib/tools-endpoints/aws-status');
 const { loadStatusCatalog } = require('../../api/_lib/aws-status-catalog');
 const { sanitizeSnapshot } = require('../../api/_lib/aws-status-snapshot');
 const { COOKIE_NAME, createSessionFromClaims } = require('../../api/_lib/tools-auth-session');
-const { prepareReport } = require('../../build/publish-aws-status-report.cjs');
+const { main: publishReport, prepareReport } = require('../../build/publish-aws-status-report.cjs');
 
 const CHECKED_AT = '2026-11-11T23:00:00.000Z';
 const SNAPSHOT = {
@@ -105,6 +108,143 @@ test('publishing strips fixture content and rejects forged or duplicate catalog 
   }] });
   assert.throws(() => prepareReport({ ...report, checks: [...report.checks, report.checks[0]] }, Date.parse(CHECKED_AT)), /duplicate/);
   assert.throws(() => prepareReport({ ...report, checks: [{ id: 'tool:unknown-tool', status: 'pass' }] }, Date.parse(CHECKED_AT)), /unrecognized/);
+});
+
+function browserReport() {
+  return {
+    schemaVersion: 1, environment: 'local', checkedAt: CHECKED_AT,
+    checks: loadStatusCatalog().map(({ id }, index) => ({
+      id, status: ['pass', 'fail', 'unknown'][index % 3], method: 'browser', reason: 'private fixture'
+    }))
+  };
+}
+
+test('GitHub publishing validates full browser coverage and limits report freshness', () => {
+  const now = Date.parse(CHECKED_AT);
+  const report = browserReport();
+  const options = { githubOidc: true };
+  const payload = prepareReport(report, now, options);
+  assert.equal(payload.checks.length, loadStatusCatalog().length);
+  assert.deepEqual(payload.checks[0], {
+    id: report.checks[0].id, state: 'operational', lastChecked: CHECKED_AT,
+    source: 'browser', expiresAt: '2026-11-12T02:00:00.000Z'
+  });
+  assert.deepEqual(payload.checks.slice(1, 3).map(({ state }) => state), ['degraded', 'unknown']);
+  assert(!JSON.stringify(payload).includes('private fixture'));
+  assert.throws(() => prepareReport({ ...report, checks: report.checks.slice(1) }, now, options), /entire catalog/);
+  for (const method of ['local', 'production', undefined]) {
+    const checks = [{ ...report.checks[0], method }, ...report.checks.slice(1)];
+    assert.throws(() => prepareReport({ ...report, checks }, now, options), /browser results/);
+  }
+  assert.throws(() => prepareReport(report, now + 30 * 60_000 + 1, options), /recent/);
+  assert.throws(() => prepareReport(report, now - 1, options), /recent/);
+  assert.throws(() => prepareReport({ ...report, checkedAt: CHECKED_AT.replace('.000', '') }, now, options), /UTC/);
+  assert.equal(prepareReport(report, now + 30 * 60_000, options).checks.length, payload.checks.length);
+});
+
+test('GitHub publishing reads the deployed checkout catalog from JSON', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aws-status-catalog-test-'));
+  const content = path.join(root, 'content');
+  const directories = ['tools', 'projects', 'pages'].map((name) => path.join(content, name));
+  for (const directory of directories) fs.mkdirSync(directory, { recursive: true });
+  const games = path.join(directories[2], 'games.json');
+  fs.writeFileSync(games, JSON.stringify({ games: [{ id: 'deployed-game', title: 'Deployed game' }] }));
+  t.after(() => {
+    fs.unlinkSync(games);
+    for (const directory of [...directories, content, root]) fs.rmdirSync(directory);
+  });
+  const report = {
+    ...browserReport(), checks: [{ id: 'game:deployed-game', status: 'pass', method: 'browser' }]
+  };
+  const now = Date.parse(CHECKED_AT);
+  assert.equal(prepareReport(report, now, { githubOidc: true, catalogRoot: root }).checks[0].id, 'game:deployed-game');
+  assert.throws(() => prepareReport(report, now, { githubOidc: true }), /unrecognized/);
+});
+
+test('publisher uses the exact GitHub role and alias and preserves the manual profile', (t) => {
+  const now = Date.parse(CHECKED_AT);
+  t.mock.method(Date, 'now', () => now);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aws-status-publisher-test-'));
+  const file = path.join(dir, 'report.json');
+  const report = browserReport();
+  fs.writeFileSync(file, JSON.stringify(report));
+  t.after(() => { fs.unlinkSync(file); fs.rmdirSync(dir); });
+
+  const expirationKey = 'AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION';
+  const testEnv = {
+    AWS_ACCESS_KEY_ID: 'ASIAEXAMPLE',
+    AWS_SECRET_ACCESS_KEY: 'example-secret',
+    AWS_SESSION_TOKEN: 'example-session',
+    AWS_PROFILE: 'other-profile',
+    AWS_ENDPOINT_URL: 'https://example.invalid',
+    AWS_STATUS_AWS_CLI: 'example-cli',
+    [expirationKey]: new Date(now + 15 * 60_000).toISOString()
+  };
+  const before = Object.fromEntries(Object.keys(testEnv).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, testEnv);
+  t.after(() => {
+    for (const [key, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+
+  const account = '886623862678';
+  const githubRole = `arn:aws:sts::${account}:assumed-role/website-aws-status-report-github/GitHubActions`;
+  const functionArn = `arn:aws:lambda:us-east-2:${account}:function:website-aws-status-report`;
+  let caller = { Account: account, Arn: githubRole };
+  let mode = 'github';
+  let invocations = 0;
+  function runCli(args, env, executable) {
+    if (mode === 'github') {
+      assert.equal(executable, 'aws');
+      assert(!args.includes('--profile'));
+      assert.equal(env.AWS_SESSION_TOKEN, testEnv.AWS_SESSION_TOKEN);
+      assert.equal(env.AWS_ACCESS_KEY_ID, testEnv.AWS_ACCESS_KEY_ID);
+      assert.equal(env.AWS_SECRET_ACCESS_KEY, testEnv.AWS_SECRET_ACCESS_KEY);
+      assert.equal(env.AWS_PROFILE, undefined);
+      assert.equal(env.AWS_ENDPOINT_URL, undefined);
+      assert.equal(env.AWS_EC2_METADATA_DISABLED, 'true');
+      assert.equal(fs.readFileSync(env.AWS_CONFIG_FILE, 'utf8'), '');
+      assert.equal(env.AWS_SHARED_CREDENTIALS_FILE, env.AWS_CONFIG_FILE);
+    } else {
+      assert.equal(executable, 'example-cli');
+      assert.equal(args[args.indexOf('--profile') + 1], 'explicit-sso');
+      assert.equal(env.AWS_ACCESS_KEY_ID, undefined);
+      assert.equal(env.AWS_SECRET_ACCESS_KEY, undefined);
+      assert.equal(env.AWS_SESSION_TOKEN, undefined);
+    }
+    assert.equal(args[args.indexOf('--region') + 1], 'us-east-2');
+    if (args[0] === 'sts') return JSON.stringify(caller);
+    assert.deepEqual(args.slice(0, 2), ['lambda', 'invoke']);
+    assert.equal(args[args.indexOf('--function-name') + 1],
+      mode === 'github' ? `${functionArn}:browser-ci` : functionArn);
+    const payloadFile = args[args.indexOf('--payload') + 1].slice('fileb://'.length);
+    const payload = JSON.parse(fs.readFileSync(payloadFile, 'utf8'));
+    assert.deepEqual(payload, prepareReport(report, now, { githubOidc: mode === 'github' }));
+    invocations++;
+    fs.writeFileSync(args.at(-1), JSON.stringify({ ok: true, accepted: payload.checks.length }));
+    return JSON.stringify({ StatusCode: 200 });
+  }
+
+  const githubArgs = [file, '--github-oidc'];
+  process.env[expirationKey] = new Date(now + 15 * 60_000 + 1).toISOString();
+  assert.throws(() => publishReport(githubArgs, runCli), /15-minute/);
+  process.env[expirationKey] = testEnv[expirationKey];
+  delete process.env.AWS_SESSION_TOKEN;
+  assert.throws(() => publishReport(githubArgs, runCli), /15-minute/);
+  process.env.AWS_SESSION_TOKEN = testEnv.AWS_SESSION_TOKEN;
+  caller = { Account: account, Arn: githubRole.replace('-github/', '-github-extra/') };
+  assert.throws(() => publishReport(githubArgs, runCli), /reporter role/);
+  caller = { Account: '123456789012', Arn: githubRole.replace(account, '123456789012') };
+  assert.throws(() => publishReport(githubArgs, runCli), /website AWS account/);
+  assert.equal(invocations, 0);
+  caller = { Account: account, Arn: githubRole };
+  publishReport(githubArgs, runCli);
+  mode = 'manual';
+  caller = { Account: account, Arn: githubRole.replace('website-aws-status-report-github', 'WebsiteAdmin') };
+  publishReport([file, '--profile', 'explicit-sso'], runCli);
+  assert.equal(invocations, 2);
 });
 
 test('homepage reachability preserves fuller results and still surfaces observed failures', () => {
