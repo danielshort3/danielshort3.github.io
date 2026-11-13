@@ -681,7 +681,11 @@ Resources:
 
           def hourly(scheduled, context):
               end = scheduled.replace(minute=0, second=0, microsecond=0)
-              dimensions = [{"Name": "Operation", "Value": "StartTranscriptionJob"}]
+              dimensions = [
+                  {"Name": "ServiceType", "Value": "Batch"},
+                  {"Name": "Operation", "Value": "StartTranscriptionJob"},
+                  {"Name": "Domain", "Value": "Transcribe"},
+              ]
               with ThreadPoolExecutor(max_workers=7) as executor:
                   alarms = executor.submit(read_alarms, context)
                   successes = executor.submit(metric, "AWS/Transcribe", "SuccessfulRequestCount", dimensions, "Sum", end, context)
@@ -690,7 +694,8 @@ Resources:
                       service: (
                           executor.submit(read_endpoint, name, context),
                           executor.submit(metric, "AWS/SageMaker", "TotalProcessingTime",
-                                          [{"Name": "EndpointName", "Value": name}], "Maximum", end, context),
+                                          [{"Name": "EndpointName", "Value": name},
+                                           {"Name": "VariantName", "Value": "AllTraffic"}], "Maximum", end, context),
                       )
                       for service, name in ENDPOINTS.items()
                   }
