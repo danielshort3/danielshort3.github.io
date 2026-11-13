@@ -2,7 +2,7 @@ name: Hourly project and tool status
 
 on:
   schedule:
-    - cron: "37 * * * *"
+    - cron: "53 * * * *"
   workflow_dispatch:
 
 permissions:
