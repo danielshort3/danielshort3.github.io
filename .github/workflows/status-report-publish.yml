@@ -12,6 +12,9 @@ on:
       check_failed:
         type: boolean
         required: true
+    secrets:
+      report_key:
+        required: true
 
 permissions: {}
 
@@ -56,7 +59,8 @@ jobs:
           retry-max-attempts: 2
       - name: Publish the browser outcomes
         env:
-          REPORT_JSON: ${{ inputs.report }}
+          SEALED_REPORT: ${{ inputs.report }}
+          AWS_STATUS_REPORT_PRIVATE_KEY: ${{ secrets.report_key }}
           AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION: ${{ steps.aws.outputs.aws-expiration }}
         shell: bash
         run: |
@@ -64,7 +68,8 @@ jobs:
           report="$RUNNER_TEMP/catalog-report.json"
           expiration=${AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION#\"}
           export AWS_STATUS_GITHUB_CREDENTIAL_EXPIRATION=${expiration%\"}
-          (umask 077 && printf '%s\n' "$REPORT_JSON" > "$report")
+          node build/status-report-transport.cjs open "$report"
+          unset SEALED_REPORT AWS_STATUS_REPORT_PRIVATE_KEY
           node build/publish-aws-status-report.cjs "$report" --github-oidc "$GITHUB_WORKSPACE/production-catalog"
       - name: Mark a completed report with failures as failed
         if: inputs.check_failed
