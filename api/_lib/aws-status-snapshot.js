@@ -2,6 +2,7 @@
 
 const HISTORY_DAYS = 90;
 const REGION = 'us-east-2';
+const MAX_CHECKS = 3 * 70 + 1;
 const STATES = new Set(['operational', 'degraded', 'outage', 'unknown']);
 const SOURCES = new Set(['production', 'browser', 'local']);
 const CONNECTIONS = new Map([
@@ -48,6 +49,16 @@ function sanitizeConnections(connections) {
   });
 }
 
+function rankCheck(check, stale) {
+  if (stale) return 0;
+  if (check.state === 'unknown') return 1;
+  if (check.source !== 'production') return 3;
+  if (check.id === 'project:website' && check.method === 'homepage-head') {
+    return check.state === 'operational' ? 2 : 4;
+  }
+  return 5;
+}
+
 function projectCatalog(catalog, checks, now) {
   const byId = new Map();
   for (const check of checks) {
@@ -59,7 +70,7 @@ function projectCatalog(catalog, checks, now) {
       ? Math.min(Date.parse(check.expiresAt), checked + allowedAge)
       : checked + allowedAge;
     const stale = expiry <= now;
-    const rank = stale ? 0 : check.state === 'unknown' ? 1 : check.source === 'production' ? 3 : 2;
+    const rank = rankCheck(check, stale);
     const previous = byId.get(check.id);
     if (!previous || rank > previous.rank || (rank === previous.rank && checked > previous.checked)) {
       byId.set(check.id, { check, checked, rank, stale });
@@ -84,7 +95,7 @@ function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
   if (snapshot?.ok !== true || snapshot.region !== REGION || snapshot.days !== HISTORY_DAYS ||
     (snapshot.checkedAt !== null && !isTimestamp(snapshot.checkedAt)) ||
     !Array.isArray(snapshot.connections) || snapshot.connections.length > CONNECTIONS.size ||
-    !Array.isArray(snapshot.checks) || snapshot.checks.length > 150) {
+    !Array.isArray(snapshot.checks) || snapshot.checks.length > MAX_CHECKS) {
     throw new Error('Invalid AWS history snapshot.');
   }
   return {

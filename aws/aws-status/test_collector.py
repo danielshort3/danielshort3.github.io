@@ -1,0 +1,285 @@
+import copy
+import http.client
+import json
+import os
+import re
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+from textwrap import dedent
+from types import ModuleType
+from unittest import TestCase, main
+from unittest.mock import Mock, patch
+from zoneinfo import ZoneInfo
+
+TEMPLATE = Path(__file__).with_name("template.yaml").read_text(encoding="utf-8")
+NOW = datetime(2026, 11, 13, 3, 10, tzinfo=timezone.utc)
+ACCOUNT = "886623862678"
+
+
+class AwsError(Exception):
+  def __init__(self, code):
+    self.response = {"Error": {"Code": code}}
+
+
+class StubClock(datetime):
+  @classmethod
+  def now(cls, _timezone):
+    return NOW
+
+
+class MemoryTable:
+  def __init__(self):
+    self.rows = {}
+    self.query_requests = []
+    self.write_count = 0
+    self.conflicts = 0
+
+  def get_item(self, Key, ConsistentRead):
+    assert ConsistentRead
+    return {"Item": copy.deepcopy(self.rows.get((Key["pk"], Key["sk"])))}
+
+  def put_item(self, Item, ConditionExpression, ExpressionAttributeValues=None):
+    if self.conflicts:
+      self.conflicts -= 1
+      raise AwsError("ConditionalCheckFailedException")
+    key = (Item["pk"], Item["sk"])
+    if ConditionExpression == "attribute_not_exists(pk)":
+      assert key not in self.rows
+    else:
+      assert ConditionExpression == "rev = :expected"
+      assert self.rows[key]["rev"] == ExpressionAttributeValues[":expected"]
+    self.rows[key] = copy.deepcopy(Item)
+    self.write_count += 1
+
+  def query(self, **request):
+    self.query_requests.append(request)
+    values = request["ExpressionAttributeValues"]
+    pk, start, end = (values[key]["S"] for key in (":partition", ":first", ":last"))
+    items = [copy.deepcopy(item) for (p, k), item in sorted(self.rows.items()) if p == pk and start <= k <= end]
+    assert len(items) < request["Limit"]
+    return {"Items": items}
+
+
+def load_runtime(name, table, cloudwatch, sagemaker):
+  marker = re.search(rf"^  {name}:\n.*?^        ZipFile: \|\n", TEMPLATE, re.M | re.S)
+  if not marker:
+    raise AssertionError("Missing inline runtime")
+  modules = {
+    key: ModuleType(key) for key in (
+      "boto3", "boto3.dynamodb", "boto3.dynamodb.types",
+      "botocore", "botocore.config", "botocore.exceptions",
+    )
+  }
+  def client(service, region_name, config):
+    assert region_name == "us-east-2"
+    return {"cloudwatch": cloudwatch, "sagemaker": sagemaker, "dynamodb": table}[service]
+  boto = modules["boto3"]
+  boto.client = Mock(side_effect=client)
+  boto.resource = Mock(return_value=Mock(Table=Mock(return_value=table)))
+  modules["boto3.dynamodb.types"].TypeDeserializer = lambda: Mock(deserialize=lambda item: item["M"])
+  modules["botocore.config"].Config = Mock()
+  modules["botocore.exceptions"].ClientError = AwsError
+  modules["botocore.exceptions"].BotoCoreError = OSError
+  environment = {"HISTORY_TABLE": "fixture", "STACK_ACCOUNT": ACCOUNT, "SHORT_LINK_SLUG": ""}
+  runtime = ModuleType(name)
+  lines = []
+  for line in TEMPLATE[marker.end():].splitlines(keepends=True):
+    if line.strip() and not line.startswith("          "):
+      break
+    lines.append(line)
+  with patch.dict("sys.modules", modules), patch.dict(os.environ, environment):
+    exec(compile(dedent("".join(lines)), f"template.yaml:{name}", "exec"), vars(runtime))
+  runtime.datetime = StubClock
+  return runtime
+
+
+def sample_report(identifier, state, source, checked=None, expires=None):
+  return {"id": identifier, "state": state, "source": source,
+          "lastChecked": (checked or NOW).isoformat(),
+          "expiresAt": (expires or NOW + timedelta(hours=1)).isoformat()}
+
+
+class CollectorTests(TestCase):
+  def setUp(self):
+    self.table, self.cloudwatch, self.sagemaker = MemoryTable(), Mock(), Mock()
+    self.reader = load_runtime("Collector", self.table, self.cloudwatch, self.sagemaker)
+    self.writer = load_runtime("Writer", self.table, self.cloudwatch, self.sagemaker)
+    self.report = load_runtime("Report", self.table, self.cloudwatch, self.sagemaker)
+    self.context = Mock(get_remaining_time_in_millis=Mock(return_value=20000))
+
+  def read(self):
+    return self.reader.handler({}, self.context)
+
+  def test_empty_reader_is_read_only_and_produces_ninety_ordered_mountain_days(self):
+    result = self.read()
+    self.assertTrue(result["ok"])
+    self.assertIsNone(result["checkedAt"])
+    self.assertEqual(result["days"], 90)
+    self.assertEqual(result["checks"], [])
+    self.assertEqual([item["id"] for item in result["connections"]],
+                     ["cognito", "tracker", "short-links", "contact", "transcribe", "chatbot", "markdown"])
+    self.assertEqual(len(self.table.query_requests), 9)
+    for item in result["connections"]:
+      days = item["days"]
+      self.assertEqual(len(days), 90)
+      self.assertEqual(days[-1]["date"], "2026-11-12")
+      self.assertEqual(days[-1]["from"], "2026-11-12T07:00:00.000Z")
+      self.assertEqual(days[-1]["to"], "2026-11-13T07:00:00.000Z")
+      self.assertTrue(all(day["state"] == "unknown" for day in days))
+    self.assertFalse(self.cloudwatch.mock_calls)
+    self.assertFalse(self.sagemaker.mock_calls)
+    self.assertEqual(self.table.write_count, 0)
+
+  def test_mountain_day_matches_iana_dst_boundaries_including_fall_repeat(self):
+    mountain = ZoneInfo("America/Denver")
+    for day in (date(2026, 3, 8), date(2026, 11, 1), date(2027, 3, 14), date(2027, 11, 7)):
+      start, end = self.reader.day_bounds(day)
+      self.assertEqual(start, datetime.combine(day, datetime.min.time(), mountain).astimezone(timezone.utc))
+      self.assertEqual(end, datetime.combine(day + timedelta(days=1), datetime.min.time(), mountain).astimezone(timezone.utc))
+      self.assertIn((end - start).total_seconds() / 3600, (23, 25))
+      self.assertEqual(self.writer.day_range(start)[:3], (day.isoformat(), start, end))
+      self.assertEqual(self.reader.mountain_day(end - timedelta(seconds=1)), day)
+      self.assertEqual(self.reader.mountain_day(end), day + timedelta(days=1))
+
+  def test_https_probes_only_fixed_safe_routes_and_disabled_optional_slug(self):
+    connections = {}
+    def connect(host, port, timeout):
+      self.assertEqual((port, timeout), (443, 3))
+      response = Mock(status=200)
+      if host == self.writer.COGNITO_HOST:
+        response.read.return_value = json.dumps({
+          "issuer": self.writer.COGNITO_ISSUER,
+          "jwks_uri": self.writer.COGNITO_ISSUER + "/.well-known/jwks.json",
+          "private": "ignore this",
+        }).encode()
+      result = Mock(getresponse=Mock(return_value=response))
+      connections[host] = result
+      return result
+    with patch.object(http.client, "HTTPSConnection", side_effect=connect):
+      result = self.writer.handler({"operation": "probes"}, self.context)
+    self.assertEqual(result, {"ok": True, "collected": 2})
+    self.assertEqual(set(connections), {self.writer.HOME_HOST, self.writer.COGNITO_HOST})
+    self.assertEqual(connections[self.writer.HOME_HOST].request.call_args.args, ("HEAD", "/"))
+    self.assertEqual(connections[self.writer.COGNITO_HOST].request.call_args.args,
+                     ("GET", self.writer.COGNITO_PATH))
+    self.assertTrue(all(connection.close.call_count == 1 for connection in connections.values()))
+    snapshot = self.read()
+    self.assertEqual(snapshot["checks"][0]["id"], "project:website")
+    self.assertEqual(snapshot["checks"][0]["state"], "operational")
+    self.assertNotIn("ignore this", json.dumps(snapshot))
+    self.assertNotIn(("short-links", "2026-11-12"), self.table.rows)
+
+  def test_optional_short_links_head_accepts_only_exact_location(self):
+    response = Mock(status=302)
+    response.getheader.return_value = self.writer.SHORT_TARGET
+    self.assertTrue(self.writer.redirect_response(response))
+    for bad in ("https://www.danielshort.me/tools/aws-status?tracking=1", "https://another.example/"):
+      response.getheader.return_value = bad
+      self.assertFalse(self.writer.redirect_response(response))
+
+  def test_hourly_fixed_requests_missing_metrics_and_idle_endpoints(self):
+    self.cloudwatch.describe_alarms.return_value = {
+      "MetricAlarms": [{"AlarmName": name, "StateValue": "OK"} for name in self.writer.ALARMS]
+    }
+    self.sagemaker.describe_endpoint.side_effect = lambda EndpointName: {
+      "EndpointName": EndpointName, "EndpointStatus": "InService",
+      "ProductionVariants": [{"CurrentInstanceCount": 0, "DesiredInstanceCount": 0}],
+    }
+    self.cloudwatch.get_metric_statistics.return_value = {"Datapoints": []}
+    self.assertEqual(self.writer.handler({"operation": "hourly"}, self.context), {"ok": True, "collected": 5})
+    request = self.cloudwatch.describe_alarms.call_args.kwargs
+    self.assertEqual(set(request["AlarmNames"]), set(self.writer.ALARMS))
+    self.assertEqual(request["AlarmTypes"], ["MetricAlarm"])
+    self.assertEqual(self.cloudwatch.get_metric_statistics.call_count, 4)
+    for call in self.cloudwatch.get_metric_statistics.call_args_list:
+      self.assertEqual(call.kwargs["Period"], 3600)
+      self.assertEqual(call.kwargs["EndTime"], NOW.replace(minute=0))
+    self.assertEqual({call.kwargs["EndpointName"] for call in self.sagemaker.describe_endpoint.call_args_list},
+                     set(self.writer.ENDPOINTS.values()))
+    self.assertEqual(set(self.table.rows[("chatbot", "2026-11-12")]["samples"]) - {"-"}, {"i"})
+    self.assertEqual(set(self.table.rows[("transcribe", "2026-11-12")]["samples"]) - {"-"}, {"n"})
+
+  def test_missing_coverage_and_duplicate_observations_do_not_rewrite(self):
+    day = self.writer.mountain_day(NOW)
+    start, _end = self.reader.day_bounds(day)
+    now = start + timedelta(minutes=17)
+    self.table.conflicts = 1
+    self.writer.sample("cognito", 300, start, start, "o", self.context)
+    self.writer.sample("cognito", 300, start, start + timedelta(seconds=1), "f", self.context)
+    self.writer.sample("cognito", 300, start + timedelta(minutes=10), start + timedelta(minutes=10), "o", self.context)
+    self.assertEqual(self.table.write_count, 2)
+    row = self.table.rows[("cognito", day.isoformat())]
+    self.assertEqual(row["samples"], "o-o")
+    tile = self.reader.tile(day, row, 300, now)
+    self.assertEqual(tile["state"], "unknown")
+    self.assertEqual(tile["issue"], "Monitoring coverage for this day is incomplete.")
+
+  def test_alarm_incident_uses_exact_transition_and_recovery_without_raw_fields(self):
+    name = "website-job-tracker-api-5xx"
+    down, up = NOW - timedelta(minutes=25), NOW - timedelta(minutes=15)
+    def alarm_event(previous, previous_at, state, at):
+      return {
+        "source": "aws.cloudwatch", "detail-type": "CloudWatch Alarm State Change",
+        "region": "us-east-2", "account": ACCOUNT,
+        "detail": {"alarmName": name, "previousState": {"value": previous, "timestamp": previous_at.isoformat()},
+                   "state": {"value": state, "timestamp": at.isoformat(), "reason": "private reasons"}},
+      }
+    raised = alarm_event("OK", down - timedelta(hours=1), "ALARM", down)
+    restored = alarm_event("ALARM", down, "OK", up)
+    for event in (restored, raised, restored):
+      self.assertTrue(self.writer.handler(event, self.context)["ok"])
+    self.assertEqual(self.table.write_count, 1)
+    tracker = self.read()["connections"][1]["days"][-1]
+    self.assertEqual(tracker["state"], "degraded")
+    self.assertEqual((tracker["from"], tracker["to"]), (self.reader.iso(down), self.reader.iso(up)))
+    self.assertEqual(tracker["issue"], "Tracker API 5xx alarm entered ALARM.")
+    self.assertNotIn("private reasons", repr(self.table.rows))
+
+  def test_report_validation_sources_order_and_expiry(self):
+    identifier = "project:smartSentence"
+    requests = [
+      sample_report(identifier, "outage", "production"),
+      sample_report(identifier, "operational", "browser", checked=NOW - timedelta(minutes=1)),
+    ]
+    for check in requests:
+      self.assertEqual(self.report.handler({"checks": [check]}, self.context), {"ok": True, "accepted": 1})
+    self.assertEqual(self.report.handler({"checks": [requests[0]]}, self.context), {"ok": True, "accepted": 1})
+    older = sample_report(identifier, "operational", "production", checked=NOW - timedelta(minutes=1))
+    self.assertEqual(self.report.handler({"checks": [older]}, self.context), {"ok": True, "accepted": 0})
+    self.assertEqual(self.table.write_count, 2)
+    for event in ({"checks": [{**requests[0], "issue": "private"}]},
+                  {"checks": [requests[0], requests[0]]},
+                  {"checks": [sample_report("invalid:id", "outage", "production")]},
+                  {"checks": [sample_report(identifier, "outage", "production", expires=NOW)]},
+                  {"checks": [sample_report(identifier, "outage", "production", checked=NOW + timedelta(minutes=5))]}):
+      with self.assertLogs(self.report.LOGGER, "WARNING") as captured:
+        self.assertFalse(self.report.handler(event, self.context)["ok"])
+      self.assertNotIn("private", " ".join(captured.output))
+    self.assertEqual(self.table.write_count, 2)
+    results = {check["source"]: check["state"] for check in self.read()["checks"]}
+    self.assertEqual(results, {"browser": "operational", "production": "outage"})
+
+  def test_expired_results_hidden_even_while_dynamodb_retains_items(self):
+    self.table.rows[("catalog", "local")] = {
+      "pk": "catalog", "sk": "local", "expires": int((NOW - timedelta(seconds=1)).timestamp()),
+      "results": {"tool:transcribe": ["operational", self.reader.iso(NOW - timedelta(days=1)),
+                                     self.reader.iso(NOW - timedelta(seconds=1))]},
+    }
+    self.assertEqual(self.read()["checks"], [])
+
+  def test_scope_limits_in_template(self):
+    self.assertLessEqual(len(TEMPLATE.encode()), 51200)
+    self.assertNotIn("AWS::CloudWatch::Alarm", TEMPLATE)
+    self.assertNotIn("sagemaker:InvokeEndpoint", TEMPLATE)
+    self.assertNotIn("transcribe:StartTranscriptionJob", TEMPLATE)
+    self.assertNotIn("ses:SendEmail", TEMPLATE)
+    invoker = TEMPLATE.split("  WebsiteInvokerRole:\n")[1].split("\nOutputs:")[0]
+    self.assertIn("project:website:environment:production", invoker)
+    self.assertIn("Resource: !GetAtt Collector.Arn", invoker)
+    self.assertNotIn("Writer.Arn", invoker)
+    self.assertNotIn("Report.Arn", invoker)
+    self.assertIn("Default: 'false'", TEMPLATE)
+
+
+if __name__ == "__main__":
+  main()
