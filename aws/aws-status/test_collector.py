@@ -105,7 +105,10 @@ class CollectorTests(TestCase):
     self.reader = load_runtime("Collector", self.table, self.cloudwatch, self.sagemaker)
     self.writer = load_runtime("Writer", self.table, self.cloudwatch, self.sagemaker)
     self.report = load_runtime("Report", self.table, self.cloudwatch, self.sagemaker)
-    self.context = Mock(get_remaining_time_in_millis=Mock(return_value=20000))
+    self.context = Mock(
+      get_remaining_time_in_millis=Mock(return_value=20000),
+      invoked_function_arn=f"arn:aws:lambda:us-east-2:{ACCOUNT}:function:website-aws-status-report",
+    )
 
   def read(self):
     return self.reader.handler({}, self.context)
@@ -273,6 +276,48 @@ class CollectorTests(TestCase):
                                      self.reader.iso(NOW - timedelta(seconds=1))]},
     }
     self.assertEqual(self.read()["checks"], [])
+
+  def test_browser_alias_rejects_non_browser_sources_and_long_expiry_before_writing(self):
+    self.context.invoked_function_arn += ":browser-ci"
+    valid = sample_report("project:website", "operational", "browser", expires=NOW + timedelta(hours=3))
+    invalid = [
+      {"checks": [valid, sample_report("tool:transcribe", "operational", "production")]},
+      {"checks": [{**valid, "source": "local"}]},
+      {"checks": [{**valid, "expiresAt": (NOW + timedelta(hours=3, milliseconds=1)).isoformat(timespec="milliseconds")}]},
+      {"checks": [{**valid, "lastChecked": (NOW - timedelta(minutes=1)).isoformat()}]},
+      {"checks": [{**valid, "lastChecked": (NOW + timedelta(seconds=30)).isoformat(),
+                   "expiresAt": (NOW + timedelta(hours=3, seconds=30)).isoformat()}]},
+    ]
+    for event in invalid:
+      with self.subTest(event=event), self.assertLogs(self.report.LOGGER, "WARNING"):
+        self.assertFalse(self.report.handler(event, self.context)["ok"])
+    self.assertEqual(self.table.write_count, 0)
+    self.assertEqual(self.report.handler({"checks": [valid]}, self.context), {"ok": True, "accepted": 1})
+    self.assertEqual(self.table.rows[("catalog", "browser")]["expires"], int((NOW + timedelta(hours=3)).timestamp()))
+
+  def test_manual_report_keeps_its_longer_ttl_and_source_selection(self):
+    checks = [
+      sample_report("project:website", "operational", "production", expires=NOW + timedelta(days=7)),
+      sample_report("tool:text-compare", "operational", "local", expires=NOW + timedelta(days=7)),
+    ]
+    self.assertEqual(self.report.handler({"checks": checks}, self.context), {"ok": True, "accepted": 2})
+
+  def test_github_stack_pins_role_trust_and_single_alias_scope(self):
+    template = Path(__file__).with_name("github-reporter.yaml").read_text(encoding="utf-8")
+    self.assertIn("Default: 'false'", template)
+    self.assertIn("CodeSha256: !Ref ReportCodeSha256", template)
+    self.assertIn("FunctionVersion: !GetAtt BrowserReportVersion.Version", template)
+    self.assertIn("Name: browser-ci", template)
+    role = template.split("  GithubReporterRole:\n")[1].split("\nOutputs:")[0]
+    self.assertIn("'token.actions.githubusercontent.com:aud': sts.amazonaws.com", role)
+    self.assertIn("'token.actions.githubusercontent.com:sub': 'repo:danielshort3/danielshort3.github.io:ref:refs/heads/main'", role)
+    self.assertIn("'token.actions.githubusercontent.com:repository_id': '698339955'", role)
+    self.assertIn("'token.actions.githubusercontent.com:repository_owner_id': '143550027'", role)
+    self.assertIn("status-report-publish.yml@refs/heads/main", role)
+    self.assertEqual(re.findall(r"^\s+Action: (.+)$", role, re.M), [
+      "sts:AssumeRoleWithWebIdentity", "lambda:InvokeFunction",
+    ])
+    self.assertEqual(re.findall(r"^\s+Resource: (.+)$", role, re.M), ["!Ref BrowserReportAlias"])
 
   def test_scope_limits_in_template(self):
     self.assertLessEqual(len(TEMPLATE.encode()), 51200)

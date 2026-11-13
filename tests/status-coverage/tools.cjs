@@ -64,6 +64,7 @@ function fixtureAuth(context, mode = 'admin') {
 
 async function statusTool({ context, page, base, item }) {
   await fixtureAuth(context, 'ordinary');
+  await page.clock.install();
   let queries = 0;
   const checkedAt = new Date().toISOString();
   const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -98,7 +99,12 @@ async function statusTool({ context, page, base, item }) {
   await expect(directory).toContainText('Unknown');
   await expect(directory.getByText('Browser check passed', { exact: true })).toBeVisible();
   assert.equal(queries, 1);
-  return local('The fixture verified the ordinary-account gate, 90-day history, and catalog status tab.');
+  snapshot.catalog[1].state = 'degraded';
+  await page.clock.fastForward(5 * 60 * 1000 + 1000);
+  await expect(directory.getByText('Browser check had issues', { exact: true })).toBeVisible();
+  await expect(tabs).toHaveAttribute('aria-selected', 'true');
+  assert.equal(queries, 2);
+  return local('The fixture verified the ordinary-account gate, history, and a timed refresh that retained the catalog tab.');
 }
 
 async function background({ page, base, item }) {

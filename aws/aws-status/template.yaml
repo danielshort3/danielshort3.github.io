@@ -956,7 +956,7 @@ Resources:
               return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
-          def validate(event, now):
+          def validate(event, now, browser_ci):
               if not isinstance(event, dict) or set(event) != {"checks"}:
                   raise ValueError("Invalid catalog report")
               checks = event["checks"]
@@ -964,16 +964,20 @@ Resources:
                   raise ValueError("Invalid number of checks")
               seen = set()
               groups = {}
+              max_age = timedelta(hours=3) if browser_ci else MAX_AGE
               for check in checks:
                   if not isinstance(check, dict) or set(check) != FIELDS:
                       raise ValueError("Invalid catalog check fields")
                   identifier, state, source = check["id"], check["state"], check["source"]
                   if (not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier) or identifier in seen
-                      or not isinstance(state, str) or state not in STATES or source not in SOURCES):
+                      or not isinstance(state, str) or state not in STATES or source not in SOURCES
+                      or (browser_ci and source != "browser")):
                       raise ValueError("Invalid catalog check")
                   seen.add(identifier)
                   checked, expires = parse_time(check["lastChecked"]), parse_time(check["expiresAt"])
-                  if not now - MAX_AGE <= checked <= now + timedelta(minutes=1) or not now < expires <= checked + MAX_AGE or expires <= checked:
+                  expires_by = min(now, checked) if browser_ci else checked
+                  if (not now - max_age <= checked <= now + timedelta(minutes=1)
+                      or not now < expires <= expires_by + max_age or expires <= checked):
                       raise ValueError("Invalid catalog result lifetime")
                   groups.setdefault(source, {})[identifier] = [state, iso(checked), iso(expires)]
               return groups
@@ -1018,7 +1022,8 @@ Resources:
           def handler(event, context):
               now = datetime.now(timezone.utc)
               try:
-                  groups = validate(event, now)
+                  browser_ci = context.invoked_function_arn.endswith(":browser-ci")
+                  groups = validate(event, now, browser_ci)
                   accepted = sum(record_source(source, reports, now, context) for source, reports in groups.items())
                   return {"ok": True, "accepted": accepted}
               except (BotoCoreError, ClientError, KeyError, TypeError, ValueError, TimeoutError, OverflowError):

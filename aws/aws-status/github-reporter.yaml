@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: GitHub Actions access to the browser-only Ohio status report alias.
+
+Parameters:
+  EnableGithubReporter:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+  ReportCodeSha256:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^[A-Za-z0-9+/]{43}=$'
+    Description: Reviewed CodeSha256 of the deployed website-aws-status-report function.
+
+Rules:
+  PinReportCode:
+    RuleCondition: !Equals [!Ref EnableGithubReporter, 'true']
+    Assertions:
+      - Assert: !Not [!Equals [!Ref ReportCodeSha256, '']]
+        AssertDescription: Enabling GitHub access requires the deployed report code hash.
+
+Conditions:
+  Enabled: !And
+    - !Equals [!Ref EnableGithubReporter, 'true']
+    - !Equals [!Ref 'AWS::Region', us-east-2]
+    - !Equals [!Ref 'AWS::AccountId', '886623862678']
+
+Resources:
+  GitHubProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: Enabled
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+
+  BrowserReportVersion:
+    Type: AWS::Lambda::Version
+    Condition: Enabled
+    Properties:
+      FunctionName: website-aws-status-report
+      CodeSha256: !Ref ReportCodeSha256
+
+  BrowserReportAlias:
+    Type: AWS::Lambda::Alias
+    Condition: Enabled
+    Properties:
+      FunctionName: website-aws-status-report
+      FunctionVersion: !GetAtt BrowserReportVersion.Version
+      Name: browser-ci
+
+  GithubReporterRole:
+    Type: AWS::IAM::Role
+    Condition: Enabled
+    Properties:
+      RoleName: website-aws-status-report-github
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': sts.amazonaws.com
+                'token.actions.githubusercontent.com:sub': 'repo:danielshort3/danielshort3.github.io:ref:refs/heads/main'
+                'token.actions.githubusercontent.com:repository_id': '698339955'
+                'token.actions.githubusercontent.com:repository_owner_id': '143550027'
+                'token.actions.githubusercontent.com:ref': refs/heads/main
+                'token.actions.githubusercontent.com:job_workflow_ref': danielshort3/danielshort3.github.io/.github/workflows/status-report-publish.yml@refs/heads/main
+      Policies:
+        - PolicyName: invoke-browser-report-alias
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Ref BrowserReportAlias
+
+Outputs:
+  GithubReporterRoleArn:
+    Condition: Enabled
+    Value: !GetAtt GithubReporterRole.Arn
+  BrowserReportAliasArn:
+    Condition: Enabled
+    Value: !Ref BrowserReportAlias

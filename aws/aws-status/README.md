@@ -56,3 +56,13 @@ Invoke the report synchronously with one to 70 unique check IDs and only the fiv
 ```
 
 Require `ok: true` and the expected `accepted` count before treating the report as published. The stored issue text comes from the result state, so submit only the enum and timestamp fields. A failed mixed-source invocation may have saved an earlier source. A repeat with the same input is safe and leaves newer evidence in place.
+
+### Hourly GitHub Actions reports
+
+The [hourly workflow](../../.github/workflows/status-coverage-hourly.yml) starts at minute 37 UTC. It selects the most recent successful Vercel production revision reported in GitHub and runs the catalog browser suite on a standard public-repository runner. The browser job has no AWS credentials. The separate publish job uses a 15-minute AWS session and sends only the result IDs, statuses and timestamps. Completed runs with test failures still publish their outcomes. An interrupted run leaves the previous report to expire.
+
+Deploy the report code change in `template.yaml` first. Use temporary admin access to confirm the unqualified report function's exact code and obtain `CodeSha256` from `lambda get-function-configuration --function-name website-aws-status-report --region us-east-2 --query CodeSha256 --output text`. Review a separate Ohio change set for `github-reporter.yaml` with `EnableGithubReporter=true` and that `ReportCodeSha256`. The GitHub provider must be absent before creating the new stack. Confirm the default-branch OIDC subject and reusable publisher ref against the trust policy before activation.
+
+The separate stack publishes the reviewed code as a version and points `browser-ci` at it. When changing report code, update this stack with the new deployed hash to move the alias. Only the exact GitHub main workflow identity can assume the publisher role, which can invoke only that alias. The alias accepts browser results with an expiry no more than three hours from observation and submission. Use `GithubReporterRoleArn` and `BrowserReportAliasArn` from that stack's outputs. The manual path above continues to invoke the unqualified function.
+
+Verify one default-branch publish through the alias and confirm the browser result appears in the private dashboard. Confirm the same role cannot invoke the unqualified report, reader or scheduled collector, and confirm the alias rejects a non-browser source. Removing the separate stack disables CI publishing and removes its provider, so verify no other role uses that provider before stack deletion.
