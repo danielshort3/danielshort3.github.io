@@ -310,7 +310,8 @@
 
   .aws-status__directory th:last-child,
   .aws-status__directory td {
-    width: 9rem;
+    width: 1%;
+    white-space: nowrap;
   }
 
   .aws-status__directory .aws-status__directory-group th {
