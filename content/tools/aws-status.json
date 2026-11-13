@@ -1,0 +1,15 @@
+{
+  "slug": "aws-status",
+  "title": "AWS Status",
+  "href": "tools/aws-status",
+  "iconImage": "img/tools/icons/aws-status.png",
+  "categoryId": "tools-cloud",
+  "privacy": "AWS operational status is available to administrators only.",
+  "inputs": ["Status view and history date"],
+  "outputs": ["AWS connection history and project, tool, and game status"],
+  "summary": "Review AWS connection history and the status of website projects and tools.",
+  "visibility": "admin",
+  "hidden": true,
+  "order": 3,
+  "noindex": true
+}

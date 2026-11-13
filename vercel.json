@@ -9,7 +9,7 @@
     "api/sentence-demo/**/*.js": { "maxDuration": 150 },
     "api/chatbot.js": { "maxDuration": 60 },
     "api/chatbot-stream.js": { "maxDuration": 60 },
-    "api/tools/**/*.js": { "maxDuration": 60 }
+    "api/tools/**/*.js": { "maxDuration": 60, "includeFiles": "content/{tools,projects}/*.json" }
   },
   "cleanUrls": true,
   "trailingSlash": false,
@@ -23,6 +23,8 @@
     "CHATBOT_BEDROCK_EMBED_DIMENSIONS": "512"
   },
   "rewrites": [
+    {"source":"/tools/aws-status","destination":"/pages/aws-status"},
+    {"source":"/tools/aws-status.html","destination":"/pages/aws-status"},
     { "source": "/api/demos/covid-outbreak/state/:state", "destination": "/api/demos/covid-outbreak%2Fstate%2F:state" },
     { "source": "/api/demos/:demo/:action", "destination": "/api/demos/:demo%2F:action" },
     { "source": "/api/tools/transcribe/:action", "destination": "/api/tools/transcribe%2F:action" },
@@ -151,6 +153,8 @@
     { "source": "/retail-loss-sales-demo.html", "destination": "/pages/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
+    {"source":"/pages/aws-status","destination":"/tools/aws-status","permanent":true},
+    {"source":"/pages/aws-status.html","destination":"/tools/aws-status","permanent":true},
     { "source": "/sitemap-pretty", "destination": "/sitemap", "permanent": true },
     { "source": "/sitemap-pretty.html", "destination": "/sitemap", "permanent": true },
     { "source": "/pages/sitemap-pretty", "destination": "/sitemap", "permanent": true },
@@ -293,6 +297,8 @@
     { "source": "/contributions.html", "destination": "/tourism", "permanent": true }
   ],
   "headers": [
+    {"source":"/tools/aws-status","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+    {"source":"/tools/aws-status.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
     {
       "source": "/app-updates/:channel/latest.json",
       "headers": [

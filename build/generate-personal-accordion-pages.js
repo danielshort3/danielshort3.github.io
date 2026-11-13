@@ -42,6 +42,7 @@ const TOOL_PAGE_IDS = Object.freeze([
 ]);
 
 const INTERNAL_TOOL_PAGE_IDS = Object.freeze([
+  'aws-status',
   'job-application-tracker',
   'short-links',
   'campaign-creative-tracker',

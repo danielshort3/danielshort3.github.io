@@ -245,10 +245,10 @@ function requestOrigin(req){
   return host ? `${protocol}://${host}` : '';
 }
 
-function assertSameOriginRequest(req){
+function assertSameOriginRequest(req, { checkReadOrigin = false } = {}){
   const method = String(req?.method || 'GET').toUpperCase();
-  if (!UNSAFE_METHODS.has(method)) return;
   const suppliedOrigin = String(req?.headers?.origin || '').trim().toLowerCase().replace(/\/$/, '');
+  if (!UNSAFE_METHODS.has(method) && !(checkReadOrigin && suppliedOrigin)) return;
   const expectedOrigin = requestOrigin(req);
   if (!suppliedOrigin || !expectedOrigin || suppliedOrigin !== expectedOrigin) {
     throw createAuthError('AUTH_ORIGIN_MISMATCH', 'Same-origin request required.', 403);

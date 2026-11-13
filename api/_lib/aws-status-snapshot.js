@@ -1,0 +1,100 @@
+'use strict';
+
+const HISTORY_DAYS = 90;
+const REGION = 'us-east-2';
+const STATES = new Set(['operational', 'degraded', 'outage', 'unknown']);
+const SOURCES = new Set(['production', 'browser', 'local']);
+const CONNECTIONS = new Map([
+  ['cognito', 'Cognito sign-in'],
+  ['tracker', 'Tracker database'],
+  ['short-links', 'Short Links'],
+  ['contact', 'Contact email'],
+  ['transcribe', 'File Transcriber'],
+  ['chatbot', 'Website chatbot'],
+  ['markdown', 'SageMaker Markdown']
+]);
+const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
+const isTimestamp = (value) => typeof value === 'string' && ISO_TIMESTAMP.test(value) && Number.isFinite(Date.parse(value));
+const issueText = (value) => typeof value === 'string' ? value.trim().slice(0, 240) : '';
+
+function sanitizeDay(day) {
+  if (!DAY_KEY.test(day?.date) || !STATES.has(day.state) ||
+    !isTimestamp(day.from) || !isTimestamp(day.to) || Date.parse(day.from) > Date.parse(day.to)) return null;
+
+  const clean = {
+    date: day.date,
+    state: day.state,
+    from: day.from,
+    to: day.to,
+    issue: issueText(day.issue)
+  };
+  if (isTimestamp(day.observedAt)) clean.observedAt = day.observedAt;
+  return clean;
+}
+
+function sanitizeConnections(connections) {
+  const byId = new Map(connections.map((connection) => [connection?.id, connection]));
+  return [...CONNECTIONS].map(([id, label]) => {
+    const days = byId.get(id)?.days;
+    const byDate = new Map();
+    if (Array.isArray(days) && days.length <= HISTORY_DAYS) {
+      for (const day of days) {
+        const valid = sanitizeDay(day);
+        if (valid && !byDate.has(valid.date)) byDate.set(valid.date, valid);
+      }
+    }
+    return { id, label, days: [...byDate.values()].sort((left, right) => left.date.localeCompare(right.date)) };
+  });
+}
+
+function projectCatalog(catalog, checks, now) {
+  const byId = new Map();
+  for (const check of checks) {
+    if (!check || !SOURCES.has(check.source) || !STATES.has(check.state) || !isTimestamp(check.lastChecked)) continue;
+    const checked = Date.parse(check.lastChecked);
+    if (checked > now + 60_000) continue;
+    const allowedAge = check.source === 'production' ? 26 * 60 * 60_000 : 7 * 24 * 60 * 60_000;
+    const expiry = isTimestamp(check.expiresAt)
+      ? Math.min(Date.parse(check.expiresAt), checked + allowedAge)
+      : checked + allowedAge;
+    const stale = expiry <= now;
+    const rank = stale ? 0 : check.state === 'unknown' ? 1 : check.source === 'production' ? 3 : 2;
+    const previous = byId.get(check.id);
+    if (!previous || rank > previous.rank || (rank === previous.rank && checked > previous.checked)) {
+      byId.set(check.id, { check, checked, rank, stale });
+    }
+  }
+
+  return catalog.map((item) => {
+    const result = byId.get(item.id);
+    if (!result) return { ...item, state: 'unknown', lastChecked: null, issue: 'Awaiting a check.' };
+    const { check, stale } = result;
+    return {
+      ...item,
+      state: stale ? 'unknown' : check.state,
+      lastChecked: check.lastChecked,
+      source: check.source,
+      issue: stale ? 'The last result has expired.' : issueText(check.issue)
+    };
+  });
+}
+
+function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
+  if (snapshot?.ok !== true || snapshot.region !== REGION || snapshot.days !== HISTORY_DAYS ||
+    (snapshot.checkedAt !== null && !isTimestamp(snapshot.checkedAt)) ||
+    !Array.isArray(snapshot.connections) || snapshot.connections.length > CONNECTIONS.size ||
+    !Array.isArray(snapshot.checks) || snapshot.checks.length > 150) {
+    throw new Error('Invalid AWS history snapshot.');
+  }
+  return {
+    ok: true,
+    region: REGION,
+    days: HISTORY_DAYS,
+    checkedAt: snapshot.checkedAt,
+    connections: sanitizeConnections(snapshot.connections),
+    catalog: projectCatalog(catalog, snapshot.checks, now)
+  };
+}
+
+module.exports = { sanitizeSnapshot };

@@ -19,6 +19,7 @@
     'screen-recorder': { name: 'Screen Recorder', href: '/tools/screen-recorder' },
     'job-application-tracker': { name: 'Job Application Tracker', href: '/tools/job-application-tracker' },
     'short-links': { name: 'Links & QR codes', href: '/tools/short-links' },
+    'aws-status': { name: 'AWS Status', href: '/tools/aws-status' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
     'campaign-creative-tracker': { name: 'Campaign Creative Tracker', href: '/tools/campaign-creative-tracker' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
@@ -29,6 +30,7 @@
   const TOOL_ACCOUNT_CAPABILITIES = {
     'job-application-tracker': { persistence: 'custom' },
     'short-links': { persistence: 'none', embedded: true },
+    'aws-status': { persistence: 'none', trackOpen: false },
     'transcribe': { persistence: 'custom', signInMode: 'popup' },
     'whisper-transcribe-monitor': { persistence: 'custom', signInMode: 'popup' }
   };
@@ -52,6 +54,7 @@
       persistence,
       savePrivacyNote: SESSION_PRIVACY_NOTES[toolId] || 'Inputs, settings, and available results save automatically to your account while signed in.',
       embedded: configured.embedded === true,
+      trackOpen: configured.trackOpen !== false,
       signInMode: configured.signInMode || 'redirect',
       showToolsLink: Boolean((toolId && page !== 'short-links') || page === 'tools-dashboard')
     };
@@ -405,11 +408,12 @@
 
   const applyToolsAuthenticatedContentVisibility = () => {
     const context = getToolsVisibilityContext();
-    const authedOnlyEls = [...document.querySelectorAll('[data-tools-auth-only]')];
+    const gatedElements = document.querySelectorAll('[data-tools-auth-only], [data-tools-admin-only]');
 
-    authedOnlyEls.forEach((el) => {
+    gatedElements.forEach((el) => {
       const controlledByToolScript = el.hasAttribute('data-tools-resume');
-      if (context.authed) {
+      const visible = el.hasAttribute('data-tools-admin-only') ? context.admin : context.authed;
+      if (visible) {
         el.removeAttribute('aria-hidden');
         if (!controlledByToolScript) el.removeAttribute('hidden');
       } else {
@@ -3169,7 +3173,7 @@
       if (page === 'tools-dashboard') return;
 
       const auth = window.ToolsAuth.getAuth();
-      if (toolId && window.ToolsAuth.authIsValid(auth)) {
+      if (toolId && capabilities.trackOpen && window.ToolsAuth.authIsValid(auth)) {
         window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' })
           .catch((err) => {
             if (!disposed) logAsyncError('activity:tool_open', err);

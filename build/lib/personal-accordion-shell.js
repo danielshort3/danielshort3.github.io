@@ -16,6 +16,7 @@ const PERSONAL_TOOL_HEADER_END = '<!-- personal-tool-header:end -->';
 const SITE_ROUTE_MANIFEST_ID = 'site-route-manifest';
 const SITE_ROUTE_MANIFEST_VERSION = 1;
 const HARD_NAVIGATION_PATHS = Object.freeze([
+  '/tools/aws-status',
   '/tools/background-remover',
   '/tools/job-application-tracker',
   '/tools/transcribe'
