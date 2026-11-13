@@ -11,6 +11,7 @@
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
   const GROUPS = ['Tools', 'Projects', 'Games'];
   const SOURCES = { production: 'Production check', browser: 'Browser check', local: 'Local check' };
+  const FIXTURE_STATES = { operational: 'passed', degraded: 'had issues', outage: 'failed' };
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
   const civilDateFormat = new Intl.DateTimeFormat('en-CA', {
@@ -246,8 +247,11 @@
           const row = element('tr');
           const name = element('th', item.label);
           const status = element('td');
-          const badge = statusBadge(item.state);
           const source = Object.hasOwn(SOURCES, item.source) ? SOURCES[item.source] : '';
+          const badge = statusBadge(item.state);
+          if (source && item.source !== 'production' && Object.hasOwn(FIXTURE_STATES, item.state)) {
+            badge.textContent = source + ' ' + FIXTURE_STATES[item.state];
+          }
           const detail = [
             source,
             item.lastChecked && 'Last checked ' + timeLabel(item.lastChecked).textContent,
