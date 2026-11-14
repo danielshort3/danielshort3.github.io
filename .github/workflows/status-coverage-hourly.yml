@@ -1,16 +1,22 @@
 name: Hourly project and tool status
+run-name: ${{ inputs.fallback_slot && format('Hourly status fallback {0}', inputs.fallback_slot) || 'Hourly project and tool status' }}
 
 on:
   schedule:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      fallback_slot:
+        description: UTC hour used by the AWS fallback dispatcher
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
   group: hourly-project-status
-  cancel-in-progress: false
+  queue: max
 
 jobs:
   cadence:
@@ -24,7 +30,7 @@ jobs:
     steps:
       - name: Check whether this UTC hour already has a report
         id: cadence
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || inputs.fallback_slot != ''
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash

@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Independent hourly trigger for the existing Projects and Tools GitHub workflow.
+
+Parameters:
+  CodeBucket:
+    Type: String
+    AllowedPattern: '[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]'
+    Description: Existing Ohio deployment-package bucket.
+  CodeKey:
+    Type: String
+    AllowedPattern: 'website-status-fallback/[A-Za-z0-9._-]+\.zip'
+    Description: Unique S3 key containing fallback-dispatcher.cjs at the ZIP root.
+  EnableSchedule:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+
+Conditions:
+  OhioWebsiteAccount: !And
+    - !Equals [!Ref 'AWS::Region', us-east-2]
+    - !Equals [!Ref 'AWS::AccountId', '886623862678']
+  Enabled: !Equals [!Ref EnableSchedule, 'true']
+
+Resources:
+  DispatcherLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: OhioWebsiteAccount
+    Properties:
+      LogGroupName: /aws/lambda/website-aws-status-fallback-dispatcher
+      RetentionInDays: 14
+
+  DispatcherRole:
+    Type: AWS::IAM::Role
+    Condition: OhioWebsiteAccount
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: read-github-app-parameter
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/website-aws-status/fallback/github-app
+        - PolicyName: write-dispatcher-log
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/website-aws-status-fallback-dispatcher:log-stream:*
+
+  Dispatcher:
+    Type: AWS::Lambda::Function
+    Condition: OhioWebsiteAccount
+    DependsOn: DispatcherLogGroup
+    Properties:
+      FunctionName: website-aws-status-fallback-dispatcher
+      Description: Dispatches one fallback GitHub browser check if the hour has no report.
+      Runtime: nodejs24.x
+      Handler: fallback-dispatcher.handler
+      Role: !GetAtt DispatcherRole.Arn
+      MemorySize: 128
+      Timeout: 45
+      ReservedConcurrentExecutions: 1
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+      Environment:
+        Variables:
+          STATUS_FALLBACK_GITHUB_PARAMETER: /website-aws-status/fallback/github-app
+          STATUS_FALLBACK_SCHEDULE_ARN: !Sub arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/website-aws-status-fallback/hourly-browser-check
+
+  DispatcherRetries:
+    Type: AWS::Lambda::EventInvokeConfig
+    Condition: OhioWebsiteAccount
+    Properties:
+      FunctionName: !Ref Dispatcher
+      Qualifier: '$LATEST'
+      MaximumEventAgeInSeconds: 600
+      MaximumRetryAttempts: 1
+
+  ScheduleGroup:
+    Type: AWS::Scheduler::ScheduleGroup
+    Condition: OhioWebsiteAccount
+    Properties:
+      Name: website-aws-status-fallback
+
+  ScheduleRole:
+    Type: AWS::IAM::Role
+    Condition: OhioWebsiteAccount
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: scheduler.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref 'AWS::AccountId'
+                'aws:SourceArn': !GetAtt ScheduleGroup.Arn
+      Policies:
+        - PolicyName: invoke-dispatcher
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt Dispatcher.Arn
+
+  Schedule:
+    Type: AWS::Scheduler::Schedule
+    Condition: OhioWebsiteAccount
+    DependsOn: DispatcherRetries
+    Properties:
+      Name: hourly-browser-check
+      GroupName: !Ref ScheduleGroup
+      ScheduleExpression: cron(47 * * * ? *)
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow: {Mode: 'OFF'}
+      State: !If [Enabled, ENABLED, DISABLED]
+      Target:
+        Arn: !GetAtt Dispatcher.Arn
+        RoleArn: !GetAtt ScheduleRole.Arn
+        Input: '{"scheduleArn":"<aws.scheduler.schedule-arn>","scheduledTime":"<aws.scheduler.scheduled-time>"}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 600
+          MaximumRetryAttempts: 2
+
+Outputs:
+  DispatcherFunctionArn:
+    Condition: OhioWebsiteAccount
+    Value: !GetAtt Dispatcher.Arn
+  ScheduleName:
+    Condition: OhioWebsiteAccount
+    Value: !Ref Schedule

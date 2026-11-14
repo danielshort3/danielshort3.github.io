@@ -7,6 +7,10 @@ const workflowFiles = new Set([
   '.github/workflows/status-coverage-hourly.yml',
   '.github/workflows/status-report-publish.yml',
   'aws/aws-status/README.md',
+  'aws/aws-status/fallback-dispatcher.cjs',
+  'aws/aws-status/fallback-dispatcher.test.cjs',
+  'aws/aws-status/github-fallback.yaml',
+  'build/vercel-ignore-hourly-workflow.cjs',
   'build/status-report-transport.cjs'
 ]);
 
