@@ -484,9 +484,12 @@
   };
   const parseHistoryDate = (value) => parseDateInput(value) || parseIsoDate(value);
   const formatDateLabel = (value) => {
-    const parsed = parseDateInput(value) || parseIsoDate(value);
+    const calendarDate = parseDateInput(value);
+    const parsed = calendarDate || parseIsoDate(value);
     if (!parsed) return '—';
-    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return parsed.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: calendarDate ? 'UTC' : undefined
+    });
   };
   const formatDays = (value) => {
     if (!Number.isFinite(value)) return '--';
@@ -2612,7 +2615,8 @@
         return {
           status: toTitle(statusRaw),
           statusLower: statusRaw.toLowerCase(),
-          date: parseHistoryDate(item?.date)
+          date: parseHistoryDate(item?.date),
+          dateValue: item?.date
         };
       })
       .filter(item => item.date);
@@ -2636,7 +2640,7 @@
       status.textContent = item.status || 'Status update';
       const date = document.createElement('span');
       date.className = 'jobtrack-modal-history-date';
-      date.textContent = formatDateLabel(formatDateInput(item.date));
+      date.textContent = formatDateLabel(item.dateValue);
       row.appendChild(status);
       row.appendChild(date);
       list.appendChild(row);
@@ -3915,7 +3919,7 @@
   };
 
   const formatRangeLabel = (start, end) => {
-    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    const options = { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' };
     return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
   };
 
