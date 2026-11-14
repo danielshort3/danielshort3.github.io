@@ -2,7 +2,7 @@ name: Hourly project and tool status
 
 on:
   schedule:
-    - cron: "53 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -13,8 +13,58 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check:
+  cadence:
     if: github.ref == 'refs/heads/main' && github.repository_id == '698339955'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: read
+    outputs:
+      covered: ${{ steps.cadence.outputs.covered }}
+    steps:
+      - name: Check whether this UTC hour already has a report
+        id: cadence
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          hour=$(date -u '+%Y-%m-%dT%H:00:00Z')
+          since=$(date -u -d "$hour -1 hour" '+%Y-%m-%dT%H:00:00Z')
+          actions="repos/$GITHUB_REPOSITORY/actions"
+          runs_path="$actions/workflows/status-coverage-hourly.yml/runs"
+          # Find the successful publish step even if the suite reported a failed fixture.
+          if ! runs=$(gh api --method GET "$runs_path" -f branch=main -f status=completed \
+            -f "created=>=$since" -F per_page=20 | jq -r --arg hour "$hour" \
+            '.workflow_runs | arrays | .[] | select(.updated_at >= $hour) | .id'); then
+            echo "Could not read recent runs. Continuing with the browser checks."
+            exit 0
+          fi
+          for run in $runs; do
+            if ! jobs=$(gh api "$actions/runs/$run/jobs?filter=latest&per_page=20"); then
+              echo "Could not read recent job results. Continuing with the browser checks."
+              exit 0
+            fi
+            if jq -e --arg hour "$hour" '
+              .jobs as $jobs
+              | any($jobs[]; .name == "check" and any(.steps[];
+                  .name == "Run the catalog browser checks" and .conclusion == "success"
+                  and (.completed_at | type == "string")
+                  and (.completed_at[:13] == $hour[:13])))
+                and any($jobs[]; .name == "publish / publish" and any(.steps[];
+                  .name == "Publish the browser outcomes" and .conclusion == "success"))
+            ' <<< "$jobs" > /dev/null; then
+              echo "covered=true" >> "$GITHUB_OUTPUT"
+              echo "A browser report already covered the UTC hour starting $hour."
+              exit 0
+            fi
+          done
+          echo "No published browser report for $hour. Continuing with the browser checks."
+
+  check:
+    needs: cadence
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.repository_id == '698339955' && needs.cadence.outputs.covered != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
