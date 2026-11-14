@@ -3,6 +3,7 @@
   "fluid": true,
   "installCommand": "npm install",
   "buildCommand": "npm run build",
+  "ignoreCommand": "node build/vercel-ignore-hourly-workflow.cjs",
   "outputDirectory": "public",
   "functions": {
     "api/demos/**/*.js": { "maxDuration": 150 },
