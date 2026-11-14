@@ -11,7 +11,7 @@ const { sanitizeSnapshot } = require('../aws-status-snapshot');
 
 const REGION = 'us-east-2';
 const CACHE_MS = 60_000;
-const MAX_PAYLOAD_BYTES = 384 * 1024;
+const MAX_PAYLOAD_BYTES = 448 * 1024;
 
 async function readAwsStatus() {
   const functionArn = String(process.env.AWS_STATUS_FUNCTION_ARN || '').trim();

@@ -4,6 +4,7 @@ import json
 import os
 import re
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 from textwrap import dedent
 from types import ModuleType
@@ -69,7 +70,7 @@ class MemoryTable:
     return {"Items": items}
 
 
-def load_runtime(name, table, cloudwatch, sagemaker):
+def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False):
   marker = re.search(rf"^  {name}:\n.*?^        ZipFile: \|\n", TEMPLATE, re.M | re.S)
   if not marker:
     raise AssertionError("Missing inline runtime")
@@ -89,7 +90,8 @@ def load_runtime(name, table, cloudwatch, sagemaker):
   modules["botocore.config"].Config = Mock()
   modules["botocore.exceptions"].ClientError = AwsError
   modules["botocore.exceptions"].BotoCoreError = OSError
-  environment = {"HISTORY_TABLE": "fixture", "STACK_ACCOUNT": ACCOUNT, "SHORT_LINK_SLUG": ""}
+  environment = {"HISTORY_TABLE": "fixture", "STACK_ACCOUNT": ACCOUNT, "SHORT_LINK_SLUG": "",
+                 "HOME_GPU_MONITORING": "true" if home_gpu else "false"}
   runtime = ModuleType(name)
   lines = []
   for line in TEMPLATE[marker.end():].splitlines(keepends=True):
@@ -283,6 +285,95 @@ class CollectorTests(TestCase):
                      set(self.writer.ENDPOINTS.values()))
     self.assertEqual(set(self.table.rows[("chatbot", "2026-11-12")]["samples"]) - {"-"}, {"i"})
     self.assertEqual(set(self.table.rows[("transcribe", "2026-11-12")]["samples"]) - {"-"}, {"n"})
+    self.assertNotIn(("home-gpu", "2026-11-12"), self.table.rows)
+
+  def test_home_gpu_distinguishes_missing_stale_fresh_future_and_invalid_check_ins(self):
+    hour = int(NOW.timestamp()) // 3600
+    begin = hour * 3600000
+    now = int(NOW.timestamp() * 1000)
+    key = ("home-gpu-heartbeat", str(hour))
+    self.table.rows[(key[0], str(hour - 1))] = {"state": "ready", "received": begin - 1}
+    self.assertEqual(self.writer.read_home_gpu(NOW, self.context), "p")
+    for received, state, outcome in (
+      (Decimal(begin), "ready", "g"),
+      (now, "unavailable", "w"),
+      (now, "unknown", "q"),
+      (begin - 1, "ready", "p"),
+      (now + 1, "ready", "q"),
+      (begin + 3600000, "ready", "q"),
+      (now, "invalid", "q"),
+      (now, None, "q"),
+      (str(now), "ready", "q"),
+      (True, "ready", "q"),
+      (Decimal(now) + Decimal("0.5"), "ready", "q"),
+      (Decimal("NaN"), "ready", "q"),
+    ):
+      with self.subTest(received=received, state=state):
+        self.table.rows[key] = {"received": received, "state": state}
+        self.assertEqual(self.writer.read_home_gpu(NOW, self.context), outcome)
+    self.table.rows[key] = {"state": "ready"}
+    self.assertEqual(self.writer.read_home_gpu(NOW, self.context), "q")
+    with patch.object(self.table, "get_item", side_effect=AwsError("InternalServerError")) as read:
+      self.assertEqual(self.writer.read_home_gpu(NOW, self.context), "q")
+      read.assert_called_once_with(Key={"pk": key[0], "sk": key[1]}, ConsistentRead=True)
+
+  def test_hourly_poll_stores_only_one_home_gpu_sample_and_reader_keeps_it_separate(self):
+    self.writer.HOME_GPU_MONITORING = True
+    self.cloudwatch.describe_alarms.return_value = {"MetricAlarms": []}
+    self.cloudwatch.get_metric_statistics.return_value = {"Datapoints": []}
+    self.sagemaker.describe_endpoint.side_effect = lambda EndpointName: {
+      "EndpointName": EndpointName, "EndpointStatus": "InService"
+    }
+    hour = int(NOW.timestamp()) // 3600
+    heartbeat_key = ("home-gpu-heartbeat", str(hour))
+    self.table.rows[heartbeat_key] = {
+      "state": "ready", "received": Decimal(hour * 3600000 + 5000), "unused": "private fixture"
+    }
+    with patch.object(self.table, "get_item", wraps=self.table.get_item) as read:
+      result = self.writer.handler({"operation": "hourly"}, self.context)
+      self.assertEqual(result, {"ok": True, "collected": 6})
+      reads = [call for call in read.call_args_list if call.kwargs["Key"]["pk"] == heartbeat_key[0]]
+      self.assertEqual(len(reads), 1)
+      self.assertEqual(reads[0].kwargs, {"Key": {"pk": heartbeat_key[0], "sk": heartbeat_key[1]},
+                                       "ConsistentRead": True})
+    first_write_count = self.table.write_count
+    self.table.rows[heartbeat_key]["state"] = "unavailable"
+    self.assertEqual(self.writer.handler({"operation": "hourly"}, self.context), {"ok": True, "collected": 6})
+    self.assertEqual(self.table.write_count, first_write_count)
+    self.assertNotIn("homeGpu", self.read())
+    reader = load_runtime("Collector", self.table, self.cloudwatch, self.sagemaker, home_gpu=True)
+    snapshot = reader.handler({}, self.context)
+    self.assertNotIn("private fixture", json.dumps(snapshot))
+    rows = {item["id"]: item["hours"][-1] for item in snapshot["connections"]}
+    self.assertEqual(len(rows), 7)
+    self.assertNotIn("home-gpu", rows)
+    self.assertEqual(snapshot["homeGpu"]["id"], "home-gpu")
+    latest = snapshot["homeGpu"]["hours"][-1]
+    self.assertEqual(latest["state"], "operational")
+    self.assertTrue(latest["complete"])
+    self.assertIn("worker was ready", latest["issue"])
+    self.assertEqual(rows["transcribe"]["state"], "unknown")
+
+  def test_home_gpu_read_error_does_not_interrupt_existing_hourly_samples(self):
+    self.writer.HOME_GPU_MONITORING = True
+    self.cloudwatch.describe_alarms.return_value = {"MetricAlarms": []}
+    self.cloudwatch.get_metric_statistics.return_value = {"Datapoints": []}
+    self.sagemaker.describe_endpoint.side_effect = lambda EndpointName: {
+      "EndpointName": EndpointName, "EndpointStatus": "InService"
+    }
+    read = self.table.get_item
+
+    def failing_heartbeat(Key, ConsistentRead):
+      if Key["pk"] == "home-gpu-heartbeat":
+        raise AwsError("InternalServerError")
+      return read(Key=Key, ConsistentRead=ConsistentRead)
+
+    with patch.object(self.table, "get_item", side_effect=failing_heartbeat):
+      self.assertEqual(self.writer.handler({"operation": "hourly"}, self.context), {"ok": True, "collected": 6})
+    samples = {pk: set(row["samples"]) - {"-"} for (pk, _), row in self.table.rows.items()}
+    self.assertEqual(samples["home-gpu"], {"q"})
+    self.assertEqual(samples["transcribe"], {"n"})
+    self.assertEqual(samples["chatbot"], {"s"})
 
   def test_missing_coverage_and_duplicate_observations_do_not_rewrite(self):
     day = self.writer.mountain_day(NOW)
@@ -343,7 +434,8 @@ class CollectorTests(TestCase):
   def test_hourly_snapshot_with_full_history_and_catalog_stays_under_api_limit(self):
     today = self.reader.mountain_day(NOW)
     catalog_ids = [f"project:{index:02}" + "c" * 62 for index in range(70)]
-    for identifier, _label, cadence in self.reader.SERVICES:
+    services = (*self.reader.SERVICES, ("home-gpu", "Home GPU", 3600))
+    for identifier, _label, cadence in services:
       for offset in range(90):
         day = today - timedelta(days=offset)
         start, end = self.reader.day_bounds(day)
@@ -351,8 +443,9 @@ class CollectorTests(TestCase):
         count = int((checked - start).total_seconds()) // cadence + 1
         start_text = self.reader.iso(start + timedelta(seconds=10))
         self.table.rows[(identifier, day.isoformat())] = {
-          "pk": identifier, "sk": day.isoformat(), "samples": "f" * count, "checked": self.reader.iso(checked),
-          "events": [[start_text, "ta", "ALARM"]], "truncated": True,
+          "pk": identifier, "sk": day.isoformat(), "samples": ("p" if identifier == "home-gpu" else "f") * count,
+          "checked": self.reader.iso(checked),
+          **({} if identifier == "home-gpu" else {"events": [[start_text, "ta", "ALARM"]], "truncated": True}),
           "expires": int(self.reader.mountain_midnight(day + timedelta(days=90)).timestamp()),
         }
     for source in ("browser", "local", "production"):
@@ -377,12 +470,14 @@ class CollectorTests(TestCase):
       }
       self.assertLess(len(json.dumps(archive).encode("utf-8")), 8 * 1024)
       self.table.rows[("catalog", key)] = archive
-    snapshot = self.read()
+    reader = load_runtime("Collector", self.table, self.cloudwatch, self.sagemaker, home_gpu=True)
+    snapshot = reader.handler({}, self.context)
     self.assertTrue(snapshot["ok"])
+    self.assertEqual(len(snapshot["homeGpu"]["hours"]), 72)
     self.assertEqual(len(snapshot["checks"]), 210)
     self.assertEqual(len(snapshot["catalogHistory"]["results"]), 70)
     self.assertEqual(snapshot["catalogHistory"]["results"][catalog_ids[0]], {"hours": "o" * 72, "days": "o" * 90})
-    self.assertLess(len(json.dumps(snapshot).encode("utf-8")), 384 * 1024)
+    self.assertLess(len(json.dumps(snapshot).encode("utf-8")), 448 * 1024)
 
   def test_report_validation_sources_order_and_expiry(self):
     identifier = "project:smartSentence"
@@ -574,6 +669,11 @@ class CollectorTests(TestCase):
     self.assertNotIn("Writer.Arn", invoker)
     self.assertNotIn("Report.Arn", invoker)
     self.assertIn("Default: 'false'", TEMPLATE)
+    reader_role = TEMPLATE.split("  CollectorRole:\n")[1].split("  Collector:\n")[0]
+    writer_role = TEMPLATE.split("  WriterRole:\n")[1].split("  Writer:\n")[0]
+    self.assertNotIn("home-gpu-heartbeat", reader_role)
+    self.assertIn("Action: dynamodb:GetItem\n", writer_role)
+    self.assertEqual(writer_role.count("home-gpu-heartbeat"), 1)
 
 
 if __name__ == "__main__":

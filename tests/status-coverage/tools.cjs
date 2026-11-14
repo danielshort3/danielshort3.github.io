@@ -81,8 +81,8 @@ function statusGroup(page, name) {
 async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
   const period = page.getByRole('combobox', { name: 'Group by' });
   const tooltip = page.getByRole('tooltip');
-  const groups = ['AWS Connections', 'Tools', 'Projects', 'Games'].map((name) => statusGroup(page, name));
-  const [aws, tools, projects, games] = groups;
+  const groups = ['AWS Connections', 'Local services', 'Tools', 'Projects', 'Games'].map((name) => statusGroup(page, name));
+  const [aws, localServices, tools, projects, games] = groups;
   const now = new Date('2026-11-01T09:05:00.000Z');
   await page.clock.setSystemTime(now);
   const latestShown = '2026-11-01T07:00:00.000Z';
@@ -96,6 +96,19 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
       start, from: start, to: start, state: 'unknown', issue: 'No AWS transcription activity recorded.'
     }))
   });
+  snapshot.homeGpu = {
+    id: 'home-gpu',
+    label: 'Home GPU',
+    days: [
+      ['2026-10-30', 'outage', 'No report arrived from the PC.'],
+      ['2026-10-31', 'operational', 'The transcription worker is ready.']
+    ].map(([date, state, issue]) => ({ date, from: date + 'T12:00:00Z', to: date + 'T12:00:00Z', state, issue })),
+    hours: [
+      ['2026-11-01T06:00:00.000Z', 'degraded', 'The PC reported that the transcription worker is unavailable.'],
+      [latestShown, 'outage', 'No report arrived from the PC.'],
+      [nextHour, 'operational', 'The transcription worker is ready.']
+    ].map(([start, state, issue]) => ({ start, from: start, to: start, state, issue }))
+  };
   for (const [id, hours] of [['tool:fixture', 'uu'], ['project:fixture', 'od'], ['game:fixture', 'oo']]) {
     snapshot.catalogHistory.results[id] = { hours: '-'.repeat(70) + hours, days: '-'.repeat(90) };
   }
@@ -124,12 +137,13 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   const ticks = (group, name) => group.rows.filter({ hasText: name }).locator('.aws-status__tick');
   const awsTicks = ticks(aws, 'Fixture connection');
   const transcribeTicks = ticks(aws, 'File Transcriber (AWS)');
+  const homeGpuTicks = ticks(localServices, 'Home GPU');
   const browserTicks = ticks(tools, 'Browser-checked tool');
   const projectTicks = ticks(projects, 'Fixture project');
   const gameTicks = ticks(games, 'Fixture game');
   const rowLengths = () => dashboard.locator('.aws-status__ticks').evaluateAll((rows) =>
     rows.map((row) => row.querySelectorAll('.aws-status__tick').length));
-  await expect.poll(rowLengths).toEqual(Array(10).fill(70));
+  await expect.poll(rowLengths).toEqual(Array(12).fill(70));
   await tools.toggle.click();
   await expect(tools.rows).toHaveCount(0);
   await expect(tools.summary.last()).toBeVisible();
@@ -146,6 +160,17 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(transcribeTicks.and(page.locator('[data-state="unknown"]'))).toHaveCount(70);
   await expect(transcribeTicks.last()).toHaveAttribute('data-state', 'unknown');
   await expect(tooltip.locator('p')).toContainText('No AWS transcription activity recorded.');
+  await expect(aws.rows.filter({ hasText: 'Home GPU' })).toHaveCount(0);
+  await expect(localServices.rows.filter({ hasText: 'File Transcriber (AWS)' })).toHaveCount(0);
+  await expect(dashboard).toContainText('Offline means the PC stopped reporting.');
+  await expect(homeGpuTicks.nth(-3)).toHaveAccessibleName(/Unknown$/);
+  await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Worker unavailable$/);
+  await homeGpuTicks.nth(-2).hover();
+  await expect(tooltip.locator('p')).toHaveText('Worker unavailable · The PC reported that the transcription worker is unavailable.');
+  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
+  await homeGpuTicks.last().hover();
+  await expect(tooltip.locator('p')).toHaveText('Offline · No report arrived from the PC.');
+  await expect(localServices.summary.last()).toHaveAccessibleName(/Offline$/);
 
   // AWS starts the hour before the catalog reports arrive. A refresh with both
   // types of data still holds the hour until the API marks it ready.
@@ -159,7 +184,8 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   for (const { result, latest } of newestCatalogHour) result.hours = result.hours.slice(0, -1) + latest;
   await refresh('2026-11-01T09:09:00.000Z');
   assert.equal(queryCount(), 2);
-  await expect.poll(rowLengths).toEqual(Array(10).fill(70));
+  await expect.poll(rowLengths).toEqual(Array(12).fill(70));
+  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
   await expect(aws.summary.last()).toHaveAttribute('data-state', 'degraded');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'degraded');
   await expect(browserTicks.last()).toHaveAttribute('data-state', 'degraded');
@@ -176,10 +202,14 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   snapshot.hourlyReadyThrough = nextHour;
   await refresh('2026-11-01T09:14:00.000Z');
   assert.equal(queryCount(), 3);
-  await expect.poll(rowLengths).toEqual(Array(10).fill(71));
+  await expect.poll(rowLengths).toEqual(Array(12).fill(71));
   assert.equal(await page.evaluate(() => window.fixtureMixedColumns), false);
   await expect(aws.summary.last()).toHaveAttribute('data-state', 'unknown');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
+  await expect(transcribeTicks.last()).toHaveAccessibleName(/Unknown$/);
+  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
+  await homeGpuTicks.last().hover();
+  await expect(tooltip.locator('p')).toHaveText('Online');
   await expect(browserTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(projectTicks.last()).toHaveAttribute('data-state', 'degraded');
   await expect(gameTicks.last()).toHaveAttribute('data-state', 'operational');
@@ -192,9 +222,12 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(tooltip).toBeHidden();
 
   await period.selectOption('daily');
-  await expect.poll(rowLengths).toEqual(Array(10).fill(89));
+  await expect.poll(rowLengths).toEqual(Array(12).fill(89));
+  await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Offline$/);
+  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
   await period.selectOption('weekly');
-  await expect.poll(rowLengths).toEqual(Array(10).fill(13));
+  await expect.poll(rowLengths).toEqual(Array(12).fill(13));
+  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
   await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
   await awsTicks.nth(11).hover();
   await expect(tooltip.locator('strong')).toContainText(/Oct 19.*Oct 25/);
@@ -209,7 +242,9 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await visit(phone, base, item.route);
     const mobilePeriod = phone.getByRole('combobox', { name: 'Group by' });
     const mobileTools = statusGroup(phone, 'Tools');
+    const mobileLocal = statusGroup(phone, 'Local services');
     const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
+    const mobileHomeGpuTicks = ticks(mobileLocal, 'Home GPU');
     const expectSeparatedTouchTargets = async (row) => {
       const { height, gap } = await row.evaluateAll((ticks) => {
         const boxes = ticks.map((tick) => tick.getBoundingClientRect());
@@ -238,6 +273,13 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await expectSeparatedTouchTargets(mobileTools.summary);
     await expectSeparatedTouchTargets(mobileTicks);
     await expect(mobileTicks.last()).toBeInViewport();
+    await mobilePeriod.selectOption('hourly');
+    await mobileLocal.toggle.tap();
+    await expectSeparatedTouchTargets(mobileHomeGpuTicks);
+    await mobileHomeGpuTicks.nth(-2).tap();
+    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Offline');
+    await mobileHomeGpuTicks.last().tap();
+    await expect(phone.getByRole('tooltip').locator('p')).toHaveText('Online');
     assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
   } finally {
     await mobile.close();
@@ -246,16 +288,18 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   delete snapshot.hourlyReadyThrough;
   delete snapshot.connections[0].hours;
   delete snapshot.catalogHistory;
+  delete snapshot.homeGpu;
   await context.addInitScript(() => { window.fixtureRole = 'admin'; });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(period).toHaveValue('hourly');
+  await expect(localServices.toggle).toHaveCount(0);
   await expect(aws.toggle).toHaveAttribute('aria-expanded', 'false');
   await aws.toggle.click();
   await expect(awsTicks).toHaveCount(72);
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'unknown');
   await period.selectOption('daily');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
-  return local('The fixture verified access, grouped history, complete-hour refresh, concise details and touch controls.');
+  return local('The fixture verified access, separate Home GPU history, grouped refresh, concise details and touch controls.');
 }
 
 async function statusTool({ browser, context, page, base, item }) {

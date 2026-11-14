@@ -17,6 +17,7 @@ const CONNECTIONS = new Map([
   ['chatbot', 'Website chatbot'],
   ['markdown', 'SageMaker Markdown']
 ]);
+const HOME_GPU_ID = 'home-gpu';
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
 const HOUR_STATES = /^[-uodx]{72}$/;
@@ -99,16 +100,12 @@ function sanitizeHistory(periods, limit, key, sanitize) {
   return [...byKey.values()].sort((left, right) => left[key].localeCompare(right[key]));
 }
 
-function sanitizeConnections(connections) {
-  const byId = new Map(connections.map((connection) => [connection?.id, connection]));
-  return [...CONNECTIONS].map(([id, label]) => {
-    const stored = byId.get(id);
-    const output = { id, label, days: sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay) };
-    if (Array.isArray(stored?.hours) && stored.hours.length <= HISTORY_HOURS) {
-      output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour);
-    }
-    return output;
-  });
+function sanitizeConnection(stored, id, label) {
+  const output = { id, label, days: sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay) };
+  if (Array.isArray(stored?.hours) && stored.hours.length <= HISTORY_HOURS) {
+    output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour);
+  }
+  return output;
 }
 
 function latestPublishedHour(connections, history, catalog, now) {
@@ -177,14 +174,18 @@ function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
     throw new Error('Invalid AWS history snapshot.');
   }
   const catalogHistory = sanitizeCatalogHistory(snapshot.catalogHistory, catalog, now);
-  const connections = sanitizeConnections(snapshot.connections);
+  const byId = new Map(snapshot.connections.map((connection) => [connection?.id, connection]));
+  const connections = [...CONNECTIONS].map(([id, label]) => sanitizeConnection(byId.get(id), id, label));
+  const homeGpu = snapshot.homeGpu?.id === HOME_GPU_ID ? sanitizeConnection(snapshot.homeGpu, HOME_GPU_ID, 'Home GPU') : null;
+  const monitored = homeGpu ? [...connections, homeGpu] : connections;
   return {
     ok: true,
     region: REGION,
     days: HISTORY_DAYS,
     checkedAt: snapshot.checkedAt,
-    hourlyReadyThrough: latestPublishedHour(connections, catalogHistory, catalog, now),
+    hourlyReadyThrough: latestPublishedHour(monitored, catalogHistory, catalog, now),
     connections,
+    ...(homeGpu ? { homeGpu } : {}),
     catalog: projectCatalog(catalog, snapshot.checks, now),
     ...(catalogHistory ? { catalogHistory } : {})
   };
