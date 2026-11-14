@@ -9,9 +9,9 @@
   "references": [
     "img/project-starfall/enemies/icebloom-oracle.png",
     "img/project-starfall/animations/enemies/icebloom-oracle-compact-sheet.png",
-    "output/starfall-animation-samples/oracle-cast-study.png",
+    "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/oracle-cast-study.png",
     "output/starfall-animation-samples/glowcap-spring-study.png",
-    "output/starfall-animation-samples/oracle-cast-study.png"
+    "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/oracle-cast-study.png"
   ],
   "requestedGrid": {
     "columns": 6,
@@ -37,7 +37,7 @@
   "baseReferenceHeight": 144,
   "supplementalRows": {
     "buff": {
-      "repoPath": "output/starfall-animation-samples/oracle-cast-study.png",
+      "repoPath": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/oracle-cast-study.png",
       "columns": 4,
       "rows": 2,
       "neutralIndex": 0,
@@ -79,7 +79,7 @@
     }
   },
   "protectedReuse": {
-    "source": "output/starfall-animation-samples/oracle-cast-study.png",
+    "source": "asset-sources/project-starfall/overhaul-v1/enemies/icebloom-oracle/oracle-cast-study.png",
     "sha256": "062807836c25b7ccdfcb9e65081285589a85a15dcc64473578fb4b88468a51e8",
     "unchanged": true,
     "registration": "Approved anatomical/foot-band anchors; one fixed resolution scale per source; repeated final boar drawings are explicit held commitment/recovery, not manufactured motion."

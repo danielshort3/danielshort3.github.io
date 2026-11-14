@@ -219,7 +219,7 @@
   ],
   "run": [
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 88,
         "top": 57,
@@ -246,7 +246,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 572,
         "top": 55,
@@ -273,7 +273,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 966,
         "top": 49,
@@ -300,7 +300,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 1400,
         "top": 55,
@@ -327,7 +327,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 69,
         "top": 477,
@@ -354,7 +354,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 549,
         "top": 480,
@@ -381,7 +381,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 949,
         "top": 477,
@@ -408,7 +408,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sourceRect": {
         "left": 1399,
         "top": 479,
@@ -1067,7 +1067,7 @@
   ],
   "basic": [
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 107,
         "top": 43,
@@ -1094,7 +1094,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 513,
         "top": 50,
@@ -1121,7 +1121,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 953,
         "top": 57,
@@ -1148,7 +1148,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 1412,
         "top": 57,
@@ -1175,7 +1175,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 67,
         "top": 476,
@@ -1202,7 +1202,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 521,
         "top": 477,
@@ -1229,7 +1229,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 992,
         "top": 471,
@@ -1256,7 +1256,7 @@
       }
     },
     {
-      "source": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "source": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sourceRect": {
         "left": 1447,
         "top": 471,
