@@ -210,14 +210,33 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     const mobilePeriod = phone.getByRole('combobox', { name: 'Group by' });
     const mobileTools = statusGroup(phone, 'Tools');
     const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
+    const expectSeparatedTouchTargets = async (row) => {
+      const { height, gap } = await row.evaluateAll((ticks) => {
+        const boxes = ticks.map((tick) => tick.getBoundingClientRect());
+        return {
+          height: Math.min(...boxes.map((box) => box.height)),
+          gap: Math.min(...boxes.slice(1).map((box, index) => box.left - boxes[index].right))
+        };
+      });
+      expect(gap).toBeGreaterThan(0);
+      expect(height).toBeGreaterThanOrEqual(44);
+    };
     await expect(mobilePeriod).toHaveValue('hourly');
     await mobileTools.toggle.tap();
+    await expect(mobileTicks).toHaveCount(71);
+    await expectSeparatedTouchTargets(mobileTools.summary);
+    await expectSeparatedTouchTargets(mobileTicks);
+    await mobileTicks.nth(-2).tap();
+    await expect(phone.getByRole('tooltip').locator('strong')).toContainText('1:00 AM MDT');
+    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Degraded');
     await mobileTicks.last().tap();
     await expect(phone.getByRole('tooltip').locator('strong')).toContainText('1:00 AM MST');
     await expect(phone.getByRole('tooltip').locator('p')).toContainText('Operational');
     await mobilePeriod.selectOption('weekly');
     await expect(phone.getByRole('tooltip')).toBeHidden();
     await expect(mobileTicks).toHaveCount(13);
+    await expectSeparatedTouchTargets(mobileTools.summary);
+    await expectSeparatedTouchTargets(mobileTicks);
     await expect(mobileTicks.last()).toBeInViewport();
     assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
   } finally {
