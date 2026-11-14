@@ -17,6 +17,13 @@
   const FIXTURE_STATES = { operational: 'passed', degraded: 'had issues', outage: 'failed' };
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
   const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
+  const CHECK_RESULTS = {
+    '-': ['unknown', 'No check recorded.'],
+    u: ['unknown', 'The recorded check was inconclusive.'],
+    o: ['operational', 'The recorded check passed.'],
+    d: ['degraded', 'The recorded check had issues.'],
+    x: ['outage', 'The recorded check failed.']
+  };
   const HISTORY_VIEWS = {
     hourly: { range: 'Last 72 hours', start: '72 hours ago', end: 'This hour', period: 'an hour' },
     daily: { range: 'Last 90 days', start: '90 days ago', end: 'Today', period: 'a day' },
@@ -81,13 +88,14 @@
       if (weekday === 1 || weeks.length === 0) weeks.push([]);
       weeks.at(-1).push(date);
     }
-    return weeks;
+    return weeks.map((week) => {
+      const first = dateLabel(week[0]);
+      const last = dateLabel(week.at(-1));
+      return { dates: week, label: first === last ? first : first + ' – ' + last };
+    });
   }
 
-  function weekResult(dates, byDate) {
-    const first = dateLabel(dates[0]);
-    const last = dateLabel(dates.at(-1));
-    const label = first === last ? first : first + ' – ' + last;
+  function weekResult({ dates, label }, byDate) {
     const days = dates.map((date) => byDate.get(date));
     const incident = days.findLast((day) => day?.state === 'outage') ||
       days.findLast((day) => day?.state === 'degraded');
@@ -96,7 +104,7 @@
         ...incident,
         label,
         window: describeWindow({ from: incident.from, to: incident.to }),
-        issue: 'Issue during this week. ' + incident.issue
+        issue: 'Issue on ' + dateLabel(incident.date) + '. ' + incident.issue
       };
     }
     const measured = days.filter((day) => day?.state === 'operational');
@@ -140,6 +148,20 @@
       Date.parse(tile.from) <= Date.parse(tile.to) && typeof tile.issue === 'string';
   }
 
+  function catalogHistory(data) {
+    const history = data.catalogHistory;
+    if (!HOUR_KEY.test(history?.hourStart) || !hasTimestamp(history.hourStart) ||
+        !DATE_KEY.test(history.dayStart) || !hasTimestamp(history.dayStart) ||
+        !Array.isArray(history.observedAt) || history.observedAt.length !== HISTORY_HOURS ||
+        !history.results || typeof history.results !== 'object') return null;
+    return history;
+  }
+
+  function catalogObservation(code, observedAt) {
+    const [state, issue] = Object.hasOwn(CHECK_RESULTS, code) ? CHECK_RESULTS[code] : CHECK_RESULTS['-'];
+    return { state, issue, observedAt: code !== '-' && hasTimestamp(observedAt) ? observedAt : null };
+  }
+
   function validStatus(data) {
     return data?.ok === true && data.region === REGION && data.days === HISTORY_DAYS &&
       (data.checkedAt === null || hasTimestamp(data.checkedAt)) &&
@@ -165,27 +187,33 @@
   function init() {
     const root = document.querySelector('[data-aws-status]');
     if (!root) return;
-    const part = (name) => root.querySelector('[data-aws-status-part="' + name + '"]');
+    const part = (name, scope = root) => scope.querySelector('[data-aws-status-part="' + name + '"]');
     const dashboard = part('dashboard');
     const access = part('access');
     const refresh = part('refresh');
     const freshness = part('freshness');
     const notice = part('notice');
     const readings = part('readings');
-    const history = part('history');
-    const historyGrid = part('history-grid');
-    const historyScroll = part('history-scroll');
-    const granularity = part('granularity');
-    const historyRange = part('history-range');
-    const historyStart = part('history-start');
-    const historyEnd = part('history-end');
-    granularity.value = 'hourly';
-    const directory = part('directory');
-    const directoryTable = directory.querySelector('table');
     const tooltip = root.querySelector('#aws-status-history-details');
     const tabList = root.querySelector('[role="tablist"]');
     const tabs = [...tabList.querySelectorAll('[role="tab"]')];
-    const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls')));
+    const panels = tabs.map((tab) => {
+      const node = document.getElementById(tab.getAttribute('aria-controls'));
+      const granularity = part('granularity', node);
+      granularity.value = 'hourly';
+      return {
+        node,
+        granularity,
+        history: part('history', node),
+        grid: part('history-grid', node),
+        scroll: part('history-scroll', node),
+        range: part('history-range', node),
+        start: part('history-start', node),
+        end: part('history-end', node),
+        empty: part('history-empty', node),
+        position: null
+      };
+    });
     const detailsByTick = new WeakMap();
     let owner = '';
     let snapshot = null;
@@ -198,7 +226,7 @@
     let tooltipTimer;
     let activeTick;
     let pinnedTick;
-    let historyPositioned = false;
+    let selectedPanel = 0;
 
     function setNotice(message) {
       notice.textContent = message;
@@ -211,11 +239,16 @@
       readings.setAttribute('aria-busy', String(busy));
     }
 
-    function alignHistory() {
-      if (!historyPositioned && !panels[0].hidden && !history.hidden && !readings.hidden) {
-        historyScroll.scrollLeft = historyScroll.scrollWidth;
-        historyPositioned = true;
+    function rememberPosition(panel) {
+      if (!panel.node.hidden && !panel.history.hidden && !readings.hidden && panel.grid.childElementCount) {
+        panel.position = { left: panel.scroll.scrollLeft, top: panel.scroll.scrollTop };
       }
+    }
+
+    function alignHistory(panel) {
+      if (panel.history.hidden || readings.hidden) return;
+      panel.scroll.scrollLeft = panel.position?.left ?? panel.scroll.scrollWidth;
+      panel.scroll.scrollTop = panel.position?.top ?? 0;
     }
 
     function hideTooltip() {
@@ -229,14 +262,20 @@
 
     function selectTab(index, moveFocus = false) {
       hideTooltip();
+      if (index !== selectedPanel) {
+        const previous = panels[selectedPanel];
+        rememberPosition(previous);
+        previous.grid.replaceChildren();
+      }
+      selectedPanel = index;
       tabs.forEach((tab, i) => {
         const selected = i === index;
         tab.setAttribute('aria-selected', String(selected));
         tab.tabIndex = selected ? 0 : -1;
-        panels[i].hidden = !selected;
+        panels[i].node.hidden = !selected;
       });
       if (moveFocus) tabs[index].focus();
-      alignHistory();
+      if (snapshot) renderHistory();
     }
 
     function clearStatus() {
@@ -249,10 +288,11 @@
       nextRefreshAt = 0;
       readings.hidden = true;
       freshness.textContent = '';
-      historyGrid.replaceChildren();
-      granularity.value = 'hourly';
-      for (const group of [...directoryTable.tBodies]) group.remove();
-      historyPositioned = false;
+      for (const panel of panels) {
+        panel.grid.replaceChildren();
+        panel.granularity.value = 'hourly';
+        panel.position = null;
+      }
       selectTab(0);
       setNotice('');
       setBusy(false);
@@ -278,9 +318,17 @@
       if (!stale) staleTimer = setTimeout(renderFreshness, STALE_MS - age);
     }
 
-    function connectionPeriods(connection, view, dates, weeks, hours) {
-      if (view === 'hourly') {
-        const byHour = new Map((connection.hours || []).map((hour) => [hour.start, hour]));
+    function historyPeriods(item, timeline, catalog) {
+      const { dates, labels, weeks, hours, view } = timeline;
+      if (hours && catalog) {
+        const results = catalog.history?.results[item.id]?.hours;
+        return hours.map(({ from, label }) => {
+          const index = (from - catalog.hourStart) / HOUR_MS;
+          return { label, ...catalogObservation(results?.[index], catalog.history?.observedAt[index]) };
+        });
+      }
+      if (hours) {
+        const byHour = new Map((item.hours || []).map((hour) => [hour.start, hour]));
         return hours.map(({ start, label, from, to }) => {
           const hour = byHour.get(start);
           const window = hour && (Date.parse(hour.from) !== from || Date.parse(hour.to) !== to)
@@ -294,102 +342,111 @@
           };
         });
       }
-      const byDate = new Map(connection.days.map((day) => [day.date, day]));
+      const byDate = catalog ? new Map(dates.map((date) => {
+        const index = (Date.parse(date) - catalog.dayStart) / DAY_MS;
+        const code = catalog.history?.results[item.id]?.days?.[index];
+        const day = catalogObservation(code);
+        if (code === 'u') day.issue = 'Coverage was incomplete or inconclusive.';
+        return [date, { date, ...day }];
+      })) : new Map(item.days.map((day) => [day.date, day]));
       if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate));
       return dates.map((date) => ({
-        state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: dateLabel(date)
+        state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: labels.get(date)
       }));
     }
 
+    function catalogLabel(item) {
+      const label = element('div', '', 'aws-status__service aws-status__catalog-label');
+      const badge = statusBadge(item.state);
+      const source = Object.hasOwn(SOURCES, item.source) ? SOURCES[item.source] : '';
+      if (source && item.source !== 'production' && Object.hasOwn(FIXTURE_STATES, item.state)) {
+        badge.textContent = source + ' ' + FIXTURE_STATES[item.state];
+      }
+      const detail = [
+        source,
+        item.lastChecked && 'Last checked ' + timeLabel(item.lastChecked).textContent,
+        item.issue
+      ].filter(Boolean).join(' · ');
+      label.append(element('h4', item.label), badge);
+      if (detail) {
+        badge.title = detail;
+        label.append(element('span', detail, 'visually-hidden'));
+      }
+      return label;
+    }
+
+    function historyRow(item, timeline, catalog) {
+      const periods = historyPeriods(item, timeline, catalog);
+      const row = element('div', '', 'aws-status__history-row');
+      const label = catalog ? catalogLabel(item) : element('h3', item.label, 'aws-status__service');
+      const ticks = element('div', '', 'aws-status__ticks');
+      ticks.setAttribute('role', 'group');
+      ticks.setAttribute('aria-label', item.label + ' ' + timeline.view +
+        ' history. Use left and right arrows to choose ' + timeline.period + '.');
+      periods.forEach((detail, index) => {
+        const tick = element('button', '', 'aws-status__tick');
+        tick.type = 'button';
+        tick.tabIndex = index === periods.length - 1 ? 0 : -1;
+        tick.dataset.state = detail.state;
+        tick.setAttribute('aria-label', detail.label + ', ' + STATES[detail.state]);
+        detailsByTick.set(tick, detail);
+        ticks.append(tick);
+      });
+      row.append(label, ticks);
+      return row;
+    }
+
+    function catalogRows(timeline) {
+      const history = catalogHistory(snapshot);
+      const catalog = { history, hourStart: Date.parse(history?.hourStart), dayStart: Date.parse(history?.dayStart) };
+      return GROUPS.flatMap((group) => {
+        const items = snapshot.catalog.filter((item) => item.group === group);
+        if (!items.length) return [];
+        const heading = element('h3', '', 'aws-status__catalog-group');
+        heading.append(element('span', group));
+        return [heading, ...items.map((item) => historyRow(item, timeline, catalog))];
+      });
+    }
+
     function renderHistory() {
-      const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
+      const panel = panels[selectedPanel];
+      const view = Object.hasOwn(HISTORY_VIEWS, panel.granularity.value) ? panel.granularity.value : 'hourly';
       const { range, start, end, period } = HISTORY_VIEWS[view];
       const now = Date.now();
       const dates = view === 'hourly' ? [] : recentDates(now);
-      const weeks = view === 'weekly' ? calendarWeeks(dates) : [];
-      const hours = view === 'hourly' ? recentHours(now) : [];
-      historyRange.textContent = range;
-      historyStart.textContent = start;
-      historyEnd.textContent = end;
-      historyGrid.dataset.granularity = view;
-      const rows = snapshot.connections.map((connection) => {
-        const periods = connectionPeriods(connection, view, dates, weeks, hours);
-        const row = element('div', '', 'aws-status__history-row');
-        const label = element('h3', connection.label, 'aws-status__service');
-        const ticks = element('div', '', 'aws-status__ticks');
-        ticks.setAttribute('role', 'group');
-        ticks.setAttribute('aria-label', connection.label + ' ' + view + ' history. Use left and right arrows to choose ' + period + '.');
-        periods.forEach((detail, index) => {
-          const tick = element('button', '', 'aws-status__tick');
-          tick.type = 'button';
-          tick.tabIndex = index === periods.length - 1 ? 0 : -1;
-          tick.dataset.state = detail.state;
-          tick.setAttribute('aria-label', detail.label + ', ' + STATES[detail.state]);
-          detailsByTick.set(tick, detail);
-          ticks.append(tick);
-        });
-        row.append(label, ticks);
-        return row;
-      });
-      historyGrid.replaceChildren(...rows);
-      history.hidden = rows.length === 0;
-      part('connections-empty').hidden = rows.length > 0;
-    }
-
-    function renderDirectory() {
-      for (const body of [...directoryTable.tBodies]) body.remove();
-      for (const group of GROUPS) {
-        const items = snapshot.catalog.filter((item) => item.group === group);
-        if (!items.length) continue;
-        const body = element('tbody');
-        const header = element('tr', '', 'aws-status__directory-group');
-        const heading = element('th', group);
-        heading.scope = 'rowgroup';
-        heading.colSpan = 2;
-        header.append(heading);
-        body.append(header);
-        for (const item of items) {
-          const row = element('tr');
-          const name = element('th', item.label);
-          const status = element('td');
-          const source = Object.hasOwn(SOURCES, item.source) ? SOURCES[item.source] : '';
-          const badge = statusBadge(item.state);
-          if (source && item.source !== 'production' && Object.hasOwn(FIXTURE_STATES, item.state)) {
-            badge.textContent = source + ' ' + FIXTURE_STATES[item.state];
-          }
-          const detail = [
-            source,
-            item.lastChecked && 'Last checked ' + timeLabel(item.lastChecked).textContent,
-            item.issue
-          ].filter(Boolean).join(' · ');
-          if (detail) badge.title = detail;
-          name.scope = 'row';
-          status.append(badge);
-          if (detail) status.append(element('span', ' ' + detail, 'visually-hidden'));
-          row.append(name, status);
-          body.append(row);
-        }
-        directoryTable.append(body);
-      }
-      directory.hidden = snapshot.catalog.length === 0;
-      part('catalog-empty').hidden = snapshot.catalog.length > 0;
+      const timeline = {
+        view, period, dates,
+        labels: view === 'daily' ? new Map(dates.map((date) => [date, dateLabel(date)])) : null,
+        weeks: view === 'weekly' ? calendarWeeks(dates) : null,
+        hours: view === 'hourly' ? recentHours(now) : null
+      };
+      panel.range.textContent = range;
+      panel.start.textContent = start;
+      panel.end.textContent = end;
+      panel.grid.dataset.granularity = view;
+      const rows = selectedPanel === 0
+        ? snapshot.connections.map((item) => historyRow(item, timeline))
+        : catalogRows(timeline);
+      panel.grid.replaceChildren(...rows);
+      panel.history.hidden = rows.length === 0;
+      panel.empty.hidden = rows.length > 0;
+      alignHistory(panel);
     }
 
     function renderStatus() {
       hideTooltip();
       renderFreshness();
-      renderHistory();
-      renderDirectory();
+      rememberPosition(panels[selectedPanel]);
       readings.hidden = false;
-      alignHistory();
+      renderHistory();
     }
 
     function positionTooltip() {
       if (!activeTick) return;
       const tick = activeTick.getBoundingClientRect();
-      const clip = historyScroll.getBoundingClientRect();
+      const clip = panels[selectedPanel].scroll.getBoundingClientRect();
       if (tick.right <= clip.left || tick.left >= clip.right ||
-        tick.bottom <= 0 || tick.top >= window.innerHeight) {
+        tick.bottom <= Math.max(0, clip.top) || tick.top >= Math.min(window.innerHeight, clip.bottom)) {
         hideTooltip();
         return;
       }
@@ -448,26 +505,26 @@
     }
 
     function installHistoryControls() {
-      historyGrid.addEventListener('pointerover', (event) => {
+      readings.addEventListener('pointerover', (event) => {
         const tick = tickFrom(event);
         if (tick && event.pointerType !== 'touch' && !pinnedTick) showTooltip(tick);
       });
-      historyGrid.addEventListener('pointerout', (event) => {
+      readings.addEventListener('pointerout', (event) => {
         const tick = tickFrom(event);
         if (tick && !tooltip.contains(event.relatedTarget)) queueTooltipClose(tick);
       });
-      historyGrid.addEventListener('focusin', (event) => {
+      readings.addEventListener('focusin', (event) => {
         const tick = tickFrom(event);
         if (!tick) return;
         setCurrentTick(tick);
         if (pinnedTick !== tick) pinnedTick = null;
         showTooltip(tick);
       });
-      historyGrid.addEventListener('focusout', (event) => {
+      readings.addEventListener('focusout', (event) => {
         const tick = tickFrom(event);
         if (tick && tick === activeTick && !tooltip.contains(event.relatedTarget)) hideTooltip();
       });
-      historyGrid.addEventListener('click', (event) => {
+      readings.addEventListener('click', (event) => {
         const tick = tickFrom(event);
         if (!tick) return;
         if (pinnedTick === tick) {
@@ -478,7 +535,7 @@
         setCurrentTick(tick);
         showTooltip(tick);
       });
-      historyGrid.addEventListener('keydown', (event) => {
+      readings.addEventListener('keydown', (event) => {
         const tick = tickFrom(event);
         if (!tick || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         const siblings = [...tick.parentElement.children];
@@ -607,12 +664,13 @@
       });
     });
     installHistoryControls();
-    granularity.addEventListener('change', () => {
-      if (!snapshot) return;
-      hideTooltip();
-      historyPositioned = false;
-      renderHistory();
-      alignHistory();
+    panels.forEach((panel) => {
+      panel.granularity.addEventListener('change', () => {
+        if (!snapshot || panel.node.hidden) return;
+        hideTooltip();
+        panel.position = { left: null, top: panel.scroll.scrollTop };
+        renderHistory();
+      });
     });
     refresh.addEventListener('click', () => {
       syncAccess();

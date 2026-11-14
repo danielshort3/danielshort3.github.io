@@ -113,7 +113,7 @@
 })();</script>
   <link rel="stylesheet" href="dist/styles.1ddbd25f.css">
   <link rel="stylesheet" href="dist/styles-tools.ec8eac8a.css">
-  <link rel="stylesheet" href="css/components/aws-status.css?v=de496afc9d4b">
+  <link rel="stylesheet" href="css/components/aws-status.css?v=6a2058486a07">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg?v=1fe5b1bd1f72">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
@@ -131,7 +131,7 @@
   <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:aws-status","path":"/tools/aws-status","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/aws-status.css?v=de496afc9d4b","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.5ad74a93.js","/js/common/service-worker-register.js","/js/tools/aws-status.js?v=e2183f5bde68","/dist/site-tools-account.de11193e.js","/dist/site-consent.a6d261d1.js"],"module":"tools:aws-status"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:aws-status","path":"/tools/aws-status","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/aws-status.css?v=6a2058486a07","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.5ad74a93.js","/js/common/service-worker-register.js","/js/tools/aws-status.js?v=4d48cd72630d","/dist/site-tools-account.de11193e.js","/dist/site-consent.a6d261d1.js"],"module":"tools:aws-status"}</script>
 </head>
 <body data-page="aws-status" class="tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-tools-title="AWS Status" data-tools-eyebrow="Ohio (us-east-2)" data-tools-autosave="false" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="aws-status" data-personal-fit="viewport" data-site-route-id="tools:aws-status" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="hard" data-personal-chrome="compact" data-site-route-module="tools:aws-status">
   <a href="/tools/aws-status#main" class="skip-link" data-navigation="hard">Skip to main content</a>
@@ -247,7 +247,7 @@
                   </select>
                 </div>
               </div>
-              <p class="aws-status__empty" data-aws-status-part="connections-empty" hidden>No service history is available yet.</p>
+              <p class="aws-status__empty" data-aws-status-part="history-empty" hidden>No service history is available yet.</p>
               <div class="aws-status__history" data-aws-status-part="history" hidden>
                 <div class="aws-status__history-scroll" data-aws-status-part="history-scroll">
                   <div class="aws-status__history-grid" data-aws-status-part="history-grid"></div>
@@ -266,14 +266,35 @@
             </section>
 
             <section class="aws-status__tab-panel" id="aws-status-directory" role="tabpanel" aria-labelledby="aws-status-directory-tab" tabindex="0" hidden>
-              <div class="aws-status__heading">
-                <h2>Projects &amp; Tools</h2>
+              <div class="aws-status__history-header">
+                <div class="aws-status__heading">
+                  <h2>Projects &amp; Tools history</h2>
+                  <p id="aws-status-catalog-range" data-aws-status-part="history-range" aria-live="polite">Last 72 hours</p>
+                </div>
+                <div class="aws-status__history-control">
+                  <label for="aws-status-catalog-granularity">Group by</label>
+                  <select id="aws-status-catalog-granularity" data-aws-status-part="granularity" aria-describedby="aws-status-catalog-range">
+                    <option value="hourly" selected>Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </div>
               </div>
-              <p class="aws-status__empty" data-aws-status-part="catalog-empty" hidden>No catalog status is available yet.</p>
-              <div class="aws-status__directory" data-aws-status-part="directory" hidden>
-                <table aria-label="Project and tool status">
-                  <thead><tr><th scope="col">Name</th><th scope="col">Status</th></tr></thead>
-                </table>
+              <p class="aws-status__empty" data-aws-status-part="history-empty" hidden>No project or tool status is available yet.</p>
+              <div class="aws-status__history" data-aws-status-part="history" hidden>
+                <div class="aws-status__history-scroll aws-status__catalog-scroll" data-aws-status-part="history-scroll">
+                  <div class="aws-status__history-grid" data-aws-status-part="history-grid"></div>
+                </div>
+                <div class="aws-status__legend">
+                  <span data-aws-status-part="history-start">72 hours ago</span>
+                  <ul aria-label="Check states">
+                    <li data-state="operational">Operational</li>
+                    <li data-state="degraded">Degraded</li>
+                    <li data-state="outage">Outage</li>
+                    <li data-state="unknown">Unknown</li>
+                  </ul>
+                  <span data-aws-status-part="history-end">This hour</span>
+                </div>
               </div>
             </section>
           </div>
@@ -301,7 +322,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="js/tools/aws-status.js?v=e2183f5bde68"></script>
+  <script defer src="js/tools/aws-status.js?v=4d48cd72630d"></script>
   <script defer src="dist/site-tools-account.de11193e.js"></script>
   <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>

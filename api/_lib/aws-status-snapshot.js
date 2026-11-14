@@ -18,9 +18,18 @@ const CONNECTIONS = new Map([
 ]);
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
+const HOUR_STATES = /^[-uodx]{72}$/;
+const DAY_STATES = /^[-uodx]{90}$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
 const isTimestamp = (value) => typeof value === 'string' && ISO_TIMESTAMP.test(value) && Number.isFinite(Date.parse(value));
 const issueText = (value) => typeof value === 'string' ? value.trim().slice(0, 240) : '';
+
+function canonicalTime(value, format) {
+  if (typeof value !== 'string' || !format.test(value)) return NaN;
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return NaN;
+  return new Date(time).toISOString().startsWith(value) ? time : NaN;
+}
 
 function sanitizePeriod(period) {
   if (!STATES.has(period?.state) || !isTimestamp(period.from) ||
@@ -42,9 +51,8 @@ function sanitizeDay(day) {
 }
 
 function sanitizeHour(hour) {
-  if (typeof hour?.start !== 'string' || !HOUR_KEY.test(hour.start)) return null;
-  const start = Date.parse(hour.start);
-  if (!Number.isFinite(start) || new Date(start).toISOString() !== hour.start) return null;
+  const start = canonicalTime(hour?.start, HOUR_KEY);
+  if (!Number.isFinite(start)) return null;
   const period = sanitizePeriod(hour);
   const end = start + HOUR_MS;
   if (!period || Date.parse(period.from) < start || Date.parse(period.to) > end) return null;
@@ -52,6 +60,31 @@ function sanitizeHour(hour) {
   const observedAt = Date.parse(period.observedAt);
   if (observedAt < start || observedAt >= end) delete period.observedAt;
   return { start: hour.start, ...period };
+}
+
+function sanitizeCatalogHistory(history, catalog, now) {
+  const start = canonicalTime(history?.hourStart, HOUR_KEY);
+  if (!Number.isFinite(start) || !Number.isFinite(canonicalTime(history.dayStart, DAY_KEY)) ||
+    !Array.isArray(history.observedAt) || history.observedAt.length !== HISTORY_HOURS ||
+    !history.results || typeof history.results !== 'object' || Array.isArray(history.results)) return undefined;
+
+  const observedAt = history.observedAt.map((value, index) => {
+    const checked = Date.parse(value);
+    const hour = start + index * HOUR_MS;
+    return isTimestamp(value) && checked >= hour && checked < hour + HOUR_MS && checked <= now ? value : null;
+  });
+  const results = {};
+  for (const { id } of catalog) {
+    if (!Object.hasOwn(history.results, id)) continue;
+    const item = history.results[id];
+    if (typeof item?.hours !== 'string' || !HOUR_STATES.test(item.hours) ||
+      typeof item.days !== 'string' || !DAY_STATES.test(item.days)) continue;
+    results[id] = {
+      hours: [...item.hours].map((state, index) => observedAt[index] ? state : '-').join(''),
+      days: item.days
+    };
+  }
+  return { hourStart: history.hourStart, dayStart: history.dayStart, observedAt, results };
 }
 
 function sanitizeHistory(periods, limit, key, sanitize) {
@@ -126,13 +159,15 @@ function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
     !Array.isArray(snapshot.checks) || snapshot.checks.length > MAX_CHECKS) {
     throw new Error('Invalid AWS history snapshot.');
   }
+  const catalogHistory = sanitizeCatalogHistory(snapshot.catalogHistory, catalog, now);
   return {
     ok: true,
     region: REGION,
     days: HISTORY_DAYS,
     checkedAt: snapshot.checkedAt,
     connections: sanitizeConnections(snapshot.connections),
-    catalog: projectCatalog(catalog, snapshot.checks, now)
+    catalog: projectCatalog(catalog, snapshot.checks, now),
+    ...(catalogHistory ? { catalogHistory } : {})
   };
 }
 

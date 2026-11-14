@@ -117,8 +117,7 @@
     outline-offset: 1px;
   }
 
-  .aws-status__history,
-  .aws-status__directory {
+  .aws-status__history {
     min-width: 0;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-card);
@@ -310,47 +309,40 @@
     margin: 0;
   }
 
-  .aws-status__directory {
+  .aws-status__catalog-scroll {
     max-height: min(32rem, 70vh);
-    overflow: auto;
   }
 
-  .aws-status__directory table {
-    width: 100%;
-    border-spacing: 0;
-    text-align: left;
-  }
-
-  .aws-status__directory thead {
+  .aws-status__catalog-group {
     position: sticky;
-    z-index: 1;
     top: 0;
-    background: var(--surface);
-    color: var(--text-muted);
-  }
-
-  .aws-status__directory th,
-  .aws-status__directory td {
-    padding: var(--space-6) var(--aws-status-edge);
+    z-index: 2;
+    margin: 0;
+    padding: var(--space-6) 0;
     border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface-light);
     font-size: 0.92rem;
   }
 
-  .aws-status__directory th[scope="row"] {
-    font-weight: 500;
-    overflow-wrap: anywhere;
+  .aws-status__catalog-group span {
+    position: sticky;
+    left: 0;
+    padding-inline: var(--space-6);
   }
 
-  .aws-status__directory th:last-child,
-  .aws-status__directory td {
-    width: 1%;
-    white-space: nowrap;
+  .aws-status__catalog-label {
+    gap: var(--space-4);
   }
 
-  .aws-status__directory .aws-status__directory-group th {
-    width: auto;
-    background: var(--surface-light);
+  .aws-status__catalog-label h4 {
+    margin: 0;
+    font: inherit;
     font-weight: 700;
+  }
+
+  .aws-status__catalog-label .aws-status__badge {
+    justify-self: start;
+    font-size: 0.75rem;
   }
 
   @media (max-width: 46rem) {

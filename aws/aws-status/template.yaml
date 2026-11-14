@@ -94,6 +94,7 @@ Resources:
         ZipFile: |
           import logging
           import os
+          import re
           from concurrent.futures import ThreadPoolExecutor
           from datetime import date, datetime, time, timedelta, timezone
 
@@ -106,6 +107,11 @@ Resources:
           DAYS = 90
           HOURS = 72
           HOUR = timedelta(hours=1)
+          CATALOG_LIMIT = 70
+          CATALOG_HISTORY_PREFIX = "report#"
+          CATALOG_DAY_KEY = re.compile(r"report#\d{4}-\d{2}-\d{2}")
+          CATALOG_CODES = "-uodx"
+          CATALOG_ID = re.compile(r"(?:tool:[a-z0-9][a-z0-9-]{0,63}|(?:project|game):[A-Za-z0-9][A-Za-z0-9_-]{0,63})")
           SERVICES = (
               ("cognito", "Cognito", 300), ("tracker", "Job Application Tracker", 3600),
               ("short-links", "Short Links", 300), ("contact", "Contact", 3600),
@@ -389,20 +395,149 @@ Resources:
               return checks
 
 
+          def catalog_archive(first, today, now, context):
+              request = {
+                  "TableName": TABLE,
+                  "KeyConditionExpression": "pk = :partition AND sk BETWEEN :first AND :last",
+                  "ExpressionAttributeValues": {
+                      ":partition": {"S": "catalog"},
+                      ":first": {"S": CATALOG_HISTORY_PREFIX + first.isoformat()},
+                      ":last": {"S": CATALOG_HISTORY_PREFIX + today.isoformat()},
+                  },
+                  "ConsistentRead": True, "Limit": DAYS + 1,
+              }
+              previous_day = first - timedelta(days=1)
+              for _ in range(DAYS):
+                  if context.get_remaining_time_in_millis() < 4000:
+                      raise TimeoutError("Catalog history read deadline reached")
+                  try:
+                      page = DYNAMODB.query(**request)
+                  except (BotoCoreError, ClientError):
+                      if context.get_remaining_time_in_millis() < 4000:
+                          raise
+                      page = DYNAMODB.query(**request)
+                  for item in page["Items"]:
+                      row = DESERIALIZER.deserialize({"M": item})
+                      if not CATALOG_DAY_KEY.fullmatch(row["sk"]):
+                          raise ValueError("Invalid catalog history key")
+                      day = date.fromisoformat(row["sk"].removeprefix(CATALOG_HISTORY_PREFIX))
+                      if row["pk"] != "catalog" or not previous_day < day <= today:
+                          raise ValueError("Invalid catalog history date")
+                      previous_day = day
+                      if int(row["expires"]) > int(now.timestamp()):
+                          yield day, row
+                  if not page.get("LastEvaluatedKey"):
+                      return
+                  request["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+              raise ValueError("Catalog history exceeds its read limit")
+
+
+          def catalog_day(day, row, now):
+              start, end = day_bounds(day)
+              slots = (end - start) // HOUR
+              stamps, results = row["observed"], row["results"]
+              if (not isinstance(stamps, list) or len(stamps) != slots or not isinstance(results, dict)
+                  or len(results) > slots * CATALOG_LIMIT):
+                  raise ValueError("Invalid catalog day size")
+              valid_stamps = []
+              for index, stamp in enumerate(stamps):
+                  if not isinstance(stamp, str):
+                      raise ValueError("Invalid catalog observation")
+                  hour = start + index * HOUR
+                  if stamp:
+                      at = parse_time(stamp)
+                      if iso(at) != stamp or not hour <= at < hour + HOUR:
+                          raise ValueError("Invalid catalog observation")
+                      if at > now:
+                          stamp = ""
+                  valid_stamps.append(stamp)
+              if any(not CATALOG_ID.fullmatch(identifier) or not isinstance(states, str) or len(states) != slots
+                     or any(code not in CATALOG_CODES for code in states)
+                     or any(code != "-" and not stamps[index] for index, code in enumerate(states))
+                     for identifier, states in results.items()):
+                  raise ValueError("Invalid catalog check history")
+              return valid_stamps, results
+
+
+          def catalog_daily_state(states):
+              if "x" in states:
+                  return "x"
+              if "d" in states:
+                  return "d"
+              if all(code == "-" for code in states):
+                  return "-"
+              return "o" if all(code == "o" for code in states) else "u"
+
+
+          def catalog_history(first, today, now, context, checks_future):
+              current = now.replace(minute=0, second=0, microsecond=0)
+              first_hour = current - (HOURS - 1) * HOUR
+              by_day = {}
+              latest = {}
+              observed = [None] * HOURS
+              for day, row in catalog_archive(first, today, now, context):
+                  stamps, results = catalog_day(day, row, now)
+                  start, _ = day_bounds(day)
+                  elapsed = min(len(stamps), (current - start) // HOUR + 1)
+                  by_day[day] = {
+                      identifier: "".join(code if stamps[index] else "-" for index, code in enumerate(states[:elapsed]))
+                      for identifier, states in results.items()
+                  }
+                  for identifier, states in by_day[day].items():
+                      newest = next((i for i in range(elapsed - 1, -1, -1) if states[i] != "-"), None)
+                      if newest is not None:
+                          latest[identifier] = stamps[newest]
+                  for index, checked in enumerate(stamps[:elapsed]):
+                      offset = (start + index * HOUR - first_hour) // HOUR
+                      if 0 <= offset < HOURS:
+                          observed[offset] = checked or None
+              active = {check["id"] for check in checks_future.result() if check["source"] == "browser"}
+              identifiers = sorted(latest, key=lambda identifier: (identifier in active, latest[identifier], identifier),
+                                   reverse=True)[:CATALOG_LIMIT]
+              hours = []
+              for offset in range(HOURS):
+                  at = first_hour + offset * HOUR
+                  day = mountain_day(at)
+                  hours.append((day, (at - mountain_midnight(day)) // HOUR))
+              return {
+                  "hourStart": iso(first_hour), "dayStart": first.isoformat(), "observedAt": observed,
+                  "results": {
+                      identifier: {
+                          "hours": "".join(by_day.get(day, {}).get(identifier, "-" * 25)[index] for day, index in hours),
+                          "days": "".join(catalog_daily_state(by_day.get(first + offset * timedelta(days=1), {}).get(identifier, "-"))
+                                          for offset in range(DAYS)),
+                      } for identifier in identifiers
+                  },
+              }
+
+
+          def optional_catalog_history(first, today, now, context, checks_future):
+              try:
+                  return catalog_history(first, today, now, context, checks_future)
+              except ERRORS + (TimeoutError, AttributeError):
+                  LOGGER.warning("AWS Status catalog history read failed")
+                  return None
+
+
           def handler(_event, _context):
               now = datetime.now(timezone.utc)
               today = mountain_day(now)
               first = today - timedelta(days=DAYS - 1)
               try:
-                  with ThreadPoolExecutor(max_workers=8) as executor:
+                  with ThreadPoolExecutor(max_workers=9) as executor:
                       pending = [executor.submit(connection, *service, first, today, now) for service in SERVICES]
                       checks_future = executor.submit(catalog_checks, now)
+                      history_future = executor.submit(optional_catalog_history, first, today, now, _context, checks_future)
                       connections = [result.result() for result in pending]
                       checks = checks_future.result()
+                      history = history_future.result()
                   seen = [day["observedAt"] for item in connections for day in item["days"] if "observedAt" in day]
                   seen.extend(check["lastChecked"] for check in checks)
-                  return {"ok": True, "checkedAt": max(seen, default=None), "region": REGION,
-                          "days": DAYS, "connections": connections, "checks": checks}
+                  snapshot = {"ok": True, "checkedAt": max(seen, default=None), "region": REGION,
+                              "days": DAYS, "connections": connections, "checks": checks}
+                  if history is not None:
+                      snapshot["catalogHistory"] = history
+                  return snapshot
               except ERRORS:
                   LOGGER.warning("AWS Status history read failed")
                   return {"ok": False, "error": "Status history is unavailable."}
@@ -987,7 +1122,7 @@ Resources:
           import logging
           import os
           import re
-          from datetime import datetime, timedelta, timezone
+          from datetime import date, datetime, time, timedelta, timezone
 
           import boto3
           from botocore.config import Config
@@ -996,8 +1131,15 @@ Resources:
           REGION = "us-east-2"
           MAX_CHECKS = 70
           MAX_AGE = timedelta(days=90)
+          HOUR = timedelta(hours=1)
+          CATALOG_HISTORY_PREFIX = "report#"
           SOURCES = ("production", "browser", "local")
           STATES = {"operational", "degraded", "outage", "unknown"}
+          HISTORY_CODES = {"operational": "o", "degraded": "d", "outage": "x", "unknown": "u"}
+          RETRYABLE_WRITES = {
+              "ConditionalCheckFailedException", "InternalServerError", "ProvisionedThroughputExceededException",
+              "RequestLimitExceeded", "ThrottlingException",
+          }
           FIELDS = {"id", "state", "lastChecked", "source", "expiresAt"}
           ID_PATTERN = re.compile(r"(?:tool:[a-z0-9][a-z0-9-]{0,63}|(?:project|game):[A-Za-z0-9][A-Za-z0-9_-]{0,63})")
           TIME_PATTERN = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?(?:Z|\+00:00)")
@@ -1015,6 +1157,14 @@ Resources:
 
           def iso(value):
               return value.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+          def mountain_midnight(day):
+              march = date(day.year, 3, 1)
+              november = date(day.year, 11, 1)
+              spring = march + timedelta(days=(6 - march.weekday()) % 7 + 7)
+              fall = november + timedelta(days=(6 - november.weekday()) % 7)
+              return datetime.combine(day, time(6 if spring < day <= fall else 7), timezone.utc)
 
 
           def validate(event, now, browser_ci):
@@ -1042,6 +1192,69 @@ Resources:
                       raise ValueError("Invalid catalog result lifetime")
                   groups.setdefault(source, {})[identifier] = [state, iso(checked), iso(expires)]
               return groups
+
+
+          def record_catalog_hour(incoming, context):
+              timestamps = {value[1] for value in incoming.values()}
+              if len(timestamps) != 1:
+                  raise ValueError("A browser report must have one observation time")
+              checked = timestamps.pop()
+              at = parse_time(checked)
+              day = at.date()
+              if at < mountain_midnight(day):
+                  day -= timedelta(days=1)
+              start = mountain_midnight(day)
+              slots = (mountain_midnight(day + timedelta(days=1)) - start) // HOUR
+              index = (at - start) // HOUR
+              key = {"pk": "catalog", "sk": CATALOG_HISTORY_PREFIX + day.isoformat()}
+              expires = int(mountain_midnight(day + MAX_AGE).timestamp())
+              incoming_codes = {identifier: HISTORY_CODES[value[0]] for identifier, value in incoming.items()}
+              empty = "-" * slots
+
+              for _ in range(3):
+                  if context.get_remaining_time_in_millis() < 6500:
+                      raise TimeoutError("Catalog history write deadline reached")
+                  try:
+                      item = TABLE.get_item(Key=key, ConsistentRead=True).get("Item")
+                  except BotoCoreError:
+                      continue
+                  except ClientError as error:
+                      if error.response.get("Error", {}).get("Code") not in RETRYABLE_WRITES:
+                          raise
+                      continue
+                  observed = list(item["observed"]) if item else [""] * slots
+                  results = dict(item["results"]) if item else {}
+                  if len(observed) != slots or len(results) > slots * MAX_CHECKS:
+                      raise ValueError("Invalid catalog archive size")
+                  if observed[index] >= checked:
+                      return
+                  for identifier in results.keys() | incoming_codes.keys():
+                      previous = results.get(identifier, empty)
+                      if len(previous) != slots:
+                          raise ValueError("Invalid catalog history slots")
+                      updated = previous[:index] + incoming_codes.get(identifier, "-") + previous[index + 1:]
+                      if updated == empty:
+                          results.pop(identifier, None)
+                      else:
+                          results[identifier] = updated
+                  observed[index] = checked
+                  if len(results) > slots * MAX_CHECKS:
+                      raise ValueError("Catalog archive has too many results")
+                  revision = item["rev"] if item else 0
+                  request = {"ConditionExpression": "attribute_not_exists(pk)"}
+                  if item:
+                      request = {"ConditionExpression": "rev = :expected",
+                                 "ExpressionAttributeValues": {":expected": revision}}
+                  try:
+                      TABLE.put_item(Item={**key, "rev": revision + 1, "results": results,
+                                           "observed": observed, "expires": expires}, **request)
+                      return
+                  except BotoCoreError:
+                      continue
+                  except ClientError as error:
+                      if error.response.get("Error", {}).get("Code") not in RETRYABLE_WRITES:
+                          raise
+              raise ValueError("Catalog history write contention")
 
 
           def record_source(source, incoming, now, context):
@@ -1085,6 +1298,8 @@ Resources:
               try:
                   browser_ci = context.invoked_function_arn.endswith(":browser-ci")
                   groups = validate(event, now, browser_ci)
+                  if browser_ci:
+                      record_catalog_hour(groups["browser"], context)
                   accepted = sum(record_source(source, reports, now, context) for source, reports in groups.items())
                   return {"ok": True, "accepted": accepted}
               except (BotoCoreError, ClientError, KeyError, TypeError, ValueError, TimeoutError, OverflowError):

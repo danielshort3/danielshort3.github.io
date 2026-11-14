@@ -69,6 +69,10 @@ Deploy the report code change in `template.yaml` first. Use temporary admin acce
 
 The separate stack publishes the reviewed code as a version and points `browser-ci` at it. When changing report code, update this stack with the new deployed hash to move the alias. Only the exact GitHub main workflow identity can assume the publisher role, which can invoke only that alias. The alias accepts browser results with an expiry no more than three hours from observation and submission. Use `GithubReporterRoleArn` and `BrowserReportAliasArn` from that stack's outputs. The manual path above continues to invoke the unqualified function.
 
+For Projects & Tools history, deploy the reader and report code in `template.yaml` first, preserving both existing parameters. In `github-reporter.yaml`, retain the original `ReportCodeSha256`, set `HistoryReportCodeSha256` to the new report code hash, and set `UseCatalogHistory=true`. Review the change set for the additional pinned version and the existing alias target update. Set `UseCatalogHistory=false` to move the alias back while retaining both versions.
+
+The browser alias preserves the latest complete report for each elapsed UTC hour in a Mountain calendar-day row under the existing catalog partition. Archived rows expire after 90 Mountain dates, independent of live result freshness. The dashboard shows 72 hourly slots, 90 calendar days, and Monday–Sunday weeks clipped to that range. Earlier periods and missing checks appear as Unknown. History records browser fixture outcomes and uses the report's observation time. It starts with the first archived run.
+
 Verify one default-branch publish through the alias and confirm the browser result appears in the private dashboard. Confirm the same role cannot invoke the unqualified report, reader or scheduled collector, and confirm the alias rejects a non-browser source. Removing the separate stack disables CI publishing and removes its provider, so verify no other role uses that provider before stack deletion.
 
 ### Independent fallback

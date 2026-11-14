@@ -33,6 +33,8 @@ class MemoryTable:
     self.query_requests = []
     self.write_count = 0
     self.conflicts = 0
+    self.page_size = None
+    self.query_errors = {}
 
   def get_item(self, Key, ConsistentRead):
     assert ConsistentRead
@@ -55,8 +57,15 @@ class MemoryTable:
     self.query_requests.append(request)
     values = request["ExpressionAttributeValues"]
     pk, start, end = (values[key]["S"] for key in (":partition", ":first", ":last"))
-    items = [copy.deepcopy(item) for (p, k), item in sorted(self.rows.items()) if p == pk and start <= k <= end]
+    errors = self.query_errors.get(start)
+    if errors:
+      raise errors.pop(0)
+    after = request.get("ExclusiveStartKey", {}).get("sk", {}).get("S", "")
+    items = [copy.deepcopy(item) for (p, k), item in sorted(self.rows.items()) if p == pk and start <= k <= end and k > after]
     assert len(items) < request["Limit"]
+    if self.page_size and start.startswith("report#") and len(items) > self.page_size:
+      items = items[:self.page_size]
+      return {"Items": items, "LastEvaluatedKey": {"pk": {"S": pk}, "sk": {"S": items[-1]["sk"]}}}
     return {"Items": items}
 
 
@@ -121,7 +130,11 @@ class CollectorTests(TestCase):
     self.assertEqual(result["checks"], [])
     self.assertEqual([item["id"] for item in result["connections"]],
                      ["cognito", "tracker", "short-links", "contact", "transcribe", "chatbot", "markdown"])
-    self.assertEqual(len(self.table.query_requests), 9)
+    self.assertEqual(len(self.table.query_requests), 10)
+    self.assertEqual(result["catalogHistory"], {
+      "hourStart": "2026-11-10T04:00:00.000Z", "dayStart": "2026-08-15",
+      "observedAt": [None] * 72, "results": {},
+    })
     for item in result["connections"]:
       days = item["days"]
       self.assertEqual(len(days), 90)
@@ -326,6 +339,7 @@ class CollectorTests(TestCase):
 
   def test_hourly_snapshot_with_full_history_and_catalog_stays_under_api_limit(self):
     today = self.reader.mountain_day(NOW)
+    catalog_ids = [f"project:{index:02}" + "c" * 62 for index in range(70)]
     for identifier, _label, cadence in self.reader.SERVICES:
       for offset in range(90):
         day = today - timedelta(days=offset)
@@ -341,14 +355,30 @@ class CollectorTests(TestCase):
     for source in ("browser", "local", "production"):
       self.table.rows[("catalog", source)] = {
         "sk": source, "results": {
-          f"project:{index:02}" + "long-catalog-id" * 3: [
+          identifier: [
             "operational", self.reader.iso(NOW), self.reader.iso(NOW + timedelta(hours=2))
-          ] for index in range(70)
+          ] for identifier in catalog_ids
         },
       }
+    for offset in range(90):
+      day = today - timedelta(days=offset)
+      start, end = self.reader.day_bounds(day)
+      slots = (end - start) // timedelta(hours=1)
+      hour_starts = [start + timedelta(hours=index) for index in range(slots)]
+      stamps = [self.reader.iso(at) if at <= NOW else "" for at in hour_starts]
+      states = "".join("o" if stamp else "-" for stamp in stamps)
+      key = "report#" + day.isoformat()
+      archive = {
+        "pk": "catalog", "sk": key, "observed": stamps, "results": dict.fromkeys(catalog_ids, states),
+        "expires": int(self.reader.mountain_midnight(day + timedelta(days=90)).timestamp()), "rev": 24,
+      }
+      self.assertLess(len(json.dumps(archive).encode("utf-8")), 8 * 1024)
+      self.table.rows[("catalog", key)] = archive
     snapshot = self.read()
     self.assertTrue(snapshot["ok"])
     self.assertEqual(len(snapshot["checks"]), 210)
+    self.assertEqual(len(snapshot["catalogHistory"]["results"]), 70)
+    self.assertEqual(snapshot["catalogHistory"]["results"][catalog_ids[0]], {"hours": "o" * 72, "days": "o" * 90})
     self.assertLess(len(json.dumps(snapshot).encode("utf-8")), 384 * 1024)
 
   def test_report_validation_sources_order_and_expiry(self):
@@ -363,6 +393,7 @@ class CollectorTests(TestCase):
     older = sample_report(identifier, "operational", "production", checked=NOW - timedelta(minutes=1))
     self.assertEqual(self.report.handler({"checks": [older]}, self.context), {"ok": True, "accepted": 0})
     self.assertEqual(self.table.write_count, 2)
+    self.assertEqual(self.read()["catalogHistory"]["results"], {})
     for event in ({"checks": [{**requests[0], "issue": "private"}]},
                   {"checks": [requests[0], requests[0]]},
                   {"checks": [sample_report("invalid:id", "outage", "production")]},
@@ -388,6 +419,7 @@ class CollectorTests(TestCase):
     valid = sample_report("project:website", "operational", "browser", expires=NOW + timedelta(hours=3))
     invalid = [
       {"checks": [valid, sample_report("tool:transcribe", "operational", "production")]},
+      {"checks": [valid, sample_report("tool:transcribe", "operational", "browser", checked=NOW - timedelta(minutes=1))]},
       {"checks": [{**valid, "source": "local"}]},
       {"checks": [{**valid, "expiresAt": (NOW + timedelta(hours=3, milliseconds=1)).isoformat(timespec="milliseconds")}]},
       {"checks": [{**valid, "lastChecked": (NOW - timedelta(minutes=1)).isoformat()}]},
@@ -401,6 +433,106 @@ class CollectorTests(TestCase):
     self.assertEqual(self.report.handler({"checks": [valid]}, self.context), {"ok": True, "accepted": 1})
     self.assertEqual(self.table.rows[("catalog", "browser")]["expires"], int((NOW + timedelta(hours=3)).timestamp()))
 
+  def publish_browser(self, checked, outcomes):
+    self.context.invoked_function_arn = f"arn:aws:lambda:us-east-2:{ACCOUNT}:function:website-aws-status-report:browser-ci"
+    return self.report.handler({"checks": [sample_report(identifier, state, "browser", checked, checked + timedelta(hours=3))
+                                           for identifier, state in outcomes.items()]}, self.context)
+
+  def test_browser_archive_records_actual_hours_with_independent_freshness_and_older_retries(self):
+    early = NOW - timedelta(hours=2, minutes=5)
+    later = NOW - timedelta(hours=2)
+    newest = NOW - timedelta(minutes=1)
+    self.table.conflicts = 2
+    self.assertEqual(self.publish_browser(early, {"tool:one": "degraded", "tool:former": "operational"})["accepted"], 2)
+    self.assertEqual(self.publish_browser(later, {"tool:one": "outage"})["accepted"], 1)
+    self.assertEqual(self.publish_browser(newest, {"tool:one": "unknown"})["accepted"], 1)
+    writes = self.table.write_count
+    self.publish_browser(early, {"tool:one": "degraded"})
+    self.publish_browser(newest, {"tool:one": "unknown"})
+    self.assertEqual(self.table.write_count, writes)
+    day = self.reader.mountain_day(newest)
+    archive = self.table.rows[("catalog", "report#" + day.isoformat())]
+    self.assertNotIn("tool:former", archive["results"])
+    self.assertEqual(archive["expires"], int(self.reader.mountain_midnight(day + timedelta(days=90)).timestamp()))
+    history = self.read()["catalogHistory"]
+    self.assertEqual(history["results"]["tool:one"]["hours"][-3:], "x-u")
+    self.assertEqual(history["observedAt"][-3:], [self.reader.iso(later), None, self.reader.iso(newest)])
+    self.assertEqual(history["results"]["tool:one"]["days"][-1], "x")
+    with patch.object(StubClock, "now", return_value=NOW + timedelta(hours=3)):
+      snapshot = self.read()
+    self.assertEqual(snapshot["checks"], [])
+    self.assertIn("x", snapshot["catalogHistory"]["results"]["tool:one"]["hours"])
+
+  def test_browser_archive_must_be_durable_before_successful_report_receipt(self):
+    self.table.conflicts = 3
+    with self.assertLogs(self.report.LOGGER, "WARNING"):
+      self.assertFalse(self.publish_browser(NOW, {"tool:one": "operational"})["ok"])
+    self.assertEqual(self.table.write_count, 0)
+    self.assertEqual(self.publish_browser(NOW, {"tool:one": "operational"}), {"ok": True, "accepted": 1})
+    next_minute = NOW + timedelta(minutes=1)
+    with patch.object(self.report, "record_source", side_effect=AwsError("ValidationException")), \
+         patch.object(StubClock, "now", return_value=next_minute), self.assertLogs(self.report.LOGGER, "WARNING"):
+      self.assertFalse(self.publish_browser(next_minute, {"tool:one": "degraded"})["ok"])
+    with patch.object(StubClock, "now", return_value=next_minute):
+      before = self.table.write_count
+      self.assertEqual(self.publish_browser(next_minute, {"tool:one": "degraded"}), {"ok": True, "accepted": 1})
+      self.assertEqual(self.table.write_count, before + 1)
+      history = self.read()["catalogHistory"]
+    self.assertEqual(history["results"]["tool:one"]["hours"][-1], "d")
+
+  def test_browser_archive_dst_actual_hours_and_daily_coverage(self):
+    mountain = ZoneInfo("America/Denver")
+    for day, slots in ((date(2026, 3, 8), 23), (date(2026, 11, 1), 25)):
+      with self.subTest(day=day):
+        start, end = self.reader.day_bounds(day)
+        for offset in range(slots):
+          checked = start + timedelta(hours=offset, minutes=2)
+          with patch.object(StubClock, "now", return_value=checked):
+            self.assertTrue(self.publish_browser(checked, {"tool:one": "operational", "tool:two": "unknown"})["ok"])
+        with patch.object(StubClock, "now", return_value=end + timedelta(minutes=2)):
+          history = self.read()["catalogHistory"]
+        self.assertEqual(history["results"]["tool:one"]["hours"][-slots-1:-1], "o" * slots)
+        self.assertEqual(history["results"]["tool:one"]["days"][-2:], "o-")
+        self.assertEqual(history["results"]["tool:two"]["days"][-2:], "u-")
+        if slots == 25:
+          repeat = [self.reader.parse_time(stamp).astimezone(mountain) for stamp in history["observedAt"][-slots-1:-1]
+                    if self.reader.parse_time(stamp).astimezone(mountain).hour == 1]
+          self.assertEqual([stamp.tzname() for stamp in repeat], ["MDT", "MST"])
+
+  def test_archive_read_retries_and_paginates_without_breaking_current_results(self):
+    before_midnight = self.reader.mountain_midnight(self.reader.mountain_day(NOW)) - timedelta(minutes=5)
+    with patch.object(StubClock, "now", return_value=before_midnight):
+      self.assertTrue(self.publish_browser(before_midnight, {"tool:one": "operational"})["ok"])
+    self.assertTrue(self.publish_browser(NOW, {"tool:one": "operational"})["ok"])
+    first = self.reader.mountain_day(NOW) - timedelta(days=89)
+    query_key = "report#" + first.isoformat()
+    self.table.page_size = 1
+    self.table.query_errors[query_key] = [AwsError("ThrottlingException")]
+    snapshot = self.read()
+    self.assertTrue(snapshot["ok"])
+    self.assertEqual(snapshot["catalogHistory"]["results"]["tool:one"]["days"][-2:], "uu")
+    self.assertTrue(any("ExclusiveStartKey" in request for request in self.table.query_requests))
+    self.assertEqual(snapshot["checks"][0]["state"], "operational")
+    self.table.query_errors[query_key] = [AwsError("ThrottlingException"), AwsError("ThrottlingException")]
+    with self.assertLogs(self.reader.LOGGER, "WARNING"):
+      snapshot = self.read()
+    self.assertTrue(snapshot["ok"])
+    self.assertNotIn("catalogHistory", snapshot)
+    self.assertEqual(snapshot["checks"][0]["state"], "operational")
+
+  def test_browser_archive_prefers_current_catalog_ids_when_the_catalog_changes(self):
+    earlier = NOW - timedelta(hours=1)
+    current = {f"tool:current-{index}": "operational" for index in range(69)}
+    self.assertEqual(self.publish_browser(earlier, {**current, "tool:retired": "degraded"})["accepted"], 70)
+    # An expired current result can still appear in the archive's previous hour.
+    self.table.rows[("catalog", "browser")]["results"]["tool:retired"][2] = self.reader.iso(NOW)
+    self.assertEqual(self.publish_browser(NOW, {**current, "tool:new": "unknown"})["accepted"], 70)
+    history = self.read()["catalogHistory"]["results"]
+    self.assertEqual(len(history), 70)
+    self.assertNotIn("tool:retired", history)
+    self.assertEqual(history["tool:current-0"]["hours"][-2:], "oo")
+    self.assertEqual(history["tool:new"]["hours"][-2:], "-u")
+
   def test_manual_report_keeps_its_longer_ttl_and_source_selection(self):
     checks = [
       sample_report("project:website", "operational", "production", expires=NOW + timedelta(days=7)),
@@ -412,7 +544,8 @@ class CollectorTests(TestCase):
     template = Path(__file__).with_name("github-reporter.yaml").read_text(encoding="utf-8")
     self.assertIn("Default: 'false'", template)
     self.assertIn("CodeSha256: !Ref ReportCodeSha256", template)
-    self.assertIn("FunctionVersion: !GetAtt BrowserReportVersion.Version", template)
+    self.assertIn("CodeSha256: !Ref HistoryReportCodeSha256", template)
+    self.assertIn("FunctionVersion: !If [HistoryEnabled, !GetAtt BrowserHistoryReportVersion.Version, !GetAtt BrowserReportVersion.Version]", template)
     self.assertIn("Name: browser-ci", template)
     role = template.split("  GithubReporterRole:\n")[1].split("\nOutputs:")[0]
     self.assertIn("'token.actions.githubusercontent.com:aud': sts.amazonaws.com", role)
