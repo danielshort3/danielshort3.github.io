@@ -9,6 +9,7 @@
   const HOUR_MS = 60 * 60 * 1000;
   const DAY_MS = 24 * HOUR_MS;
   const STALE_MS = 2 * 60 * 60 * 1000;
+  const HOME_GPU_STALE_MS = 75 * 60 * 1000;
   const REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
@@ -127,6 +128,25 @@
     return label;
   }
 
+  function homeGpuLastCheck(hours) {
+    const now = Date.now();
+    const latest = hours?.findLast((hour) => {
+      const observed = Date.parse(hour.observedAt);
+      const start = Date.parse(hour.start);
+      return hour.complete === true && hasTimestamp(hour.observedAt) && observed <= now &&
+        observed >= start && observed < start + HOUR_MS;
+    });
+    const status = ['Home GPU last check: '];
+    if (latest) {
+      const stale = now - Date.parse(latest.observedAt) >= HOME_GPU_STALE_MS;
+      status.push(element('strong', HOME_GPU_STATES[latest.state]), ' · ', timeLabel(latest.observedAt));
+      if (stale) status.push(' · Stale');
+    } else {
+      status.push('Unknown');
+    }
+    return status;
+  }
+
   function validHistoryTile(tile) {
     return Object.hasOwn(STATES, tile?.state) && hasTimestamp(tile.from) && hasTimestamp(tile.to) &&
       Date.parse(tile.from) <= Date.parse(tile.to) && typeof tile.issue === 'string';
@@ -190,6 +210,8 @@
     const startLabel = part('history-start');
     const endLabel = part('history-end');
     const empty = part('history-empty');
+    const homeGpuDetails = part('home-gpu-details');
+    const homeGpuStatus = part('home-gpu-last-check');
     const detailsByTick = new WeakMap();
     const expandedGroups = new Set();
     let owner = '';
@@ -240,6 +262,8 @@
       freshness.textContent = '';
       hideTooltip();
       grid.replaceChildren();
+      if (homeGpuDetails) homeGpuDetails.hidden = true;
+      homeGpuStatus?.replaceChildren();
       granularity.value = 'hourly';
       expandedGroups.clear();
       setNotice('');
@@ -354,7 +378,7 @@
       summary.append(heading, renderTicks(group, summaryPeriods, timeline, stateLabels));
       const body = element('div', '', 'aws-status__group-items');
       body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
-      toggle.setAttribute('aria-controls', body.id);
+      toggle.setAttribute('aria-controls', homeGpu && homeGpuDetails ? body.id + ' ' + homeGpuDetails.id : body.id);
       section.append(summary, body);
       function renderItems() {
         const open = expandedGroups.has(group);
@@ -365,9 +389,9 @@
           row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline, stateLabels));
           return row;
         }) : []));
-        if (open && homeGpu) {
-          const note = 'Offline means the PC stopped reporting. A lost connection can also cause a missed report.';
-          body.append(element('div', note, 'aws-status__legend'));
+        if (homeGpu && homeGpuDetails && homeGpuStatus) {
+          homeGpuDetails.hidden = !open;
+          homeGpuStatus.replaceChildren(...(open ? homeGpuLastCheck(items[0].hours) : []));
         }
       }
       toggle.addEventListener('click', () => {
@@ -410,6 +434,7 @@
         ...GROUPS.map((group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
       ];
       const periodCount = (timeline.hours || timeline.weeks || dates).length;
+      if (homeGpuDetails) homeGpuDetails.hidden = true;
       const sections = groups.filter(([, items]) => items.length > 0 && periodCount > 0)
         .map(([group, items, data]) => renderGroup(group, items, timeline, data));
       const focus = document.activeElement?.closest('.aws-status__group');

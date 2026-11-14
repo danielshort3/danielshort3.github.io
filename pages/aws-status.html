@@ -131,7 +131,7 @@
   <script id="ds-sw-register" defer src="/js/common/service-worker-register.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:aws-status","path":"/tools/aws-status","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/aws-status.css?v=c5ee734d6e82","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.5ad74a93.js","/js/common/service-worker-register.js","/js/tools/aws-status.js?v=465803b8822b","/dist/site-tools-account.de11193e.js","/dist/site-consent.a6d261d1.js"],"module":"tools:aws-status"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:aws-status","path":"/tools/aws-status","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/aws-status.css?v=c5ee734d6e82","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/dist/site-shell.5ad74a93.js","/js/common/service-worker-register.js","/js/tools/aws-status.js?v=9eb655b0b759","/dist/site-tools-account.de11193e.js","/dist/site-consent.a6d261d1.js"],"module":"tools:aws-status"}</script>
 </head>
 <body data-page="aws-status" class="tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-tools-title="AWS Status" data-tools-eyebrow="Ohio (us-east-2)" data-tools-autosave="false" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="aws-status" data-personal-fit="viewport" data-site-route-id="tools:aws-status" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="hard" data-personal-chrome="compact" data-site-route-module="tools:aws-status">
   <a href="/tools/aws-status#main" class="skip-link" data-navigation="hard">Skip to main content</a>
@@ -246,6 +246,10 @@
               <div class="aws-status__history-scroll" data-aws-status-part="history-scroll">
                 <div class="aws-status__history-grid" data-aws-status-part="history-grid"></div>
               </div>
+              <div id="aws-status-home-gpu-details" class="aws-status__legend" data-aws-status-part="home-gpu-details" hidden>
+                <span data-aws-status-part="home-gpu-last-check"></span>
+                <span>Offline means the PC stopped reporting. A lost connection can also cause a missed report.</span>
+              </div>
               <div class="aws-status__legend">
                 <span data-aws-status-part="history-start">72 hours ago</span>
                 <ul aria-label="Service states">
@@ -282,7 +286,7 @@
       </nav>
     </div>
   </footer>
-  <script defer src="js/tools/aws-status.js?v=465803b8822b"></script>
+  <script defer src="js/tools/aws-status.js?v=9eb655b0b759"></script>
   <script defer src="dist/site-tools-account.de11193e.js"></script>
   <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
