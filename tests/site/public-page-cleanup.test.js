@@ -8,8 +8,16 @@ module.exports = function runPublicPageCleanupTests({ assert }) {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
   const exclusions = require('../../build/public-deployment-exclusions.json');
   const { shouldSkipPublicCopy } = require('../../build/copy-to-public.js');
-  assert(exclusions.length === 35 && new Set(exclusions).size === 35,
-    'Deployment exclusions must contain only the 35 reviewed file paths');
+  const { collectAssetPaths, createAssetPreviewCatalog } = require('../../js/games/project-starfall/engine/assets.js');
+  const starfallData = require('../../js/games/project-starfall/project-starfall-data.js');
+  const enemyInventory = require('../../asset-sources/project-starfall/overhaul-v1/enemies/inventory.json');
+  const activeStarfallPaths = new Set([
+    ...collectAssetPaths(starfallData),
+    ...createAssetPreviewCatalog(starfallData).map(entry => entry.path)
+  ]);
+  const excludedPaths = new Set(exclusions);
+  assert(exclusions.length === 111 && excludedPaths.size === 111,
+    'Deployment exclusions must contain only the 111 reviewed file paths');
   for (const file of exclusions) {
     assert(typeof file === 'string' && !path.isAbsolute(file) && !/[\\*?]/.test(file)
       && !file.split('/').some(part => !part || part === '.' || part === '..'),
@@ -19,6 +27,15 @@ module.exports = function runPublicPageCleanupTests({ assert }) {
     assert(shouldSkipPublicCopy(path.join(root, file)), `${file} must be omitted by the copier`);
     assert(!shouldSkipPublicCopy(path.join(root, `${file}.retained`)),
       `${file} exclusion must not match neighboring filenames`);
+    assert(!activeStarfallPaths.has(file), `${file} must not be in the active Starfall asset registry`);
+  }
+  for (const { replacement } of enemyInventory.items) {
+    if (!replacement) continue;
+    assert(excludedPaths.has(replacement.oldSheet), `${replacement.oldSheet} must stay retired`);
+  }
+  for (const file of activeStarfallPaths) {
+    if (!/^img\/project-starfall\/animations\/(enemies|players)\//.test(file)) continue;
+    assert(fs.existsSync(path.join(root, 'public', file)), `${file} active animation must remain published`);
   }
   for (const source of ['/sitemap', '/sitemap.html']) {
     assert(config.rewrites.some(rule => rule.source === source && rule.destination === '/pages/sitemap'),
