@@ -13,19 +13,17 @@
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
   const GROUPS = ['Tools', 'Projects', 'Games'];
-  const SOURCES = { production: 'Production check', browser: 'Browser check', local: 'Local check' };
-  const FIXTURE_STATES = { operational: 'passed', degraded: 'had issues', outage: 'failed' };
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
   const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
   const CHECK_RESULTS = {
     '-': ['unknown', 'No check recorded.'],
-    u: ['unknown', 'The recorded check was inconclusive.'],
-    o: ['operational', 'The recorded check passed.'],
-    d: ['degraded', 'The recorded check had issues.'],
-    x: ['outage', 'The recorded check failed.']
+    u: ['unknown', 'Inconclusive check.'],
+    o: ['operational', ''],
+    d: ['degraded', 'Check reported an issue.'],
+    x: ['outage', 'Check failed.']
   };
   const HISTORY_VIEWS = {
-    hourly: { range: 'Last 72 hours', start: '72 hours ago', end: 'This hour', period: 'an hour' },
+    hourly: { range: 'Last 72 hours', start: '72 hours ago', end: 'Latest shown hour', period: 'an hour' },
     daily: { range: 'Last 90 days', start: '90 days ago', end: 'Today', period: 'a day' },
     weekly: { range: 'Last 90 days', start: '90 days ago', end: 'This week', period: 'a week' }
   };
@@ -34,6 +32,12 @@
     timeZone: HISTORY_ZONE, year: 'numeric', month: '2-digit', day: '2-digit'
   });
   const dayFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', dateStyle: 'medium' });
+  const shortDayFormat = new Intl.DateTimeFormat(undefined, {
+    timeZone: HISTORY_ZONE, month: 'short', day: 'numeric'
+  });
+  const hourFormat = new Intl.DateTimeFormat(undefined, {
+    timeZone: HISTORY_ZONE, hour: 'numeric', minute: '2-digit'
+  });
   const clockFormat = new Intl.DateTimeFormat(undefined, {
     timeZone: HISTORY_ZONE, hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
   });
@@ -47,12 +51,6 @@
     if (text) node.textContent = text;
     if (className) node.className = className;
     return node;
-  }
-
-  function statusBadge(state) {
-    const badge = element('span', STATES[state], 'aws-status__badge');
-    badge.dataset.state = state;
-    return badge;
   }
 
   function hasTimestamp(value) {
@@ -99,22 +97,13 @@
     const days = dates.map((date) => byDate.get(date));
     const incident = days.findLast((day) => day?.state === 'outage') ||
       days.findLast((day) => day?.state === 'degraded');
-    if (incident) {
-      return {
-        ...incident,
-        label,
-        window: describeWindow({ from: incident.from, to: incident.to }),
-        issue: 'Issue on ' + dateLabel(incident.date) + '. ' + incident.issue
-      };
-    }
+    if (incident) return { ...incident, label, issue: dateLabel(incident.date) + ' · ' + incident.issue };
     const measured = days.filter((day) => day?.state === 'operational');
     const complete = measured.length === days.length;
     return {
       label,
       state: complete ? 'operational' : 'unknown',
-      issue: complete ? 'All displayed days reported operational.' : measured.length
-        ? 'Monitoring coverage is incomplete for this period.'
-        : 'No operational check was recorded for this period.'
+      issue: complete ? '' : measured.length ? 'Some checks missing.' : 'No check recorded.'
     };
   }
 
@@ -123,24 +112,18 @@
   }
 
   function hourLabel(from, to) {
-    const endFormat = mountainDay(from) === mountainDay(to) ? clockFormat : dateTimeFormat;
-    return dateTimeFormat.format(from) + ' – ' + endFormat.format(to);
+    const startDay = shortDayFormat.format(from);
+    const endDay = mountainDay(from) === mountainDay(to) ? '' : shortDayFormat.format(to) + ', ';
+    const [startClock, endClock] = [from, to].map((time) =>
+      clockFormat.formatToParts(time).find((part) => part.type === 'timeZoneName')?.value);
+    const endTime = startClock === endClock ? hourFormat : clockFormat;
+    return startDay + ', ' + clockFormat.format(from) + ' – ' + endDay + endTime.format(to);
   }
 
   function timeLabel(value) {
     const label = element('time', dateTimeFormat.format(Date.parse(value)));
     label.dateTime = value;
     return label;
-  }
-
-  function describeWindow(day) {
-    const from = Date.parse(day.from);
-    const to = Date.parse(day.to);
-    if (!Number.isFinite(from) || !Number.isFinite(to)) return '';
-    const format = mountainDay(from) === day.date && mountainDay(to) === day.date
-      ? clockFormat : dateTimeFormat;
-    if (from === to) return format.format(from);
-    return format.format(from) + ' – ' + format.format(to);
   }
 
   function validHistoryTile(tile) {
@@ -157,9 +140,9 @@
     return history;
   }
 
-  function catalogObservation(code, observedAt) {
+  function catalogObservation(code) {
     const [state, issue] = Object.hasOwn(CHECK_RESULTS, code) ? CHECK_RESULTS[code] : CHECK_RESULTS['-'];
-    return { state, issue, observedAt: code !== '-' && hasTimestamp(observedAt) ? observedAt : null };
+    return { state, issue };
   }
 
   function validStatus(data) {
@@ -195,26 +178,16 @@
     const notice = part('notice');
     const readings = part('readings');
     const tooltip = root.querySelector('#aws-status-history-details');
-    const tabList = root.querySelector('[role="tablist"]');
-    const tabs = [...tabList.querySelectorAll('[role="tab"]')];
-    const panels = tabs.map((tab) => {
-      const node = document.getElementById(tab.getAttribute('aria-controls'));
-      const granularity = part('granularity', node);
-      granularity.value = 'hourly';
-      return {
-        node,
-        granularity,
-        history: part('history', node),
-        grid: part('history-grid', node),
-        scroll: part('history-scroll', node),
-        range: part('history-range', node),
-        start: part('history-start', node),
-        end: part('history-end', node),
-        empty: part('history-empty', node),
-        position: null
-      };
-    });
+    const granularity = part('granularity');
+    const history = part('history');
+    const grid = part('history-grid');
+    const scroll = part('history-scroll');
+    const rangeLabel = part('history-range');
+    const startLabel = part('history-start');
+    const endLabel = part('history-end');
+    const empty = part('history-empty');
     const detailsByTick = new WeakMap();
+    const expandedGroups = new Set();
     let owner = '';
     let snapshot = null;
     let failed = false;
@@ -226,7 +199,6 @@
     let tooltipTimer;
     let activeTick;
     let pinnedTick;
-    let selectedPanel = 0;
 
     function setNotice(message) {
       notice.textContent = message;
@@ -239,16 +211,8 @@
       readings.setAttribute('aria-busy', String(busy));
     }
 
-    function rememberPosition(panel) {
-      if (!panel.node.hidden && !panel.history.hidden && !readings.hidden && panel.grid.childElementCount) {
-        panel.position = { left: panel.scroll.scrollLeft, top: panel.scroll.scrollTop };
-      }
-    }
-
-    function alignHistory(panel) {
-      if (panel.history.hidden || readings.hidden) return;
-      panel.scroll.scrollLeft = panel.position?.left ?? panel.scroll.scrollWidth;
-      panel.scroll.scrollTop = panel.position?.top ?? 0;
+    function alignHistory(left) {
+      scroll.scrollLeft = left ?? scroll.scrollWidth;
     }
 
     function hideTooltip() {
@@ -258,24 +222,6 @@
       pinnedTick = null;
       tooltip.hidden = true;
       tooltip.replaceChildren();
-    }
-
-    function selectTab(index, moveFocus = false) {
-      hideTooltip();
-      if (index !== selectedPanel) {
-        const previous = panels[selectedPanel];
-        rememberPosition(previous);
-        previous.grid.replaceChildren();
-      }
-      selectedPanel = index;
-      tabs.forEach((tab, i) => {
-        const selected = i === index;
-        tab.setAttribute('aria-selected', String(selected));
-        tab.tabIndex = selected ? 0 : -1;
-        panels[i].node.hidden = !selected;
-      });
-      if (moveFocus) tabs[index].focus();
-      if (snapshot) renderHistory();
     }
 
     function clearStatus() {
@@ -288,12 +234,10 @@
       nextRefreshAt = 0;
       readings.hidden = true;
       freshness.textContent = '';
-      for (const panel of panels) {
-        panel.grid.replaceChildren();
-        panel.granularity.value = 'hourly';
-        panel.position = null;
-      }
-      selectTab(0);
+      hideTooltip();
+      grid.replaceChildren();
+      granularity.value = 'hourly';
+      expandedGroups.clear();
       setNotice('');
       setBusy(false);
     }
@@ -322,21 +266,24 @@
       const { dates, labels, weeks, hours, view } = timeline;
       if (hours && catalog) {
         const results = catalog.history?.results[item.id]?.hours;
-        return hours.map(({ from, label }) => {
+        const checked = Date.parse(item.lastChecked);
+        return hours.map(({ from, to, label }) => {
           const index = (from - catalog.hourStart) / HOUR_MS;
-          return { label, ...catalogObservation(results?.[index], catalog.history?.observedAt[index]) };
+          const code = results?.[index];
+          const observation = catalogObservation(code);
+          if (['u', 'd', 'x'].includes(code) && observation.state === item.state && checked >= from && checked < to) {
+            observation.issue = item.issue || observation.issue;
+          }
+          return { label, ...observation };
         });
       }
       if (hours) {
         const byHour = new Map((item.hours || []).map((hour) => [hour.start, hour]));
-        return hours.map(({ start, label, from, to }) => {
+        return hours.map(({ start, label }) => {
           const hour = byHour.get(start);
-          const window = hour && (Date.parse(hour.from) !== from || Date.parse(hour.to) !== to)
-            ? describeWindow(hour) : '';
           return {
             ...hour,
             label,
-            window,
             state: hour?.state || 'unknown',
             issue: hour?.issue || 'No check recorded.'
           };
@@ -346,7 +293,7 @@
         const index = (Date.parse(date) - catalog.dayStart) / DAY_MS;
         const code = catalog.history?.results[item.id]?.days?.[index];
         const day = catalogObservation(code);
-        if (code === 'u') day.issue = 'Coverage was incomplete or inconclusive.';
+        if (code === 'u') day.issue = 'Missing or inconclusive checks.';
         return [date, { date, ...day }];
       })) : new Map(item.days.map((day) => [day.date, day]));
       if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate));
@@ -355,33 +302,10 @@
       }));
     }
 
-    function catalogLabel(item) {
-      const label = element('div', '', 'aws-status__service aws-status__catalog-label');
-      const badge = statusBadge(item.state);
-      const source = Object.hasOwn(SOURCES, item.source) ? SOURCES[item.source] : '';
-      if (source && item.source !== 'production' && Object.hasOwn(FIXTURE_STATES, item.state)) {
-        badge.textContent = source + ' ' + FIXTURE_STATES[item.state];
-      }
-      const detail = [
-        source,
-        item.lastChecked && 'Last checked ' + timeLabel(item.lastChecked).textContent,
-        item.issue
-      ].filter(Boolean).join(' · ');
-      label.append(element('h4', item.label), badge);
-      if (detail) {
-        badge.title = detail;
-        label.append(element('span', detail, 'visually-hidden'));
-      }
-      return label;
-    }
-
-    function historyRow(item, timeline, catalog) {
-      const periods = historyPeriods(item, timeline, catalog);
-      const row = element('div', '', 'aws-status__history-row');
-      const label = catalog ? catalogLabel(item) : element('h3', item.label, 'aws-status__service');
+    function renderTicks(label, periods, timeline) {
       const ticks = element('div', '', 'aws-status__ticks');
       ticks.setAttribute('role', 'group');
-      ticks.setAttribute('aria-label', item.label + ' ' + timeline.view +
+      ticks.setAttribute('aria-label', label + ' ' + timeline.view +
         ' history. Use left and right arrows to choose ' + timeline.period + '.');
       periods.forEach((detail, index) => {
         const tick = element('button', '', 'aws-status__tick');
@@ -392,60 +316,121 @@
         detailsByTick.set(tick, detail);
         ticks.append(tick);
       });
-      row.append(label, ticks);
-      return row;
+      return ticks;
     }
 
-    function catalogRows(timeline) {
-      const history = catalogHistory(snapshot);
-      const catalog = { history, hourStart: Date.parse(history?.hourStart), dayStart: Date.parse(history?.dayStart) };
-      return GROUPS.flatMap((group) => {
-        const items = snapshot.catalog.filter((item) => item.group === group);
-        if (!items.length) return [];
-        const heading = element('h3', '', 'aws-status__catalog-group');
-        heading.append(element('span', group));
-        return [heading, ...items.map((item) => historyRow(item, timeline, catalog))];
+    function groupResult(rows, index) {
+      const incident = rows.find((row) => row.periods[index].state === 'outage') ||
+        rows.find((row) => row.periods[index].state === 'degraded');
+      if (incident) return { ...incident.periods[index], issue: incident.label };
+      const unknown = rows.some((row) => row.periods[index].state === 'unknown');
+      return {
+        label: rows[0].periods[index].label,
+        state: unknown ? 'unknown' : 'operational',
+        issue: unknown ? 'Missing or inconclusive checks.' : ''
+      };
+    }
+
+    function renderGroup(group, items, timeline, catalog) {
+      const rows = items.map((item) => ({ label: item.label, periods: historyPeriods(item, timeline, catalog) }));
+      const section = element('section', '', 'aws-status__group');
+      section.dataset.group = group;
+      const summary = element('div', '', 'aws-status__group-summary');
+      const heading = element('h3', '', 'aws-status__group-heading');
+      const toggle = element('button', group, 'aws-status__group-toggle');
+      toggle.type = 'button';
+      const count = element('span', String(rows.length), 'aws-status__group-count');
+      count.setAttribute('aria-hidden', 'true');
+      toggle.append(count);
+      heading.append(toggle);
+      summary.append(heading, renderTicks(group, rows[0].periods.map((_, index) => groupResult(rows, index)), timeline));
+      const body = element('div', '', 'aws-status__group-items');
+      body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
+      toggle.setAttribute('aria-controls', body.id);
+      section.append(summary, body);
+      function renderItems() {
+        const open = expandedGroups.has(group);
+        toggle.setAttribute('aria-expanded', String(open));
+        body.hidden = !open;
+        body.replaceChildren(...(open ? rows.map(({ label, periods }) => {
+          const row = element('div', '', 'aws-status__history-row');
+          row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline));
+          return row;
+        }) : []));
+      }
+      toggle.addEventListener('click', () => {
+        hideTooltip();
+        if (expandedGroups.has(group)) expandedGroups.delete(group);
+        else expandedGroups.add(group);
+        renderItems();
       });
+      renderItems();
+      return section;
     }
 
-    function renderHistory() {
-      const panel = panels[selectedPanel];
-      const view = Object.hasOwn(HISTORY_VIEWS, panel.granularity.value) ? panel.granularity.value : 'hourly';
+    function renderHistory(left) {
+      const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
       const { range, start, end, period } = HISTORY_VIEWS[view];
       const now = Date.now();
-      const dates = view === 'hourly' ? [] : recentDates(now);
+      const cutoff = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
+        ? Date.parse(snapshot.hourlyReadyThrough) : null;
+      const firstUnsettledDay = cutoff === null ? null : mountainDay(cutoff + HOUR_MS);
+      const dates = view === 'hourly' ? [] : recentDates(now).filter((date) => !firstUnsettledDay || date < firstUnsettledDay);
       const timeline = {
         view, period, dates,
         labels: view === 'daily' ? new Map(dates.map((date) => [date, dateLabel(date)])) : null,
         weeks: view === 'weekly' ? calendarWeeks(dates) : null,
-        hours: view === 'hourly' ? recentHours(now) : null
+        hours: view === 'hourly' ? recentHours(now).filter((hour) => cutoff === null || hour.from <= cutoff) : null
       };
-      panel.range.textContent = range;
-      panel.start.textContent = start;
-      panel.end.textContent = end;
-      panel.grid.dataset.granularity = view;
-      const rows = selectedPanel === 0
-        ? snapshot.connections.map((item) => historyRow(item, timeline))
-        : catalogRows(timeline);
-      panel.grid.replaceChildren(...rows);
-      panel.history.hidden = rows.length === 0;
-      panel.empty.hidden = rows.length > 0;
-      alignHistory(panel);
+      rangeLabel.textContent = range;
+      startLabel.textContent = start;
+      endLabel.textContent = cutoff === null ? end : {
+        hourly: 'Latest completed hour', daily: 'Latest completed day', weekly: 'Latest shown week'
+      }[view];
+      grid.dataset.granularity = view;
+      const catalogData = catalogHistory(snapshot);
+      const catalog = {
+        history: catalogData, hourStart: Date.parse(catalogData?.hourStart), dayStart: Date.parse(catalogData?.dayStart)
+      };
+      const groups = [
+        ['AWS Connections', snapshot.connections],
+        ...GROUPS.map((group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
+      ];
+      const periodCount = (timeline.hours || timeline.weeks || dates).length;
+      const sections = groups.filter(([, items]) => items.length > 0 && periodCount > 0)
+        .map(([group, items, data]) => renderGroup(group, items, timeline, data));
+      const focus = document.activeElement?.closest('.aws-status__group');
+      const focusToggle = focus?.querySelector('.aws-status__group-toggle') === document.activeElement;
+      const focusHistory = document.activeElement?.parentElement?.getAttribute('aria-label');
+      const focusDate = document.activeElement?.getAttribute('aria-label');
+      grid.replaceChildren(...sections);
+      history.hidden = sections.length === 0;
+      empty.hidden = sections.length > 0;
+      alignHistory(left);
+      if (!focus) return;
+      const restored = sections.find((section) => section.dataset.group === focus.dataset.group);
+      const toggle = restored?.querySelector('.aws-status__group-toggle');
+      const row = [...(restored?.querySelectorAll('.aws-status__ticks') || [])]
+        .find((ticks) => ticks.getAttribute('aria-label') === focusHistory);
+      const tick = [...(row?.children || [])].find((candidate) => candidate.getAttribute('aria-label') === focusDate);
+      (focusToggle ? toggle : tick || row?.lastElementChild || toggle)?.focus({ preventScroll: true });
     }
 
     function renderStatus() {
       hideTooltip();
       renderFreshness();
-      rememberPosition(panels[selectedPanel]);
+      const atEnd = scroll.scrollWidth - scroll.clientWidth - scroll.scrollLeft <= 2;
+      const left = atEnd || readings.hidden ? null : scroll.scrollLeft;
       readings.hidden = false;
-      renderHistory();
+      renderHistory(left);
     }
 
     function positionTooltip() {
       if (!activeTick) return;
       const tick = activeTick.getBoundingClientRect();
-      const clip = panels[selectedPanel].scroll.getBoundingClientRect();
-      if (tick.right <= clip.left || tick.left >= clip.right ||
+      const clip = scroll.getBoundingClientRect();
+      const stickyLabel = activeTick.parentElement.previousElementSibling?.getBoundingClientRect();
+      if (tick.right <= (stickyLabel?.right ?? clip.left) || tick.left >= clip.right ||
         tick.bottom <= Math.max(0, clip.top) || tick.top >= Math.min(window.innerHeight, clip.bottom)) {
         hideTooltip();
         return;
@@ -473,15 +458,11 @@
       activeTick = tick;
       const detail = detailsByTick.get(tick);
       const title = element('strong', detail.label);
-      const windowLabel = detail.window ?? describeWindow(detail);
-      if (windowLabel) title.append(' · ' + windowLabel);
-      tooltip.replaceChildren(title, statusBadge(detail.state));
-      if (detail.issue) tooltip.append(element('p', detail.issue));
-      if (hasTimestamp(detail.observedAt)) {
-        const observed = element('p', 'Observed ', 'aws-status__observed');
-        observed.append(timeLabel(detail.observedAt));
-        tooltip.append(observed);
-      }
+      const status = element('p', STATES[detail.state], 'aws-status__tooltip-status');
+      status.dataset.state = detail.state;
+      const issue = detail.issue?.trim() || '';
+      if (detail.state !== 'operational' && issue) status.append(' · ' + (issue.length > 100 ? issue.slice(0, 99) + '…' : issue));
+      tooltip.replaceChildren(title, status);
       tooltip.hidden = false;
       tick.setAttribute('aria-describedby', tooltip.id);
       positionTooltip();
@@ -649,28 +630,11 @@
       loadStatus();
     }
 
-    tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => selectTab(index));
-      tab.addEventListener('keydown', (event) => {
-        const next = {
-          ArrowLeft: (index - 1 + tabs.length) % tabs.length,
-          ArrowRight: (index + 1) % tabs.length,
-          Home: 0,
-          End: tabs.length - 1
-        }[event.key];
-        if (!Number.isInteger(next)) return;
-        event.preventDefault();
-        selectTab(next, true);
-      });
-    });
     installHistoryControls();
-    panels.forEach((panel) => {
-      panel.granularity.addEventListener('change', () => {
-        if (!snapshot || panel.node.hidden) return;
-        hideTooltip();
-        panel.position = { left: null, top: panel.scroll.scrollTop };
-        renderHistory();
-      });
+    granularity.addEventListener('change', () => {
+      if (!snapshot) return;
+      hideTooltip();
+      renderHistory();
     });
     refresh.addEventListener('click', () => {
       syncAccess();

@@ -3,6 +3,7 @@
 const HISTORY_DAYS = 90;
 const HISTORY_HOURS = 72;
 const HOUR_MS = 60 * 60_000;
+const HOURLY_GRACE_MS = 20 * 60_000;
 const REGION = 'us-east-2';
 const MAX_CHECKS = 3 * 70 + 1;
 const STATES = new Set(['operational', 'degraded', 'outage', 'unknown']);
@@ -12,7 +13,7 @@ const CONNECTIONS = new Map([
   ['tracker', 'Tracker database'],
   ['short-links', 'Short Links'],
   ['contact', 'Contact email'],
-  ['transcribe', 'File Transcriber'],
+  ['transcribe', 'File Transcriber (AWS)'],
   ['chatbot', 'Website chatbot'],
   ['markdown', 'SageMaker Markdown']
 ]);
@@ -59,7 +60,7 @@ function sanitizeHour(hour) {
 
   const observedAt = Date.parse(period.observedAt);
   if (observedAt < start || observedAt >= end) delete period.observedAt;
-  return { start: hour.start, ...period };
+  return { start: hour.start, ...period, ...(hour.complete === true ? { complete: true } : {}) };
 }
 
 function sanitizeCatalogHistory(history, catalog, now) {
@@ -108,6 +109,22 @@ function sanitizeConnections(connections) {
     }
     return output;
   });
+}
+
+function latestPublishedHour(connections, history, catalog, now) {
+  const currentHour = Math.floor(now / HOUR_MS) * HOUR_MS;
+  const lastHour = currentHour - HOUR_MS;
+  const start = new Date(lastHour).toISOString();
+  if (now >= currentHour + HOURLY_GRACE_MS) return start;
+
+  const index = (lastHour - Date.parse(history?.hourStart)) / HOUR_MS;
+  const catalogFinished = history?.observedAt[index] && catalog.every(({ id }) => {
+    const state = history.results[id]?.hours[index];
+    return state && state !== '-';
+  });
+  const connectionsFinished = connections.every(({ hours }) =>
+    hours?.some((hour) => hour.start === start && hour.complete));
+  return catalogFinished && connectionsFinished ? start : new Date(lastHour - HOUR_MS).toISOString();
 }
 
 function rankCheck(check, stale) {
@@ -160,12 +177,14 @@ function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
     throw new Error('Invalid AWS history snapshot.');
   }
   const catalogHistory = sanitizeCatalogHistory(snapshot.catalogHistory, catalog, now);
+  const connections = sanitizeConnections(snapshot.connections);
   return {
     ok: true,
     region: REGION,
     days: HISTORY_DAYS,
     checkedAt: snapshot.checkedAt,
-    connections: sanitizeConnections(snapshot.connections),
+    hourlyReadyThrough: latestPublishedHour(connections, catalogHistory, catalog, now),
+    connections,
     catalog: projectCatalog(catalog, snapshot.checks, now),
     ...(catalogHistory ? { catalogHistory } : {})
   };

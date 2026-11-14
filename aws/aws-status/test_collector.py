@@ -191,6 +191,9 @@ class CollectorTests(TestCase):
         self.writer.sample("cognito", 300, at, at, "o", self.context)
     hours = self.read()["connections"][0]["hours"]
     self.assertEqual([hour["state"] for hour in hours[-3:]], ["operational", "unknown", "unknown"])
+    self.assertTrue(hours[-3]["complete"])
+    self.assertNotIn("complete", hours[-2])
+    self.assertNotIn("complete", hours[-1])
     self.assertIn("incomplete", hours[-1]["issue"])
     self.assertNotIn("observedAt", hours[-2])
     self.assertEqual(hours[-1]["observedAt"], self.reader.iso(NOW))

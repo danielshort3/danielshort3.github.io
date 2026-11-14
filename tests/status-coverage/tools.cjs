@@ -62,6 +62,183 @@ function fixtureAuth(context, mode = 'admin') {
   }, mode);
 }
 
+async function showStatusAsAdmin(page) {
+  await page.evaluate(() => {
+    window.fixtureRole = 'admin';
+    document.dispatchEvent(new CustomEvent('tools:auth-changed'));
+  });
+}
+
+function statusGroup(page, name) {
+  const group = page.locator('.aws-status__group[data-group="' + name + '"]');
+  return {
+    toggle: group.getByRole('button', { name, exact: true }),
+    summary: group.locator('.aws-status__group-summary .aws-status__tick'),
+    rows: group.locator('.aws-status__history-row')
+  };
+}
+
+async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
+  const period = page.getByRole('combobox', { name: 'Group by' });
+  const tooltip = page.getByRole('tooltip');
+  const groups = ['AWS Connections', 'Tools', 'Projects', 'Games'].map((name) => statusGroup(page, name));
+  const [aws, tools, projects, games] = groups;
+  const now = new Date('2026-11-01T09:05:00.000Z');
+  await page.clock.setSystemTime(now);
+  const latestShown = '2026-11-01T07:00:00.000Z';
+  const nextHour = '2026-11-01T08:00:00.000Z';
+  snapshot.hourlyReadyThrough = latestShown;
+  snapshot.connections.push({
+    id: 'transcribe',
+    label: 'File Transcriber (AWS)',
+    days: [],
+    hours: [latestShown, nextHour].map((start) => ({
+      start, from: start, to: start, state: 'unknown', issue: 'No AWS transcription activity recorded.'
+    }))
+  });
+  for (const [id, hours] of [['tool:fixture', 'uu'], ['project:fixture', 'od'], ['game:fixture', 'oo']]) {
+    snapshot.catalogHistory.results[id] = { hours: '-'.repeat(70) + hours, days: '-'.repeat(90) };
+  }
+  const newestCatalogHour = Object.values(snapshot.catalogHistory.results).map((result) => {
+    const latest = result.hours.at(-1);
+    result.hours = result.hours.slice(0, -1) + '-';
+    return { result, latest };
+  });
+
+  await showStatusAsAdmin(page);
+  const dashboard = page.locator('[data-aws-status-part="dashboard"]');
+  await expect(dashboard.getByRole('heading', { name: 'System status', exact: true })).toBeVisible();
+  await expect(dashboard.getByRole('tab')).toHaveCount(0);
+  await expect(period).toHaveCount(1);
+  await expect(period.locator('option')).toHaveText(['Hourly', 'Daily', 'Weekly']);
+  await expect(period).toHaveValue('hourly');
+  for (const group of groups) {
+    await expect(group.toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(group.rows).toHaveCount(0);
+    await expect(group.summary).toHaveCount(70);
+    await expect(group.summary.last()).toBeVisible();
+    await group.toggle.click();
+    await expect(group.toggle).toHaveAttribute('aria-expanded', 'true');
+  }
+
+  const ticks = (group, name) => group.rows.filter({ hasText: name }).locator('.aws-status__tick');
+  const awsTicks = ticks(aws, 'Fixture connection');
+  const transcribeTicks = ticks(aws, 'File Transcriber (AWS)');
+  const browserTicks = ticks(tools, 'Browser-checked tool');
+  const projectTicks = ticks(projects, 'Fixture project');
+  const gameTicks = ticks(games, 'Fixture game');
+  const rowLengths = () => dashboard.locator('.aws-status__ticks').evaluateAll((rows) =>
+    rows.map((row) => row.querySelectorAll('.aws-status__tick').length));
+  await expect.poll(rowLengths).toEqual(Array(10).fill(70));
+  await tools.toggle.click();
+  await expect(tools.rows).toHaveCount(0);
+  await expect(tools.summary.last()).toBeVisible();
+  await tools.toggle.press('Enter');
+  await expect(tools.rows).toHaveCount(2);
+  await expect(dashboard).not.toContainText(/Browser check (passed|had issues|failed)/i);
+
+  await awsTicks.last().hover();
+  await expect(tooltip.locator('strong')).toContainText('1:00 AM MDT');
+  await expect(tooltip.locator('p')).toContainText('First repeated hour incident');
+  await expect(tooltip.locator(':scope > *')).toHaveCount(2);
+  await expect(tooltip).not.toContainText('Observed');
+  await transcribeTicks.last().hover();
+  await expect(transcribeTicks.and(page.locator('[data-state="unknown"]'))).toHaveCount(70);
+  await expect(transcribeTicks.last()).toHaveAttribute('data-state', 'unknown');
+  await expect(tooltip.locator('p')).toContainText('No AWS transcription activity recorded.');
+
+  // AWS starts the hour before the catalog reports arrive. A refresh with both
+  // types of data still holds the hour until the API marks it ready.
+  const freshness = dashboard.locator('[data-aws-status-part="freshness"] time');
+  const refresh = async (checkedAt) => {
+    snapshot.checkedAt = checkedAt;
+    await page.clock.fastForward(5 * 60 * 1000 + 1000);
+    await expect(freshness).toHaveAttribute('datetime', checkedAt);
+  };
+  assert.equal(queryCount(), 1);
+  for (const { result, latest } of newestCatalogHour) result.hours = result.hours.slice(0, -1) + latest;
+  await refresh('2026-11-01T09:09:00.000Z');
+  assert.equal(queryCount(), 2);
+  await expect.poll(rowLengths).toEqual(Array(10).fill(70));
+  await expect(aws.summary.last()).toHaveAttribute('data-state', 'degraded');
+  await expect(awsTicks.last()).toHaveAttribute('data-state', 'degraded');
+  await expect(browserTicks.last()).toHaveAttribute('data-state', 'degraded');
+  await expect(projectTicks.last()).toHaveAttribute('data-state', 'operational');
+
+  await dashboard.evaluate((element) => {
+    window.fixtureMixedColumns = false;
+    new MutationObserver(() => {
+      const rows = [...element.querySelectorAll('.aws-status__ticks')];
+      const lengths = new Set(rows.map((row) => row.querySelectorAll('.aws-status__tick').length));
+      if (lengths.size > 1) window.fixtureMixedColumns = true;
+    }).observe(element, { childList: true, subtree: true });
+  });
+  snapshot.hourlyReadyThrough = nextHour;
+  await refresh('2026-11-01T09:14:00.000Z');
+  assert.equal(queryCount(), 3);
+  await expect.poll(rowLengths).toEqual(Array(10).fill(71));
+  assert.equal(await page.evaluate(() => window.fixtureMixedColumns), false);
+  await expect(aws.summary.last()).toHaveAttribute('data-state', 'unknown');
+  await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
+  await expect(browserTicks.last()).toHaveAttribute('data-state', 'operational');
+  await expect(projectTicks.last()).toHaveAttribute('data-state', 'degraded');
+  await expect(gameTicks.last()).toHaveAttribute('data-state', 'operational');
+  await awsTicks.last().hover();
+  await expect(tooltip.locator('strong')).toContainText('1:00 AM MST');
+  await awsTicks.last().press('ArrowLeft');
+  await expect(awsTicks.nth(-2)).toBeFocused();
+  await expect(tooltip.locator('strong')).toContainText('1:00 AM MDT');
+  await awsTicks.nth(-2).press('Escape');
+  await expect(tooltip).toBeHidden();
+
+  await period.selectOption('daily');
+  await expect.poll(rowLengths).toEqual(Array(10).fill(89));
+  await period.selectOption('weekly');
+  await expect.poll(rowLengths).toEqual(Array(10).fill(13));
+  await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
+  await awsTicks.nth(11).hover();
+  await expect(tooltip.locator('strong')).toContainText(/Oct 19.*Oct 25/);
+  await expect(tooltip.locator('p')).toContainText('Known outage');
+
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    await fixtureAuth(mobile);
+    await mobile.route(base + '/api/tools/aws-status', (route) => route.fulfill({ json: snapshot }));
+    const phone = await mobile.newPage();
+    await phone.clock.install({ time: now });
+    await visit(phone, base, item.route);
+    const mobilePeriod = phone.getByRole('combobox', { name: 'Group by' });
+    const mobileTools = statusGroup(phone, 'Tools');
+    const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
+    await expect(mobilePeriod).toHaveValue('hourly');
+    await mobileTools.toggle.tap();
+    await mobileTicks.last().tap();
+    await expect(phone.getByRole('tooltip').locator('strong')).toContainText('1:00 AM MST');
+    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Operational');
+    await mobilePeriod.selectOption('weekly');
+    await expect(phone.getByRole('tooltip')).toBeHidden();
+    await expect(mobileTicks).toHaveCount(13);
+    await expect(mobileTicks.last()).toBeInViewport();
+    assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  } finally {
+    await mobile.close();
+  }
+
+  delete snapshot.hourlyReadyThrough;
+  delete snapshot.connections[0].hours;
+  delete snapshot.catalogHistory;
+  await context.addInitScript(() => { window.fixtureRole = 'admin'; });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(period).toHaveValue('hourly');
+  await expect(aws.toggle).toHaveAttribute('aria-expanded', 'false');
+  await aws.toggle.click();
+  await expect(awsTicks).toHaveCount(72);
+  await expect(awsTicks.last()).toHaveAttribute('data-state', 'unknown');
+  await period.selectOption('daily');
+  await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
+  return local('The fixture verified access, grouped history, complete-hour refresh, concise details and touch controls.');
+}
+
 async function statusTool({ browser, context, page, base, item }) {
   await fixtureAuth(context, 'ordinary');
   // After Mountain clocks fall back, the last two buckets both start at 1 a.m.
@@ -112,14 +289,15 @@ async function statusTool({ browser, context, page, base, item }) {
   const dashboard = page.locator('[data-aws-status-part="dashboard"]');
   await expect(dashboard).toBeHidden();
   assert.equal(queries, 0);
+  if (await dashboard.locator('#aws-status-heading').count()) {
+    await expect(page.locator('[data-aws-status-part="access"]')).toHaveText('This account does not have access to AWS status.');
+    return unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount: () => queries });
+  }
   if (await page.locator('#aws-status-directory-tab').count() === 0) {
     return unknown('The selected build predates the two-tab status page.');
   }
   const directoryTab = page.getByRole('tab', { name: 'Projects & Tools' });
-  await page.evaluate(() => {
-    window.fixtureRole = 'admin';
-    document.dispatchEvent(new CustomEvent('tools:auth-changed'));
-  });
+  await showStatusAsAdmin(page);
   await expect(dashboard).toBeVisible();
   const connections = page.locator('#aws-status-connections');
   await expect(connections.locator('[data-aws-status-part="history-grid"]')).toContainText('Fixture connection');
