@@ -70,6 +70,11 @@ async function statusTool({ browser, context, page, base, item }) {
   await page.clock.install({ time: now });
   let queries = 0;
   const observation = (state, from, to, issue) => ({ state, from, to, issue });
+  const dayStart = '2026-08-04';
+  const catalogDays = '-'.repeat(90).split('');
+  for (const [date, code] of [['2026-10-20', 'x'], ['2026-10-21', 'd'], ['2026-11-01', 'u']]) {
+    catalogDays[(Date.parse(date) - Date.parse(dayStart)) / 86_400_000] = code;
+  }
   const snapshot = {
     ok: true, region: 'us-east-2', checkedAt, days: 90,
     connections: [{
@@ -85,9 +90,19 @@ async function statusTool({ browser, context, page, base, item }) {
       ]
     }],
     catalog: [
-      { label: 'Fixture tool', group: 'Tools', state: 'unknown', lastChecked: null, issue: 'No fixture reading' },
-      { label: 'Browser-checked tool', group: 'Tools', state: 'operational', lastChecked: checkedAt, issue: '', source: 'browser' }
-    ]
+      { id: 'tool:fixture', label: 'Fixture tool', group: 'Tools', state: 'unknown', lastChecked: null, issue: 'No fixture reading' },
+      { id: 'tool:browser-fixture', label: 'Browser-checked tool', group: 'Tools', state: 'operational', lastChecked: checkedAt, issue: '', source: 'browser' },
+      { id: 'project:fixture', label: 'Fixture project', group: 'Projects', state: 'unknown', lastChecked: null, issue: '' },
+      { id: 'game:fixture', label: 'Fixture game', group: 'Games', state: 'unknown', lastChecked: null, issue: '' }
+    ],
+    catalogHistory: {
+      hourStart: '2026-10-29T09:00:00.000Z',
+      dayStart,
+      observedAt: [...Array(70).fill(null), '2026-11-01T07:40:00.000Z', checkedAt],
+      results: {
+        'tool:browser-fixture': { hours: '-'.repeat(70) + 'do', days: catalogDays.join('') }
+      }
+    }
   };
   await context.route(base + '/api/tools/aws-status', (route) => {
     queries++;
@@ -106,9 +121,10 @@ async function statusTool({ browser, context, page, base, item }) {
     document.dispatchEvent(new CustomEvent('tools:auth-changed'));
   });
   await expect(dashboard).toBeVisible();
-  await expect(page.locator('[data-aws-status-part="history-grid"]')).toContainText('Fixture connection');
-  const granularity = page.getByRole('combobox', { name: 'Group by' });
-  const ticks = page.locator('.aws-status__tick');
+  const connections = page.locator('#aws-status-connections');
+  await expect(connections.locator('[data-aws-status-part="history-grid"]')).toContainText('Fixture connection');
+  const granularity = connections.getByRole('combobox', { name: 'Group by' });
+  const ticks = connections.locator('.aws-status__tick');
   if (await granularity.count() === 0) {
     await expect(ticks).toHaveCount(90);
     return unknown('The selected build exposes daily history only.');
@@ -143,17 +159,63 @@ async function statusTool({ browser, context, page, base, item }) {
   await directoryTab.click();
   await expect(granularity).toBeHidden();
   const directory = page.locator('#aws-status-directory');
+  const catalogDropdown = directory.getByRole('combobox', { name: 'Group by' });
+  const hasCatalogHistory = await directory.locator('#aws-status-catalog-granularity').count() > 0;
   await expect(directory).toContainText('Fixture tool');
   await expect(directory).toContainText('Unknown');
-  await expect(directory.getByText('Browser check passed', { exact: true })).toBeVisible();
+  const currentBadge = directory.getByText('Browser check passed', { exact: true });
+  await expect(currentBadge).toBeVisible();
+  if (hasCatalogHistory) {
+    await expect(currentBadge).toHaveAttribute('title', /Browser check.*Last checked/i);
+    for (const heading of ['Tools', 'Projects', 'Games']) {
+      await expect(directory.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+    }
+    await expect(catalogDropdown).toHaveValue('hourly');
+    await expect(ticks).toHaveCount(0);
+    const row = directory.locator('.aws-status__history-row').filter({
+      has: page.getByRole('heading', { name: 'Browser-checked tool', exact: true })
+    });
+    const catalogTicks = row.locator('.aws-status__tick');
+    await expect(catalogTicks).toHaveCount(72);
+    await expect(catalogTicks.first()).toHaveAttribute('data-state', 'unknown');
+    await catalogTicks.last().hover();
+    await expect(tooltip).toContainText(/Observed.*1:35 AM MST/);
+    await expect(tooltip).toContainText('The recorded check passed.');
+    await catalogTicks.last().press('ArrowLeft');
+    await expect(catalogTicks.nth(70)).toBeFocused();
+    await expect(tooltip).toContainText(/Observed.*1:40 AM MDT/);
+    await expect(tooltip).toContainText('The recorded check had issues.');
+    await catalogTicks.nth(70).press('Escape');
+    await expect(tooltip).toBeHidden();
+
+    await catalogDropdown.selectOption('daily');
+    await expect(catalogTicks).toHaveCount(90);
+    await catalogTicks.last().hover();
+    await expect(tooltip).toContainText('Coverage was incomplete or inconclusive.');
+    await catalogDropdown.selectOption('weekly');
+    await expect(catalogTicks).toHaveCount(13);
+    await expect(catalogTicks.nth(11)).toHaveAttribute('data-state', 'outage');
+    await catalogTicks.nth(11).hover();
+    await expect(tooltip).toContainText(/Oct 19.*Oct 25/);
+    await expect(tooltip).toContainText(/Issue on Oct 20.*The recorded check failed/);
+  }
   assert.equal(queries, 1);
   snapshot.catalog[1].state = 'degraded';
   await page.clock.fastForward(5 * 60 * 1000 + 1000);
   await expect(directory.getByText('Browser check had issues', { exact: true })).toBeVisible();
   await expect(directoryTab).toHaveAttribute('aria-selected', 'true');
+  if (hasCatalogHistory) await expect(catalogDropdown).toHaveValue('weekly');
   assert.equal(queries, 2);
   await page.getByRole('tab', { name: 'AWS Connections' }).click();
   await expect(granularity).toHaveValue('weekly');
+  if (hasCatalogHistory) {
+    await expect(directory.locator('.aws-status__tick')).toHaveCount(0);
+    await granularity.selectOption('daily');
+    await directoryTab.click();
+    await expect(catalogDropdown).toHaveValue('weekly');
+    await page.getByRole('tab', { name: 'AWS Connections' }).click();
+    await expect(granularity).toHaveValue('daily');
+  }
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   try {
@@ -162,9 +224,10 @@ async function statusTool({ browser, context, page, base, item }) {
     const phone = await mobile.newPage();
     await phone.clock.install({ time: now });
     await visit(phone, base, item.route);
-    const mobileDropdown = phone.getByRole('combobox', { name: 'Group by' });
+    const mobileConnections = phone.locator('#aws-status-connections');
+    const mobileDropdown = mobileConnections.getByRole('combobox', { name: 'Group by' });
     await expect(mobileDropdown).toHaveValue('hourly');
-    const mobileTicks = phone.locator('.aws-status__tick');
+    const mobileTicks = mobileConnections.locator('.aws-status__tick');
     await mobileTicks.last().tap();
     await expect(phone.getByRole('tooltip')).toContainText('Second repeated hour check');
     await mobileDropdown.selectOption('weekly');
@@ -172,11 +235,28 @@ async function statusTool({ browser, context, page, base, item }) {
     await expect(mobileTicks).toHaveCount(13);
     await expect(mobileTicks.last()).toBeInViewport();
     assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+    if (hasCatalogHistory) {
+      await phone.getByRole('tab', { name: 'Projects & Tools' }).click();
+      const mobileCatalog = phone.locator('#aws-status-directory');
+      const mobileCatalogDropdown = mobileCatalog.getByRole('combobox', { name: 'Group by' });
+      await expect(mobileCatalogDropdown).toHaveValue('hourly');
+      const mobileCatalogTicks = mobileCatalog.locator('.aws-status__history-row').filter({
+        has: phone.getByRole('heading', { name: 'Browser-checked tool', exact: true })
+      }).locator('.aws-status__tick');
+      await mobileCatalogTicks.last().tap();
+      await expect(phone.getByRole('tooltip')).toContainText(/Observed.*1:35 AM MST/);
+      await mobileCatalogDropdown.selectOption('weekly');
+      await expect(phone.getByRole('tooltip')).toBeHidden();
+      await expect(mobileCatalogTicks).toHaveCount(13);
+      await expect(mobileCatalogTicks.last()).toBeInViewport();
+      assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+    }
   } finally {
     await mobile.close();
   }
 
   delete snapshot.connections[0].hours;
+  delete snapshot.catalogHistory;
   await context.addInitScript(() => { window.fixtureRole = 'admin'; });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(granularity).toHaveValue('hourly');
@@ -184,7 +264,14 @@ async function statusTool({ browser, context, page, base, item }) {
   await expect(ticks.last()).toHaveAttribute('data-state', 'unknown');
   await granularity.selectOption('daily');
   await expect(ticks.last()).toHaveAttribute('data-state', 'operational');
-  return local('The fixture verified access, three history views, repeated clock hours, touch details and automatic refresh.');
+  if (hasCatalogHistory) {
+    await directoryTab.click();
+    await expect(catalogDropdown).toHaveValue('hourly');
+    await expect(directory.locator('.aws-status__tick')).toHaveCount(4 * 72);
+    await expect(directory.locator('.aws-status__tick[data-state="unknown"]')).toHaveCount(4 * 72);
+    await expect(directory.getByText('Browser check had issues', { exact: true })).toBeVisible();
+  }
+  return local('The fixture verified access, history views, repeated clock hours, touch details and automatic refresh.');
 }
 
 async function background({ page, base, item }) {

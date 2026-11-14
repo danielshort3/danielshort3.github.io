@@ -127,6 +127,34 @@ test('hourly history keeps valid observations ordered and handles older reader r
   assert.equal(Object.hasOwn(sanitize({ ...daily, hours: Array(73).fill(incident) }), 'hours'), false);
 });
 
+test('catalog archive exposes only valid history for current catalog IDs', () => {
+  const registered = loadStatusCatalog();
+  const id = 'tool:text-compare';
+  const days = '-'.repeat(89) + 'd';
+  const now = Date.parse(CHECKED_AT);
+  const history = {
+    hourStart: '2026-11-09T00:00:00.000Z',
+    dayStart: '2026-08-14',
+    observedAt: Array(70).fill(null).concat('2026-11-11T22:25:00.000Z', '2026-11-11T23:05:00.000Z'),
+    results: {
+      [id]: { hours: '-'.repeat(70) + 'do', days, raw: 'private raw evidence' },
+      'tool:transcribe': { hours: '-'.repeat(71) + '!', days },
+      'tool:no-longer-listed': { hours: '-'.repeat(72), days }
+    }
+  };
+  const current = sanitizeSnapshot({ ...SNAPSHOT, catalogHistory: history }, registered, now);
+  assert.deepEqual(current.catalogHistory.results, {
+    [id]: { hours: '-'.repeat(70) + 'd-', days }
+  });
+  assert.deepEqual(current.catalogHistory.observedAt.slice(-2), ['2026-11-11T22:25:00.000Z', null]);
+  assert.equal(current.catalog.find((item) => item.id === id).state, 'operational');
+  assert.equal(Object.hasOwn(sanitizeSnapshot(SNAPSHOT, registered, now), 'catalogHistory'), false);
+  const invalid = sanitizeSnapshot({
+    ...SNAPSHOT, catalogHistory: { ...history, dayStart: '2026-02-31' }
+  }, registered, now);
+  assert.equal(Object.hasOwn(invalid, 'catalogHistory'), false);
+});
+
 test('publishing strips fixture content and rejects forged or duplicate catalog entries', () => {
   const report = { schemaVersion: 1, environment: 'local', checkedAt: CHECKED_AT,
     checks: [{ id: 'tool:text-compare', status: 'pass', method: 'browser', reason: 'private fixture text' }] };

@@ -11,6 +11,15 @@ Parameters:
     Default: ''
     AllowedPattern: '^$|^[A-Za-z0-9+/]{43}=$'
     Description: Reviewed CodeSha256 of the deployed website-aws-status-report function.
+  HistoryReportCodeSha256:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^[A-Za-z0-9+/]{43}=$'
+    Description: Reviewed CodeSha256 of the report function with history enabled.
+  UseCatalogHistory:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
 
 Rules:
   PinReportCode:
@@ -18,12 +27,25 @@ Rules:
     Assertions:
       - Assert: !Not [!Equals [!Ref ReportCodeSha256, '']]
         AssertDescription: Enabling GitHub access requires the deployed report code hash.
+  PinHistoryReportCode:
+    RuleCondition: !Equals [!Ref UseCatalogHistory, 'true']
+    Assertions:
+      - Assert: !And
+          - !Equals [!Ref EnableGithubReporter, 'true']
+          - !Not [!Equals [!Ref HistoryReportCodeSha256, '']]
+        AssertDescription: Enabling history requires GitHub access and a reviewed report code hash.
 
 Conditions:
   Enabled: !And
     - !Equals [!Ref EnableGithubReporter, 'true']
     - !Equals [!Ref 'AWS::Region', us-east-2]
     - !Equals [!Ref 'AWS::AccountId', '886623862678']
+  KeepHistoryVersion: !And
+    - !Condition Enabled
+    - !Not [!Equals [!Ref HistoryReportCodeSha256, '']]
+  HistoryEnabled: !And
+    - !Condition KeepHistoryVersion
+    - !Equals [!Ref UseCatalogHistory, 'true']
 
 Resources:
   GitHubProvider:
@@ -40,12 +62,20 @@ Resources:
       FunctionName: website-aws-status-report
       CodeSha256: !Ref ReportCodeSha256
 
+  BrowserHistoryReportVersion:
+    Type: AWS::Lambda::Version
+    Condition: KeepHistoryVersion
+    UpdateReplacePolicy: Retain
+    Properties:
+      FunctionName: website-aws-status-report
+      CodeSha256: !Ref HistoryReportCodeSha256
+
   BrowserReportAlias:
     Type: AWS::Lambda::Alias
     Condition: Enabled
     Properties:
       FunctionName: website-aws-status-report
-      FunctionVersion: !GetAtt BrowserReportVersion.Version
+      FunctionVersion: !If [HistoryEnabled, !GetAtt BrowserHistoryReportVersion.Version, !GetAtt BrowserReportVersion.Version]
       Name: browser-ci
 
   GithubReporterRole:
