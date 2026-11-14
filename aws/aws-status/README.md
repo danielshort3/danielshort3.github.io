@@ -70,3 +70,13 @@ Deploy the report code change in `template.yaml` first. Use temporary admin acce
 The separate stack publishes the reviewed code as a version and points `browser-ci` at it. When changing report code, update this stack with the new deployed hash to move the alias. Only the exact GitHub main workflow identity can assume the publisher role, which can invoke only that alias. The alias accepts browser results with an expiry no more than three hours from observation and submission. Use `GithubReporterRoleArn` and `BrowserReportAliasArn` from that stack's outputs. The manual path above continues to invoke the unqualified function.
 
 Verify one default-branch publish through the alias and confirm the browser result appears in the private dashboard. Confirm the same role cannot invoke the unqualified report, reader or scheduled collector, and confirm the alias rejects a non-browser source. Removing the separate stack disables CI publishing and removes its provider, so verify no other role uses that provider before stack deletion.
+
+### Independent fallback
+
+The [Ohio fallback stack](github-fallback.yaml) checks the browser workflow at minute 47 UTC. If the hour has no completed browser run that published results, the dispatcher requests the same workflow on main. GitHub serializes runs, and the workflow checks for a completed report again before it launches browsers. Native and backup triggers give each hour more than one opportunity to publish. Report timestamps reflect when the browser checks completed.
+
+Install a private GitHub App on only this repository with Actions read and write and mandatory metadata read. Store its client ID, installation ID and GitHub-generated signing key in the Standard SecureString parameter `/website-aws-status/fallback/github-app` in the Ohio account. Keep the key out of the repository and workflow. The dispatcher uses it to request a short-lived token limited to this repository. It checks the token scope before using it.
+
+Run `node --test aws/aws-status/fallback-dispatcher.test.cjs`. Zip only `fallback-dispatcher.cjs` at the archive root and upload the archive to a new `website-status-fallback/` object key in the Ohio deployment package bucket. Review the CloudFormation change set before activation. The schedule defaults to disabled. Set `EnableSchedule=true` to start it, or `false` to pause it without changing the website.
+
+Verify a scheduled invocation by matching its dispatcher log to the workflow run ID, a successful publish step, and the timestamp in the live Projects & Tools tab. Check the dispatcher logs for skipped, dispatched and failed requests. Keep the latest working package for rollback.
