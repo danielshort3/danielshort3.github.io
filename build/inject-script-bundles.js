@@ -6,6 +6,7 @@
   This keeps authored HTML simple while letting builds serve immutable bundles.
 */
 
+const { createHash } = require('node:crypto');
 const fs = require('fs');
 const path = require('path');
 const {
@@ -424,6 +425,14 @@ function processHtml(html, relPath) {
       const clean = tag.replace(/\s+data-starfall-hurtboxes-src="[^"]*"/g, '');
       return clean.replace(/>$/, ` data-starfall-hurtboxes-src="${managedHrefs.projectStarfallHurtboxes}">`);
     });
+  }
+  if (relPath === 'pages/transcribe.html') {
+    const script = fs.readFileSync(path.join(root, 'js/tools/whisper-transcribe-monitor.js'));
+    const version = createHash('sha256').update(script).digest('hex').slice(0, 12);
+    next = next.replace(
+      /(<script\b[^>]*?\ssrc=(['"])(\/?js\/tools\/whisper-transcribe-monitor\.js))(?:\?v=[^'"&#]*)?\2/i,
+      `$1?v=${version}$2`
+    );
   }
   const finalized = finalizePersonalRouteDocument(next, { home: relPath === 'index.html' });
   if (/\bid="site-route-manifest"/i.test(finalized)) validatePersonalRouteDocument(finalized);

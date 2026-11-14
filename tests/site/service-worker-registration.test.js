@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -119,6 +120,31 @@ function testToolPolicies() {
   return toolPages.length;
 }
 
+function testFileTranscriberScriptVersion() {
+  const file = 'pages/transcribe.html';
+  const controller = 'js/tools/whisper-transcribe-monitor.js';
+  const bytes = fs.readFileSync(path.join(root, controller));
+  const expected = `${controller}?v=${crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 12)}`;
+
+  function assertController(html) {
+    const sources = scriptTags(html).map((tag) => attribute(tag[1], 'src'));
+    assert.deepEqual(sources.filter((src) => src.startsWith(controller)), [expected]);
+    assert.deepEqual(
+      validatePersonalRouteDocument(html).scripts.filter((src) => src.startsWith(`/${controller}`)),
+      [`/${expected}`]
+    );
+  }
+
+  const html = read(file);
+  const stale = html.replace(expected, `${controller}?v=000000000000`);
+  assertController(injectScripts(stale, file).html);
+  assertController(html);
+  if (process.argv.includes('--public')) {
+    assertController(read(`public/${file}`));
+    assert.deepEqual(fs.readFileSync(path.join(root, 'public', controller)), bytes);
+  }
+}
+
 async function testRegistrationRuntime() {
   function run(options = {}) {
     const registrations = [];
@@ -167,6 +193,7 @@ async function testRegistrationRuntime() {
 
 (async () => {
   testMetadataGeneration();
+  testFileTranscriberScriptVersion();
   const count = testToolPolicies();
   await testRegistrationRuntime();
   console.log(`Service worker registration: external metadata, route manifests, strict tracker policy, shared sign-in access, ${count} tool pages and runtime guards passed${process.argv.includes('--public') ? ' (including public output)' : ''}.`);
