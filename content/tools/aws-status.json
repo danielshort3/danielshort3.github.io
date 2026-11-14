@@ -7,7 +7,7 @@
   "privacy": "AWS operational status is available to administrators only.",
   "inputs": ["Status view and history date"],
   "outputs": ["AWS connection history and project, tool, and game status"],
-  "summary": "Review AWS connection history and the status of website projects and tools.",
+  "summary": "Connection and website checks",
   "visibility": "admin",
   "hidden": true,
   "order": 3,

@@ -22,24 +22,40 @@
   }
 
   .aws-status__toolbar,
-  .aws-status__heading {
+  .aws-status__heading,
+  .aws-status__actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-6) var(--space-16);
+    align-items: center;
+    gap: var(--space-8) var(--space-16);
   }
 
   .aws-status__toolbar {
     justify-content: space-between;
-    align-items: center;
   }
 
-  .aws-status__history-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-8) var(--space-16);
+  .aws-status__heading {
+    gap: var(--space-4) var(--space-12);
+  }
+
+  .aws-status__heading p {
+    padding-inline-start: var(--space-12);
+    border-inline-start: 1px solid var(--surface-border);
+  }
+
+  .aws-status__actions {
+    margin-inline-start: auto;
+    justify-content: flex-end;
+    gap: var(--space-8) var(--space-12);
+  }
+
+  .aws-status__actions p:empty,
+  .aws-status__dashboard:has(.aws-status__readings[hidden]) :is(.aws-status__heading, .aws-status__history-control) {
+    display: none;
+  }
+
+  .aws-status__actions p {
+    font-variant-numeric: tabular-nums;
   }
 
   .aws-status__history-control {
@@ -61,7 +77,7 @@
     font: inherit;
   }
 
-  .aws-status__toolbar p,
+  .aws-status__actions p,
   .aws-status__heading p,
   .aws-status__empty {
     margin: 0;
@@ -93,14 +109,11 @@
 
   .aws-status__history {
     min-width: 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-card);
     background: var(--surface);
   }
 
   .aws-status__history-scroll {
     overflow-x: auto;
-    border-radius: var(--radius-card) var(--radius-card) 0 0;
   }
 
   .aws-status__history-grid {
@@ -117,12 +130,11 @@
     grid-template-columns: var(--aws-status-label-width) minmax(0, 1fr);
     align-items: center;
     padding-inline-end: var(--aws-status-edge);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--surface-border);
   }
 
   .aws-status__group-summary {
-    min-height: 3.5rem;
-    background: var(--surface-light);
+    min-height: 3.75rem;
   }
 
   .aws-status__history-row {
@@ -142,7 +154,7 @@
 
   .aws-status__group-heading {
     display: flex;
-    background: var(--surface-light);
+    background: var(--surface);
     font-size: clamp(0.88rem, 1.5vw, 1rem);
   }
 
@@ -152,7 +164,7 @@
     min-height: 44px;
     align-items: center;
     gap: var(--space-6);
-    padding: var(--space-8) var(--space-12) var(--space-8) var(--aws-status-edge);
+    padding: var(--space-8) var(--space-12) var(--space-8) var(--space-4);
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -167,23 +179,25 @@
     outline-offset: -3px;
   }
 
-  .aws-status__group-toggle:hover {
-    background: var(--surface);
+  @media (hover: hover) {
+    .aws-status__group-toggle:hover {
+      background: var(--surface-accent);
+    }
   }
 
-  .aws-status__group-toggle::after {
+  .aws-status__group-toggle::before {
     width: 6px;
     height: 6px;
     flex-shrink: 0;
-    margin-inline-start: auto;
+    margin-inline-end: var(--space-4);
     border: solid currentColor;
     border-width: 0 1.5px 1.5px 0;
-    transform: rotate(45deg);
+    transform: rotate(-45deg);
     content: "";
   }
 
-  .aws-status__group-toggle[aria-expanded="true"]::after {
-    transform: rotate(225deg);
+  .aws-status__group-toggle[aria-expanded="true"]::before {
+    transform: rotate(45deg);
   }
 
   .aws-status__group-count {
@@ -257,14 +271,18 @@
 
   .aws-status__legend {
     justify-content: space-between;
-    padding: var(--space-12) var(--aws-status-edge);
+    padding: var(--space-12) var(--aws-status-edge) var(--space-12) 0;
     color: var(--text-muted);
     font-size: 0.82rem;
   }
 
+  .aws-status__legend [data-aws-status-part="history-start"] {
+    margin-inline-start: var(--aws-status-label-width);
+  }
+
   .aws-status__legend ul {
-    justify-content: center;
-    gap: var(--space-6) var(--space-12);
+    flex-basis: 100%;
+    gap: var(--space-6) var(--space-16);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -339,9 +357,33 @@
     color: var(--aws-status-ink);
   }
 
+  @media (min-width: 60rem) and (max-height: 48rem) and (pointer: fine) {
+    .aws-status__dashboard,
+    .aws-status__readings {
+      gap: var(--space-12);
+    }
+
+    .aws-status__group-summary {
+      min-height: 3.25rem;
+    }
+
+    .aws-status__legend {
+      padding-block: var(--space-8);
+    }
+  }
+
   @media (max-width: 46rem) {
     .aws-status {
       --aws-status-label-width: 8.75rem;
+    }
+
+    .aws-status__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .aws-status__actions p {
+      flex-basis: 100%;
     }
 
     .aws-status__history-grid {
@@ -360,10 +402,8 @@
       gap: var(--space-4);
     }
 
-    .aws-status__legend ul {
-      order: 1;
-      flex-basis: 100%;
-      justify-content: flex-start;
+    .aws-status__legend [data-aws-status-part="history-start"] {
+      margin-inline-start: 0;
     }
   }
 
@@ -374,6 +414,50 @@
 
     .aws-status__history-grid[data-granularity="hourly"] {
       min-width: 118rem;
+    }
+  }
+}
+
+@layer overrides {
+  /* The shared design system applies monospace to classes containing "-stat". */
+  [data-aws-status] .aws-status,
+  .aws-status [class*="aws-status__"] {
+    font-family: var(--font-sans);
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"][data-page-masthead] {
+    --masthead-title-size: clamp(1.75rem, 3vw, 2.75rem);
+    border-bottom-color: var(--panel-color);
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"] [data-page-masthead-parent] {
+    padding-inline: 0 var(--space-24);
+    border-color: transparent;
+  }
+
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"] [data-page-masthead-parent]:hover {
+    border-color: transparent;
+    color: var(--panel-color);
+    background: transparent;
+    text-decoration: underline;
+  }
+
+  [data-personal-tool-header="aws-status"] .tools-account-bar .tools-account-signout {
+    border-color: transparent;
+    background: var(--surface);
+    color: var(--text-muted);
+  }
+
+  [data-personal-tool-header="aws-status"] .tools-account-bar .tools-account-signout:hover {
+    background: var(--surface-accent);
+    color: var(--text-light);
+  }
+
+  @media (min-width: 60rem) and (max-height: 48rem) and (pointer: fine) {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"][data-page-masthead] {
+      --masthead-padding-start: var(--space-20);
+      --masthead-padding-end: var(--space-16);
+      --page-content-gap: var(--space-16);
     }
   }
 }
