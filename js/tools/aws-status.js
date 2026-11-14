@@ -4,8 +4,10 @@
   const REGION = 'us-east-2';
   const STATUS_URL = '/api/tools/aws-status';
   const HISTORY_DAYS = 90;
+  const HISTORY_HOURS = 72;
   const HISTORY_ZONE = 'America/Denver';
-  const DAY_MS = 24 * 60 * 60 * 1000;
+  const HOUR_MS = 60 * 60 * 1000;
+  const DAY_MS = 24 * HOUR_MS;
   const STALE_MS = 2 * 60 * 60 * 1000;
   const REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
@@ -14,6 +16,12 @@
   const SOURCES = { production: 'Production check', browser: 'Browser check', local: 'Local check' };
   const FIXTURE_STATES = { operational: 'passed', degraded: 'had issues', outage: 'failed' };
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
+  const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
+  const HISTORY_VIEWS = {
+    hourly: { range: 'Last 72 hours', start: '72 hours ago', end: 'This hour', period: 'an hour' },
+    daily: { range: 'Last 90 days', start: '90 days ago', end: 'Today', period: 'a day' },
+    weekly: { range: 'Last 90 days', start: '90 days ago', end: 'This week', period: 'a week' }
+  };
 
   const civilDateFormat = new Intl.DateTimeFormat('en-CA', {
     timeZone: HISTORY_ZONE, year: 'numeric', month: '2-digit', day: '2-digit'
@@ -57,8 +65,58 @@
       new Date(end - (HISTORY_DAYS - 1 - index) * DAY_MS).toISOString().slice(0, 10));
   }
 
+  function recentHours(time) {
+    const end = Math.floor(time / HOUR_MS) * HOUR_MS;
+    return Array.from({ length: HISTORY_HOURS }, (_, index) => {
+      const from = end - (HISTORY_HOURS - 1 - index) * HOUR_MS;
+      const to = from + HOUR_MS;
+      return { start: new Date(from).toISOString(), label: hourLabel(from, to), from, to };
+    });
+  }
+
+  function calendarWeeks(dates) {
+    const weeks = [];
+    for (const date of dates) {
+      const weekday = new Date(date + 'T00:00:00Z').getUTCDay();
+      if (weekday === 1 || weeks.length === 0) weeks.push([]);
+      weeks.at(-1).push(date);
+    }
+    return weeks;
+  }
+
+  function weekResult(dates, byDate) {
+    const first = dateLabel(dates[0]);
+    const last = dateLabel(dates.at(-1));
+    const label = first === last ? first : first + ' – ' + last;
+    const days = dates.map((date) => byDate.get(date));
+    const incident = days.findLast((day) => day?.state === 'outage') ||
+      days.findLast((day) => day?.state === 'degraded');
+    if (incident) {
+      return {
+        ...incident,
+        label,
+        window: describeWindow({ from: incident.from, to: incident.to }),
+        issue: 'Issue during this week. ' + incident.issue
+      };
+    }
+    const measured = days.filter((day) => day?.state === 'operational');
+    const complete = measured.length === days.length;
+    return {
+      label,
+      state: complete ? 'operational' : 'unknown',
+      issue: complete ? 'All displayed days reported operational.' : measured.length
+        ? 'Monitoring coverage is incomplete for this period.'
+        : 'No operational check was recorded for this period.'
+    };
+  }
+
   function dateLabel(date) {
     return dayFormat.format(Date.parse(date + 'T00:00:00Z'));
+  }
+
+  function hourLabel(from, to) {
+    const endFormat = mountainDay(from) === mountainDay(to) ? clockFormat : dateTimeFormat;
+    return dateTimeFormat.format(from) + ' – ' + endFormat.format(to);
   }
 
   function timeLabel(value) {
@@ -77,15 +135,20 @@
     return format.format(from) + ' – ' + format.format(to);
   }
 
+  function validHistoryTile(tile) {
+    return Object.hasOwn(STATES, tile?.state) && hasTimestamp(tile.from) && hasTimestamp(tile.to) &&
+      Date.parse(tile.from) <= Date.parse(tile.to) && typeof tile.issue === 'string';
+  }
+
   function validStatus(data) {
     return data?.ok === true && data.region === REGION && data.days === HISTORY_DAYS &&
       (data.checkedAt === null || hasTimestamp(data.checkedAt)) &&
       Array.isArray(data.connections) && data.connections.every((connection) =>
         typeof connection?.label === 'string' && Array.isArray(connection.days) &&
         connection.days.length <= HISTORY_DAYS && connection.days.every((day) =>
-          DATE_KEY.test(day?.date) && Number.isFinite(Date.parse(day.date)) &&
-          Object.hasOwn(STATES, day.state) && hasTimestamp(day.from) && hasTimestamp(day.to) &&
-          Date.parse(day.from) <= Date.parse(day.to) && typeof day.issue === 'string')) &&
+          DATE_KEY.test(day?.date) && Number.isFinite(Date.parse(day.date)) && validHistoryTile(day)) &&
+        (connection.hours === undefined || Array.isArray(connection.hours) && connection.hours.length <= HISTORY_HOURS &&
+          connection.hours.every((hour) => HOUR_KEY.test(hour?.start) && hasTimestamp(hour.start) && validHistoryTile(hour)))) &&
       Array.isArray(data.catalog) && data.catalog.every((item) =>
         typeof item?.label === 'string' && GROUPS.includes(item.group) && Object.hasOwn(STATES, item.state) &&
         (item.lastChecked === null || hasTimestamp(item.lastChecked)) && typeof item.issue === 'string');
@@ -112,9 +175,14 @@
     const history = part('history');
     const historyGrid = part('history-grid');
     const historyScroll = part('history-scroll');
+    const granularity = part('granularity');
+    const historyRange = part('history-range');
+    const historyStart = part('history-start');
+    const historyEnd = part('history-end');
+    granularity.value = 'hourly';
     const directory = part('directory');
     const directoryTable = directory.querySelector('table');
-    const tooltip = root.querySelector('#aws-status-day-details');
+    const tooltip = root.querySelector('#aws-status-history-details');
     const tabList = root.querySelector('[role="tablist"]');
     const tabs = [...tabList.querySelectorAll('[role="tab"]')];
     const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls')));
@@ -182,6 +250,7 @@
       readings.hidden = true;
       freshness.textContent = '';
       historyGrid.replaceChildren();
+      granularity.value = 'hourly';
       for (const group of [...directoryTable.tBodies]) group.remove();
       historyPositioned = false;
       selectTab(0);
@@ -209,23 +278,54 @@
       if (!stale) staleTimer = setTimeout(renderFreshness, STALE_MS - age);
     }
 
+    function connectionPeriods(connection, view, dates, weeks, hours) {
+      if (view === 'hourly') {
+        const byHour = new Map((connection.hours || []).map((hour) => [hour.start, hour]));
+        return hours.map(({ start, label, from, to }) => {
+          const hour = byHour.get(start);
+          const window = hour && (Date.parse(hour.from) !== from || Date.parse(hour.to) !== to)
+            ? describeWindow(hour) : '';
+          return {
+            ...hour,
+            label,
+            window,
+            state: hour?.state || 'unknown',
+            issue: hour?.issue || 'No check recorded.'
+          };
+        });
+      }
+      const byDate = new Map(connection.days.map((day) => [day.date, day]));
+      if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate));
+      return dates.map((date) => ({
+        state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: dateLabel(date)
+      }));
+    }
+
     function renderHistory() {
-      const dates = recentDates();
+      const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
+      const { range, start, end, period } = HISTORY_VIEWS[view];
+      const now = Date.now();
+      const dates = view === 'hourly' ? [] : recentDates(now);
+      const weeks = view === 'weekly' ? calendarWeeks(dates) : [];
+      const hours = view === 'hourly' ? recentHours(now) : [];
+      historyRange.textContent = range;
+      historyStart.textContent = start;
+      historyEnd.textContent = end;
+      historyGrid.dataset.granularity = view;
       const rows = snapshot.connections.map((connection) => {
-        const byDate = new Map(connection.days.map((day) => [day.date, day]));
+        const periods = connectionPeriods(connection, view, dates, weeks, hours);
         const row = element('div', '', 'aws-status__history-row');
         const label = element('h3', connection.label, 'aws-status__service');
         const ticks = element('div', '', 'aws-status__ticks');
         ticks.setAttribute('role', 'group');
-        ticks.setAttribute('aria-label', connection.label + ' daily history. Use left and right arrows to choose a day.');
-        dates.forEach((date, index) => {
-          const day = byDate.get(date) || { date, state: 'unknown' };
+        ticks.setAttribute('aria-label', connection.label + ' ' + view + ' history. Use left and right arrows to choose ' + period + '.');
+        periods.forEach((detail, index) => {
           const tick = element('button', '', 'aws-status__tick');
           tick.type = 'button';
-          tick.tabIndex = index === dates.length - 1 ? 0 : -1;
-          tick.dataset.state = day.state;
-          tick.setAttribute('aria-label', dateLabel(date) + ', ' + STATES[day.state]);
-          detailsByTick.set(tick, day);
+          tick.tabIndex = index === periods.length - 1 ? 0 : -1;
+          tick.dataset.state = detail.state;
+          tick.setAttribute('aria-label', detail.label + ', ' + STATES[detail.state]);
+          detailsByTick.set(tick, detail);
           ticks.append(tick);
         });
         row.append(label, ticks);
@@ -314,15 +414,15 @@
       }
       activeTick?.removeAttribute('aria-describedby');
       activeTick = tick;
-      const day = detailsByTick.get(tick);
-      const title = element('strong', dateLabel(day.date));
-      const windowLabel = describeWindow(day);
+      const detail = detailsByTick.get(tick);
+      const title = element('strong', detail.label);
+      const windowLabel = detail.window ?? describeWindow(detail);
       if (windowLabel) title.append(' · ' + windowLabel);
-      tooltip.replaceChildren(title, statusBadge(day.state));
-      if (day.issue) tooltip.append(element('p', day.issue));
-      if (hasTimestamp(day.observedAt)) {
+      tooltip.replaceChildren(title, statusBadge(detail.state));
+      if (detail.issue) tooltip.append(element('p', detail.issue));
+      if (hasTimestamp(detail.observedAt)) {
         const observed = element('p', 'Observed ', 'aws-status__observed');
-        observed.append(timeLabel(day.observedAt));
+        observed.append(timeLabel(detail.observedAt));
         tooltip.append(observed);
       }
       tooltip.hidden = false;
@@ -507,6 +607,13 @@
       });
     });
     installHistoryControls();
+    granularity.addEventListener('change', () => {
+      if (!snapshot) return;
+      hideTooltip();
+      historyPositioned = false;
+      renderHistory();
+      alignHistory();
+    });
     refresh.addEventListener('click', () => {
       syncAccess();
       loadStatus();

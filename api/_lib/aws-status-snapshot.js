@@ -1,6 +1,8 @@
 'use strict';
 
 const HISTORY_DAYS = 90;
+const HISTORY_HOURS = 72;
+const HOUR_MS = 60 * 60_000;
 const REGION = 'us-east-2';
 const MAX_CHECKS = 3 * 70 + 1;
 const STATES = new Set(['operational', 'degraded', 'outage', 'unknown']);
@@ -15,37 +17,63 @@ const CONNECTIONS = new Map([
   ['markdown', 'SageMaker Markdown']
 ]);
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
 const isTimestamp = (value) => typeof value === 'string' && ISO_TIMESTAMP.test(value) && Number.isFinite(Date.parse(value));
 const issueText = (value) => typeof value === 'string' ? value.trim().slice(0, 240) : '';
 
-function sanitizeDay(day) {
-  if (!DAY_KEY.test(day?.date) || !STATES.has(day.state) ||
-    !isTimestamp(day.from) || !isTimestamp(day.to) || Date.parse(day.from) > Date.parse(day.to)) return null;
+function sanitizePeriod(period) {
+  if (!STATES.has(period?.state) || !isTimestamp(period.from) ||
+    !isTimestamp(period.to) || Date.parse(period.from) > Date.parse(period.to)) return null;
 
   const clean = {
-    date: day.date,
-    state: day.state,
-    from: day.from,
-    to: day.to,
-    issue: issueText(day.issue)
+    state: period.state,
+    from: period.from,
+    to: period.to,
+    issue: issueText(period.issue)
   };
-  if (isTimestamp(day.observedAt)) clean.observedAt = day.observedAt;
+  if (isTimestamp(period.observedAt)) clean.observedAt = period.observedAt;
   return clean;
+}
+
+function sanitizeDay(day) {
+  const period = DAY_KEY.test(day?.date) && sanitizePeriod(day);
+  return period ? { date: day.date, ...period } : null;
+}
+
+function sanitizeHour(hour) {
+  if (typeof hour?.start !== 'string' || !HOUR_KEY.test(hour.start)) return null;
+  const start = Date.parse(hour.start);
+  if (!Number.isFinite(start) || new Date(start).toISOString() !== hour.start) return null;
+  const period = sanitizePeriod(hour);
+  const end = start + HOUR_MS;
+  if (!period || Date.parse(period.from) < start || Date.parse(period.to) > end) return null;
+
+  const observedAt = Date.parse(period.observedAt);
+  if (observedAt < start || observedAt >= end) delete period.observedAt;
+  return { start: hour.start, ...period };
+}
+
+function sanitizeHistory(periods, limit, key, sanitize) {
+  const byKey = new Map();
+  if (Array.isArray(periods) && periods.length <= limit) {
+    for (const period of periods) {
+      const valid = sanitize(period);
+      if (valid && !byKey.has(valid[key])) byKey.set(valid[key], valid);
+    }
+  }
+  return [...byKey.values()].sort((left, right) => left[key].localeCompare(right[key]));
 }
 
 function sanitizeConnections(connections) {
   const byId = new Map(connections.map((connection) => [connection?.id, connection]));
   return [...CONNECTIONS].map(([id, label]) => {
-    const days = byId.get(id)?.days;
-    const byDate = new Map();
-    if (Array.isArray(days) && days.length <= HISTORY_DAYS) {
-      for (const day of days) {
-        const valid = sanitizeDay(day);
-        if (valid && !byDate.has(valid.date)) byDate.set(valid.date, valid);
-      }
+    const stored = byId.get(id);
+    const output = { id, label, days: sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay) };
+    if (Array.isArray(stored?.hours) && stored.hours.length <= HISTORY_HOURS) {
+      output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour);
     }
-    return { id, label, days: [...byDate.values()].sort((left, right) => left.date.localeCompare(right.date)) };
+    return output;
   });
 }
 

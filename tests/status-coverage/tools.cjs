@@ -62,15 +62,28 @@ function fixtureAuth(context, mode = 'admin') {
   }, mode);
 }
 
-async function statusTool({ context, page, base, item }) {
+async function statusTool({ browser, context, page, base, item }) {
   await fixtureAuth(context, 'ordinary');
-  await page.clock.install();
+  // After Mountain clocks fall back, the last two buckets both start at 1 a.m.
+  const now = new Date('2026-11-01T08:35:00.000Z');
+  const checkedAt = now.toISOString();
+  await page.clock.install({ time: now });
   let queries = 0;
-  const checkedAt = new Date().toISOString();
-  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const observation = (state, from, to, issue) => ({ state, from, to, issue });
   const snapshot = {
     ok: true, region: 'us-east-2', checkedAt, days: 90,
-    connections: [{ label: 'Fixture connection', days: [{ date, state: 'operational', from: checkedAt, to: checkedAt, issue: '' }] }],
+    connections: [{
+      label: 'Fixture connection',
+      days: [
+        { date: '2026-10-20', ...observation('outage', '2026-10-20T18:03:00Z', '2026-10-20T18:20:00Z', 'Known outage') },
+        { date: '2026-10-21', ...observation('degraded', '2026-10-21T16:11:00Z', '2026-10-21T16:20:00Z', 'Known degradation') },
+        { date: '2026-11-01', ...observation('operational', checkedAt, checkedAt, '') }
+      ],
+      hours: [
+        { start: '2026-11-01T07:00:00.000Z', ...observation('degraded', '2026-11-01T07:05:00Z', '2026-11-01T07:15:00Z', 'First repeated hour incident') },
+        { start: '2026-11-01T08:00:00.000Z', ...observation('operational', '2026-11-01T08:00:00Z', '2026-11-01T09:00:00Z', 'Second repeated hour check'), observedAt: checkedAt }
+      ]
+    }],
     catalog: [
       { label: 'Fixture tool', group: 'Tools', state: 'unknown', lastChecked: null, issue: 'No fixture reading' },
       { label: 'Browser-checked tool', group: 'Tools', state: 'operational', lastChecked: checkedAt, issue: '', source: 'browser' }
@@ -84,16 +97,51 @@ async function statusTool({ context, page, base, item }) {
   const dashboard = page.locator('[data-aws-status-part="dashboard"]');
   await expect(dashboard).toBeHidden();
   assert.equal(queries, 0);
-  const tabs = page.locator('#aws-status-directory-tab');
-  if (await tabs.count() === 0) return unknown('The selected build predates the two-tab status page.');
+  if (await page.locator('#aws-status-directory-tab').count() === 0) {
+    return unknown('The selected build predates the two-tab status page.');
+  }
+  const directoryTab = page.getByRole('tab', { name: 'Projects & Tools' });
   await page.evaluate(() => {
     window.fixtureRole = 'admin';
     document.dispatchEvent(new CustomEvent('tools:auth-changed'));
   });
   await expect(dashboard).toBeVisible();
   await expect(page.locator('[data-aws-status-part="history-grid"]')).toContainText('Fixture connection');
-  await expect(page.locator('.aws-status__tick')).toHaveCount(90);
-  await page.getByRole('tab', { name: 'Projects & Tools' }).click();
+  const granularity = page.getByRole('combobox', { name: 'Group by' });
+  const ticks = page.locator('.aws-status__tick');
+  if (await granularity.count() === 0) {
+    await expect(ticks).toHaveCount(90);
+    return unknown('The selected build exposes daily history only.');
+  }
+  const tooltip = page.getByRole('tooltip');
+  await expect(granularity).toHaveValue('hourly');
+  await expect(ticks).toHaveCount(72);
+  await expect(ticks.nth(69)).toHaveAttribute('data-state', 'unknown');
+  await ticks.nth(71).hover();
+  await expect(tooltip).toContainText(/1:00 AM MST/);
+  await expect(tooltip).toContainText('Second repeated hour check');
+  await expect(tooltip).toContainText('Observed');
+  await ticks.nth(71).press('ArrowLeft');
+  await expect(ticks.nth(70)).toBeFocused();
+  await expect(tooltip).toContainText(/1:00 AM MDT/);
+  await expect(tooltip).toContainText('First repeated hour incident');
+  await ticks.nth(70).press('Escape');
+  await expect(tooltip).toBeHidden();
+
+  await granularity.selectOption('daily');
+  await expect(ticks).toHaveCount(90);
+  await expect(page.getByText('Last 90 days', { exact: true })).toBeVisible();
+  await expect(ticks.last()).toHaveAttribute('data-state', 'operational');
+  await granularity.selectOption('weekly');
+  await expect(ticks).toHaveCount(13);
+  await expect(ticks.last()).toHaveAttribute('data-state', 'unknown');
+  await expect(ticks.nth(11)).toHaveAttribute('data-state', 'outage');
+  await ticks.nth(11).hover();
+  await expect(tooltip).toContainText('Known outage');
+  await expect(tooltip).toContainText(/Oct 19.*Oct 25/);
+
+  await directoryTab.click();
+  await expect(granularity).toBeHidden();
   const directory = page.locator('#aws-status-directory');
   await expect(directory).toContainText('Fixture tool');
   await expect(directory).toContainText('Unknown');
@@ -102,9 +150,41 @@ async function statusTool({ context, page, base, item }) {
   snapshot.catalog[1].state = 'degraded';
   await page.clock.fastForward(5 * 60 * 1000 + 1000);
   await expect(directory.getByText('Browser check had issues', { exact: true })).toBeVisible();
-  await expect(tabs).toHaveAttribute('aria-selected', 'true');
+  await expect(directoryTab).toHaveAttribute('aria-selected', 'true');
   assert.equal(queries, 2);
-  return local('The fixture verified the ordinary-account gate, history, and a timed refresh that retained the catalog tab.');
+  await page.getByRole('tab', { name: 'AWS Connections' }).click();
+  await expect(granularity).toHaveValue('weekly');
+
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    await fixtureAuth(mobile);
+    await mobile.route(base + '/api/tools/aws-status', (route) => route.fulfill({ json: snapshot }));
+    const phone = await mobile.newPage();
+    await phone.clock.install({ time: now });
+    await visit(phone, base, item.route);
+    const mobileDropdown = phone.getByRole('combobox', { name: 'Group by' });
+    await expect(mobileDropdown).toHaveValue('hourly');
+    const mobileTicks = phone.locator('.aws-status__tick');
+    await mobileTicks.last().tap();
+    await expect(phone.getByRole('tooltip')).toContainText('Second repeated hour check');
+    await mobileDropdown.selectOption('weekly');
+    await expect(phone.getByRole('tooltip')).toBeHidden();
+    await expect(mobileTicks).toHaveCount(13);
+    await expect(mobileTicks.last()).toBeInViewport();
+    assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  } finally {
+    await mobile.close();
+  }
+
+  delete snapshot.connections[0].hours;
+  await context.addInitScript(() => { window.fixtureRole = 'admin'; });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(granularity).toHaveValue('hourly');
+  await expect(ticks).toHaveCount(72);
+  await expect(ticks.last()).toHaveAttribute('data-state', 'unknown');
+  await granularity.selectOption('daily');
+  await expect(ticks.last()).toHaveAttribute('data-state', 'operational');
+  return local('The fixture verified access, three history views, repeated clock hours, touch details and automatic refresh.');
 }
 
 async function background({ page, base, item }) {
