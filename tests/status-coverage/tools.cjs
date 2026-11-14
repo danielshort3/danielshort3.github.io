@@ -107,7 +107,8 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
       ['2026-11-01T06:00:00.000Z', 'degraded', 'The PC reported that the transcription worker is unavailable.'],
       [latestShown, 'outage', 'No report arrived from the PC.'],
       [nextHour, 'operational', 'The transcription worker is ready.']
-    ].map(([start, state, issue]) => ({ start, from: start, to: start, state, issue }))
+    ].map(([start, state, issue]) => ({ start, from: start, to: start, state, issue, complete: true,
+      observedAt: start === nextHour ? undefined : new Date(Date.parse(start) + 10 * 60 * 1000).toISOString() }))
   };
   for (const [id, hours] of [['tool:fixture', 'uu'], ['project:fixture', 'od'], ['game:fixture', 'oo']]) {
     snapshot.catalogHistory.results[id] = { hours: '-'.repeat(70) + hours, days: '-'.repeat(90) };
@@ -138,6 +139,7 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   const awsTicks = ticks(aws, 'Fixture connection');
   const transcribeTicks = ticks(aws, 'File Transcriber (AWS)');
   const homeGpuTicks = ticks(localServices, 'Home GPU');
+  const homeGpuLastCheck = dashboard.locator('[data-aws-status-part="home-gpu-last-check"]');
   const browserTicks = ticks(tools, 'Browser-checked tool');
   const projectTicks = ticks(projects, 'Fixture project');
   const gameTicks = ticks(games, 'Fixture game');
@@ -163,6 +165,8 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(aws.rows.filter({ hasText: 'Home GPU' })).toHaveCount(0);
   await expect(localServices.rows.filter({ hasText: 'File Transcriber (AWS)' })).toHaveCount(0);
   await expect(dashboard).toContainText('Offline means the PC stopped reporting.');
+  await expect(homeGpuLastCheck).toContainText(/Home GPU last check: Offline.*Stale/);
+  await expect(homeGpuLastCheck.locator('time')).toHaveAttribute('datetime', '2026-11-01T07:10:00.000Z');
   await expect(homeGpuTicks.nth(-3)).toHaveAccessibleName(/Unknown$/);
   await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Worker unavailable$/);
   await homeGpuTicks.nth(-2).hover();
@@ -182,10 +186,15 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   };
   assert.equal(queryCount(), 1);
   for (const { result, latest } of newestCatalogHour) result.hours = result.hours.slice(0, -1) + latest;
+  snapshot.homeGpu.hours.push({ start: '2026-11-01T09:00:00.000Z', from: '2026-11-01T09:00:00.000Z',
+    to: '2026-11-01T09:00:00.000Z', state: 'operational', issue: '', complete: true, observedAt: '2026-11-01T09:09:00.000Z' });
   await refresh('2026-11-01T09:09:00.000Z');
   assert.equal(queryCount(), 2);
   await expect.poll(rowLengths).toEqual(Array(12).fill(70));
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
+  await expect(homeGpuLastCheck).toContainText('Home GPU last check: Online');
+  await expect(homeGpuLastCheck.locator('time')).toHaveAttribute('datetime', '2026-11-01T09:09:00.000Z');
+  await expect(homeGpuLastCheck).not.toContainText('Stale');
   await expect(aws.summary.last()).toHaveAttribute('data-state', 'degraded');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'degraded');
   await expect(browserTicks.last()).toHaveAttribute('data-state', 'degraded');
@@ -280,6 +289,13 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await expect(phone.getByRole('tooltip').locator('p')).toContainText('Offline');
     await mobileHomeGpuTicks.last().tap();
     await expect(phone.getByRole('tooltip').locator('p')).toHaveText('Online');
+    const phoneHomeGpuLastCheck = phone.locator('[data-aws-status-part="home-gpu-last-check"]');
+    const { left, right, instantWidth } = await phoneHomeGpuLastCheck.evaluate((node) => {
+      const { left, right } = node.getBoundingClientRect();
+      return { left, right, instantWidth: window.innerWidth };
+    });
+    expect(left).toBeGreaterThanOrEqual(0);
+    expect(right).toBeLessThanOrEqual(instantWidth);
     assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
   } finally {
     await mobile.close();
