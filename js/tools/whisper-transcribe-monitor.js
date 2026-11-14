@@ -29,7 +29,7 @@
    * - GET /api/tools/transcribe/local-config
    *   { ok, enabled, configured, service, workerOrigin, chunkBytes,
    *     maxFilesPerRun, maxFileBytes, maxServiceDurationSeconds,
-   *     minDurationSeconds, supportedFormats, urlImportEnabled, historyStored:false }
+   *     minDurationSeconds, supportedFormats, urlImportEnabled, pageImportEnabled, historyStored:false }
    * - POST /api/tools/transcribe/local-ticket, once per file, with
    *   { filename, format, contentType, bytes, durationSeconds }
    *   => { ok, enabled, configured, workerOrigin, chunkBytes, ticket,
@@ -38,12 +38,16 @@
    * - POST /api/tools/transcribe/local-url-ticket with { sourceUrl }
    *   => { ok, enabled, configured, workerOrigin, ticket, expiresAt,
    *        job:{ id, sourceKind:'url', sourceUrl, maxFileBytes, maxDurationSeconds } }
+   * - POST /api/tools/transcribe/local-page-ticket with { pageUrl }
+   *   => { ok, workerOrigin, ticket, expiresAt, scan:{ id, pageUrl } }
    * - GET /v1/health is an unauthenticated readiness check. Worker job
    *   routes receive Authorization: Bearer <ticket>:
    *   POST /v1/jobs with
    *     { id, filename, format, contentType, bytes, durationSeconds,
    *       chunkBytes, chunkCount }
    *   POST /v1/url-jobs with { id, sourceUrl } to download audio on the worker
+   *   POST /v1/page-scans with { id, pageUrl } to discover candidates
+   *   POST /v1/page-jobs with { id, scanId, candidateId } to import one candidate
    *   PUT /v1/jobs/{id}/chunks/{index} with Content-Range and
    *     X-Chunk-SHA256
    *   POST /v1/jobs/{id}/complete with { chunkCount }
@@ -63,7 +67,6 @@
   const ACTIVE_RUNS_MAX_ITEMS = 10;
   const ACTIVE_RUNS_MAX_TOKEN_CHARS = 8192;
   const HISTORY_PAGE_SIZE = 20;
-  const NOTIFICATION_PREFERENCE_KEY = 'tools:transcribe:notifications:v1';
   const DURATION_TIMEOUT_MS = 10000;
   const MAX_CONTAINER_SCAN_BYTES = 8 * 1024 * 1024;
   const MP4_SUSPICIOUS_STTS_DELTA_SECONDS = 120;
@@ -104,8 +107,49 @@
     return `https://www.youtube.com/watch?v=${videoId}`;
   };
 
+  const normalizePageUrl = (value) => {
+    const invalid = () => new Error('Paste a public HTTPS web page URL.');
+    if (typeof value !== 'string' || value.length > 2048 || /[\u0000-\u001f\u007f\\]/.test(value)) throw invalid();
+    const normalized = value.trim();
+    const authority = normalized.match(/^https:\/\/([^/?#]+)/i)?.[1];
+    if (!authority || authority.includes('@')) throw invalid();
+    let url;
+    try {
+      url = new URL(normalized);
+    } catch {
+      throw invalid();
+    }
+    const host = url.hostname;
+    const labels = host.split('.');
+    if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+        host.length > 253 || labels.length < 2 || /^\d+\.\d+\.\d+\.\d+$/.test(host) ||
+        labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)) ||
+        ['localhost', 'local', 'internal'].includes(labels[labels.length - 1])) throw invalid();
+    url.hash = '';
+    if (url.href.length > 2048) throw invalid();
+    return url.href;
+  };
+
+  const normalizePageCandidates = (candidates) => {
+    const seen = new Set();
+    return (Array.isArray(candidates) ? candidates : []).flatMap((candidate) => {
+      const id = String(candidate?.id || '');
+      if (!/^[a-f0-9]{32}$/.test(id) || seen.has(id)) return [];
+      seen.add(id);
+      const duration = Number(candidate.durationSeconds);
+      return [{
+        id,
+        title: String(candidate.title || '').trim().slice(0, 180) || 'Video',
+        provider: String(candidate.provider || '').trim().slice(0, 60),
+        durationSeconds: Number.isFinite(duration) && duration > 0 ? duration : null
+      }];
+    });
+  };
+
+  const isImportedSource = (item) => ['url', 'page'].includes(item?.sourceKind);
+
   const updateLocalSourceMetadata = (item, data) => {
-    if (item?.sourceKind !== 'url') return;
+    if (!isImportedSource(item)) return;
     const title = String(data?.title || '').trim().slice(0, 180);
     const filename = String(data?.filename || '').trim().slice(0, 180);
     if (title || filename) item.name = title || filename;
@@ -125,7 +169,10 @@
   }));
 
   if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
-    module.exports = { isMp4TimelineSuspicious, isRecoverableItem, normalizeYouTubeUrl, updateLocalSourceMetadata, captureUrlSources };
+    module.exports = {
+      isMp4TimelineSuspicious, isRecoverableItem, normalizeYouTubeUrl, normalizePageUrl,
+      normalizePageCandidates, updateLocalSourceMetadata, captureUrlSources
+    };
     return;
   }
 
@@ -146,6 +193,14 @@
   const addUrlBtn = $id('transcribe-add-url');
   const urlStatusEl = $id('transcribe-url-status');
   const urlAvailabilityEl = $id('transcribe-url-availability');
+  const pagePanelEl = $id('transcribe-page-panel');
+  const pageUrlEl = $id('transcribe-page-url');
+  const findVideosBtn = $id('transcribe-find-videos');
+  const pageAvailabilityEl = $id('transcribe-page-availability');
+  const pageStatusEl = $id('transcribe-page-status');
+  const pageVideosEl = $id('transcribe-page-videos');
+  const pageCandidatesEl = $id('transcribe-page-candidates');
+  const addPageVideosBtn = $id('transcribe-add-page-videos');
   const uploadTitleEl = $id('transcribe-upload-title');
   const summaryEl = $id('transcribe-summary');
   const tableWrapEl = $id('transcribe-table-wrap');
@@ -186,7 +241,6 @@
   const historyDownloadBtn = $id('transcribe-history-download');
   const historyDeleteBtn = $id('transcribe-history-delete');
   const historyPrivacyEl = $id('transcribe-history-privacy');
-  const notificationsBtn = $id('transcribe-notifications');
   const methodEl = $id('transcribe-method');
   const methodHelpEl = $id('transcribe-method-help');
   const methodInputs = Array.from(document.querySelectorAll('input[name="transcribe-provider"]'));
@@ -210,8 +264,12 @@
   const state = {
     config: { ...DEFAULT_CONFIG },
     provider: PROVIDER_AWS,
+    providerChoice: '',
     sourceKind: 'file',
     localUrlImportReady: false,
+    localPageImportReady: false,
+    pageScan: null,
+    pageScanController: null,
     localConfig: null,
     localConfigLoading: false,
     localStatus: 'checking',
@@ -232,8 +290,7 @@
     historyNextCursor: '',
     historyLoading: false,
     historyDetail: null,
-    historyRequestId: 0,
-    notificationsEnabled: false
+    historyRequestId: 0
   };
 
   const getAuthSub = () => {
@@ -261,6 +318,16 @@
 
   const urlImportIsReady = () => isLocalProvider() && isAdminUser() &&
     state.localConfig?.urlImportEnabled === true && state.localUrlImportReady && state.localStatus === 'online';
+
+  const pageImportIsReady = () => isLocalProvider() && isAdminUser() &&
+    state.localConfig?.pageImportEnabled === true && state.localPageImportReady && state.localStatus === 'online';
+
+  const scanIsCurrent = (scan) => scan?.expiresAt > Date.now();
+
+  const selectedPageCandidateIds = () => Array.from(
+    pageCandidatesEl?.querySelectorAll('input:checked:not(:disabled)') || [],
+    (input) => input.dataset.transcribePageCandidate
+  );
 
   const activeConfig = () => isLocalProvider()
     ? (state.localConfig || {})
@@ -921,12 +988,15 @@
       shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';
     }
     if (dropzoneEl) dropzoneEl.dataset.compact = hasFiles ? 'true' : 'false';
-    const urlSelected = localActive && state.sourceKind === 'url';
+    const source = localActive ? state.sourceKind : 'file';
+    const urlSelected = source === 'url';
+    const pageSelected = source === 'page';
     if (sourcePickerEl) sourcePickerEl.hidden = !localActive;
-    if (dropzoneEl) dropzoneEl.hidden = urlSelected;
+    if (dropzoneEl) dropzoneEl.hidden = source !== 'file';
     if (urlPanelEl) urlPanelEl.hidden = !urlSelected;
+    if (pagePanelEl) pagePanelEl.hidden = !pageSelected;
     sourceInputs.forEach((input) => {
-      input.checked = input.value === (urlSelected ? 'url' : 'file');
+      input.checked = input.value === source;
       input.disabled = state.busy || state.analyzing || !localActive;
     });
     setText(uploadTitleEl, localActive ? 'Add media' : 'Upload files');
@@ -935,6 +1005,11 @@
       : urlImportIsReady()
         ? 'The home PC downloads the audio and checks its duration when you start.'
         : 'URL import is unavailable. Start or update the Home GPU worker, then retry its connection.');
+    setText(pageAvailabilityEl, state.localConfigLoading
+      ? 'Checking web page import availability...'
+      : pageImportIsReady()
+        ? ''
+        : 'Web page import is unavailable. Check that the Home GPU worker is online and up to date.');
 
     providerPanels.forEach((panel) => {
       const provider = cleanText(panel.dataset.transcribeProviderPanel).toLowerCase();
@@ -949,14 +1024,14 @@
       localStateEl.setAttribute('aria-atomic', 'true');
     }
     if (localRefreshBtn) {
-      localRefreshBtn.hidden = !localActive || (!['offline', 'unavailable'].includes(state.localStatus) && !(urlSelected && !urlImportIsReady()));
+      localRefreshBtn.hidden = !localActive || (!['offline', 'unavailable'].includes(state.localStatus) &&
+        !(urlSelected && !urlImportIsReady()) && !(pageSelected && !pageImportIsReady()));
     }
     if (usageEl) usageEl.hidden = isLocalProvider();
     if (historyOpenBtn) {
       historyOpenBtn.hidden = isLocalProvider() || !authIsReady();
       historyOpenBtn.disabled = isLocalProvider() || !authIsReady();
     }
-    if (notificationsBtn) notificationsBtn.hidden = false;
     if (isLocalProvider() && historyDialogEl?.open) closeHistory();
 
     setText(detailsSummaryEl, isLocalProvider() ? 'Home GPU' : 'AWS');
@@ -964,7 +1039,7 @@
     const minimumSeconds = Math.max(0, Number(config.minDurationSeconds) || DEFAULT_CONFIG.minDurationSeconds);
     const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');
     setText(detailServiceEl, serviceName);
-    setText(detailMinimumEl, isLocalProvider() && state.sourceKind === 'url'
+    setText(detailMinimumEl, localActive && source !== 'file'
       ? 'No minimum'
       : minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
     setText(detailPriceEl, `$${Number(state.config.pricePerMinute || DEFAULT_CONFIG.pricePerMinute).toFixed(3)} / min`);
@@ -998,7 +1073,7 @@
 
     if (isLocalProvider()) {
       setText(providerKickerEl, 'Home GPU');
-      setText(uploadCopyEl, 'Add files or a YouTube URL to process on your home PC.');
+      setText(uploadCopyEl, 'Add files or choose videos from YouTube and public web pages.');
       if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_LOCAL;
       setText(approvalCopyEl, 'Process this media temporarily on my home PC.');
     } else {
@@ -1083,6 +1158,15 @@
     }
     const accountSub = authed ? getAuthSub() : '';
     if (state.accountSub !== accountSub) {
+      clearPageScan();
+      if (pageUrlEl) pageUrlEl.value = '';
+      if (!state.busy && state.files.some((item) => item.sourceKind === 'page')) {
+        state.files = state.files.filter((item) => item.sourceKind !== 'page');
+        if (!state.admin && !state.files.length) state.provider = PROVIDER_AWS;
+        if (approveEl) approveEl.checked = false;
+        renderTable();
+        renderResults();
+      }
       state.accountSub = accountSub;
       state.usageRequestId += 1;
       state.historyRequestId += 1;
@@ -1096,7 +1180,8 @@
       showHistoryList();
     }
 
-    const shouldPreferLocal = state.admin && !wasAdmin && !state.files.length && !state.busy;
+    const shouldPreferLocal = state.admin && !wasAdmin && state.providerChoice !== PROVIDER_AWS &&
+      !state.files.length && !state.busy;
     if (shouldPreferLocal) {
       const localKnownUnavailable = state.localConfig !== null && (
         state.localConfig?.enabled !== true || state.localConfig?.configured !== true
@@ -1203,10 +1288,10 @@
       const removable = canRemoveItem(item);
       const resumable = canResumeItem(item);
       const metadata = [
-        item.sourceKind === 'url' ? 'YouTube' : '',
-        item.sourceKind !== 'url' || item.bytes > 0 ? formatBytes(item.bytes) : '',
+        item.sourceKind === 'page' ? 'Web page' : item.sourceKind === 'url' ? 'YouTube' : '',
+        !isImportedSource(item) || item.bytes > 0 ? formatBytes(item.bytes) : '',
         item.extension ? item.extension.toUpperCase() : '',
-        item.durationSeconds ? formatClock(item.durationSeconds) : item.sourceKind === 'url' ? 'Duration checked on home PC' : ''
+        item.durationSeconds ? formatClock(item.durationSeconds) : isImportedSource(item) ? 'Duration checked on home PC' : ''
       ].filter(Boolean).join(' · ');
       const showStatus = item.status !== 'ready';
       return `
@@ -1254,7 +1339,7 @@
       <article class="transcribe-process-card" data-tone="${escapeHtml(rowTone(item))}">
         <div>
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
-          <span class="transcribe-file-meta">${escapeHtml(item.durationSeconds ? formatClock(item.durationSeconds) : item.sourceKind === 'url' ? 'YouTube · Checking duration' : '')}</span>
+          <span class="transcribe-file-meta">${escapeHtml(item.durationSeconds ? formatClock(item.durationSeconds) : isImportedSource(item) ? 'Checking duration on home PC' : '')}</span>
         </div>
         <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
       </article>
@@ -1346,6 +1431,13 @@
     if (addFilesBtn) addFilesBtn.disabled = pickerDisabled;
     if (urlEl) urlEl.disabled = pickerDisabled || !urlImportIsReady();
     if (addUrlBtn) addUrlBtn.disabled = pickerDisabled || !urlImportIsReady() || !String(urlEl?.value || '').trim();
+    const pageDisabled = pickerDisabled || state.sourceKind !== 'page' || !pageImportIsReady();
+    if (pageUrlEl) pageUrlEl.disabled = pageDisabled;
+    if (findVideosBtn) {
+      findVideosBtn.disabled = pageDisabled || Boolean(state.pageScanController) || !String(pageUrlEl?.value || '').trim();
+    }
+    if (pageVideosEl) pageVideosEl.disabled = pageDisabled || Boolean(state.pageScanController);
+    if (addPageVideosBtn) addPageVideosBtn.disabled = pageDisabled || !selectedPageCandidateIds().length;
     if (dropzoneEl) {
       dropzoneEl.dataset.disabled = pickerDisabled ? 'true' : 'false';
       dropzoneEl.setAttribute('aria-disabled', pickerDisabled ? 'true' : 'false');
@@ -1353,7 +1445,8 @@
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
     if (startBtn) {
       const urlsReady = !acceptedFiles().some((item) => item.status === 'ready' && item.sourceKind === 'url') || urlImportIsReady();
-      const ready = authIsReady() && runConfigIsValid() && urlsReady && approved && readyCount > 0;
+      const pagesReady = !acceptedFiles().some((item) => item.status === 'ready' && item.sourceKind === 'page') || pageImportIsReady();
+      const ready = authIsReady() && runConfigIsValid() && urlsReady && pagesReady && approved && readyCount > 0;
       startBtn.disabled = state.busy || state.analyzing || !ready;
       startBtn.dataset.ready = ready ? 'true' : 'false';
     }
@@ -1407,6 +1500,7 @@
     if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;
     state.localConfigLoading = true;
     state.localUrlImportReady = false;
+    state.localPageImportReady = false;
     setLocalStatus('checking', 'Checking Home GPU...');
     updateMethodUi();
     const fallbackToAws = (message) => {
@@ -1453,6 +1547,7 @@
           throw new Error('Worker is not ready.');
         }
         state.localUrlImportReady = health?.capabilities?.urlImport === true;
+        state.localPageImportReady = health?.capabilities?.pageImport === true;
         setLocalStatus('online', 'Home GPU is online and ready.');
       } catch {
         setLocalStatus('offline', 'Home GPU is offline. Start the worker, then check again.');
@@ -1711,111 +1806,6 @@
     }
   };
 
-  const notificationApiAvailable = () =>
-    typeof window.Notification === 'function' &&
-    typeof window.Notification.requestPermission === 'function';
-
-  const readNotificationPreference = () => {
-    try {
-      return window.localStorage.getItem(NOTIFICATION_PREFERENCE_KEY) === 'on';
-    } catch {
-      return false;
-    }
-  };
-
-  const saveNotificationPreference = (enabled) => {
-    try {
-      window.localStorage.setItem(NOTIFICATION_PREFERENCE_KEY, enabled ? 'on' : 'off');
-    } catch {}
-  };
-
-  const updateNotificationUi = () => {
-    if (!notificationsBtn) return;
-    notificationsBtn.title = 'Completion and failure alerts work while this page remains open.';
-    if (!notificationApiAvailable()) {
-      state.notificationsEnabled = false;
-      notificationsBtn.disabled = true;
-      notificationsBtn.dataset.state = 'unsupported';
-      notificationsBtn.setAttribute('aria-pressed', 'false');
-      setText(notificationsBtn, 'Notifications unavailable');
-      return;
-    }
-    const permission = window.Notification.permission;
-    if (permission === 'denied') {
-      state.notificationsEnabled = false;
-      notificationsBtn.disabled = true;
-      notificationsBtn.dataset.state = 'denied';
-      notificationsBtn.setAttribute('aria-pressed', 'false');
-      setText(notificationsBtn, 'Notifications blocked');
-      return;
-    }
-    state.notificationsEnabled = permission === 'granted' && readNotificationPreference();
-    notificationsBtn.disabled = false;
-    notificationsBtn.dataset.state = state.notificationsEnabled ? 'enabled' : 'off';
-    notificationsBtn.setAttribute('aria-pressed', state.notificationsEnabled ? 'true' : 'false');
-    setText(notificationsBtn, state.notificationsEnabled ? 'Notifications on' : 'Notifications off');
-  };
-
-  const toggleNotifications = async () => {
-    if (!notificationApiAvailable()) return;
-    if (window.Notification.permission === 'granted') {
-      saveNotificationPreference(!state.notificationsEnabled);
-      updateNotificationUi();
-      setStatus(
-        runStatusEl,
-        state.notificationsEnabled
-          ? 'Browser alerts are on while this page remains open.'
-          : 'Browser alerts are off.',
-        state.notificationsEnabled ? 'success' : ''
-      );
-      return;
-    }
-    let permission = window.Notification.permission;
-    if (permission === 'default') {
-      try {
-        permission = await window.Notification.requestPermission();
-      } catch {
-        permission = 'denied';
-      }
-    }
-    saveNotificationPreference(permission === 'granted');
-    updateNotificationUi();
-    setStatus(
-      runStatusEl,
-      permission === 'granted'
-        ? 'Browser alerts are on while this page remains open.'
-        : 'Notifications were not enabled. You can change this site permission in your browser settings.',
-      permission === 'granted' ? 'success' : 'warning'
-    );
-  };
-
-  const notifyItem = (item) => {
-    const status = String(item?.status || '');
-    if (!state.notificationsEnabled || !['complete', 'partial', 'failed'].includes(status)) return;
-    if (item.notifiedStatus === status) return;
-    item.notifiedStatus = status;
-    const title = status === 'complete'
-      ? 'Transcription complete'
-      : status === 'partial'
-        ? 'Transcript needs review'
-        : 'Transcription failed';
-    const body = status === 'complete'
-      ? `${item.name} is ready.`
-      : status === 'partial'
-        ? `${item.name} may have ended early.`
-        : `${item.name} could not be transcribed.`;
-    try {
-      const notification = new window.Notification(title, {
-        body,
-        tag: `transcribe-${item.id || item.name}-${status}`
-      });
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-    } catch {}
-  };
-
   const loadConfig = async () => {
     try {
       const res = await fetch(`${API_BASE}/config`, { method: 'GET' });
@@ -2061,6 +2051,156 @@
     markSessionDirty();
   };
 
+  const clearPageScan = () => {
+    state.pageScanController?.abort();
+    state.pageScanController = null;
+    state.pageScan = null;
+    if (pageCandidatesEl) pageCandidatesEl.replaceChildren();
+    if (pageVideosEl) pageVideosEl.hidden = true;
+    if (pageUrlEl) pageUrlEl.removeAttribute('aria-invalid');
+    setStatus(pageStatusEl, '', '');
+  };
+
+  const requestPageScan = async (pageUrl, signal) => {
+    const ownerSub = getAuthSub();
+    const ticketData = await authFetchJson(`${API_BASE}/local-page-ticket`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageUrl }),
+      signal
+    });
+    const id = cleanText(ticketData?.scan?.id);
+    const ticket = cleanText(ticketData?.ticket);
+    const expiresAt = typeof ticketData?.expiresAt === 'number'
+      ? ticketData.expiresAt : Date.parse(ticketData?.expiresAt);
+    if (!/^[a-f0-9]{32}$/.test(id) || !ticket || !scanIsCurrent({ expiresAt }) ||
+        normalizePageUrl(ticketData?.scan?.pageUrl) !== pageUrl) {
+      throw new Error('The website did not return a valid web page scan ticket.');
+    }
+    const workerOrigin = normalizeWorkerOrigin(ticketData.workerOrigin);
+    const found = await workerFetchJson(workerOrigin, '/v1/page-scans', ticket, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, pageUrl: ticketData.scan.pageUrl }),
+      signal
+    });
+    if (found?.id !== id || !Array.isArray(found.candidates) || getAuthSub() !== ownerSub) {
+      throw new Error('The Home GPU worker did not return a valid scan result.');
+    }
+    return {
+      id, pageUrl, workerOrigin, ticket, expiresAt,
+      ownerSub,
+      candidates: normalizePageCandidates(found.candidates)
+    };
+  };
+
+  const renderPageCandidates = () => {
+    if (!pageCandidatesEl || !pageVideosEl) return;
+    const candidates = state.pageScan?.candidates || [];
+    pageVideosEl.hidden = !candidates.length;
+    pageCandidatesEl.innerHTML = candidates.map((candidate) => {
+      const alreadyAdded = state.files.some((item) => item.pageCandidateId === candidate.id);
+      const metadata = [
+        candidate.provider,
+        candidate.durationSeconds ? formatClock(candidate.durationSeconds) : '',
+        alreadyAdded ? 'Added to batch' : ''
+      ].filter(Boolean).join(' · ');
+      return `
+        <label class="transcribe-page-candidate">
+          <input type="checkbox" data-transcribe-page-candidate="${escapeHtml(candidate.id)}"${alreadyAdded ? ' disabled' : ''}>
+          <span>
+            <span>${escapeHtml(candidate.title)}</span>
+            ${metadata ? `<span class="transcribe-file-meta">${escapeHtml(metadata)}</span>` : ''}
+          </span>
+        </label>`;
+    }).join('');
+  };
+
+  const findPageVideos = async () => {
+    if (state.busy || state.analyzing || state.pageScanController || !pageImportIsReady()) return;
+    clearPageScan();
+    let pageUrl;
+    try {
+      pageUrl = normalizePageUrl(pageUrlEl?.value);
+    } catch (error) {
+      pageUrlEl?.setAttribute('aria-invalid', 'true');
+      setStatus(pageStatusEl, error.message, 'warning');
+      return;
+    }
+    const controller = new AbortController();
+    state.pageScanController = controller;
+    setStatus(pageStatusEl, 'Looking for videos on this page…', '');
+    updateControls();
+    try {
+      const scan = await requestPageScan(pageUrl, controller.signal);
+      if (state.pageScanController !== controller) return;
+      state.pageScan = scan;
+      renderPageCandidates();
+      setStatus(pageStatusEl, scan.candidates.length
+        ? `${scan.candidates.length} video${scan.candidates.length === 1 ? '' : 's'} found. Select what to add.`
+        : 'No supported videos were found on this page.', scan.candidates.length ? 'success' : '');
+    } catch (error) {
+      if (state.pageScanController === controller) {
+        setStatus(pageStatusEl, error?.message || 'Unable to scan this page. Try again.', 'warning');
+      }
+    } finally {
+      if (state.pageScanController === controller) {
+        state.pageScanController = null;
+        updateControls();
+      }
+    }
+  };
+
+  const addPageVideos = () => {
+    if (state.busy || state.analyzing || !pageImportIsReady()) return;
+    const scan = state.pageScan;
+    const selection = new Set(selectedPageCandidateIds());
+    if (!scan || !selection.size) return;
+    if (!scanIsCurrent(scan)) {
+      clearPageScan();
+      setStatus(pageStatusEl, 'This scan expired. Select Find videos to scan it again.', 'warning');
+      updateControls();
+      return;
+    }
+    const candidates = scan.candidates.filter((candidate) =>
+      selection.has(candidate.id) && !state.files.some((item) => item.pageCandidateId === candidate.id));
+    if (!candidates.length) return;
+    const limit = Number(activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun);
+    if (countedForRunLimit() + candidates.length > limit) {
+      setStatus(pageStatusEl, `The batch limit is ${limit} items. Select fewer videos or remove an item.`, 'warning');
+      return;
+    }
+    for (const candidate of candidates) {
+      state.files.push({
+        id: `page-${candidate.id}`,
+        sourceKind: 'page',
+        pageScan: scan,
+        pageCandidateId: candidate.id,
+        file: null,
+        name: candidate.title,
+        extension: '',
+        bytes: null,
+        durationSeconds: candidate.durationSeconds,
+        billableSeconds: 0,
+        estimatedCostUsd: 0,
+        costUsd: 0,
+        provider: PROVIDER_LOCAL,
+        progress: 0,
+        status: 'ready',
+        skipReason: '',
+        transcript: ''
+      });
+    }
+    if (approveEl) approveEl.checked = false;
+    setStatus(pageStatusEl, `${candidates.length} video${candidates.length === 1 ? '' : 's'} added to the batch.`, 'success');
+    setStatus(runStatusEl, '', '');
+    setView('upload');
+    renderPageCandidates();
+    renderTable();
+    renderResults();
+    markSessionDirty();
+  };
+
   const abortActive = () => {
     try {
       if (state.activeXhr && state.activeXhr.readyState !== 4) state.activeXhr.abort();
@@ -2195,7 +2335,6 @@
         renderResults();
         markSessionDirty();
         persistActiveRunRecovery();
-        notifyItem(item);
         void loadUsage();
         if (historyDialogEl?.open) void loadHistory();
         return;
@@ -2210,7 +2349,6 @@
         renderResults();
         markSessionDirty();
         persistActiveRunRecovery();
-        notifyItem(item);
         void loadUsage();
         return;
       }
@@ -2443,7 +2581,6 @@
         renderProcessingList();
         renderResults();
         markSessionDirty();
-        notifyItem(item);
         await acknowledgeLocalItem(item);
         return;
       }
@@ -2459,7 +2596,6 @@
         renderProcessingList();
         renderResults();
         markSessionDirty();
-        notifyItem(item);
         await acknowledgeLocalItem(item);
         return;
       }
@@ -2598,13 +2734,76 @@
     await pollLocalRun(item);
   };
 
+  const runLocalPageVideo = async (item) => {
+    const scan = item.pageScan;
+    if (!pageImportIsReady() || !scan || scan.ownerSub !== getAuthSub()) {
+      throw new Error('Web page import is unavailable. Sign in and scan the page again.');
+    }
+    const controller = new AbortController();
+    state.activeController = controller;
+    try {
+      if (!scanIsCurrent(scan)) {
+        item.status = 'presigning';
+        renderTable();
+        const refreshed = await requestPageScan(scan.pageUrl, controller.signal);
+        Object.assign(scan, refreshed);
+      }
+      if (state.canceled) throw new Error('Canceled.');
+      if (!scan.candidates.some((candidate) => candidate.id === item.pageCandidateId)) {
+        throw new Error('This video changed since the original scan. Find videos again to select it.');
+      }
+
+      item.localJobId = Array.from(window.crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+        byte.toString(16).padStart(2, '0')).join('');
+      item.localWorkerOrigin = scan.workerOrigin;
+      item.localTicket = scan.ticket;
+      item.localTicketExpiresAt = new Date(scan.expiresAt).toISOString();
+      item.status = 'starting';
+      item.error = '';
+      updateProgress({ stateName: 'visible', ratio: 0, label: `Starting ${item.name} on the home PC…` });
+      renderTable();
+
+      const request = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.localJobId, scanId: scan.id, candidateId: item.pageCandidateId }),
+        signal: controller.signal
+      };
+      let created;
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          created = await workerFetchJson(scan.workerOrigin, '/v1/page-jobs', scan.ticket, request);
+          break;
+        } catch (error) {
+          if (state.canceled || error?.name === 'AbortError' || !isTransientRunError(error) || attempt >= 1) {
+            throw error;
+          }
+          await sleep(500);
+        }
+      }
+      if (created?.id !== item.localJobId) throw new Error('The Home GPU worker returned a different job ID.');
+      if (created.jobTicket) {
+        item.localTicket = cleanText(created.jobTicket);
+        item.localTicketExpiresAt = cleanText(created.expiresAt);
+      }
+      updateLocalSourceMetadata(item, created);
+      item.status = 'transcribing';
+      item.localStage = 'Queued on home PC';
+      item.localProgress = 0;
+      renderTable();
+    } finally {
+      if (state.activeController === controller) state.activeController = null;
+    }
+    await pollLocalRun(item);
+  };
+
   const runSelectedFile = async (item) => {
-    if (item.sourceKind === 'url' && item.provider !== PROVIDER_LOCAL) {
-      throw new Error('YouTube URLs can only be processed on Home GPU.');
+    if (isImportedSource(item) && item.provider !== PROVIDER_LOCAL) {
+      throw new Error('URL imports can only be processed on Home GPU.');
     }
     if (item.provider !== PROVIDER_LOCAL) return runFile(item);
     try {
-      return await runLocalFile(item);
+      return await (item.sourceKind === 'page' ? runLocalPageVideo(item) : runLocalFile(item));
     } catch (err) {
       if (!state.canceled && isTransientRunError(err)) {
         setLocalStatus('offline', 'The Home GPU connection was interrupted. Check the worker before retrying.');
@@ -2660,7 +2859,6 @@
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Unable to resume transcription.');
           item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
-          notifyItem(item);
         }
         renderTable();
         renderProcessingList();
@@ -2702,6 +2900,7 @@
   const resumeItem = async (item) => resumeQueue([item]);
 
   const runBatch = async ({ reportOutcome = false } = {}) => {
+    if (state.busy || state.analyzing) return;
     if (!authIsReady()) {
       setStatus(runStatusEl, 'Sign in before starting transcription jobs.', 'warning');
       updateAuthUi();
@@ -2730,6 +2929,11 @@
     const queue = acceptedFiles().filter((item) => item.status === 'ready');
     if (queue.some((item) => item.sourceKind === 'url') && !urlImportIsReady()) {
       setStatus(runStatusEl, 'URL import is unavailable on the Home GPU worker. Check its connection and try again.', 'warning');
+      if (reportOutcome) reportRunError('validation');
+      return;
+    }
+    if (queue.some((item) => item.sourceKind === 'page') && !pageImportIsReady()) {
+      setStatus(runStatusEl, 'Web page import is unavailable on the Home GPU worker. Check its connection and try again.', 'warning');
       if (reportOutcome) reportRunError('validation');
       return;
     }
@@ -2784,7 +2988,6 @@
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
           item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
-          notifyItem(item);
         }
         renderTable();
         renderProcessingList();
@@ -2832,6 +3035,7 @@
     state.canceled = true;
     state.analyzing = false;
     abortActive();
+    clearPageScan();
     state.files = [];
     clearActiveRunRecovery();
     if (fileEl) fileEl.value = '';
@@ -2839,6 +3043,7 @@
       urlEl.value = '';
       urlEl.removeAttribute('aria-invalid');
     }
+    if (pageUrlEl) pageUrlEl.value = '';
     setStatus(urlStatusEl, '', '');
     if (approveEl) approveEl.checked = false;
     setView('upload');
@@ -2849,12 +3054,6 @@
     renderResults();
     markSessionDirty();
   };
-
-  if (notificationsBtn) {
-    notificationsBtn.addEventListener('click', () => {
-      void toggleNotifications();
-    });
-  }
 
   if (historyOpenBtn) historyOpenBtn.addEventListener('click', openHistory);
   if (historyCloseBtn) historyCloseBtn.addEventListener('click', closeHistory);
@@ -2908,6 +3107,11 @@
         return;
       }
       state.provider = nextProvider;
+      state.providerChoice = nextProvider;
+      if (!isLocalProvider()) {
+        clearPageScan();
+        if (pageUrlEl) pageUrlEl.value = '';
+      }
       if (approveEl) approveEl.checked = false;
       if (processingDetailsEl) processingDetailsEl.open = false;
       if (isLocalProvider()) {
@@ -2933,7 +3137,7 @@
   sourceInputs.forEach((input) => {
     input.addEventListener('change', () => {
       if (!input.checked || state.busy || state.analyzing || !isLocalProvider()) return;
-      state.sourceKind = input.value === 'url' ? 'url' : 'file';
+      state.sourceKind = ['file', 'url', 'page'].includes(input.value) ? input.value : 'file';
       setStatus(urlStatusEl, '', '');
       updateControls();
     });
@@ -2949,6 +3153,20 @@
       if (event.key !== 'Enter') return;
       event.preventDefault();
       addSourceUrl();
+    });
+  }
+  if (findVideosBtn) findVideosBtn.addEventListener('click', () => void findPageVideos());
+  if (addPageVideosBtn) addPageVideosBtn.addEventListener('click', addPageVideos);
+  if (pageCandidatesEl) pageCandidatesEl.addEventListener('change', updateControls);
+  if (pageUrlEl) {
+    pageUrlEl.addEventListener('input', () => {
+      clearPageScan();
+      updateControls();
+    });
+    pageUrlEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      if (!event.isComposing) void findPageVideos();
     });
   }
 
@@ -3009,6 +3227,7 @@
       const item = removedIndex >= 0 ? state.files[removedIndex] : null;
       if (!item || !canRemoveItem(item)) return;
       state.files = state.files.filter((entry) => entry.id !== id);
+      if (item.sourceKind === 'page') renderPageCandidates();
       persistActiveRunRecovery();
       if (approveEl) approveEl.checked = false;
       setStatus(runStatusEl, '', '');
@@ -3091,7 +3310,6 @@
   document.addEventListener('tools:auth-changed', () => {
     const restoredCount = restoreActiveRunRecovery();
     updateAuthUi();
-    updateNotificationUi();
     void loadUsage();
     if (!restoredCount) return;
     setView('results');
@@ -3100,7 +3318,6 @@
     setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Resume one or continue all pending jobs without uploading again.`, 'warning');
   });
   window.addEventListener('pagehide', persistActiveRunRecovery);
-  document.addEventListener('visibilitychange', updateNotificationUi);
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -3108,16 +3325,17 @@
     const payload = detail?.payload;
     if (!payload || typeof payload !== 'object') return;
 
-    const accepted = acceptedFiles();
-    const skipped = state.files.filter((item) => item.status === 'skipped');
-    const completed = completedFiles();
-    const partial = partialFiles();
-    const failed = state.files.filter((item) => item.status === 'failed');
+    const capturedItems = state.files.filter((item) => item.sourceKind !== 'page');
+    const accepted = capturedItems.filter((item) => item.status !== 'skipped');
+    const skipped = capturedItems.length - accepted.length;
+    const completed = capturedItems.filter((item) => item.status === 'complete');
+    const partial = capturedItems.filter((item) => item.status === 'partial');
+    const failed = capturedItems.filter((item) => item.status === 'failed');
     payload.inputs = {
       Method: isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe',
-      Files: `${state.files.filter((item) => item.sourceKind !== 'url').length} selected`,
+      Files: `${capturedItems.filter((item) => !isImportedSource(item)).length} selected`,
       Accepted: String(accepted.length),
-      Skipped: String(skipped.length)
+      Skipped: String(skipped)
     };
     const urlSources = captureUrlSources(state.files);
     if (urlSources.length) payload.inputs['YouTube URLs'] = urlSources.map((item) => item.sourceUrl).join('\n');
@@ -3131,7 +3349,11 @@
         : 'No Amazon Transcribe results were collected in this browser session.';
     payload.output = { summary: payload.outputSummary, sources: urlSources };
     if (detail.snapshot && typeof detail.snapshot === 'object') {
-      if (detail.snapshot.fields) delete detail.snapshot.fields['transcribe-url'];
+      if (detail.snapshot.fields) {
+        delete detail.snapshot.fields['transcribe-url'];
+        delete detail.snapshot.fields['transcribe-page-url'];
+        if (detail.snapshot.fields['transcribe-source']?.value === 'page') delete detail.snapshot.fields['transcribe-source'];
+      }
       detail.snapshot.inputs = payload.inputs;
       detail.snapshot.output = payload.output;
     }
@@ -3141,7 +3363,6 @@
     const restoredCount = restoreActiveRunRecovery();
     setView(restoredCount ? 'results' : 'upload');
     updateAuthUi();
-    updateNotificationUi();
     void loadUsage();
     renderTable();
     renderResults();

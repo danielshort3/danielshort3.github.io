@@ -42074,15 +42074,14 @@ try {
            page.includes('aria-labelledby="transcribe-history-title"') &&
            page.includes('id="transcribe-history-list"') &&
            page.includes('id="transcribe-history-transcript"') &&
-           page.includes('id="transcribe-notifications"') &&
-           page.includes('aria-pressed="false"') &&
+           !page.includes('id="transcribe-notifications"') &&
            page.includes('data-transcribe-provider-panel="aws"') &&
            page.includes('data-transcribe-provider-panel="local"') &&
            !page.includes('data-tools-account="tool-controls"') &&
            page.includes('data-tools-autosave="false"') &&
            !page.includes('transcribe-status-bar') &&
            !page.includes('id="transcribe-sign-in"'),
-      'Transcribe page should keep provider-specific usage, history, and notifications inside its progressive processing details');
+      'Transcribe page should keep provider-specific usage and history inside its processing details and omit notifications');
 
     assert(localProviderTags.length >= 3 &&
            localProviderTags.every((tag) => /\bhidden\b/.test(tag)) &&
@@ -42398,12 +42397,9 @@ try {
            toolScript.includes('escapeHtml(item.filename') &&
            !toolScript.includes('historyTranscriptEl.innerHTML'),
       'Transcribe history should lazy-load escaped, account-scoped summaries and assign transcript text safely');
-    assert(toolScript.includes("typeof window.Notification === 'function'") &&
-           toolScript.includes('window.Notification.requestPermission()') &&
-           toolScript.includes("['complete', 'partial', 'failed'].includes(status)") &&
-           toolScript.includes('if (item.notifiedStatus === status) return;') &&
-           toolScript.includes('Completion and failure alerts work while this page remains open.'),
-      'Transcribe notifications should be explicit, page-lifetime browser alerts deduplicated by terminal status');
+    assert(!toolScript.includes('window.Notification') &&
+           !toolScript.includes('tools:transcribe:notifications:v1'),
+      'Transcribe should keep browser notifications off regardless of a previously saved preference');
     assert(endpoint.includes("coverageStatus: suspectedEarlyEnd ? 'SUSPECTED_EARLY_END' : 'OK'") &&
            endpoint.includes('transcriptEndSeconds') &&
            endpoint.includes('transcriptGapSeconds') &&

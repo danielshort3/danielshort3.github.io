@@ -182,6 +182,7 @@ async function run(){
     minDurationSeconds: 15,
     supportedFormats: ['amr', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm'],
     urlImportEnabled: true,
+    pageImportEnabled: true,
     historyStored: false
   });
   assert.strictEqual(configResponse.headers['cache-control'], 'no-store');
@@ -480,10 +481,83 @@ async function run(){
     assert(!json(response).ticket, 'rejected URL requests must never receive a ticket');
   }
 
+  const canonicalPage = 'https://video.example.com/stories/winter?episode=2';
+  const pageResponse = createResponse();
+  await handler(request('POST', {
+    pageUrl: ' HTTPS://Video.Example.COM:443/locations/../stories/winter?episode=2#clip ',
+    maxFileBytes: 1,
+    maxDurationSeconds: 1,
+    scanId: 'different-scan',
+    sub: 'different-account'
+  }), pageResponse, 'page-ticket');
+  assert.strictEqual(pageResponse.statusCode, 200);
+  assert.strictEqual(pageResponse.headers['cache-control'], 'no-store');
+  const pageResult = json(pageResponse);
+  const [pageBody, pageSignature] = pageResult.ticket.split('.');
+  assert.strictEqual(pageSignature, crypto.createHmac('sha256', enabledEnv().LOCAL_TRANSCRIBE_SHARED_SECRET)
+    .update(pageBody, 'utf8').digest('base64url'));
+  assert.deepStrictEqual(pageResult, {
+    ok: true,
+    workerOrigin: 'https://gpu.example.test',
+    ticket: pageResult.ticket,
+    expiresAt: (2_000_000_000 + 3600) * 1000,
+    scan: { id: 'ab'.repeat(16), pageUrl: canonicalPage }
+  });
+  assert.deepStrictEqual(JSON.parse(Buffer.from(pageBody, 'base64url').toString('utf8')), {
+    v: 3,
+    type: 'local_transcribe_page',
+    aud: 'local-transcribe-worker',
+    sub: adminClaims.sub,
+    scanId: 'ab'.repeat(16),
+    pageUrl: canonicalPage,
+    maxFileBytes: 500 * 1024 * 1024,
+    maxDurationSeconds: 8 * 60 * 60,
+    origin: 'https://www.danielshort.me',
+    iat: 2_000_000_000,
+    exp: 2_000_000_000 + 3600
+  });
+  assert.deepStrictEqual(internal.validatePageTicketInput({ pageUrl: canonicalPage }, lowerWorkerLimits), {
+    sourceKind: 'page',
+    pageUrl: canonicalPage,
+    maxFileBytes: 100 * 1024 * 1024,
+    maxDurationSeconds: 3600
+  });
+
+  for (const invalidPage of [
+    undefined, {}, '', '/library', 'file:///etc/passwd', 'http://video.example.com/',
+    'https:///video.example.com/', 'https://video.example.com:8765/', 'https://localhost/',
+    'https://media.localhost/', 'https://media.local/', 'https://metadata.google.internal/',
+    'https://127.0.0.1/', 'https://0x7f.0.0.1/', 'https://10.0.0.1/',
+    'https://169.254.169.254/', 'https://[::ffff:127.0.0.1]/',
+    'https://user:pass@video.example.com/', 'https://@video.example.com/', 'https://%40video.example.com/',
+    'https://video.example.com.//', 'https://video.example.com\\@localhost/',
+    'https://video.example.com/\n', `${canonicalPage}&extra=${'x'.repeat(2048)}`,
+    `https://video.example.com/${'é'.repeat(400)}`
+  ]) {
+    const response = createResponse();
+    await handler(request('POST', { pageUrl: invalidPage }), response, 'page-ticket');
+    assert.strictEqual(response.statusCode, 400, String(invalidPage));
+    assert(!json(response).ticket);
+  }
+  for (const [candidateHandler, candidateRequest, expectedStatus] of [
+    [nonAdminHandler, request('POST', { pageUrl: canonicalPage }), 403],
+    [unauthenticatedHandler, request('POST', { pageUrl: canonicalPage }), 401],
+    [disabledHandler, request('POST', { pageUrl: canonicalPage }), 503],
+    [handler, request('GET'), 405],
+    [handler, request('POST', { pageUrl: canonicalPage }, { headers: { origin: 'https://attacker.example' } }), 403],
+    [handler, request('POST', []), 400]
+  ]) {
+    const response = createResponse();
+    await candidateHandler(candidateRequest, response, 'page-ticket');
+    assert.strictEqual(response.statusCode, expectedStatus);
+    assert(!json(response).ticket);
+  }
+
   const routerSource = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
   assert(routerSource.includes("action === 'local-config'"));
   assert(routerSource.includes("action === 'local-ticket'"));
   assert(routerSource.includes("action === 'local-url-ticket'"));
+  assert(routerSource.includes("action === 'local-page-ticket'"));
 
   console.log('local-transcribe-api tests passed');
 }

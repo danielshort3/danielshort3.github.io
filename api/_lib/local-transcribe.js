@@ -13,6 +13,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { isIP } = require('net');
 const { readJson, sendJson, getBearerToken } = require('./tools-api');
 const { verifyCognitoIdToken } = require('./cognito-jwt');
 const {
@@ -33,6 +34,7 @@ const MIN_DURATION_SECONDS = 15;
 const DEFAULT_TICKET_TTL_SECONDS = 6 * 60 * 60;
 const MIN_TICKET_TTL_SECONDS = 15 * 60;
 const MAX_TICKET_TTL_SECONDS = 12 * 60 * 60;
+const PAGE_TICKET_TTL_SECONDS = 60 * 60;
 const MAX_FILENAME_CHARS = 120;
 
 function hasOwn(object, key){
@@ -169,6 +171,7 @@ function publicLocalConfig(config){
     minDurationSeconds: config.minDurationSeconds,
     supportedFormats: [...SUPPORTED_FORMATS],
     urlImportEnabled: Boolean(config.configured),
+    pageImportEnabled: Boolean(config.configured),
     historyStored: false
   };
 }
@@ -271,6 +274,41 @@ function validateUrlTicketInput(body, config){
   };
 }
 
+function validatePageTicketInput(body, config){
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw createValidationError('A JSON object is required.');
+  }
+  const raw = body.pageUrl;
+  const invalid = () => createValidationError('Enter a public HTTPS webpage URL.');
+  if (typeof raw !== 'string' || raw.length > 2048 || /[\u0000-\u001f\u007f\\]/.test(raw)) throw invalid();
+  const value = raw.trim();
+  const authority = value.match(/^https:\/\/([^/?#]+)/i)?.[1];
+  if (!authority || authority.includes('@')) throw invalid();
+
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw invalid();
+  }
+  const hostname = url.hostname;
+  const labels = hostname.split('.');
+  // DNS targets are checked at connect time by the worker. This signer does not resolve them.
+  if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+      isIP(hostname.replace(/^\[|\]$/g, '')) || hostname.length > 253 || labels.length < 2 ||
+      labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)) ||
+      ['localhost', 'local', 'internal'].includes(labels[labels.length - 1])) throw invalid();
+
+  url.hash = '';
+  if (url.href.length > 2048) throw invalid();
+  return {
+    sourceKind: 'page',
+    pageUrl: url.href,
+    maxFileBytes: config.maxFileBytes,
+    maxDurationSeconds: config.maxServiceDurationSeconds
+  };
+}
+
 function validateTicketInput(body, config){
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw createValidationError('A JSON object is required.');
@@ -353,6 +391,24 @@ function createTicket({ claims, input, origin, config, nowSeconds, randomBytes }
   if (!sub) throw createValidationError('Verified account is missing a subject.', 401);
   const iat = Math.floor(Number(nowSeconds));
   if (!Number.isFinite(iat) || iat <= 0) throw new Error('Unable to issue a local transcription ticket.');
+  if (input.sourceKind === 'page') {
+    const exp = iat + PAGE_TICKET_TTL_SECONDS;
+    const scanId = randomBytes(16).toString('hex');
+    const payload = {
+      v: 3,
+      type: 'local_transcribe_page',
+      aud: 'local-transcribe-worker',
+      sub,
+      scanId,
+      pageUrl: input.pageUrl,
+      maxFileBytes: input.maxFileBytes,
+      maxDurationSeconds: input.maxDurationSeconds,
+      origin,
+      iat,
+      exp
+    };
+    return { scanId, exp, ticket: signTicket(payload, config.sharedSecret) };
+  }
   const exp = iat + config.ticketTtlSeconds;
   const jobId = randomBytes(16).toString('hex');
   const isUrl = input.sourceKind === 'url';
@@ -473,7 +529,8 @@ function createHandler(dependencies = {}){
       return;
     }
 
-    if (normalizedAction === 'ticket' || normalizedAction === 'url-ticket') {
+    const pageTicket = normalizedAction === 'page-ticket';
+    if (normalizedAction === 'ticket' || normalizedAction === 'url-ticket' || pageTicket) {
       if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
         sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
@@ -501,9 +558,14 @@ function createHandler(dependencies = {}){
       }
 
       try {
-        const input = normalizedAction === 'url-ticket'
-          ? validateUrlTicketInput(body, config)
-          : validateTicketInput(body, config);
+        let input;
+        if (pageTicket) {
+          input = validatePageTicketInput(body, config);
+        } else if (normalizedAction === 'url-ticket') {
+          input = validateUrlTicketInput(body, config);
+        } else {
+          input = validateTicketInput(body, config);
+        }
         const origin = ticketRequestOrigin(req);
         const issued = createTicket({
           claims,
@@ -513,6 +575,16 @@ function createHandler(dependencies = {}){
           nowSeconds: nowSeconds(),
           randomBytes
         });
+        if (pageTicket) {
+          sendJson(res, 200, {
+            ok: true,
+            workerOrigin: config.workerOrigin,
+            ticket: issued.ticket,
+            expiresAt: issued.exp * 1000,
+            scan: { id: issued.scanId, pageUrl: input.pageUrl }
+          });
+          return;
+        }
         sendJson(res, 200, {
           ok: true,
           enabled: true,
@@ -567,6 +639,7 @@ handleLocalTranscribe._internal = {
   signTicket,
   ticketRequestOrigin,
   upgradeLegacyEmailAdminSession,
+  validatePageTicketInput,
   validateTicketInput,
   validateUrlTicketInput
 };
