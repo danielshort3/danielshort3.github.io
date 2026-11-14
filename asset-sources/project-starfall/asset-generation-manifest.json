@@ -142,8 +142,8 @@
         "asset-sources/project-starfall/overhaul-v1/players/player-jump-fall.png",
         "asset-sources/project-starfall/overhaul-v1/players/player-skill-party.png",
         "asset-sources/project-starfall/overhaul-v1/players/player-hit-defeat.png",
-        "output/starfall-animation-samples/review-v2/player-run-study.png",
-        "output/starfall-animation-samples/review-v2/player-strike-study.png"
+        "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
+        "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png"
       ]
     },
     "equipmentAtlases": {

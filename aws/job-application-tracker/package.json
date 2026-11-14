@@ -20,5 +20,10 @@
     "@aws-sdk/s3-presigned-post": "^3.958.0",
     "@aws-sdk/s3-request-presigner": "^3.609.0",
     "archiver": "^8.0.0"
+  },
+  "overrides": {
+    "archiver": {
+      "readdir-glob": "4.0.0"
+    }
   }
 }

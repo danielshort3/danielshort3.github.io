@@ -62,6 +62,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Verify Starfall source art and runtime assets
+        run: npm run test:starfall:assets
+
       - name: Check delivery budgets and publish the performance report
         run: npm run performance:report
 

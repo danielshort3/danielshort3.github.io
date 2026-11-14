@@ -21,7 +21,7 @@
       "sha256": "3578771a24bac197a4919f2e2066895bc2e7e2b479e4d692854e257d58043510"
     },
     {
-      "path": "output/starfall-animation-samples/review-v2/player-run-study.png",
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-run-study.png",
       "sha256": "a66c44ee4d402b388bbcc4298667e2da7594c9bc5e05c43c93e3da2949e5c963"
     },
     {
@@ -29,7 +29,7 @@
       "sha256": "8ea5d014f33f09a9e7b35fe0f9cfdec6b4aa5c4a2340ef65749e3b9f0ec12150"
     },
     {
-      "path": "output/starfall-animation-samples/review-v2/player-strike-study.png",
+      "path": "asset-sources/project-starfall/overhaul-v1/players/player-strike-study.png",
       "sha256": "d717a8ad49d8f14774648400ab81cdc38dbbc2871de818572f96aa6d7b511a0a"
     },
     {

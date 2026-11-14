@@ -38324,7 +38324,7 @@ try {
             const heldRow = source.supplementalRows && source.supplementalRows[stateId];
             const declaredHold = source.intentionalHolds && source.intentionalHolds[stateId];
             const expectedIndices = stateId === 'telegraph' ? [0, 1, 2, 3, 3, 3] : [4, 5, 6, 7, 7, 7];
-            assert(heldRow && heldRow.repoPath === 'output/starfall-animation-samples/review-v2/bristle-boar-charge-study.png' &&
+            assert(heldRow && heldRow.repoPath === 'asset-sources/project-starfall/overhaul-v1/enemies/bristle-boar/bristle-boar-charge-study.png' &&
               heldRow.indices.join(',') === expectedIndices.join(',') && changedPixels === 0 &&
               declaredHold && declaredHold.frames.join(',') === '3,4,5' &&
               declaredHold.sourceStudyFrame === expectedIndices[3] && declaredHold.reason,

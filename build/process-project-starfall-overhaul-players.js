@@ -7,7 +7,6 @@ const sharp = require('sharp');
 const { readActors, packCell, writeAtlas, sha256 } = require('./lib/starfall-overhaul-images');
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE = path.join(ROOT, 'asset-sources/project-starfall/overhaul-v1/players');
-const REVIEW = path.join(ROOT, 'output/starfall-animation-samples/review-v2');
 const ROWS = ['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'];
 const SOURCES = {
   idle: ['player-idle-climb.png', 0, 0.425],
@@ -66,7 +65,7 @@ async function main() {
   const cache = new Map(), frames = [], metadata = {}, attachments = {};
   for (const row of ROWS) {
     const [name, start, scale, protectedStudy] = SOURCES[row];
-    const file = path.join(protectedStudy ? REVIEW : SOURCE, name);
+    const file = path.join(SOURCE, name);
     if (!cache.has(file)) cache.set(file, await readActors(file, 4, protectedStudy ? 2 : 4));
     const source = cache.get(file);
     metadata[row] = [];
