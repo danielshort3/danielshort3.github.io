@@ -59,7 +59,9 @@ Require `ok: true` and the expected `accepted` count before treating the report 
 
 ### Hourly GitHub Actions reports
 
-The [hourly workflow](../../.github/workflows/status-coverage-hourly.yml) is scheduled for minute 53 UTC. It selects the most recent successful Vercel production revision reported in GitHub and runs the catalog browser suite on a standard public-repository runner. The browser job has no AWS credentials. The separate publish job uses a 15-minute AWS session and sends only the result IDs, statuses and timestamps. Completed runs with test failures still publish their outcomes. An interrupted run leaves the previous report to expire.
+The [hourly workflow](../../.github/workflows/status-coverage-hourly.yml) gives GitHub four opportunities each hour, at minutes 7, 22, 37 and 52 UTC. Before building, each scheduled run checks for a browser report already published for that UTC hour. It runs the suite if the last publish failed or the workflow history is unavailable. Manual runs always check and publish. GitHub can delay or drop scheduled events, so verify actual coverage using the successful publish steps in the [run history](https://github.com/danielshort3/danielshort3.github.io/actions/workflows/status-coverage-hourly.yml). Browser results expire three hours after the check.
+
+The workflow selects the most recent successful Vercel production revision reported in GitHub and runs the catalog browser suite on a standard public-repository runner. The browser job has no AWS credentials. The separate publish job uses a 15-minute AWS session and sends only the result IDs, statuses and timestamps. Completed runs with test failures still publish their outcomes. An interrupted run leaves the previous report to expire.
 
 Vercel compares changes against its last successful deployment for the branch. A commit limited to the hourly workflow and its listed support files can skip the website build while the new workflow still runs from `main`. Changes to the site, API, fixtures, or AWS template trigger the website build.
 
