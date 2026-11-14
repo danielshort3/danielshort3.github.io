@@ -183,7 +183,9 @@
   const processingViewEl = $id('transcribe-processing-view');
   const resultsViewEl = $id('transcribe-results-view');
   const dropzoneEl = $id('transcribe-dropzone');
+  const dropzoneTitleEl = dropzoneEl?.querySelector('.transcribe-dropzone-title');
   const addFilesBtn = $id('transcribe-add-files');
+  const addMoreFilesBtn = $id('transcribe-add-more-files');
   const formEl = $id('transcribe-form');
   const fileEl = $id('transcribe-files');
   const sourcePickerEl = $id('transcribe-source-picker');
@@ -203,6 +205,7 @@
   const addPageVideosBtn = $id('transcribe-add-page-videos');
   const uploadTitleEl = $id('transcribe-upload-title');
   const summaryEl = $id('transcribe-summary');
+  const emptyBatchEl = $id('transcribe-empty-batch');
   const tableWrapEl = $id('transcribe-table-wrap');
   const fileRowsEl = $id('transcribe-file-rows');
   const totalEl = $id('transcribe-total');
@@ -220,6 +223,7 @@
   const progressLabelEl = $id('transcribe-progress-label');
   const progressBarEl = $id('transcribe-progress');
   const resultsEl = $id('transcribe-results');
+  const resultPickerEl = $id('transcribe-result-picker');
   const usageEl = $id('transcribe-usage');
   const usageValueEl = $id('transcribe-usage-value');
   const usageProgressEl = $id('transcribe-usage-progress');
@@ -229,10 +233,10 @@
   const historyCloseBtn = $id('transcribe-history-close');
   const historyRefreshBtn = $id('transcribe-history-refresh');
   const historyStatusEl = $id('transcribe-history-status');
-  const historyListViewEl = $id('transcribe-history-list-view');
   const historyListEl = $id('transcribe-history-list');
   const historyLoadMoreBtn = $id('transcribe-history-load-more');
   const historyDetailEl = $id('transcribe-history-detail');
+  const historyEmptyDetailEl = $id('transcribe-history-empty-detail');
   const historyBackBtn = $id('transcribe-history-back');
   const historyDetailNameEl = $id('transcribe-history-detail-name');
   const historyDetailMetaEl = $id('transcribe-history-detail-meta');
@@ -240,8 +244,11 @@
   const historyCopyBtn = $id('transcribe-history-copy');
   const historyDownloadBtn = $id('transcribe-history-download');
   const historyDeleteBtn = $id('transcribe-history-delete');
+  const historyMenuEl = $id('transcribe-history-menu');
+  const historyMenuTrigger = $id('transcribe-history-menu-trigger');
   const historyPrivacyEl = $id('transcribe-history-privacy');
   const methodEl = $id('transcribe-method');
+  const providerControlsEl = $id('transcribe-provider-controls');
   const methodHelpEl = $id('transcribe-method-help');
   const methodInputs = Array.from(document.querySelectorAll('input[name="transcribe-provider"]'));
   const localStateEl = $id('transcribe-local-state');
@@ -282,15 +289,18 @@
     activeController: null,
     analyzing: false,
     view: 'upload',
+    selectedResultId: '',
     accountSub: '',
     usage: null,
     usageLoading: false,
     usageRequestId: 0,
     historyItems: [],
+    historyDeletedIds: new Set(),
     historyNextCursor: '',
     historyLoading: false,
     historyDetail: null,
-    historyRequestId: 0
+    historyRequestId: 0,
+    historyDetailRequestId: 0
   };
 
   const getAuthSub = () => {
@@ -988,18 +998,21 @@
       shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';
     }
     if (dropzoneEl) dropzoneEl.dataset.compact = hasFiles ? 'true' : 'false';
+    setText(dropzoneTitleEl, hasFiles ? 'Drop more files here' : 'Drop files here');
     const source = localActive ? state.sourceKind : 'file';
     const urlSelected = source === 'url';
     const pageSelected = source === 'page';
     if (sourcePickerEl) sourcePickerEl.hidden = !localActive;
     if (dropzoneEl) dropzoneEl.hidden = source !== 'file';
+    if (addFilesBtn) addFilesBtn.hidden = hasFiles;
+    if (addMoreFilesBtn) addMoreFilesBtn.hidden = !hasFiles || source !== 'file';
     if (urlPanelEl) urlPanelEl.hidden = !urlSelected;
     if (pagePanelEl) pagePanelEl.hidden = !pageSelected;
     sourceInputs.forEach((input) => {
       input.checked = input.value === source;
       input.disabled = state.busy || state.analyzing || !localActive;
     });
-    setText(uploadTitleEl, localActive ? 'Add media' : 'Upload files');
+    setText(uploadTitleEl, localActive ? 'Add media' : hasFiles ? 'Files' : 'Upload files');
     setText(urlAvailabilityEl, state.localConfigLoading
       ? 'Checking URL import availability...'
       : urlImportIsReady()
@@ -1044,6 +1057,7 @@
       : minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
     setText(detailPriceEl, `$${Number(state.config.pricePerMinute || DEFAULT_CONFIG.pricePerMinute).toFixed(3)} / min`);
     if (summaryEl) summaryEl.hidden = !hasFiles;
+    if (emptyBatchEl) emptyBatchEl.hidden = hasFiles;
     if (costReviewEl) {
       const reviewProvider = cleanText(costReviewEl.dataset.transcribeProviderPanel).toLowerCase();
       const reviewMatches = !reviewProvider || reviewProvider === 'all' || reviewProvider === state.provider;
@@ -1055,6 +1069,7 @@
   const updateMethodUi = () => {
     const admin = state.admin && isAdminUser();
     const locked = state.busy || state.analyzing || state.files.length > 0;
+    if (providerControlsEl) providerControlsEl.hidden = !admin;
     if (methodEl) methodEl.hidden = !admin;
     methodInputs.forEach((input) => {
       const isLocal = input.value === PROVIDER_LOCAL;
@@ -1070,10 +1085,11 @@
     });
     if (localRefreshBtn) localRefreshBtn.disabled = !admin || state.localConfigLoading || state.busy;
     setText(methodHelpEl, locked ? 'Remove all media to change the processing method.' : '');
+    if (methodHelpEl) methodHelpEl.hidden = !locked;
 
     if (isLocalProvider()) {
       setText(providerKickerEl, 'Home GPU');
-      setText(uploadCopyEl, 'Add files or choose videos from YouTube and public web pages.');
+      setText(uploadCopyEl, 'Choose a source to add media.');
       if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_LOCAL;
       setText(approvalCopyEl, 'Process this media temporarily on my home PC.');
     } else {
@@ -1173,6 +1189,7 @@
       state.usage = null;
       state.usageLoading = false;
       state.historyItems = [];
+      state.historyDeletedIds.clear();
       state.historyNextCursor = '';
       state.historyLoading = false;
       state.historyDetail = null;
@@ -1223,21 +1240,13 @@
     if (partialCount) parts.push(`${partialCount} partial`);
     if (failedCount) parts.push(`${failedCount} failed`);
     if (!parts.length) parts.push(`${totalCount} selected`);
-    if (!isLocalProvider()) parts.push(`${formatUsd(completedCount || partialCount ? runCost : totalCost)} estimated`);
     if (summaryEl) summaryEl.hidden = false;
     setStatus(
       summaryEl,
       parts.join(' · '),
       skippedCount || partialCount || failedCount ? 'warning' : 'success'
     );
-    setText(
-      totalEl,
-      isLocalProvider()
-        ? 'Home GPU processing'
-        : completedCount || partialCount
-          ? `Estimated charge: ${formatUsd(runCost)}`
-          : `Estimated charge: ${formatUsd(totalCost)}`
-    );
+    setText(totalEl, formatUsd(completedCount || partialCount ? runCost : totalCost));
     syncProviderUi();
   };
 
@@ -1291,7 +1300,7 @@
         item.sourceKind === 'page' ? 'Web page' : item.sourceKind === 'url' ? 'YouTube' : '',
         !isImportedSource(item) || item.bytes > 0 ? formatBytes(item.bytes) : '',
         item.extension ? item.extension.toUpperCase() : '',
-        item.durationSeconds ? formatClock(item.durationSeconds) : isImportedSource(item) ? 'Duration checked on home PC' : ''
+        !item.durationSeconds && isImportedSource(item) ? 'Duration checked on home PC' : ''
       ].filter(Boolean).join(' · ');
       const showStatus = item.status !== 'ready';
       return `
@@ -1300,6 +1309,7 @@
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
           <span class="transcribe-file-meta">${escapeHtml(metadata)}</span>
         </div>
+        <span class="transcribe-file-duration">${escapeHtml(item.durationSeconds ? formatClock(item.durationSeconds) : '—')}</span>
         ${showStatus ? `<span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>` : ''}
         <div class="transcribe-file-actions">
           ${resumable ? `
@@ -1377,10 +1387,25 @@
       );
     }
     if (!resultItems.length) {
+      state.selectedResultId = '';
+      if (resultPickerEl) resultPickerEl.textContent = '';
       resultsEl.innerHTML = '<p class="transcribe-empty">Completed transcripts will appear here.</p>';
       return;
     }
-    resultsEl.innerHTML = resultItems.map((item) => {
+    const selected = resultItems.find((item) => item.id === state.selectedResultId) ||
+      resultItems.find((item) => item.transcript) || resultItems[0];
+    state.selectedResultId = selected.id;
+    if (resultPickerEl) {
+      resultPickerEl.innerHTML = `<ul class="transcribe-result-picker-list">${resultItems.map((item) => `
+        <li>
+          <button type="button" class="transcribe-result-option" data-transcribe-result-id="${escapeHtml(item.id)}"
+            data-tone="${escapeHtml(rowTone(item))}" aria-controls="transcribe-results" aria-pressed="${item === selected}">
+            <span class="transcribe-result-option-name">${escapeHtml(item.name)}</span>
+            <span class="transcribe-result-option-status">${escapeHtml(item.status === 'failed' ? 'Failed' : statusLabel(item))}</span>
+          </button>
+        </li>`).join('')}</ul>`;
+    }
+    resultsEl.innerHTML = (resultPickerEl ? [selected] : resultItems).map((item) => {
       const transcript = String(item.transcript || '').trim();
       const isComplete = item.status === 'complete';
       const isPartial = item.status === 'partial';
@@ -1393,24 +1418,25 @@
           ? item.provider === PROVIDER_LOCAL
             ? item.error || 'The transcript may have ended before the source media.'
             : `${item.error || 'The transcript may have ended before the source media.'} Estimated charge: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)}.`
-          : item.error || 'Transcription failed.';
+          : item.error || (item.status === 'canceled' ? 'Canceled' : 'Transcription failed.');
       return `
         <article class="transcribe-result" data-status="${escapeHtml(item.status)}" data-id="${escapeHtml(item.id)}">
           <div class="transcribe-result-header">
             <div>
-              <h3>${escapeHtml(item.name)}</h3>
+              <h3 tabindex="-1">${escapeHtml(item.name)}</h3>
+              ${item.durationSeconds ? `<p>${escapeHtml(formatClock(item.durationSeconds))} · ${escapeHtml(item.status === 'failed' ? 'Failed' : statusLabel(item))}</p>` : ''}
               <p>${escapeHtml(status)}</p>
             </div>
             ${transcript || resumable ? `
               <div class="transcribe-result-actions">
                 ${resumable ? `<button type="button" class="btn-secondary" data-transcribe-action="resume" data-id="${escapeHtml(item.id)}">Resume</button>` : ''}
                 ${transcript ? `<button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}">Copy</button>` : ''}
-                ${transcript ? `<button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}">Download</button>` : ''}
+                ${transcript ? `<button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}">Download .txt</button>` : ''}
               </div>
             ` : ''}
           </div>
           ${transcript
-            ? `<textarea readonly>${escapeHtml(transcript)}</textarea>`
+            ? `<textarea readonly aria-label="${escapeHtml(`Transcript for ${item.name}`)}">${escapeHtml(transcript)}</textarea>`
             : '<p class="transcribe-result-error">No transcript was produced for this file.</p>'}
         </article>
       `;
@@ -1429,6 +1455,7 @@
     const pickerDisabled = state.busy || state.analyzing || localConfigPending;
     if (fileEl) fileEl.disabled = pickerDisabled;
     if (addFilesBtn) addFilesBtn.disabled = pickerDisabled;
+    if (addMoreFilesBtn) addMoreFilesBtn.disabled = pickerDisabled;
     if (urlEl) urlEl.disabled = pickerDisabled || !urlImportIsReady();
     if (addUrlBtn) addUrlBtn.disabled = pickerDisabled || !urlImportIsReady() || !String(urlEl?.value || '').trim();
     const pageDisabled = pickerDisabled || state.sourceKind !== 'page' || !pageImportIsReady();
@@ -1667,16 +1694,13 @@
         ? '<p class="transcribe-empty">Loading transcript history...</p>'
         : '<p class="transcribe-empty">No saved transcripts yet. Completed Amazon Transcribe results collected by this browser will appear here.</p>';
     } else {
+      const selectedId = historyItemId(state.historyDetail);
       historyListEl.innerHTML = state.historyItems.map((item) => `
-        <article class="transcribe-history-item">
-          <div>
-            <h3>${escapeHtml(item.filename || 'media')}</h3>
-            <p>${escapeHtml(historyItemMeta(item))}</p>
-          </div>
-          <div class="transcribe-history-item-actions">
-            <button type="button" class="btn-secondary" data-transcribe-history-action="view" data-id="${escapeHtml(historyItemId(item))}">View transcript</button>
-          </div>
-        </article>
+        <button type="button" class="transcribe-history-item" data-transcribe-history-action="view"
+          data-id="${escapeHtml(historyItemId(item))}" aria-controls="transcribe-history-detail" aria-pressed="${historyItemId(item) === selectedId}">
+          <span class="transcribe-history-item-title">${escapeHtml(item.filename || 'media')}</span>
+          <span class="transcribe-history-item-meta">${escapeHtml(historyItemMeta(item))}</span>
+        </button>
       `).join('');
     }
     if (historyLoadMoreBtn) {
@@ -1696,9 +1720,12 @@
   };
 
   const showHistoryList = () => {
+    state.historyDetailRequestId += 1;
     state.historyDetail = null;
+    historyMenuEl?.hidePopover?.();
+    if (historyDialogEl) delete historyDialogEl.dataset.historyDetail;
     if (historyDetailEl) historyDetailEl.hidden = true;
-    if (historyListViewEl) historyListViewEl.hidden = false;
+    if (historyEmptyDetailEl) historyEmptyDetailEl.hidden = false;
     if (historyTranscriptEl) historyTranscriptEl.value = '';
     renderHistoryList();
   };
@@ -1709,11 +1736,15 @@
       showHistoryList();
       return;
     }
-    if (historyListViewEl) historyListViewEl.hidden = true;
+    if (historyDialogEl) historyDialogEl.dataset.historyDetail = 'true';
     if (historyDetailEl) historyDetailEl.hidden = false;
+    if (historyEmptyDetailEl) historyEmptyDetailEl.hidden = true;
     setText(historyDetailNameEl, item.filename || 'Transcript');
     setText(historyDetailMetaEl, historyItemMeta(item));
     if (historyTranscriptEl) historyTranscriptEl.value = String(item.transcript || '');
+    historyListEl?.querySelectorAll('[data-transcribe-history-action="view"]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.id === historyItemId(item)));
+    });
   };
 
   const loadHistory = async ({ append = false } = {}) => {
@@ -1734,7 +1765,9 @@
     try {
       const data = await authFetchJson(`${API_BASE}/history?${params.toString()}`, { method: 'GET' });
       if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
-      const items = Array.isArray(data?.items) ? data.items : [];
+      const items = Array.isArray(data?.items)
+        ? data.items.filter((item) => !state.historyDeletedIds.has(historyItemId(item)))
+        : [];
       const knownIds = new Set(state.historyItems.map(historyItemId));
       state.historyItems = append
         ? [...state.historyItems, ...items.filter((item) => !knownIds.has(historyItemId(item)))]
@@ -1756,18 +1789,22 @@
     const safeId = cleanText(id);
     const sub = getAuthSub();
     if (!safeId || !sub) return;
-    const requestId = ++state.historyRequestId;
+    const requestId = ++state.historyDetailRequestId;
+    historyMenuEl?.hidePopover?.();
     setStatus(historyStatusEl, 'Loading transcript...', '');
     try {
       const data = await authFetchJson(`${API_BASE}/history?job=${encodeURIComponent(safeId)}`, { method: 'GET' });
-      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
-      state.historyDetail = data?.item && typeof data.item === 'object' ? data.item : null;
-      if (!state.historyDetail) throw new Error('The saved transcript was not found.');
+      if (requestId !== state.historyDetailRequestId || sub !== getAuthSub() || !historyDialogEl?.open) return;
+      if (!data?.item || typeof data.item !== 'object' || state.historyDeletedIds.has(safeId)) {
+        throw new Error('The saved transcript was not found.');
+      }
+      state.historyDetail = data.item;
       renderHistoryDetail();
       setStatus(historyStatusEl, '', '');
-      historyBackBtn?.focus();
+      if (historyBackBtn?.getClientRects().length) historyBackBtn.focus();
+      else historyDetailNameEl?.focus({ preventScroll: true });
     } catch (err) {
-      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
+      if (requestId !== state.historyDetailRequestId || sub !== getAuthSub() || !historyDialogEl?.open) return;
       setStatus(historyStatusEl, err?.message || 'Unable to load this transcript.', 'error');
     }
   };
@@ -1785,6 +1822,7 @@
   };
 
   const closeHistory = () => {
+    historyMenuEl?.hidePopover?.();
     if (typeof historyDialogEl?.close === 'function' && historyDialogEl.open) historyDialogEl.close();
     else historyDialogEl?.removeAttribute('open');
   };
@@ -1792,15 +1830,23 @@
   const deleteHistoryDetail = async () => {
     const item = state.historyDetail;
     const id = historyItemId(item);
+    const sub = getAuthSub();
+    historyMenuEl?.hidePopover?.();
+    historyMenuTrigger?.focus({ preventScroll: true });
     if (!id || !window.confirm(`Delete the saved transcript for "${item.filename || 'this file'}"?`)) return;
     if (historyDeleteBtn) historyDeleteBtn.disabled = true;
     try {
       await authFetchJson(`${API_BASE}/history?job=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (sub !== getAuthSub()) return;
+      state.historyDeletedIds.add(id);
       state.historyItems = state.historyItems.filter((entry) => historyItemId(entry) !== id);
-      showHistoryList();
+      if (historyItemId(state.historyDetail) === id) {
+        showHistoryList();
+        if (historyDialogEl?.open) (historyListEl?.querySelector('button') || historyRefreshBtn)?.focus();
+      } else renderHistoryList();
       setStatus(historyStatusEl, 'Saved transcript deleted.', 'success');
     } catch (err) {
-      setStatus(historyStatusEl, err?.message || 'Unable to delete this transcript.', 'error');
+      if (sub === getAuthSub()) setStatus(historyStatusEl, err?.message || 'Unable to delete this transcript.', 'error');
     } finally {
       if (historyDeleteBtn) historyDeleteBtn.disabled = false;
     }
@@ -1874,6 +1920,7 @@
       return;
     }
 
+    const restorePickerFocus = [addFilesBtn, addMoreFilesBtn].includes(document.activeElement);
     const existingFingerprints = new Set(state.files.map((item) => item.fingerprint).filter(Boolean));
     const newItems = files.map((file, index) => {
       const item = createFileItem(file, state.files.length + index);
@@ -1998,6 +2045,9 @@
       setStatus(runStatusEl, '', '');
     }
     renderTable();
+    if (restorePickerFocus && document.activeElement === document.body) {
+      addMoreFilesBtn?.focus({ preventScroll: true });
+    }
     markSessionDirty();
   };
 
@@ -3057,6 +3107,12 @@
 
   if (historyOpenBtn) historyOpenBtn.addEventListener('click', openHistory);
   if (historyCloseBtn) historyCloseBtn.addEventListener('click', closeHistory);
+  historyDialogEl?.addEventListener('close', () => {
+    if (historyDialogEl.open) return;
+    state.historyRequestId += 1;
+    state.historyLoading = false;
+    showHistoryList();
+  });
   if (historyRefreshBtn) historyRefreshBtn.addEventListener('click', () => {
     showHistoryList();
     void loadHistory();
@@ -3064,7 +3120,12 @@
   if (historyLoadMoreBtn) historyLoadMoreBtn.addEventListener('click', () => {
     void loadHistory({ append: true });
   });
-  if (historyBackBtn) historyBackBtn.addEventListener('click', showHistoryList);
+  if (historyBackBtn) historyBackBtn.addEventListener('click', () => {
+    const selectedId = historyItemId(state.historyDetail);
+    showHistoryList();
+    const rows = Array.from(historyListEl?.querySelectorAll('[data-transcribe-history-action="view"]') || []);
+    (rows.find((row) => row.dataset.id === selectedId) || historyCloseBtn)?.focus();
+  });
   if (historyListEl) {
     historyListEl.addEventListener('click', (event) => {
       const button = event.target.closest('[data-transcribe-history-action="view"]');
@@ -3170,12 +3231,12 @@
     });
   }
 
-  if (addFilesBtn) {
-    addFilesBtn.addEventListener('click', () => {
-      if (addFilesBtn.disabled || fileEl.disabled || state.busy || state.analyzing) return;
-      fileEl.click();
-    });
-  }
+  const chooseFiles = (event) => {
+    if (event.currentTarget.disabled || fileEl.disabled || state.busy || state.analyzing) return;
+    fileEl.click();
+  };
+  if (addFilesBtn) addFilesBtn.addEventListener('click', chooseFiles);
+  addMoreFilesBtn?.addEventListener('click', chooseFiles);
 
   fileEl.addEventListener('change', () => {
     analyzeSelectedFiles(fileEl.files);
@@ -3278,6 +3339,18 @@
       void resumeQueue(queue);
     });
   }
+
+  resultPickerEl?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-transcribe-result-id]');
+    if (!button) return;
+    state.selectedResultId = button.dataset.transcribeResultId;
+    renderResults();
+    if (resultPickerEl.getBoundingClientRect().top >= resultsEl.getBoundingClientRect().bottom) {
+      resultsEl.querySelector('h3')?.focus();
+    } else {
+      resultPickerEl.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
+    }
+  });
 
   if (resultsEl) {
     resultsEl.addEventListener('click', async (event) => {

@@ -663,7 +663,7 @@ function normalizeSkipLinkHrefs(html) {
   let pathname = '';
   try {
     const url = new URL(canonicalHref.replace(/&amp;/g, '&'), 'https://www.danielshort.me');
-    pathname = `${url.pathname || '/'}${url.search}`;
+    pathname = `${normalizeRoutePath(url.pathname)}${url.search}`;
   } catch (_) {
     return source;
   }

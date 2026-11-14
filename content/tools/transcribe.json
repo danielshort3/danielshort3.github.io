@@ -7,7 +7,7 @@
   "privacy": "Processes approved files with the selected service. Home GPU can find videos on public web pages and process the ones you select.",
   "inputs": ["Audio or video file", "YouTube video URL (Home GPU)", "Web page URL (Home GPU)"],
   "outputs": ["Completed transcript download"],
-  "summary": "Transcribe audio or video files, YouTube links, or selected videos from public web pages with Home GPU.",
+  "summary": "Turn audio and video files into text.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"3\"></rect>\n                      <path d=\"M8 12h8\"></path>\n                      <path d=\"M10 9v6\"></path>\n                      <path d=\"M14 9v6\"></path>\n                      <path d=\"M7 19v1.5h10V19\"></path>\n                    </svg>",
   "pills": [
     {
