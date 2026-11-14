@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Accept a single Home GPU health status from the monitoring PC.
+
+Resources:
+  DevicePolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: website-home-gpu-heartbeat
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: iot:Publish
+            Resource: !Sub 'arn:${AWS::Partition}:iot:${AWS::Region}:${AWS::AccountId}:topic/$aws/rules/website_home_gpu_heartbeat/health'
+
+  HeartbeatWriteRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: iot.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref 'AWS::AccountId'
+              ArnEquals:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:iot:${AWS::Region}:${AWS::AccountId}:rule/website_home_gpu_heartbeat'
+      Policies:
+        - PolicyName: write-only-home-gpu-heartbeat
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/website-aws-status-history'
+                Condition:
+                  'ForAllValues:StringEquals':
+                    'dynamodb:LeadingKeys': [home-gpu-heartbeat]
+                  'Null':
+                    'dynamodb:LeadingKeys': 'false'
+
+  HeartbeatRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: website_home_gpu_heartbeat
+      TopicRulePayload:
+        AwsIotSqlVersion: '2016-03-23'
+        RuleDisabled: false
+        Sql: >-
+          SELECT 'home-gpu-heartbeat' AS pk,
+          CAST(FLOOR(timestamp() / 3600000) AS String) AS sk,
+          state, timestamp() AS received, FLOOR(timestamp() / 1000) + 172800 AS expires
+          FROM 'health' WHERE state IN ['ready', 'unavailable', 'unknown']
+        Actions:
+          - DynamoDBv2:
+              PutItem: {TableName: website-aws-status-history}
+              RoleArn: !GetAtt HeartbeatWriteRole.Arn
+
+Outputs:
+  DevicePolicyName:
+    Value: !Ref DevicePolicy

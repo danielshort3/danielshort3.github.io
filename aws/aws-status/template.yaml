@@ -13,6 +13,11 @@ Parameters:
     AllowedPattern: '^$|^[a-z0-9]+(?:-[a-z0-9]+)*$'
     MaxLength: 64
     Description: Optional approved dshort.me slug redirecting to https://www.danielshort.me/tools/aws-status. Empty disables the check.
+  HomeGpuMonitoring:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Include the device heartbeat in hourly status history.
 
 Conditions:
   InOhio: !Equals [!Ref 'AWS::Region', us-east-2]
@@ -65,7 +70,7 @@ Resources:
                 Resource: !GetAtt History.Arn
                 Condition:
                   'ForAllValues:StringEquals':
-                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, catalog, homepage]
+                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, catalog, homepage, home-gpu]
                   'Null':
                     'dynamodb:LeadingKeys': 'false'
               - Effect: Allow
@@ -86,6 +91,7 @@ Resources:
       Environment:
         Variables:
           HISTORY_TABLE: !Ref History
+          HOME_GPU_MONITORING: !Ref HomeGpuMonitoring
       LoggingConfig:
         LogFormat: JSON
         ApplicationLogLevel: WARN
@@ -118,6 +124,7 @@ Resources:
               ("transcribe", "Transcribe", 3600), ("chatbot", "Chatbot", 3600),
               ("markdown", "Markdown", 3600),
           )
+          HOME_GPU_MONITORING = os.environ.get("HOME_GPU_MONITORING") == "true"
           STATES = ("unknown", "operational", "degraded", "outage")
           SAMPLES = {
               "-": ("unknown", "No check recorded."),
@@ -134,6 +141,10 @@ Resources:
               "d": ("degraded", "The scheduled HTTPS check returned an unexpected response."),
               "f": ("outage", "The scheduled HTTPS check returned a server error."),
               "x": ("outage", "SageMaker endpoint reported Failed or OutOfService."),
+              "g": ("operational", "The PC checked in and the Home GPU worker was ready."),
+              "w": ("degraded", "PC reported in. The Home GPU worker is unavailable."),
+              "p": ("outage", "No PC check-in. The PC or its connection may be offline."),
+              "q": ("unknown", "The Home GPU worker status could not be verified."),
           }
           ALARMS = {
               "te": "Tracker Lambda errors alarm",
@@ -526,19 +537,27 @@ Resources:
               today = mountain_day(now)
               first = today - timedelta(days=DAYS - 1)
               try:
-                  with ThreadPoolExecutor(max_workers=9) as executor:
+                  with ThreadPoolExecutor(max_workers=10 if HOME_GPU_MONITORING else 9) as executor:
                       pending = [executor.submit(connection, *service, first, today, now) for service in SERVICES]
                       checks_future = executor.submit(catalog_checks, now)
                       history_future = executor.submit(optional_catalog_history, first, today, now, _context, checks_future)
+                      home_gpu_future = None
+                      if HOME_GPU_MONITORING:
+                          home_gpu_future = executor.submit(connection, "home-gpu", "Home GPU", 3600, first, today, now)
                       connections = [result.result() for result in pending]
                       checks = checks_future.result()
                       history = history_future.result()
+                      home_gpu = home_gpu_future.result() if home_gpu_future else None
                   seen = [day["observedAt"] for item in connections for day in item["days"] if "observedAt" in day]
                   seen.extend(check["lastChecked"] for check in checks)
+                  if home_gpu:
+                      seen.extend(day["observedAt"] for day in home_gpu["days"] if "observedAt" in day)
                   snapshot = {"ok": True, "checkedAt": max(seen, default=None), "region": REGION,
                               "days": DAYS, "connections": connections, "checks": checks}
                   if history is not None:
                       snapshot["catalogHistory"] = history
+                  if home_gpu:
+                      snapshot["homeGpu"] = home_gpu
                   return snapshot
               except ERRORS:
                   LOGGER.warning("AWS Status history read failed")
@@ -572,7 +591,15 @@ Resources:
                 Resource: !GetAtt History.Arn
                 Condition:
                   'ForAllValues:StringEquals':
-                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, homepage]
+                    'dynamodb:LeadingKeys': [cognito, tracker, short-links, contact, transcribe, chatbot, markdown, homepage, home-gpu]
+                  'Null':
+                    'dynamodb:LeadingKeys': 'false'
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource: !GetAtt History.Arn
+                Condition:
+                  'ForAllValues:StringEquals':
+                    'dynamodb:LeadingKeys': [home-gpu-heartbeat]
                   'Null':
                     'dynamodb:LeadingKeys': 'false'
               - Effect: Allow
@@ -614,6 +641,7 @@ Resources:
           HISTORY_TABLE: !Ref History
           STACK_ACCOUNT: !Ref 'AWS::AccountId'
           SHORT_LINK_SLUG: !Ref ProbeShortLinkSlug
+          HOME_GPU_MONITORING: !Ref HomeGpuMonitoring
       LoggingConfig:
         LogFormat: JSON
         ApplicationLogLevel: WARN
@@ -628,6 +656,7 @@ Resources:
           import re
           from concurrent.futures import ThreadPoolExecutor
           from datetime import date, datetime, time, timedelta, timezone
+          from decimal import Decimal
 
           import boto3
           from botocore.config import Config
@@ -654,6 +683,8 @@ Resources:
           SHORT_HOST = "dshort.me"
           SHORT_TARGET = "https://www.danielshort.me/tools/aws-status"
           SHORT_SLUG = os.environ["SHORT_LINK_SLUG"]
+          HOME_GPU_MONITORING = os.environ.get("HOME_GPU_MONITORING") == "true"
+          HOME_GPU_STATES = {"ready": "g", "unavailable": "w", "unknown": "q"}
           STACK_ACCOUNT = os.environ["STACK_ACCOUNT"]
           LOGGER = logging.getLogger(__name__)
           ERRORS = (BotoCoreError, ClientError, ValueError, TypeError, KeyError, OverflowError)
@@ -877,6 +908,29 @@ Resources:
               return "n"
 
 
+          def read_home_gpu(scheduled, context):
+              hour = int(scheduled.timestamp()) // 3600
+              try:
+                  guard(context)
+                  heartbeat = TABLE.get_item(Key={"pk": "home-gpu-heartbeat", "sk": str(hour)},
+                                             ConsistentRead=True).get("Item")
+                  if heartbeat is None:
+                      return "p"
+                  received = heartbeat["received"]
+                  if not (type(received) is int or isinstance(received, Decimal) and received.is_finite()
+                          and received == received.to_integral_value()):
+                      return "q"
+                  if received < hour * 3600000:
+                      return "p"
+                  now = datetime.now(timezone.utc)
+                  now_ms = int(now.timestamp()) * 1000 + now.microsecond // 1000
+                  if received >= (hour + 1) * 3600000 or received > now_ms:
+                      return "q"
+                  return HOME_GPU_STATES.get(heartbeat["state"], "q")
+              except ERRORS + (TimeoutError,):
+                  return "q"
+
+
           def hourly(scheduled, context):
               end = scheduled.replace(minute=0, second=0, microsecond=0)
               dimensions = [
@@ -884,7 +938,8 @@ Resources:
                   {"Name": "Operation", "Value": "StartTranscriptionJob"},
                   {"Name": "Domain", "Value": "Transcribe"},
               ]
-              with ThreadPoolExecutor(max_workers=7) as executor:
+              with ThreadPoolExecutor(max_workers=8 if HOME_GPU_MONITORING else 7) as executor:
+                  home_gpu = executor.submit(read_home_gpu, scheduled, context) if HOME_GPU_MONITORING else None
                   alarms = executor.submit(read_alarms, context)
                   successes = executor.submit(metric, "AWS/Transcribe", "SuccessfulRequestCount", dimensions, "Sum", end, context)
                   errors = executor.submit(metric, "AWS/Transcribe", "SyncServerErrorCount", dimensions, "Sum", end, context)
@@ -909,7 +964,9 @@ Resources:
                   same_day = mountain_day(metric_hour) == mountain_day(scheduled)
                   value = round(max_ms) if same_day and max_ms is not None and 0 <= max_ms <= 86400000 else None
                   sample(service, 3600, scheduled, observed, status.result(), context, value)
-              return 5
+              if home_gpu:
+                  sample("home-gpu", 3600, scheduled, observed, home_gpu.result(), context)
+              return 6 if home_gpu else 5
 
 
           def alarm_event(event, now, context):

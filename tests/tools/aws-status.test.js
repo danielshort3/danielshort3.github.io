@@ -186,6 +186,34 @@ test('the shared hourly cutoff waits for every connection and catalog item or th
   assert.equal(cutoff(settled, catalogHistory, '2026-11-11T22:59:59.999Z'), previous);
 });
 
+test('Home GPU history is optional, sanitized separately, and shares the hourly cutoff', () => {
+  const catalog = [{ id: 'tool:transcribe' }];
+  const [incident] = SNAPSHOT.connections[0].hours;
+  const ids = ['cognito', 'tracker', 'short-links', 'contact', 'transcribe', 'chatbot', 'markdown'];
+  const connections = ids.map((id) => ({ id, days: [], hours: [{ ...incident, complete: true }] }));
+  const history = {
+    hourStart: '2026-11-09T00:00:00.000Z', dayStart: '2026-08-14',
+    observedAt: Array(70).fill(null).concat('2026-11-11T22:52:00.000Z', null),
+    results: { 'tool:transcribe': { hours: '-'.repeat(70) + 'o-', days: '-'.repeat(90) } }
+  };
+  const read = (homeGpu) => sanitizeSnapshot({
+    ...SNAPSHOT, connections, catalogHistory: history, homeGpu
+  }, catalog, Date.parse('2026-11-11T23:11:00.000Z'));
+  const previous = read();
+  assert.equal(Object.hasOwn(previous, 'homeGpu'), false);
+  assert.equal(previous.hourlyReadyThrough, incident.start);
+  const tile = { ...incident, issue: 'No PC check-in.', state: 'outage' };
+  const fixture = { id: 'home-gpu', label: 'private-host', location: 'private-origin', days: [], hours: [tile] };
+  assert.equal(read(fixture).hourlyReadyThrough, '2026-11-11T21:00:00.000Z');
+  const complete = read({ ...fixture, hours: [{ ...tile, complete: true }] });
+  assert.equal(complete.hourlyReadyThrough, incident.start);
+  assert.equal(complete.homeGpu.label, 'Home GPU');
+  assert.equal(complete.homeGpu.hours[0].state, 'outage');
+  assert.equal(complete.connections.find(({ id }) => id === 'transcribe').hours[0].state, 'degraded');
+  assert.equal(complete.connections.length, 7);
+  assert(!JSON.stringify(complete).includes('private-'));
+});
+
 test('publishing strips fixture content and rejects forged or duplicate catalog entries', () => {
   const report = { schemaVersion: 1, environment: 'local', checkedAt: CHECKED_AT,
     checks: [{ id: 'tool:text-compare', status: 'pass', method: 'browser', reason: 'private fixture text' }] };

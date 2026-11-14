@@ -12,6 +12,7 @@
   const REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
+  const HOME_GPU_STATES = { operational: 'Online', degraded: 'Worker unavailable', outage: 'Offline', unknown: 'Unknown' };
   const GROUPS = ['Tools', 'Projects', 'Games'];
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
   const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
@@ -131,6 +132,14 @@
       Date.parse(tile.from) <= Date.parse(tile.to) && typeof tile.issue === 'string';
   }
 
+  function validConnection(connection) {
+    return typeof connection?.label === 'string' && Array.isArray(connection.days) &&
+      connection.days.length <= HISTORY_DAYS && connection.days.every((day) =>
+        DATE_KEY.test(day?.date) && Number.isFinite(Date.parse(day.date)) && validHistoryTile(day)) &&
+      (connection.hours === undefined || Array.isArray(connection.hours) && connection.hours.length <= HISTORY_HOURS &&
+        connection.hours.every((hour) => HOUR_KEY.test(hour?.start) && hasTimestamp(hour.start) && validHistoryTile(hour)));
+  }
+
   function catalogHistory(data) {
     const history = data.catalogHistory;
     if (!HOUR_KEY.test(history?.hourStart) || !hasTimestamp(history.hourStart) ||
@@ -148,12 +157,7 @@
   function validStatus(data) {
     return data?.ok === true && data.region === REGION && data.days === HISTORY_DAYS &&
       (data.checkedAt === null || hasTimestamp(data.checkedAt)) &&
-      Array.isArray(data.connections) && data.connections.every((connection) =>
-        typeof connection?.label === 'string' && Array.isArray(connection.days) &&
-        connection.days.length <= HISTORY_DAYS && connection.days.every((day) =>
-          DATE_KEY.test(day?.date) && Number.isFinite(Date.parse(day.date)) && validHistoryTile(day)) &&
-        (connection.hours === undefined || Array.isArray(connection.hours) && connection.hours.length <= HISTORY_HOURS &&
-          connection.hours.every((hour) => HOUR_KEY.test(hour?.start) && hasTimestamp(hour.start) && validHistoryTile(hour)))) &&
+      Array.isArray(data.connections) && data.connections.every(validConnection) &&
       Array.isArray(data.catalog) && data.catalog.every((item) =>
         typeof item?.label === 'string' && GROUPS.includes(item.group) && Object.hasOwn(STATES, item.state) &&
         (item.lastChecked === null || hasTimestamp(item.lastChecked)) && typeof item.issue === 'string');
@@ -302,18 +306,19 @@
       }));
     }
 
-    function renderTicks(label, periods, timeline) {
+    function renderTicks(label, periods, timeline, stateLabels) {
       const ticks = element('div', '', 'aws-status__ticks');
       ticks.setAttribute('role', 'group');
       ticks.setAttribute('aria-label', label + ' ' + timeline.view +
         ' history. Use left and right arrows to choose ' + timeline.period + '.');
       periods.forEach((detail, index) => {
+        const stateLabel = stateLabels[detail.state];
         const tick = element('button', '', 'aws-status__tick');
         tick.type = 'button';
         tick.tabIndex = index === periods.length - 1 ? 0 : -1;
         tick.dataset.state = detail.state;
-        tick.setAttribute('aria-label', detail.label + ', ' + STATES[detail.state]);
-        detailsByTick.set(tick, detail);
+        tick.setAttribute('aria-label', detail.label + ', ' + stateLabel);
+        detailsByTick.set(tick, { ...detail, stateLabel });
         ticks.append(tick);
       });
       return ticks;
@@ -333,6 +338,8 @@
 
     function renderGroup(group, items, timeline, catalog) {
       const rows = items.map((item) => ({ label: item.label, periods: historyPeriods(item, timeline, catalog) }));
+      const homeGpu = group === 'Local services';
+      const stateLabels = homeGpu ? HOME_GPU_STATES : STATES;
       const section = element('section', '', 'aws-status__group');
       section.dataset.group = group;
       const summary = element('div', '', 'aws-status__group-summary');
@@ -343,7 +350,8 @@
       count.setAttribute('aria-hidden', 'true');
       toggle.append(count);
       heading.append(toggle);
-      summary.append(heading, renderTicks(group, rows[0].periods.map((_, index) => groupResult(rows, index)), timeline));
+      const summaryPeriods = homeGpu ? rows[0].periods : rows[0].periods.map((_, index) => groupResult(rows, index));
+      summary.append(heading, renderTicks(group, summaryPeriods, timeline, stateLabels));
       const body = element('div', '', 'aws-status__group-items');
       body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
       toggle.setAttribute('aria-controls', body.id);
@@ -354,9 +362,13 @@
         body.hidden = !open;
         body.replaceChildren(...(open ? rows.map(({ label, periods }) => {
           const row = element('div', '', 'aws-status__history-row');
-          row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline));
+          row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline, stateLabels));
           return row;
         }) : []));
+        if (open && homeGpu) {
+          const note = 'Offline means the PC stopped reporting. A lost connection can also cause a missed report.';
+          body.append(element('div', note, 'aws-status__legend'));
+        }
       }
       toggle.addEventListener('click', () => {
         hideTooltip();
@@ -394,6 +406,7 @@
       };
       const groups = [
         ['AWS Connections', snapshot.connections],
+        ['Local services', snapshot.homeGpu?.id === 'home-gpu' && validConnection(snapshot.homeGpu) ? [snapshot.homeGpu] : []],
         ...GROUPS.map((group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
       ];
       const periodCount = (timeline.hours || timeline.weeks || dates).length;
@@ -458,7 +471,7 @@
       activeTick = tick;
       const detail = detailsByTick.get(tick);
       const title = element('strong', detail.label);
-      const status = element('p', STATES[detail.state], 'aws-status__tooltip-status');
+      const status = element('p', detail.stateLabel, 'aws-status__tooltip-status');
       status.dataset.state = detail.state;
       const issue = detail.issue?.trim() || '';
       if (detail.state !== 'operational' && issue) status.append(' · ' + (issue.length > 100 ? issue.slice(0, 99) + '…' : issue));
