@@ -104,6 +104,8 @@ Resources:
 
           REGION = "us-east-2"
           DAYS = 90
+          HOURS = 72
+          HOUR = timedelta(hours=1)
           SERVICES = (
               ("cognito", "Cognito", 300), ("tracker", "Job Application Tracker", 3600),
               ("short-links", "Short Links", 300), ("contact", "Contact", 3600),
@@ -288,6 +290,58 @@ Resources:
               return result
 
 
+          def hour_tile(start, day, row, cadence, now):
+              end = start + HOUR
+              key = iso(start)
+              result = {"start": key, "state": "unknown", "from": key, "to": iso(end), "issue": "No check recorded."}
+              if not row:
+                  return result
+
+              checked = parse_time(row["checked"])
+              if start <= checked < end and checked <= now:
+                  result["observedAt"] = iso(checked)
+              offset = int((start - mountain_midnight(day)).total_seconds()) // cadence
+              slots = 3600 // cadence
+              elapsed_slots = min(slots, int((now - start).total_seconds()) // cadence + 1)
+              samples = row.get("samples", "")[offset:offset + elapsed_slots]
+              observed = [code for code in samples if code != "-"]
+
+              # A successful sample at the next boundary can confirm recovery in this bucket.
+              next_sample = row.get("samples", "")[offset + slots:offset + slots + 1]
+              recovery_sample = next_sample if end <= now and next_sample and SAMPLES[next_sample][0] == "operational" else ""
+              transitions = [
+                  incident for incident in alarm_incidents(row.get("events", []), checked)
+                  if incident[1] <= now and incident[1] < end
+                  and (incident[2] > start or incident[1] == incident[2] == start)
+              ]
+              incidents = sample_incidents(samples + recovery_sample, start, cadence, min(checked, now))
+              incidents = [
+                  incident for incident in incidents
+                  if not (incident[0] == "degraded"
+                          and any(incident[1] <= event[2] and event[1] <= incident[2] for event in transitions))
+              ] + transitions
+              if incidents:
+                  state, since, until, issue, recovered = max(
+                      incidents, key=lambda item: (STATES.index(item[0]), item[2], item[1])
+                  )
+                  if not recovered or until > now:
+                      issue += " Recovery was not observed."
+                  elif until > end:
+                      issue += " Recovery was observed after this hour."
+                  if len(incidents) > 1:
+                      issue += " Other issues also occurred."
+                  result.update(state=state, issue=issue,
+                                **{"from": iso(max(start, since)), "to": iso(min(end, until, now))})
+              elif len(observed) == slots and all(SAMPLES[code][0] == "operational" for code in observed) and not row.get("truncated"):
+                  result.update(state="operational", issue=SAMPLES[observed[-1]][1])
+              elif observed:
+                  result["issue"] = (
+                      SAMPLES[observed[-1]][1] if all(SAMPLES[code][0] == "unknown" for code in observed)
+                      else "Monitoring coverage for this hour is incomplete."
+                  )
+              return result
+
+
           def connection(identifier, label, cadence, first, today, now):
               records = {}
               for row in query(identifier, first.isoformat(), today.isoformat(), DAYS + 1):
@@ -296,12 +350,19 @@ Resources:
                       raise ValueError("Invalid status day")
                   if int(row["expires"]) > int(now.timestamp()):
                       records[day] = row
+              current_hour = now.replace(minute=0, second=0, microsecond=0)
+              hours = []
+              for offset in range(HOURS - 1, -1, -1):
+                  start = current_hour - offset * HOUR
+                  day = mountain_day(start)
+                  hours.append(hour_tile(start, day, records.get(day), cadence, now))
               return {
                   "id": identifier, "label": label,
                   "days": [
                       tile(first + timedelta(days=offset), records.get(first + timedelta(days=offset)), cadence, now)
                       for offset in range(DAYS)
                   ],
+                  "hours": hours,
               }
 
 

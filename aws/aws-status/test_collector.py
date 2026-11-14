@@ -129,6 +129,12 @@ class CollectorTests(TestCase):
       self.assertEqual(days[-1]["from"], "2026-11-12T07:00:00.000Z")
       self.assertEqual(days[-1]["to"], "2026-11-13T07:00:00.000Z")
       self.assertTrue(all(day["state"] == "unknown" for day in days))
+      hours = item["hours"]
+      self.assertEqual(len(hours), 72)
+      self.assertEqual(hours[0]["start"], "2026-11-10T04:00:00.000Z")
+      self.assertEqual(hours[-1]["start"], "2026-11-13T03:00:00.000Z")
+      self.assertEqual(hours[-1]["to"], "2026-11-13T04:00:00.000Z")
+      self.assertTrue(all(hour["state"] == "unknown" and "observedAt" not in hour for hour in hours))
     self.assertFalse(self.cloudwatch.mock_calls)
     self.assertFalse(self.sagemaker.mock_calls)
     self.assertEqual(self.table.write_count, 0)
@@ -143,6 +149,59 @@ class CollectorTests(TestCase):
       self.assertEqual(self.writer.day_range(start)[:3], (day.isoformat(), start, end))
       self.assertEqual(self.reader.mountain_day(end - timedelta(seconds=1)), day)
       self.assertEqual(self.reader.mountain_day(end), day + timedelta(days=1))
+
+  def test_hourly_uses_distinct_utc_samples_across_the_repeated_mountain_hour(self):
+    first = datetime(2026, 11, 1, 7, tzinfo=timezone.utc)
+    second = first + timedelta(hours=1)
+    now = second + timedelta(minutes=20)
+    for at, code in ((first, "a"), (second, "m")):
+      self.writer.sample("tracker", 3600, at, at + timedelta(minutes=10), code, self.context)
+    with patch.object(StubClock, "now", return_value=now):
+      first_tile, second_tile = self.read()["connections"][1]["hours"][-2:]
+    mountain = ZoneInfo("America/Denver")
+    local = [self.reader.parse_time(tile["start"]).astimezone(mountain) for tile in (first_tile, second_tile)]
+    self.assertEqual([at.hour for at in local], [1, 1])
+    self.assertEqual([at.tzname() for at in local], ["MDT", "MST"])
+    self.assertEqual([tile["state"] for tile in (first_tile, second_tile)], ["operational", "degraded"])
+    self.assertNotIn("observedAt", first_tile)
+    self.assertEqual(second_tile["observedAt"], "2026-11-01T08:10:00.000Z")
+
+  def test_hourly_does_not_mark_partial_or_missing_probes_operational(self):
+    current = NOW.replace(minute=0)
+    complete, gap = current - timedelta(hours=2), current - timedelta(hours=1)
+    for index in range(12):
+      at = complete + timedelta(minutes=5 * index)
+      self.writer.sample("cognito", 300, at, at, "o", self.context)
+    for hour in (gap, current):
+      for index in (0, 2):
+        at = hour + timedelta(minutes=5 * index)
+        self.writer.sample("cognito", 300, at, at, "o", self.context)
+    hours = self.read()["connections"][0]["hours"]
+    self.assertEqual([hour["state"] for hour in hours[-3:]], ["operational", "unknown", "unknown"])
+    self.assertIn("incomplete", hours[-1]["issue"])
+    self.assertNotIn("observedAt", hours[-2])
+    self.assertEqual(hours[-1]["observedAt"], self.reader.iso(NOW))
+
+  def test_hourly_samples_do_not_include_a_future_scheduled_slot(self):
+    current = NOW.replace(minute=0)
+    future = NOW + timedelta(minutes=5)
+    self.writer.sample("cognito", 300, future, NOW, "f", self.context)
+    latest = self.read()["connections"][0]["hours"][-1]
+    self.assertEqual(latest["start"], self.reader.iso(current))
+    self.assertEqual(latest["state"], "unknown")
+
+  def test_hourly_sample_recovery_at_the_next_boundary_does_not_leak_to_next_bucket(self):
+    recovered = NOW.replace(minute=0)
+    failed = recovered - timedelta(minutes=5)
+    self.writer.sample("cognito", 300, failed, failed, "f", self.context)
+    self.writer.sample("cognito", 300, recovered, recovered, "o", self.context)
+    self.writer.sample("cognito", 300, NOW, NOW, "d", self.context)
+    previous, current = self.read()["connections"][0]["hours"][-2:]
+    self.assertEqual((previous["state"], previous["from"], previous["to"]), (
+      "outage", self.reader.iso(failed), self.reader.iso(recovered)
+    ))
+    self.assertEqual(previous["issue"], "The scheduled HTTPS check returned a server error.")
+    self.assertEqual((current["state"], current["from"]), ("degraded", self.reader.iso(NOW)))
 
   def test_https_probes_only_fixed_safe_routes_and_disabled_optional_slug(self):
     connections = {}
@@ -245,6 +304,53 @@ class CollectorTests(TestCase):
     self.assertEqual(tracker["issue"], "Tracker API 5xx alarm entered ALARM.")
     self.assertNotIn("private reasons", repr(self.table.rows))
 
+  def test_hourly_alarm_bounds_stop_at_hour_edge_and_exclude_an_exact_boundary_recovery(self):
+    day = self.reader.mountain_day(NOW)
+    current = NOW.replace(minute=0)
+    down, up = current - timedelta(minutes=20), NOW - timedelta(minutes=4)
+    row = {
+      "checked": self.reader.iso(NOW),
+      "events": [[self.reader.iso(down), "ta", "ALARM"], [self.reader.iso(up), "ta", "OK"]],
+    }
+    earlier = self.reader.hour_tile(current - timedelta(hours=1), day, row, 3600, NOW)
+    latest = self.reader.hour_tile(current, day, row, 3600, NOW)
+    self.assertEqual(earlier["state"], "degraded")
+    self.assertEqual(earlier["from"], self.reader.iso(down))
+    self.assertEqual(earlier["to"], self.reader.iso(current))
+    self.assertIn("Recovery was observed after this hour.", earlier["issue"])
+    self.assertEqual(latest["from"], self.reader.iso(current))
+    self.assertEqual(latest["to"], self.reader.iso(up))
+    self.assertEqual(latest["state"], "degraded")
+    row["events"][1][0] = self.reader.iso(current)
+    self.assertEqual(self.reader.hour_tile(current, day, row, 3600, NOW)["state"], "unknown")
+
+  def test_hourly_snapshot_with_full_history_and_catalog_stays_under_api_limit(self):
+    today = self.reader.mountain_day(NOW)
+    for identifier, _label, cadence in self.reader.SERVICES:
+      for offset in range(90):
+        day = today - timedelta(days=offset)
+        start, end = self.reader.day_bounds(day)
+        checked = min(NOW, end - timedelta(seconds=1))
+        count = int((checked - start).total_seconds()) // cadence + 1
+        start_text = self.reader.iso(start + timedelta(seconds=10))
+        self.table.rows[(identifier, day.isoformat())] = {
+          "pk": identifier, "sk": day.isoformat(), "samples": "f" * count, "checked": self.reader.iso(checked),
+          "events": [[start_text, "ta", "ALARM"]], "truncated": True,
+          "expires": int(self.reader.mountain_midnight(day + timedelta(days=90)).timestamp()),
+        }
+    for source in ("browser", "local", "production"):
+      self.table.rows[("catalog", source)] = {
+        "sk": source, "results": {
+          f"project:{index:02}" + "long-catalog-id" * 3: [
+            "operational", self.reader.iso(NOW), self.reader.iso(NOW + timedelta(hours=2))
+          ] for index in range(70)
+        },
+      }
+    snapshot = self.read()
+    self.assertTrue(snapshot["ok"])
+    self.assertEqual(len(snapshot["checks"]), 210)
+    self.assertLess(len(json.dumps(snapshot).encode("utf-8")), 384 * 1024)
+
   def test_report_validation_sources_order_and_expiry(self):
     identifier = "project:smartSentence"
     requests = [
@@ -320,7 +426,8 @@ class CollectorTests(TestCase):
     self.assertEqual(re.findall(r"^\s+Resource: (.+)$", role, re.M), ["!Ref BrowserReportAlias"])
 
   def test_scope_limits_in_template(self):
-    self.assertLessEqual(len(TEMPLATE.encode()), 51200)
+    # The private S3 TemplateURL allows up to 1 MB.
+    self.assertLessEqual(len(TEMPLATE.encode()), 1_000_000)
     self.assertNotIn("AWS::CloudWatch::Alarm", TEMPLATE)
     self.assertNotIn("sagemaker:InvokeEndpoint", TEMPLATE)
     self.assertNotIn("transcribe:StartTranscriptionJob", TEMPLATE)

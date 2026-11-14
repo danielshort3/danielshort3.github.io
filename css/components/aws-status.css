@@ -34,6 +34,33 @@
     align-items: center;
   }
 
+  .aws-status__history-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8) var(--space-16);
+  }
+
+  .aws-status__history-control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .aws-status__history-control select {
+    min-height: 44px;
+    padding: var(--space-6) var(--space-12);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-light);
+    font: inherit;
+  }
+
   .aws-status__toolbar p,
   .aws-status__heading p,
   .aws-status__empty,
@@ -83,6 +110,7 @@
 
   .aws-status__tabs button:focus-visible,
   .aws-status__tab-panel:focus-visible,
+  .aws-status__history-control select:focus-visible,
   .aws-status__tick:focus-visible,
   .aws-status__tick[aria-describedby] {
     outline: 2px solid var(--brand-midnight);
@@ -104,6 +132,10 @@
 
   .aws-status__history-grid {
     min-width: 46rem;
+  }
+
+  .aws-status__history-grid[data-granularity="weekly"] {
+    min-width: 0;
   }
 
   .aws-status__history-row {
@@ -131,7 +163,8 @@
 
   .aws-status__ticks {
     display: grid;
-    grid-template-columns: repeat(90, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 2px;
   }
 
@@ -329,6 +362,10 @@
       min-width: 115rem;
     }
 
+    .aws-status__history-grid[data-granularity="hourly"] {
+      min-width: 94rem;
+    }
+
     .aws-status__tick {
       scroll-margin-inline-start: 9rem;
     }
@@ -347,6 +384,10 @@
   @media (max-width: 46rem) and (pointer: coarse) {
     .aws-status__history-grid {
       min-width: 145rem;
+    }
+
+    .aws-status__history-grid[data-granularity="hourly"] {
+      min-width: 118rem;
     }
   }
 }

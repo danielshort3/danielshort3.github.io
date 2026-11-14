@@ -23,6 +23,11 @@ const SNAPSHOT = {
     days: [{
       date: '2026-11-11', state: 'degraded', from: '2026-11-11T22:05:00Z', to: '2026-11-11T22:09:00Z',
       issue: 'Tracker errors exceeded the threshold.', alarmActions: ['private-sns-topic']
+    }],
+    hours: [{
+      start: '2026-11-11T22:00:00.000Z', state: 'degraded', from: '2026-11-11T22:05:00Z',
+      to: '2026-11-11T22:09:00Z', observedAt: '2026-11-11T22:10:00Z',
+      issue: 'Tracker errors exceeded the threshold.', alarmActions: ['private-sns-topic']
     }]
   }],
   checks: [
@@ -81,6 +86,7 @@ test('only a verified admin can cause an AWS read, even after the cache is popul
   assert.equal(first.body.days, 90);
   assert.equal(first.body.connections.length, 7);
   assert.equal(first.body.connections.find((item) => item.id === 'tracker').days[0].state, 'degraded');
+  assert.equal(first.body.connections.find((item) => item.id === 'tracker').hours[0].state, 'degraded');
   assert.equal(first.body.connections.find((item) => item.id === 'contact').days.length, 0);
   const expectedCatalog = loadStatusCatalog();
   assert.deepEqual(first.body.catalog.map(({ id, label, group }) => ({ id, label, group })), expectedCatalog);
@@ -96,6 +102,29 @@ test('only a verified admin can cause an AWS read, even after the cache is popul
   assert.equal((await request({ claims: { sub: 'ordinary-test' } })).status, 403);
   assert.equal((await request({ claims: adminClaims })).body.cached, true);
   assert.equal(reads, 1);
+});
+
+test('hourly history keeps valid observations ordered and handles older reader responses', () => {
+  const earlier = {
+    start: '2026-11-11T21:00:00.000Z', state: 'unknown', from: '2026-11-11T21:00:00Z',
+    to: '2026-11-11T22:00:00Z', observedAt: '2026-11-11T22:00:00Z', issue: ' No check recorded. '
+  };
+  const { hours: [incident], ...daily } = SNAPSHOT.connections[0];
+  const sanitize = (connection) => sanitizeSnapshot({ ...SNAPSHOT, connections: [connection] }, [])
+    .connections.find(({ id }) => id === 'tracker');
+  const output = sanitize({ ...daily, hours: [incident, earlier, {
+    ...incident, start: '2026-11-11T22:30:00.000Z'
+  }, {
+    ...incident, start: '2026-11-11T20:00:00.000Z', from: '2026-11-11T20:55:00Z', to: '2026-11-11T21:05:00Z'
+  }, { ...incident, state: 'unknown' }, null] });
+  assert.deepEqual(output.hours, [
+    { start: earlier.start, state: earlier.state, from: earlier.from, to: earlier.to, issue: 'No check recorded.' },
+    { start: incident.start, state: incident.state, from: incident.from, to: incident.to, issue: incident.issue,
+      observedAt: incident.observedAt }
+  ]);
+  assert.equal(output.days[0].state, 'degraded');
+  assert.equal(Object.hasOwn(sanitize(daily), 'hours'), false);
+  assert.equal(Object.hasOwn(sanitize({ ...daily, hours: Array(73).fill(incident) }), 'hours'), false);
 });
 
 test('publishing strips fixture content and rejects forged or duplicate catalog entries', () => {
