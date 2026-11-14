@@ -10,7 +10,7 @@ This standalone CloudFormation stack owns the AWS Status dashboard's private Ohi
 | Every five minutes when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. The slug is empty by default. |
 | Hourly at minute 10 UTC | Five named Tracker and contact metric alarms | Selected alarm states. These do not prove a Tracker save or delivery of contact email. |
 | Hourly at minute 10 UTC | `VGJ-Chatbot-Async` and `VGJ-Markdown-Async` | Endpoint metadata and optional maximum processing time from the previous completed hour. Zero active instances is expected for idle endpoints in service. |
-| Hourly at minute 10 UTC | Existing Ohio Transcribe batch metrics | Accepted `StartTranscriptionJob` requests and batch server errors for the previous hour, at account level. No datapoints means unknown. |
+| Hourly at minute 10 UTC | Existing Ohio Transcribe batch metrics | Accepted `StartTranscriptionJob` requests and batch server errors for the previous hour, at account level. No datapoints means no AWS transcription activity was recorded. Home GPU worker health is separate. |
 | On state change | The same five Tracker and contact alarms | A recorded transition and a recovery when one is observed. Existing alarm actions and notifications continue independently. |
 
 The collector uses bounded HTTPS reads, exact API requests, and one SDK attempt. It creates no alarms and sends no notifications, model requests, transcriptions, emails, or application writes. No schedules run while `ScheduleEnabled` is `false`.
@@ -22,6 +22,8 @@ The on-demand DynamoDB table stores compact five-minute or hourly observation sl
 History rows expire after 90 Mountain dates. TTL removes expired rows asynchronously, so the reader also enforces the date range and expiration. The table is retained on stack deletion or replacement. Only status evidence is stored, with no application records, raw alarm reasons, or response bodies. The Vercel role cannot invoke the scheduled collector or report writer. The reporter may write only the catalog partition and the collector may write only the fixed connection and homepage partitions.
 
 The reader returns `{ok, checkedAt, region, days, connections, checks}`. For each connection, `days` contains Mountain calendar days and `hours` contains UTC buckets. The dashboard displays the hourly buckets in Mountain time and groups daily tiles into Monday–Sunday weeks for the weekly view. `checkedAt` is null until an observation is recorded. Catalog results are keyed by source so the website can keep production, browser and local evidence distinct. The homepage HEAD result is marked `method: "homepage-head"`.
+
+Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all four System status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page checks for newly available data every five minutes.
 
 ## Deploy and verify
 

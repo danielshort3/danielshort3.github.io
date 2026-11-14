@@ -122,7 +122,7 @@ Resources:
           SAMPLES = {
               "-": ("unknown", "No check recorded."),
               "u": ("unknown", "The status source could not be verified."),
-              "n": ("unknown", "No activity data in the measured hour."),
+              "n": ("unknown", "No AWS transcription activity recorded."),
               "o": ("operational", "The scheduled check passed."),
               "a": ("operational", "Selected alarms reported OK."),
               "s": ("operational", "SageMaker endpoint reported InService."),
@@ -311,6 +311,8 @@ Resources:
               elapsed_slots = min(slots, int((now - start).total_seconds()) // cadence + 1)
               samples = row.get("samples", "")[offset:offset + elapsed_slots]
               observed = [code for code in samples if code != "-"]
+              if len(observed) == slots:
+                  result["complete"] = True
 
               # A successful sample at the next boundary can confirm recovery in this bucket.
               next_sample = row.get("samples", "")[offset + slots:offset + slots + 1]

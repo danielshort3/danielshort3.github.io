@@ -155,6 +155,37 @@ test('catalog archive exposes only valid history for current catalog IDs', () =>
   assert.equal(Object.hasOwn(invalid, 'catalogHistory'), false);
 });
 
+test('the shared hourly cutoff waits for every connection and catalog item or the grace deadline', () => {
+  const catalog = [{ id: 'tool:text-compare' }, { id: 'tool:transcribe' }];
+  const ids = ['cognito', 'tracker', 'short-links', 'contact', 'transcribe', 'chatbot', 'markdown'];
+  const [tracker] = SNAPSHOT.connections;
+  const [incident] = tracker.hours;
+  const complete = { ...incident, complete: true };
+  const missing = { ...incident, complete: 'true' };
+  const settled = ids.map((id) => ({ id, days: [], hours: [{
+    ...complete, state: id === 'transcribe' ? 'unknown' : complete.state
+  }] }));
+  const pending = settled.map((connection, i) => i === 2 ? { ...connection, hours: [missing] } : connection);
+  const archived = { hours: '-'.repeat(70) + 'u-', days: '-'.repeat(90) };
+  const catalogHistory = {
+    hourStart: '2026-11-09T00:00:00.000Z', dayStart: '2026-08-14',
+    observedAt: Array(70).fill(null).concat('2026-11-11T22:52:00.000Z', null),
+    results: Object.fromEntries(catalog.map(({ id }) => [id, archived]))
+  };
+  const cutoff = (connections, history, now = '2026-11-11T23:10:00.000Z') => sanitizeSnapshot({
+    ...SNAPSHOT, connections, catalogHistory: history
+  }, catalog, Date.parse(now)).hourlyReadyThrough;
+  const previous = '2026-11-11T21:00:00.000Z';
+  const published = '2026-11-11T22:00:00.000Z';
+  assert.equal(cutoff(settled, catalogHistory), published);
+  assert.equal(cutoff(pending, catalogHistory), previous);
+  assert.equal(cutoff(settled, { ...catalogHistory, results: { [catalog[0].id]: archived } }), previous);
+  assert.equal(cutoff(settled, undefined), previous);
+  assert.equal(cutoff(pending, undefined, '2026-11-11T23:19:59.999Z'), previous);
+  assert.equal(cutoff(pending, undefined, '2026-11-11T23:20:00.000Z'), published);
+  assert.equal(cutoff(settled, catalogHistory, '2026-11-11T22:59:59.999Z'), previous);
+});
+
 test('publishing strips fixture content and rejects forged or duplicate catalog entries', () => {
   const report = { schemaVersion: 1, environment: 'local', checkedAt: CHECKED_AT,
     checks: [{ id: 'tool:text-compare', status: 'pass', method: 'browser', reason: 'private fixture text' }] };
