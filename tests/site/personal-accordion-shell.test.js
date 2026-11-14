@@ -10,6 +10,7 @@ const {
   PERSONAL_SHELL_END,
   SITE_ROUTE_MANIFEST_VERSION,
   finalizePersonalRouteDocument,
+  normalizeSkipLinkHrefs,
   preparePersonalToolDetailHtml,
   renderPersonalLibraryHeader,
   renderPersonalLibraryMain,
@@ -132,6 +133,12 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(wrappedAgain === wrapped, 'Personal shell wrapping should be idempotent');
   assert(getSkipLinkHref(wrapped) === '/contact#main',
   'Personal shell should keep skip links on the current canonical page when a root base URL is present');
+  const legacyError = sample.replace('/contact"></head>', '/404.html"></head>');
+  const normalizedError = normalizeSkipLinkHrefs(legacyError);
+  assert(getSkipLinkHref(normalizedError) === '/404#main',
+    'A .html canonical should produce the clean 404 skip link');
+  assert(normalizedError === normalizeSkipLinkHrefs(normalizedError),
+    'The generated 404 skip link should stay stable on subsequent builds');
   assert(count(wrapped, /<main\b/gi) === 1, 'Personal shell should preserve exactly one main element');
   assert(/<body[^>]*data-page="contact"/i.test(wrapped), 'Personal shell should preserve the original data-page');
   assert(/<body[^>]*data-audience="personal"/i.test(wrapped), 'Personal shell should stamp the personal audience');
@@ -543,6 +550,9 @@ function runPersonalAccordionShellTests({ assert }) {
       `${relativePath} should reference the hashed personal shell stylesheet exactly once`);
     const publicHtml = read(path.join('public', relativePath));
     assertTransitionBootstrap(assert, `public/${relativePath}`, publicHtml);
+    if (relativePath === '404.html') {
+      assert(getSkipLinkHref(publicHtml) === '/404#main', 'The published 404 should use its clean skip-link URL');
+    }
     assert(count(publicHtml, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
       `public/${relativePath} should reference the hashed personal shell stylesheet exactly once`);
   });

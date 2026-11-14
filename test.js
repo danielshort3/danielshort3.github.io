@@ -42189,7 +42189,9 @@ try {
            toolCss.includes('.transcribe-file-resume') &&
            /\bwidth:44px;/.test(removeRule) &&
            /\bheight:44px;/.test(removeRule) &&
-           toolCss.includes('@media (max-width: 860px)') &&
+           toolCss.includes('@container (min-width:740px)') &&
+           toolCss.includes('grid-template-areas:"main sidebar"') &&
+           toolCss.includes('@media (width < 720px)') &&
            toolCss.includes('grid-template-columns:minmax(0,1fr) auto;') &&
            toolCss.includes('grid-column:2;') &&
            toolCss.includes('grid-row:1;') &&
