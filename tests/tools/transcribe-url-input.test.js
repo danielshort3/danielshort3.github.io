@@ -1,7 +1,10 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { normalizeYouTubeUrl, updateLocalSourceMetadata, isRecoverableItem, captureUrlSources } = require('../../js/tools/whisper-transcribe-monitor');
+const {
+  normalizeYouTubeUrl, normalizePageUrl, normalizePageCandidates,
+  updateLocalSourceMetadata, isRecoverableItem, captureUrlSources
+} = require('../../js/tools/whisper-transcribe-monitor');
 
 const canonical = 'https://www.youtube.com/watch?v=BaW_jenozKc';
 for (const source of [
@@ -54,10 +57,55 @@ updateLocalSourceMetadata(fileItem, { title: 'replacement', durationSeconds: 100
 assert.deepEqual(fileItem, { sourceKind: 'file', name: 'original.wav', durationSeconds: 42 });
 assert.equal(isRecoverableItem({ provider: 'local', sourceKind: 'url', status: 'failed', runErrorType: 'network', runToken: 'never-use-aws' }), false);
 
+const privatePageUrl = 'https://publisher.example/episode?token=private#video';
+assert.equal(normalizePageUrl(privatePageUrl), 'https://publisher.example/episode?token=private');
+assert.equal(normalizePageUrl(' https://Publisher.example:443 '), 'https://publisher.example/');
+for (const source of [
+  '',
+  'file://publisher.example/episode',
+  'http://publisher.example/episode',
+  'https://name:secret@publisher.example/episode',
+  'https://publisher.example:8443/episode',
+  'https://publisher.example./episode',
+  'https://localhost/',
+  'https://worker.internal/',
+  'https://127.0.0.1/',
+  'https://[::1]/',
+  'https://publisher.example\\@localhost/episode',
+  'https://publisher.example/\nvideo',
+  'https://publisher.example/' + 'a'.repeat(2048)
+]) {
+  assert.throws(() => normalizePageUrl(source), /public HTTPS web page/);
+}
+
+const candidateId = 'd'.repeat(32);
+assert.deepEqual(normalizePageCandidates([
+  { id: candidateId, title: ' Video 1 ', provider: 'YouTube', durationSeconds: 121,
+    pageUrl: privatePageUrl, ticket: 'secret' },
+  { id: candidateId, title: 'Duplicate' },
+  { id: 'bad', title: 'Invalid' },
+  { id: 'e'.repeat(32), title: ' ', durationSeconds: -1 }
+]), [
+  { id: candidateId, title: 'Video 1', provider: 'YouTube', durationSeconds: 121 },
+  { id: 'e'.repeat(32), title: 'Video', provider: '', durationSeconds: null }
+]);
+const pageItem = {
+  sourceKind: 'page', provider: 'local', pageCandidateId: candidateId,
+  pageScan: { pageUrl: privatePageUrl, ticket: 'private scan ticket' },
+  localTicket: 'private job ticket', localJobId: 'private job id', name: 'Found video',
+  durationSeconds: null, bytes: null, status: 'ready'
+};
+updateLocalSourceMetadata(pageItem, { title: 'Resolved title', durationSeconds: 90, bytes: 4096 });
+assert.equal(pageItem.name, 'Resolved title');
+assert.equal(pageItem.durationSeconds, 90);
+assert.equal(pageItem.bytes, 4096);
+assert.equal(isRecoverableItem({ ...pageItem, status: 'failed', runToken: 'never-use-aws' }), false);
+
 assert.deepEqual(captureUrlSources([
   fileItem,
+  pageItem,
   { ...urlItem, sourceUrl: `${canonical}&si=tracking`, status: 'complete', transcript: 'private transcript', localTicket: 'private ticket', runToken: 'private token' }
 ]), [{ sourceKind: 'url', sourceUrl: canonical, title: 'A useful video', durationSeconds: 60.5, status: 'complete' }],
-'session metadata includes only canonical sources, never transcript bodies or job credentials');
+'session metadata includes only canonical YouTube sources and omits page imports, transcript bodies and job credentials');
 
 console.log('transcribe-url-input tests passed');

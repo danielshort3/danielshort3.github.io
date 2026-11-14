@@ -1123,11 +1123,38 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'image: tool.iconImage',
     "image: homeLibraryPreviewAsset('games', game.id)"
   ];
-  const visualBuildIndex = buildSite.indexOf(
-    "runNodeScript(path.join('build', 'validate-home-library-visuals.js')"
-  );
-  const publicCopyIndex = buildSite.indexOf("runNodeScript(path.join('build', 'copy-to-public.js')");
-  const publicVisualBuildIndex = buildSite.indexOf("{ verbose, args: ['--public'] }");
+  const buildSteps = [];
+  const buildProcess = {
+    argv: [],
+    execPath: process.execPath,
+    env: {},
+    stdout: { write() {} },
+    stderr: { write() {} },
+    exitCode: 0
+  };
+  const buildDependencies = {
+    fs,
+    path,
+    child_process: {
+      spawnSync(_command, [script, ...args]) {
+        buildSteps.push({ script: path.basename(script), args });
+        return { status: 0, stdout: '', stderr: '' };
+      }
+    }
+  };
+  vm.runInNewContext(buildSite, {
+    __dirname: path.join(ROOT, 'build'),
+    require: (name) => buildDependencies[name],
+    process: buildProcess
+  }, { filename: 'build/build-site.js' });
+  const previewBuildSteps = buildSteps
+    .filter(({ script }) => ['validate-home-library-visuals.js', 'copy-to-public.js'].includes(script))
+    .map(({ script, args }) => [script, ...args].join(' '));
+  assert(buildProcess.exitCode === 0 && previewBuildSteps.join('\n') === [
+    'validate-home-library-visuals.js',
+    'copy-to-public.js',
+    'validate-home-library-visuals.js --public'
+  ].join('\n'), 'the build should validate source previews, copy public assets, and then validate the public previews');
   assert(generator.includes('function homeLibraryPreviewAsset(category, id)') &&
     generator.includes('function projectLibraryPreviewAsset(image)') &&
     contentPreviewMappings.every((mapping) => generator.includes(mapping)) &&
@@ -1150,8 +1177,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     visualValidator.includes('Validated ${projectSourceHashes.size} original project previews') &&
     packageJson.scripts?.['validate:home-library-visuals'] === 'node build/validate-home-library-visuals.js' &&
     Boolean(packageJson.devDependencies?.sharp) &&
-    buildSite.includes('const scriptArgs = Array.isArray(options.args) ? options.args : [];') &&
-    visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex && publicVisualBuildIndex > publicCopyIndex &&
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
   'content generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 

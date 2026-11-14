@@ -131,16 +131,6 @@
     border-color:color-mix(in srgb,var(--danger) 52%, transparent);
   }
 
-  #transcribe-notifications[data-state="enabled"]{
-    border-color:color-mix(in srgb,var(--success) 52%, var(--surface-accent) 48%);
-    color:color-mix(in srgb,var(--success) 78%, var(--text-light) 22%);
-  }
-
-  #transcribe-notifications[data-state="denied"],
-  #transcribe-notifications[data-state="unsupported"]{
-    border-color:color-mix(in srgb,var(--warning) 48%, var(--surface-accent) 52%);
-  }
-
   [data-transcribe-provider-panel][hidden],
   [data-transcribe-requires-files][hidden],
   .transcribe-batch[hidden]{
@@ -450,10 +440,6 @@
     font-size:.84rem;
   }
 
-  .transcribe-notifications{
-    justify-self:start;
-  }
-
   .transcribe-source-picker{
     min-width:0;
     margin:0;
@@ -540,12 +526,60 @@
     color:var(--danger);
   }
 
-  #transcribe-url-status:empty{
+  #transcribe-url-status:empty,
+  #transcribe-page-status:empty{
     display:none;
+  }
+
+  .transcribe-page-videos{
+    display:grid;
+    justify-items:start;
+    gap:10px;
+    min-width:0;
+    margin:4px 0 0;
+    padding:0;
+    border:0;
+  }
+
+  .transcribe-page-videos legend{
+    margin-bottom:6px;
+    color:var(--text-light);
+    font-weight:700;
+  }
+
+  .transcribe-page-candidates{
+    display:grid;
+    gap:6px;
+    width:100%;
+  }
+
+  .transcribe-page-candidate{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    gap:10px;
+    min-height:44px;
+    padding:8px 10px;
+    border:1px solid color-mix(in srgb,var(--text-light) 16%, transparent);
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  .transcribe-page-candidate input{
+    width:16px;
+    height:16px;
+    margin:0;
+    accent-color:var(--primary);
+  }
+
+  .transcribe-page-candidate span{
+    display:block;
+    overflow-wrap:anywhere;
   }
 
   .transcribe-source-picker[hidden],
   .transcribe-url-panel[hidden],
+  .transcribe-page-videos[hidden],
   .transcribe-dropzone[hidden]{
     display:none;
   }
@@ -1233,8 +1267,7 @@
       grid-template-columns:1fr;
     }
 
-    .transcribe-account-tools > button,
-    .transcribe-notifications{
+    .transcribe-account-tools > button{
       width:100%;
     }
 
