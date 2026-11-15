@@ -35,7 +35,7 @@ async function handleWatermarkRemover(req, res) {
   try {
     assertSameOriginRequest(req);
     siteOrigin = new URL(req.headers.origin).origin;
-    ({ claims } = await authenticateToolsRequest(req, { allowBearer: false }));
+    ({ claims } = await authenticateToolsRequest(req, { allowBearer: true }));
   } catch (error) {
     if (error.code === 'AUTH_ORIGIN_MISMATCH') {
       return sendJson(res, 403, { ok: false, error: 'Same-origin request required.' });
