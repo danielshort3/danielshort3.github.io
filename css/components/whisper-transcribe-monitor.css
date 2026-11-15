@@ -56,10 +56,6 @@
     gap:8px 12px;
   }
 
-  .transcribe-shell[data-transcribe-provider="aws"][data-transcribe-has-files="true"] #transcribe-upload-copy{
-    display:none;
-  }
-
   .transcribe-sidebar .transcribe-sidebar-provider{
     font-weight:650;
   }
@@ -339,6 +335,10 @@
     color:var(--text-muted);
     font-size:.8rem;
     line-height:1.35;
+  }
+
+  .transcribe-local-state[hidden]{
+    display:none;
   }
 
   .transcribe-local-state-dot{
@@ -714,6 +714,39 @@
   .transcribe-shell[data-transcribe-has-files="true"] .transcribe-dropzone-icon,
   .transcribe-shell[data-transcribe-has-files="true"] .transcribe-dropzone-title + span{
     display:none;
+  }
+
+  .transcribe-preparation-feedback{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    min-width:0;
+  }
+
+  .transcribe-preparation-feedback:has(> p:empty):has(> button[hidden]){
+    position:absolute;
+  }
+
+  .transcribe-preparation-feedback p{
+    flex:1 1 13rem;
+    min-width:0;
+    margin:0;
+    color:var(--text-muted);
+    font-size:.88rem;
+    overflow-wrap:anywhere;
+  }
+
+  .transcribe-preparation-feedback p[data-tone="warning"]{
+    color:var(--warning-text);
+  }
+
+  .transcribe-preparation-feedback p[data-tone="error"]{
+    color:var(--danger);
+  }
+
+  .transcribe-preparation-feedback button{
+    min-height:44px;
   }
 
   .transcribe-sidebar p,

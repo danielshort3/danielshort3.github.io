@@ -42089,16 +42089,22 @@ try {
            /\bhidden\b/.test(localStatusOpeningTag) &&
            toolScript.includes("document.querySelectorAll('[data-transcribe-provider-panel]')") &&
            toolScript.includes('panel.hidden = !providerMatches || (requiresFiles && !hasFiles);') &&
-           toolScript.includes("localStateEl.setAttribute('aria-live', localActive ? 'polite' : 'off');") &&
+           !localStatusOpeningTag.includes('data-transcribe-provider-panel') &&
+           page.indexOf('id="transcribe-source-picker"') < page.indexOf('id="transcribe-method"') &&
+           page.includes('id="transcribe-retry-preparation"') &&
+           toolScript.includes('sourcePickerEl.hidden = !admin;') &&
+           toolScript.includes("localStateEl.setAttribute('aria-live', admin ? 'polite' : 'off');") &&
            toolScript.includes('shellEl.dataset.transcribeProvider = state.provider;') &&
            toolScript.includes("shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';") &&
-           toolScript.includes('if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;') &&
+           toolScript.includes('if (!isAdminUser() || state.localConfigLoading) return;') &&
+           toolScript.includes('capabilities.urlPreparation === true') &&
+           toolScript.includes('capabilities.pagePreparation === true') &&
            toolScript.includes('const shouldPreferLocal = state.admin && !wasAdmin') &&
            toolScript.includes('state.provider = localKnownUnavailable ? PROVIDER_AWS : PROVIDER_LOCAL;') &&
            toolScript.includes("const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');") &&
            toolScript.includes('setText(detailServiceEl, serviceName);') &&
-           toolScript.includes('if (isLocalProvider()) void refreshLocalWorkerStatus();'),
-      'Transcribe provider panels should be exclusive, provider facts should match the active service, Home GPU should be admin-preferred, and inactive health should stay hidden and silent');
+           toolScript.includes('if (state.admin && !wasAdmin) void refreshLocalWorkerStatus();'),
+      'Transcribe should keep source choice and preparation independent of the destination, with admin access and Home GPU preferred');
 
     assert(/\bhidden\b/.test(fileInputOpeningTag) &&
            addFilesOpeningTag.startsWith('<button') &&
@@ -42139,7 +42145,9 @@ try {
            toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
            toolScript.includes('state.config.minDurationSeconds') &&
-           toolScript.includes('item.durationSeconds > Number(state.config.maxServiceDurationSeconds') &&
+           toolScript.includes('const reviewQueuedMedia = () =>') &&
+           toolScript.includes('item.durationSeconds > maxDuration') &&
+           toolScript.includes('const ready = authIsReady() && runConfigIsValid() && !needsMedia') &&
            toolScript.includes('estimatedCost') &&
            toolScript.includes('payload.outputSummary') &&
            toolScript.includes('configured: false') &&
@@ -42148,7 +42156,7 @@ try {
            toolScript.includes('state.config.configured === true') &&
            toolScript.includes('payload.output = { summary: payload.outputSummary, sources: urlSources };') &&
            toolScript.includes('const urlSources = captureUrlSources(state.files);'),
-      'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
+      'Transcribe should review prepared media against the selected destination limits before approval and keep transcript bodies out of session history');
     assert(toolScript.includes('inspectMp4AudioTrack') &&
            toolScript.includes('inspectMp4Structure') &&
            toolScript.includes('readMp4AudioTimeline') &&
@@ -42345,7 +42353,7 @@ try {
            endpoint.includes("['content-length-range', bytes, bytes]") &&
            endpoint.includes("method: 'POST'") &&
            toolScript.includes('const body = new FormData();') &&
-           toolScript.includes("body.append('file', item.file, item.name || 'media')"),
+           toolScript.includes("body.append('file', item.file, item.mediaFilename || item.name || 'media')"),
       'Transcribe uploads should use a tagged exact-size presigned POST from API through browser upload');
     assert(vercelOidcTemplate.includes("Action:\n                  - transcribe:StartTranscriptionJob\n                  - transcribe:TagResource\n                Resource: '*'") &&
            transcribeReadme.includes('"transcribe:TagResource"'),
