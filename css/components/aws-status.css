@@ -340,7 +340,8 @@
     --aws-status-ink: var(--brand-risk);
   }
 
-  .aws-status [data-state="unknown"] {
+  .aws-status [data-state="unknown"],
+  .aws-status [data-state="neutral"] {
     --aws-status-fill: #9aa5b4;
     --aws-status-ink: var(--brand-graphite);
   }

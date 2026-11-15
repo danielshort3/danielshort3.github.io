@@ -70,7 +70,10 @@ class MemoryTable:
     return {"Items": items}
 
 
-def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False):
+def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False, transcribe=None):
+  if transcribe is None:
+    transcribe = Mock()
+    transcribe.list_transcription_jobs.return_value = {"TranscriptionJobSummaries": []}
   marker = re.search(rf"^  {name}:\n.*?^        ZipFile: \|\n", TEMPLATE, re.M | re.S)
   if not marker:
     raise AssertionError("Missing inline runtime")
@@ -82,7 +85,7 @@ def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False):
   }
   def client(service, region_name, config):
     assert region_name == "us-east-2"
-    return {"cloudwatch": cloudwatch, "sagemaker": sagemaker, "dynamodb": table}[service]
+    return {"cloudwatch": cloudwatch, "sagemaker": sagemaker, "dynamodb": table, "transcribe": transcribe}[service]
   boto = modules["boto3"]
   boto.client = Mock(side_effect=client)
   boto.resource = Mock(return_value=Mock(Table=Mock(return_value=table)))
@@ -104,6 +107,16 @@ def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False):
   return runtime
 
 
+def transcription_job(name, state, created, finished=None):
+  job = {"TranscriptionJobName": "site-transcribe-" + name * 64, "CreationTime": created,
+         "TranscriptionJobStatus": state}
+  if finished is not None:
+    job["CompletionTime"] = finished
+  if state == "FAILED":
+    job["FailureReason"] = "private fixture reason"
+  return job
+
+
 def sample_report(identifier, state, source, checked=None, expires=None):
   return {"id": identifier, "state": state, "source": source,
           "lastChecked": (checked or NOW).isoformat(),
@@ -114,7 +127,9 @@ class CollectorTests(TestCase):
   def setUp(self):
     self.table, self.cloudwatch, self.sagemaker = MemoryTable(), Mock(), Mock()
     self.reader = load_runtime("Collector", self.table, self.cloudwatch, self.sagemaker)
-    self.writer = load_runtime("Writer", self.table, self.cloudwatch, self.sagemaker)
+    self.transcribe = Mock()
+    self.transcribe.list_transcription_jobs.return_value = {"TranscriptionJobSummaries": []}
+    self.writer = load_runtime("Writer", self.table, self.cloudwatch, self.sagemaker, transcribe=self.transcribe)
     self.report = load_runtime("Report", self.table, self.cloudwatch, self.sagemaker)
     self.context = Mock(
       get_remaining_time_in_millis=Mock(return_value=20000),
@@ -257,7 +272,7 @@ class CollectorTests(TestCase):
       response.getheader.return_value = bad
       self.assertFalse(self.writer.redirect_response(response))
 
-  def test_hourly_fixed_requests_missing_metrics_and_idle_endpoints(self):
+  def test_hourly_fixed_requests_missing_metrics_empty_transcription_and_idle_endpoints(self):
     self.cloudwatch.describe_alarms.return_value = {
       "MetricAlarms": [{"AlarmName": name, "StateValue": "OK"} for name in self.writer.ALARMS]
     }
@@ -270,22 +285,156 @@ class CollectorTests(TestCase):
     request = self.cloudwatch.describe_alarms.call_args.kwargs
     self.assertEqual(set(request["AlarmNames"]), set(self.writer.ALARMS))
     self.assertEqual(request["AlarmTypes"], ["MetricAlarm"])
-    self.assertEqual(self.cloudwatch.get_metric_statistics.call_count, 4)
+    self.assertEqual(self.cloudwatch.get_metric_statistics.call_count, 2)
+    self.transcribe.list_transcription_jobs.assert_called_once_with(JobNameContains="site-transcribe-", MaxResults=100)
     for call in self.cloudwatch.get_metric_statistics.call_args_list:
       self.assertEqual(call.kwargs["Period"], 3600)
       self.assertEqual(call.kwargs["EndTime"], NOW.replace(minute=0))
       dimensions = {row["Name"]: row["Value"] for row in call.kwargs["Dimensions"]}
-      if call.kwargs["Namespace"] == "AWS/Transcribe":
-        self.assertEqual(dimensions, {"ServiceType": "Batch", "Operation": "StartTranscriptionJob", "Domain": "Transcribe"})
-      else:
-        self.assertEqual(set(dimensions), {"EndpointName", "VariantName"})
-        self.assertIn(dimensions["EndpointName"], self.writer.ENDPOINTS.values())
-        self.assertEqual(dimensions["VariantName"], "AllTraffic")
+      self.assertEqual(call.kwargs["Namespace"], "AWS/SageMaker")
+      self.assertEqual(set(dimensions), {"EndpointName", "VariantName"})
+      self.assertIn(dimensions["EndpointName"], self.writer.ENDPOINTS.values())
+      self.assertEqual(dimensions["VariantName"], "AllTraffic")
     self.assertEqual({call.kwargs["EndpointName"] for call in self.sagemaker.describe_endpoint.call_args_list},
                      set(self.writer.ENDPOINTS.values()))
     self.assertEqual(set(self.table.rows[("chatbot", "2026-11-12")]["samples"]) - {"-"}, {"i"})
-    self.assertEqual(set(self.table.rows[("transcribe", "2026-11-12")]["samples"]) - {"-"}, {"n"})
+    self.assertEqual(set(self.table.rows[("transcribe", "2026-11-12")]["samples"]) - {"-"}, {"u"})
+    transcription = next(item for item in self.read()["connections"] if item["id"] == "transcribe")
+    hour = transcription["hours"][-2]
+    self.assertTrue(hour["complete"])
+    self.assertEqual(hour["state"], "unknown")
+    self.assertEqual(hour["transcription"], {"completed": 0, "failed": 0, "inProgress": 0})
+    self.assertNotIn("transcription", transcription["days"][-1])
     self.assertNotIn(("home-gpu", "2026-11-12"), self.table.rows)
+
+  def test_transcription_counts_terminal_times_and_hour_overlap_across_pages(self):
+    end = NOW.replace(minute=0)
+    start = end - timedelta(hours=1)
+    self.transcribe.list_transcription_jobs.side_effect = [
+      {"NextToken": "next", "TranscriptionJobSummaries": [
+        transcription_job("a", "QUEUED", end),
+        transcription_job("b", "QUEUED", start),
+        transcription_job("c", "COMPLETED", start, end),
+        {"TranscriptionJobName": "private-site-transcribe-" + "f" * 64},
+      ]},
+      {"TranscriptionJobSummaries": [
+        transcription_job("d", "FAILED", start - timedelta(days=1), end - timedelta(seconds=1)),
+        transcription_job("e", "COMPLETED", start - timedelta(hours=3), start),
+        transcription_job("f", "COMPLETED", start - timedelta(hours=4), start - timedelta(seconds=1)),
+      ]},
+    ]
+    self.assertEqual(self.writer.handler({"operation": "hourly"}, self.context), {"ok": True, "collected": 5})
+    calls = self.transcribe.list_transcription_jobs.call_args_list
+    self.assertEqual(len(calls), 2)
+    self.assertEqual(calls[1].kwargs, {"JobNameContains": "site-transcribe-", "MaxResults": 100, "NextToken": "next"})
+    row = self.table.rows[("transcribe", "2026-11-12")]
+    slot, counts = next(iter(row["transcription"].items()))
+    expected = {"completed": 1, "failed": 1, "inProgress": 2}
+    self.assertEqual(counts, expected)
+    self.assertNotIn("site-transcribe-", repr(row))
+    self.assertNotIn("fixture reason", repr(row))
+    row["transcription"][slot] = {key: Decimal(value) for key, value in counts.items()}
+
+    transcription = next(item for item in self.read()["connections"] if item["id"] == "transcribe")
+    hour, day = transcription["hours"][-2], transcription["days"][-1]
+    self.assertNotIn("transcription", transcription["hours"][-1])
+    for period in (hour, day):
+      self.assertEqual(period["state"], "degraded")
+      self.assertEqual(period["transcription"], expected)
+      self.assertNotIn("Recovery", period["issue"])
+    self.assertEqual(hour["from"], self.reader.iso(start))
+    self.assertEqual(hour["to"], self.reader.iso(end))
+    self.assertNotIn("site-transcribe-", json.dumps(transcription))
+
+    self.transcribe.list_transcription_jobs.side_effect = None
+    self.transcribe.list_transcription_jobs.return_value = {"TranscriptionJobSummaries": [
+      transcription_job("c", "COMPLETED", start, end),
+    ]}
+    self.assertEqual(self.writer.read_transcription(end, end + timedelta(hours=1), self.context),
+                     {"completed": 1, "failed": 0, "inProgress": 0})
+
+  def test_transcription_unknown_during_incomplete_scan_can_be_replaced_by_verified_result(self):
+    end = NOW.replace(minute=0)
+    start = end - timedelta(hours=1)
+    completed = transcription_job("a", "COMPLETED", start, NOW - timedelta(minutes=30))
+    self.transcribe.list_transcription_jobs.side_effect = [
+      {"NextToken": "next", "TranscriptionJobSummaries": [completed]}, AwsError("AccessDeniedException"),
+    ]
+    with self.assertLogs("Writer", level="WARNING") as logs:
+      self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+    self.assertEqual(len(logs.output), 1)
+    self.assertNotIn("site-transcribe-", logs.output[0])
+    transcription = next(item for item in self.read()["connections"] if item["id"] == "transcribe")
+    hour = transcription["hours"][-2]
+    self.assertTrue(hour["complete"])
+    self.assertEqual(hour["state"], "unknown")
+    self.assertNotIn("transcription", hour)
+    self.assertNotIn("transcription", self.table.rows[("transcribe", "2026-11-12")])
+
+    self.transcribe.list_transcription_jobs.side_effect = None
+    self.transcribe.list_transcription_jobs.return_value = {"TranscriptionJobSummaries": [completed]}
+    prior_writes = self.table.write_count
+    self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+    self.assertEqual(self.table.write_count, prior_writes + 1)
+    self.transcribe.list_transcription_jobs.return_value = {"TranscriptionJobSummaries": []}
+    self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+    self.assertEqual(self.table.write_count, prior_writes + 1)
+    transcription = next(item for item in self.read()["connections"] if item["id"] == "transcribe")
+    self.assertTrue(transcription["hours"][-2]["complete"])
+    self.assertEqual(transcription["hours"][-2]["state"], "operational")
+    self.assertEqual(transcription["hours"][-2]["transcription"], {"completed": 1, "failed": 0, "inProgress": 0})
+
+  def test_unreliable_transcription_pages_are_unknown(self):
+    end = NOW.replace(minute=0)
+    start = end - timedelta(hours=1)
+    malformed = transcription_job("a", "FAILED", start)
+    duplicate = transcription_job("b", "QUEUED", start)
+    empty = {"TranscriptionJobSummaries": []}
+    cases = [
+      [{"TranscriptionJobSummaries": [malformed]}],
+      [{"NextToken": "same", **empty}, {"NextToken": "same", **empty}],
+      [{"NextToken": str(index), **empty} for index in range(self.writer.TRANSCRIBE_MAX_PAGES)],
+      [{"NextToken": "next", "TranscriptionJobSummaries": [duplicate]}, {"TranscriptionJobSummaries": [duplicate]}],
+      [{}],
+    ]
+    for pages in cases:
+      with self.subTest(pages=len(pages)), self.assertLogs("Writer", level="WARNING"):
+        self.transcribe.list_transcription_jobs.side_effect = pages
+        self.assertIsNone(self.writer.read_transcription(start, end, self.context))
+    self.transcribe.list_transcription_jobs.reset_mock()
+    self.context.get_remaining_time_in_millis.return_value = 9999
+    with self.assertLogs("Writer", level="WARNING"):
+      self.assertIsNone(self.writer.read_transcription(start, end, self.context))
+    self.transcribe.list_transcription_jobs.assert_not_called()
+
+  def test_daily_idle_requires_all_expected_hours_and_legacy_samples_remain_readable(self):
+    day = date(2026, 11, 1)
+    start, end = self.reader.day_bounds(day)
+    now = end + timedelta(minutes=10)
+    zero = {"completed": 0, "failed": 0, "inProgress": 0}
+    mid_day = start + timedelta(hours=2, minutes=10)
+    partial = {"samples": "uu", "checked": self.reader.iso(mid_day), "transcription": {"0": zero}}
+    self.assertNotIn("transcription", self.reader.tile(day, partial, 3600, mid_day, "transcribe"))
+    for slot in range(24):
+      hour = start + timedelta(hours=slot)
+      self.writer.sample("transcribe", 3600, hour, hour, "u", self.context, transcription=zero)
+    row = self.table.rows[("transcribe", day.isoformat())]
+    self.assertNotIn("transcription", self.reader.tile(day, row, 3600, now, "transcribe"))
+    last = end - timedelta(hours=1)
+    self.writer.sample("transcribe", 3600, last, last, "u", self.context, transcription=zero)
+    row = self.table.rows[("transcribe", day.isoformat())]
+    self.assertEqual(len(row["samples"]), 25)
+    self.assertEqual(self.reader.tile(day, row, 3600, now, "transcribe")["transcription"], zero)
+    self.assertNotIn("transcription", self.reader.hour_tile(last, day, row, 3600, now, "tracker"))
+
+    legacy = {"samples": "bn", "checked": self.reader.iso(start + timedelta(hours=1))}
+    accepted = self.reader.hour_tile(start, day, legacy, 3600, now, "transcribe")
+    idle = self.reader.hour_tile(start + timedelta(hours=1), day, legacy, 3600, now, "transcribe")
+    self.assertEqual(accepted["state"], "operational")
+    self.assertIn("accepted batch requests", accepted["issue"])
+    self.assertNotIn("transcription", accepted)
+    self.assertEqual(idle["state"], "unknown")
+    self.assertNotIn("transcription", idle)
 
   def test_home_gpu_distinguishes_missing_stale_fresh_future_and_invalid_check_ins(self):
     hour = int(NOW.timestamp()) // 3600
@@ -372,7 +521,7 @@ class CollectorTests(TestCase):
       self.assertEqual(self.writer.handler({"operation": "hourly"}, self.context), {"ok": True, "collected": 6})
     samples = {pk: set(row["samples"]) - {"-"} for (pk, _), row in self.table.rows.items()}
     self.assertEqual(samples["home-gpu"], {"q"})
-    self.assertEqual(samples["transcribe"], {"n"})
+    self.assertEqual(samples["transcribe"], {"u"})
     self.assertEqual(samples["chatbot"], {"s"})
 
   def test_missing_coverage_and_duplicate_observations_do_not_rewrite(self):
@@ -672,6 +821,15 @@ class CollectorTests(TestCase):
     reader_role = TEMPLATE.split("  CollectorRole:\n")[1].split("  Collector:\n")[0]
     writer_role = TEMPLATE.split("  WriterRole:\n")[1].split("  Writer:\n")[0]
     self.assertNotIn("home-gpu-heartbeat", reader_role)
+    self.assertEqual(TEMPLATE.count("transcribe:ListTranscriptionJobs"), 1)
+    self.assertIn(dedent('''\
+              - Effect: Allow
+                Action: transcribe:ListTranscriptionJobs
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': us-east-2
+''').replace("\n", "\n              ").rstrip(), writer_role)
     self.assertIn("Action: dynamodb:GetItem\n", writer_role)
     self.assertEqual(writer_role.count("home-gpu-heartbeat"), 1)
 
