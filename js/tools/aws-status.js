@@ -10,7 +10,7 @@
   const DAY_MS = 24 * HOUR_MS;
   const STALE_MS = 2 * 60 * 60 * 1000;
   const HOME_GPU_STALE_MS = 75 * 60 * 1000;
-  const REFRESH_MS = 5 * 60 * 1000;
+  const REFRESH_OFFSET_MS = 21 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const GROUP_MOTION_MS = 220;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
@@ -24,6 +24,13 @@
     o: ['operational', ''],
     d: ['degraded', 'Check reported an issue.'],
     x: ['outage', 'Check failed.']
+  };
+  const CHECK_DETAILS = {
+    r: 'The built page did not load.',
+    t: 'The browser check timed out waiting for the expected result.',
+    m: 'The result differed from what the browser check expected.',
+    e: 'The browser check could not complete.',
+    n: 'The browser check could not verify this item.'
   };
   const HISTORY_VIEWS = {
     hourly: { range: 'Last 72 hours', period: 'an hour' },
@@ -160,7 +167,7 @@
     const degraded = days.findLast((day) => day?.state === 'degraded');
     if (!outage && (transcription?.state === 'degraded' || (!degraded && transcription))) return transcription;
     const incident = outage || degraded;
-    if (incident) return { ...incident, label, issue: dateLabel(incident.date) + ' · ' + incident.issue };
+    if (incident) return { ...incident, label };
     const measured = days.filter((day) => day?.state === 'operational');
     const complete = measured.length === days.length;
     return {
@@ -183,8 +190,8 @@
     return startDay + ', ' + clockFormat.format(from) + ' – ' + endDay + endTime.format(to);
   }
 
-  function timeLabel(value) {
-    const label = element('time', dateTimeFormat.format(Date.parse(value)));
+  function timeLabel(value, format = dateTimeFormat) {
+    const label = element('time', format.format(Date.parse(value)));
     label.dateTime = value;
     return label;
   }
@@ -230,9 +237,9 @@
     return history;
   }
 
-  function catalogObservation(code) {
+  function catalogObservation(code, detail) {
     const [state, issue] = Object.hasOwn(CHECK_RESULTS, code) ? CHECK_RESULTS[code] : CHECK_RESULTS['-'];
-    return { state, issue };
+    return { state, issue: Object.hasOwn(CHECK_DETAILS, detail) ? CHECK_DETAILS[detail] : issue };
   }
 
   function validStatus(data) {
@@ -263,6 +270,7 @@
     const notice = part('notice');
     const readings = part('readings');
     const tooltip = root.querySelector('#aws-status-history-details');
+    const historyAnnouncement = part('history-announcement');
     const granularity = part('granularity');
     const history = part('history');
     const grid = part('history-grid');
@@ -285,6 +293,7 @@
     let tooltipFrame = null;
     let activeTick;
     let pinnedTick;
+    let showingDetails = false;
 
     function setNotice(message) {
       notice.textContent = message;
@@ -308,8 +317,10 @@
       activeTick?.removeAttribute('aria-describedby');
       activeTick = null;
       pinnedTick = null;
+      showingDetails = false;
       tooltip.hidden = true;
       tooltip.replaceChildren();
+      if (historyAnnouncement) historyAnnouncement.textContent = '';
     }
 
     function clearStatus() {
@@ -355,13 +366,16 @@
     function historyPeriods(item, timeline, catalog) {
       const { dates, labels, weeks, hours, view } = timeline;
       if (hours && catalog) {
-        const results = catalog.history?.results[item.id]?.hours;
+        const results = catalog.history?.results[item.id];
         const checked = Date.parse(item.lastChecked);
         return hours.map(({ from, to, label }) => {
           const index = (from - catalog.hourStart) / HOUR_MS;
-          const code = results?.[index];
-          const observation = catalogObservation(code);
-          if (['u', 'd', 'x'].includes(code) && observation.state === item.state && checked >= from && checked < to) {
+          const code = results?.hours[index];
+          const detail = results?.details?.hours?.[index];
+          const observation = catalogObservation(code, detail);
+          if (code && code !== '-') observation.observedAt = catalog.history.observedAt[index];
+          if (!Object.hasOwn(CHECK_DETAILS, detail) && ['u', 'd', 'x'].includes(code) &&
+              observation.state === item.state && checked >= from && checked < to) {
             observation.issue = item.issue || observation.issue;
           }
           return { label, ...observation };
@@ -379,11 +393,13 @@
           };
         });
       }
+      const catalogItem = catalog?.history?.results[item.id];
       const byDate = catalog ? new Map(dates.map((date) => {
         const index = (Date.parse(date) - catalog.dayStart) / DAY_MS;
-        const code = catalog.history?.results[item.id]?.days?.[index];
-        const day = catalogObservation(code);
-        if (code === 'u') day.issue = 'Missing or inconclusive checks.';
+        const code = catalogItem?.days[index];
+        const detail = catalogItem?.details?.days?.[index];
+        const day = catalogObservation(code, detail);
+        if (code === 'u' && !Object.hasOwn(CHECK_DETAILS, detail)) day.issue = 'Missing or inconclusive checks.';
         return [date, { date, ...day }];
       })) : new Map(item.days.map((day) => [day.date, day]));
       if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate, item.id === 'transcribe'));
@@ -396,21 +412,14 @@
       const ticks = element('div', '', 'aws-status__ticks');
       ticks.setAttribute('role', 'group');
       ticks.setAttribute('aria-label', label + ' ' + timeline.view +
-        ' history. Use left and right arrows to choose ' + timeline.period + '.');
+        ' history. Use left and right arrows to choose ' + timeline.period + '. Press Enter to select.');
       periods.forEach((detail, index) => {
         let stateLabel = stateLabels[detail.state];
         let visualState = detail.state;
-        let issue = detail.issue;
-        if (detail.transcription) {
+        if (detail.transcription && !detail.service) {
           const { completed, failed, inProgress } = detail.transcription;
           stateLabel = failed ? 'Failed' : completed ? 'Completed' : inProgress ? 'In progress' : 'No activity';
           if (detail.state === 'unknown') visualState = 'neutral';
-          const counts = [
-            failed && `${failed} failed`, completed && `${completed} completed`,
-            inProgress && (timeline.view === 'hourly' ? `${inProgress} in progress` : 'Jobs in progress')
-          ].filter(Boolean);
-          const maxJobs = Math.max(failed, completed, timeline.view === 'hourly' ? inProgress : 0);
-          issue = counts.length > 1 || maxJobs > 1 ? counts.join(', ') : '';
         }
         const tick = element('button', '', 'aws-status__tick');
         tick.type = 'button';
@@ -418,7 +427,7 @@
         tick.dataset.state = visualState;
         if (timeline.boundaries.has(index)) tick.dataset.awsStatusBoundary = '';
         tick.setAttribute('aria-label', detail.label + ', ' + stateLabel);
-        detailsByTick.set(tick, { ...detail, stateLabel, visualState, issue });
+        detailsByTick.set(tick, { ...detail, stateLabel, visualState, view: timeline.view });
         ticks.append(tick);
       });
       return ticks;
@@ -427,19 +436,14 @@
     function groupResult(rows, index) {
       const incident = rows.find((row) => row.periods[index].state === 'outage') ||
         rows.find((row) => row.periods[index].state === 'degraded');
-      if (incident) {
-        const { state, label } = incident.periods[index];
-        return { state, label, issue: incident.label };
-      }
-      const unknown = rows.some((row) => {
+      if (incident) return { ...incident.periods[index], service: incident.label };
+      const unknown = rows.filter((row) => {
         const period = row.periods[index];
         return period.state === 'unknown' && !period.transcription;
       });
-      return {
-        label: rows[0].periods[index].label,
-        state: unknown ? 'unknown' : 'operational',
-        issue: unknown ? 'Missing or inconclusive checks.' : ''
-      };
+      const source = unknown.find((row) => row.periods[index].issue !== 'No check recorded.') || unknown[0];
+      if (source) return { ...source.periods[index], service: source.label };
+      return { label: rows[0].periods[index].label, state: 'operational' };
     }
 
     function renderGroup(group, items, timeline, catalog) {
@@ -610,23 +614,52 @@
       }
     }
 
+    function selectedDetails(detail) {
+      let issue = detail.issue?.trim();
+      if (detail.transcription) {
+        const { completed, failed, inProgress } = detail.transcription;
+        issue = [
+          failed && `${failed} failed`, completed && `${completed} completed`,
+          inProgress && `${inProgress} queued or running${detail.view === 'hourly' ? '' : ' job observations'}`
+        ].filter(Boolean).join(', ') || 'No transcription jobs ran in the measured period.';
+      }
+      const reason = [detail.service, issue || 'No further details were recorded.'].filter(Boolean).join(' · ');
+      const explanation = element('p', reason, 'aws-status__tooltip-detail');
+      const observation = element('p', '', 'aws-status__tooltip-detail');
+      const incident = !detail.transcription && (detail.state === 'degraded' || detail.state === 'outage');
+      if (incident && hasTimestamp(detail.from) && hasTimestamp(detail.to)) {
+        const span = Date.parse(detail.from) !== Date.parse(detail.to);
+        observation.append(span ? 'Observed bounds ' : 'Observed ', timeLabel(detail.from));
+        if (span) {
+          const format = mountainDay(Date.parse(detail.from)) === mountainDay(Date.parse(detail.to))
+            ? clockFormat : dateTimeFormat;
+          observation.append(' – ', timeLabel(detail.to, format));
+        }
+      } else if (!detail.transcription && hasTimestamp(detail.observedAt)) {
+        observation.append('Last check ', timeLabel(detail.observedAt));
+      } else if (incident && detail.date) {
+        observation.append('Observed ', dateLabel(detail.date));
+      }
+      return observation.hasChildNodes() ? [explanation, observation] : [explanation];
+    }
+
     function showTooltip(tick) {
       clearTimeout(tooltipTimer);
-      if (activeTick === tick) {
+      const detail = detailsByTick.get(tick);
+      const reveal = pinnedTick === tick && detail.state !== 'operational';
+      if (activeTick === tick && showingDetails === reveal) {
         positionTooltip();
         return;
       }
       activeTick?.removeAttribute('aria-describedby');
       activeTick = tick;
-      const detail = detailsByTick.get(tick);
+      showingDetails = reveal;
       const title = element('strong', detail.label);
       const status = element('p', detail.stateLabel, 'aws-status__tooltip-status');
       status.dataset.state = detail.visualState;
-      const issue = detail.issue?.trim() || '';
-      if ((detail.state !== 'operational' || detail.transcription) && issue) {
-        status.append(' · ' + (issue.length > 100 ? issue.slice(0, 99) + '…' : issue));
-      }
-      tooltip.replaceChildren(title, status);
+      const selected = reveal ? selectedDetails(detail) : [];
+      tooltip.replaceChildren(title, status, ...selected);
+      if (historyAnnouncement) historyAnnouncement.textContent = selected.map((node) => node.textContent).join(' ');
       tooltip.hidden = false;
       tick.setAttribute('aria-describedby', tooltip.id);
       positionTooltip();
@@ -726,7 +759,8 @@
       }
       if (!currentOwner || request || document.visibilityState !== 'visible') return;
       clearTimeout(refreshTimer);
-      nextRefreshAt = Date.now() + REFRESH_MS;
+      // The shared hourly cutoff grants 20 minutes for results to arrive. Allow one more minute for cached reads.
+      nextRefreshAt = (Math.floor((Date.now() - REFRESH_OFFSET_MS) / HOUR_MS) + 1) * HOUR_MS + REFRESH_OFFSET_MS;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       const isCurrent = () => request === controller && getAccess().owner === currentOwner;

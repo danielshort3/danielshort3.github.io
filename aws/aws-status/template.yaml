@@ -6,7 +6,7 @@ Parameters:
     Type: String
     Default: 'false'
     AllowedValues: ['true', 'false']
-    Description: Enable periodic probes, hourly metadata, and selected CloudWatch state change collection.
+    Description: Enable hourly connectivity probes and AWS metadata collection.
   ProbeShortLinkSlug:
     Type: String
     Default: ''
@@ -114,10 +114,13 @@ Resources:
           DAYS = 90
           HOURS = 72
           HOUR = timedelta(hours=1)
+          PROBE_SLOTS_PER_HOUR = 12
+          HOURLY_PROBE_OFFSET = 2
           CATALOG_LIMIT = 70
           CATALOG_HISTORY_PREFIX = "report#"
           CATALOG_DAY_KEY = re.compile(r"report#\d{4}-\d{2}-\d{2}")
           CATALOG_CODES = "-uodx"
+          CATALOG_REASON_STATES = {"r": "d", "t": "d", "m": "d", "e": "d", "n": "u"}
           CATALOG_ID = re.compile(r"(?:tool:[a-z0-9][a-z0-9-]{0,63}|(?:project|game):[A-Za-z0-9][A-Za-z0-9_-]{0,63})")
           SERVICES = (
               ("cognito", "Cognito", 300), ("tracker", "Job Application Tracker", 3600),
@@ -212,12 +215,15 @@ Resources:
               return [DESERIALIZER.deserialize({"M": item}) for item in items]
 
 
-          def sample_incidents(samples, start, cadence, checked):
+          def sample_incidents(samples, start, cadence, checked, indices=None, issues=None):
               incidents = []
               previous = None
-              for index, code in enumerate(samples):
+              for index in range(len(samples)) if indices is None else indices:
+                  code = samples[index]
                   at = start + timedelta(seconds=index * cadence)
                   state, issue = SAMPLES[code]
+                  if issues and code == "m":
+                      issue = issues.get(str(index), issue)
                   if state in ("outage", "degraded"):
                       if previous is None or previous[0] != state:
                           if previous is not None:
@@ -225,7 +231,9 @@ Resources:
                           previous = [state, at, at, issue, False]
                       previous[2] = at
                       if previous[3] != issue:
-                          previous[3] = "Multiple issues appeared in consecutive checks."
+                          previous[3] = issues[str(index)] if code == "m" and issues and str(index) in issues else (
+                              "Multiple issues appeared in consecutive checks."
+                          )
                       if checked and at <= checked < at + timedelta(seconds=cadence):
                           previous[2] = checked
                   elif previous is not None:
@@ -295,6 +303,51 @@ Resources:
               return None
 
 
+          def hourly_probe_start(row):
+              markers = row.get("hourlyProbes", "")
+              first = markers.find("h") if isinstance(markers, str) else -1
+              return first * PROBE_SLOTS_PER_HOUR if first >= 0 else None
+
+
+          def is_hourly_probe_slot(index):
+              return index % PROBE_SLOTS_PER_HOUR == HOURLY_PROBE_OFFSET
+
+
+          def marked_hourly_probe(row, offset):
+              index = offset // PROBE_SLOTS_PER_HOUR
+              markers = row.get("hourlyProbes", "")
+              return isinstance(markers, str) and markers[index:index + 1] == "h"
+
+
+          def alarm_issues(row, identifier, offset=0, count=25):
+              observations = row.get("alarmChecks", {})
+              if identifier not in ("tracker", "contact") or not isinstance(observations, dict):
+                  return {}
+              allowed = ("te", "tt", "td", "ta") if identifier == "tracker" else ("cd",)
+              issues = {}
+              for index in range(count):
+                  codes = observations.get(str(index + offset))
+                  if isinstance(codes, list) and 0 < len(codes) <= len(allowed) and all(code in allowed for code in codes):
+                      names = [ALARMS[code] for code in allowed if code in codes]
+                      issues[str(index)] = "CloudWatch reported ALARM for " + ", ".join(names) + "."
+              return issues
+
+
+          def recorded_transitions(row, checked):
+              events = row.get("events", [])
+              first_poll = row.get("alarmPollsFrom")
+              if first_poll:
+                  cutoff = parse_time(first_poll)
+                  events = [event for event in events if parse_time(event[0]) <= cutoff]
+                  checked = min(checked, cutoff)
+              return alarm_incidents(events, checked)
+
+
+          def historical_alarm_sample(item, row):
+              first_poll = row.get("alarmPollsFrom")
+              return item[0] == "degraded" and (not first_poll or item[2] < parse_time(first_poll))
+
+
           def tile(day, row, cadence, now, identifier=None):
               start, end = day_bounds(day)
               result = {"date": day.isoformat(), "state": "unknown", "from": iso(start), "to": iso(end), "issue": "No check recorded."}
@@ -316,12 +369,17 @@ Resources:
               events = row.get("events", [])
               if len(events) > 32:
                   raise ValueError("Invalid alarm history length")
-              transitions = alarm_incidents(events, checked)
-              incidents = sample_incidents(samples, start, cadence, checked)
+              transitions = recorded_transitions(row, checked)
+              probe_start = hourly_probe_start(row) if cadence == 300 else None
+              indices = None if probe_start is None else [
+                  index for index, code in enumerate(samples)
+                  if index < probe_start or is_hourly_probe_slot(index) or code != "-"
+              ]
+              incidents = sample_incidents(samples, start, cadence, checked, indices, alarm_issues(row, identifier))
               # Prefer exact transition bounds over coarse samples from the same alarm episode.
               incidents = [
                   item for item in incidents
-                  if not (item[0] == "degraded" and transitions
+                  if not (historical_alarm_sample(item, row) and transitions
                           and any(item[1] <= event[2] and event[1] <= item[2] for event in transitions))
               ] + transitions
               result["observedAt"] = iso(checked)
@@ -338,8 +396,12 @@ Resources:
               elapsed = int((min(now, end) - start).total_seconds())
               grace = 120 if cadence == 300 else 1200
               expected = min(capacity, max(0, (elapsed - grace) // cadence + 1))
-              complete = bool(observed) and len(samples) >= expected and all(
-                  SAMPLES[code][0] == "operational" for code in samples[:expected]
+              required_slots = (index for index in range(expected)
+                                if probe_start is None or index < probe_start or is_hourly_probe_slot(index))
+              complete = bool(observed) and all(
+                  index < len(samples) and SAMPLES[samples[index]][0] == "operational"
+                  and (probe_start is None or index < probe_start or marked_hourly_probe(row, index))
+                  for index in required_slots
               )
               if complete and all(SAMPLES[code][0] == "operational" for code in observed) and not row.get("truncated"):
                   latest = observed[-1]
@@ -370,7 +432,12 @@ Resources:
               elapsed_slots = min(slots, int((now - start).total_seconds()) // cadence + 1)
               samples = row.get("samples", "")[offset:offset + elapsed_slots]
               observed = [code for code in samples if code != "-"]
-              if len(observed) == slots:
+              hourly_probe = cadence == 300 and marked_hourly_probe(row, offset)
+              complete = len(observed) == slots
+              if hourly_probe:
+                  code = samples[HOURLY_PROBE_OFFSET:HOURLY_PROBE_OFFSET + 1]
+                  complete = bool(code and code != "-")
+              if complete:
                   result["complete"] = True
               if identifier == "transcribe" and samples == "u" and end <= now:
                   counts = transcription_sample(row, offset)
@@ -378,17 +445,28 @@ Resources:
                       return transcription_period(result, counts)
 
               # A successful sample at the next boundary can confirm recovery in this bucket.
-              next_sample = row.get("samples", "")[offset + slots:offset + slots + 1]
-              recovery_sample = next_sample if end <= now and next_sample and SAMPLES[next_sample][0] == "operational" else ""
+              next_offset = offset + slots
+              if cadence == 300 and marked_hourly_probe(row, next_offset):
+                  next_offset += HOURLY_PROBE_OFFSET
+              next_sample = row.get("samples", "")[next_offset:next_offset + 1]
+              recovery_at = start + timedelta(seconds=(next_offset - offset) * cadence)
+              recovery_sample = next_sample if recovery_at <= now and next_sample and SAMPLES[next_sample][0] == "operational" else ""
               transitions = [
-                  incident for incident in alarm_incidents(row.get("events", []), checked)
+                  incident for incident in recorded_transitions(row, checked)
                   if incident[1] <= now and incident[1] < end
                   and (incident[2] > start or incident[1] == incident[2] == start)
               ]
-              incidents = sample_incidents(samples + recovery_sample, start, cadence, min(checked, now))
+              incident_samples = samples.ljust(next_offset - offset, "-") + recovery_sample if recovery_sample else samples
+              indices = None
+              if hourly_probe:
+                  indices = [index for index, code in enumerate(incident_samples) if code != "-" or index == HOURLY_PROBE_OFFSET]
+              elif recovery_sample and next_offset > offset + slots:
+                  indices = [*range(len(samples)), next_offset - offset]
+              incidents = sample_incidents(incident_samples, start, cadence, min(checked, now),
+                                           indices, alarm_issues(row, identifier, offset, slots))
               incidents = [
                   incident for incident in incidents
-                  if not (incident[0] == "degraded"
+                  if not (historical_alarm_sample(incident, row)
                           and any(incident[1] <= event[2] and event[1] <= incident[2] for event in transitions))
               ] + transitions
               if incidents:
@@ -403,7 +481,7 @@ Resources:
                       issue += " Other issues also occurred."
                   result.update(state=state, issue=issue,
                                 **{"from": iso(max(start, since)), "to": iso(min(end, until, now))})
-              elif len(observed) == slots and all(SAMPLES[code][0] == "operational" for code in observed) and not row.get("truncated"):
+              elif complete and all(SAMPLES[code][0] == "operational" for code in observed) and not row.get("truncated"):
                   result.update(state="operational", issue=SAMPLES[observed[-1]][1])
               elif observed:
                   result["issue"] = (
@@ -450,7 +528,7 @@ Resources:
                                          "source": source, "expiresAt": expires, "issue": REPORT_ISSUES[state]})
               for row in query("homepage", "latest", "latest", 2):
                   state, checked = SAMPLES[row["code"]][0], parse_time(row["checked"])
-                  expires = checked + timedelta(minutes=15)
+                  expires = datetime.fromtimestamp(int(row["expires"]), timezone.utc)
                   if checked <= now + timedelta(minutes=1) and expires > now:
                       checks.append({
                           "id": "project:website", "state": state, "lastChecked": iso(checked),
@@ -521,7 +599,17 @@ Resources:
                      or any(code != "-" and not stamps[index] for index, code in enumerate(states))
                      for identifier, states in results.items()):
                   raise ValueError("Invalid catalog check history")
-              return valid_stamps, results
+              reasons = row.get("reasons", {})
+              valid_reasons = {}
+              if isinstance(reasons, dict) and len(reasons) <= slots * CATALOG_LIMIT:
+                  for identifier, codes in reasons.items():
+                      states = results.get(identifier)
+                      if states and isinstance(codes, str) and len(codes) == slots and all(
+                          code == "-" or CATALOG_REASON_STATES.get(code) == states[index]
+                          for index, code in enumerate(codes)
+                      ):
+                          valid_reasons[identifier] = codes
+              return valid_stamps, results, valid_reasons
 
 
           def catalog_daily_state(states):
@@ -534,20 +622,46 @@ Resources:
               return "o" if all(code == "o" for code in states) else "u"
 
 
+          def catalog_timeline(identifier, dates, hours, by_day, reasons_by_day):
+              daily_states = []
+              daily_reasons = []
+              for day in dates:
+                  states = by_day.get(day, {}).get(identifier, "-")
+                  state = catalog_daily_state(states)
+                  reasons = reasons_by_day.get(day, {}).get(identifier)
+                  last = states.rfind(state)
+                  daily_states.append(state)
+                  daily_reasons.append(reasons[last] if reasons and last >= 0 else "-")
+              empty = "-" * 25
+              result = {
+                  "hours": "".join(by_day.get(day, {}).get(identifier, empty)[index] for day, index in hours),
+                  "days": "".join(daily_states),
+              }
+              hourly_reasons = "".join(reasons_by_day.get(day, {}).get(identifier, empty)[index] for day, index in hours)
+              if hourly_reasons.strip("-") or any(code != "-" for code in daily_reasons):
+                  result["details"] = {"hours": hourly_reasons, "days": "".join(daily_reasons)}
+              return result
+
+
           def catalog_history(first, today, now, context, checks_future):
               current = now.replace(minute=0, second=0, microsecond=0)
               first_hour = current - (HOURS - 1) * HOUR
-              by_day = {}
+              by_day, reasons_by_day = {}, {}
               latest = {}
               observed = [None] * HOURS
               for day, row in catalog_archive(first, today, now, context):
-                  stamps, results = catalog_day(day, row, now)
+                  stamps, results, reasons = catalog_day(day, row, now)
                   start, _ = day_bounds(day)
                   elapsed = min(len(stamps), (current - start) // HOUR + 1)
                   by_day[day] = {
                       identifier: "".join(code if stamps[index] else "-" for index, code in enumerate(states[:elapsed]))
                       for identifier, states in results.items()
                   }
+                  if reasons:
+                      reasons_by_day[day] = {
+                          identifier: "".join(code if stamps[index] else "-" for index, code in enumerate(codes[:elapsed]))
+                          for identifier, codes in reasons.items()
+                      }
                   for identifier, states in by_day[day].items():
                       newest = next((i for i in range(elapsed - 1, -1, -1) if states[i] != "-"), None)
                       if newest is not None:
@@ -564,15 +678,11 @@ Resources:
                   at = first_hour + offset * HOUR
                   day = mountain_day(at)
                   hours.append((day, (at - mountain_midnight(day)) // HOUR))
+              dates = [first + timedelta(days=offset) for offset in range(DAYS)]
               return {
                   "hourStart": iso(first_hour), "dayStart": first.isoformat(), "observedAt": observed,
-                  "results": {
-                      identifier: {
-                          "hours": "".join(by_day.get(day, {}).get(identifier, "-" * 25)[index] for day, index in hours),
-                          "days": "".join(catalog_daily_state(by_day.get(first + offset * timedelta(days=1), {}).get(identifier, "-"))
-                                          for offset in range(DAYS)),
-                      } for identifier in identifiers
-                  },
+                  "results": {identifier: catalog_timeline(identifier, dates, hours, by_day, reasons_by_day)
+                              for identifier in identifiers},
               }
 
 
@@ -814,7 +924,8 @@ Resources:
               raise ValueError("Status write contention")
 
 
-          def sample(service, cadence, scheduled, observed, code, context, max_ms=None, transcription=None):
+          def sample(service, cadence, scheduled, observed, code, context, max_ms=None, transcription=None,
+                     hourly_probe=False, alarm_checks=None):
               day, start, end, expires = day_range(scheduled)
               slot = int((scheduled - start).total_seconds()) // cadence
               seen = iso(observed if start <= observed < end else scheduled)
@@ -822,10 +933,19 @@ Resources:
               def update(row):
                   samples = row.get("samples", "")
                   if slot < len(samples) and samples[slot] != "-":
-                      if samples[slot] != "u" or transcription is None or str(slot) in row.get("transcription", {}):
+                      retry_transcription = samples[slot] == "u" and transcription is not None and str(slot) not in row.get("transcription", {})
+                      if not retry_transcription:
                           return None
                   padded = samples.ljust(slot + 1, "-")
                   row["samples"] = padded[:slot] + code + padded[slot + 1:]
+                  if hourly_probe:
+                      index = slot // 12
+                      markers = row.get("hourlyProbes", "").ljust(index + 1, "-")
+                      row["hourlyProbes"] = markers[:index] + "h" + markers[index + 1:]
+                  if alarm_checks is not None:
+                      row.setdefault("alarmPollsFrom", seen)
+                      if alarm_checks:
+                          row["alarmChecks"] = {**row.get("alarmChecks", {}), str(slot): alarm_checks}
                   if transcription is not None:
                       row["transcription"] = {**row.get("transcription", {}), str(slot): transcription}
                   row["checked"] = max(row.get("checked", seen), seen)
@@ -839,7 +959,7 @@ Resources:
 
           def homepage_sample(code, observed, context):
               seen = iso(observed)
-              expires = int((observed + timedelta(minutes=15)).timestamp())
+              expires = int((observed + timedelta(minutes=75)).timestamp())
               save("homepage", "latest", lambda row: (
                   {"code": code, "checked": seen, "expires": expires} if row.get("checked", "") < seen else None
               ), context)
@@ -880,6 +1000,7 @@ Resources:
 
 
           def probes(scheduled, context):
+              probe_slot = scheduled.replace(minute=10, second=0, microsecond=0)
               with ThreadPoolExecutor(max_workers=3) as executor:
                   homepage = executor.submit(https_probe, HOME_HOST, "/", "HEAD", lambda response: response.status == 200, context)
                   cognito = executor.submit(https_probe, COGNITO_HOST, COGNITO_PATH, "GET", cognito_response, context)
@@ -888,9 +1009,9 @@ Resources:
                       short = executor.submit(https_probe, SHORT_HOST, "/" + SHORT_SLUG, "HEAD", redirect_response, context)
               observed = datetime.now(timezone.utc)
               homepage_sample(homepage.result(), observed, context)
-              sample("cognito", 300, scheduled, observed, cognito.result(), context)
+              sample("cognito", 300, probe_slot, observed, cognito.result(), context, hourly_probe=True)
               if short:
-                  sample("short-links", 300, scheduled, observed, short.result(), context)
+                  sample("short-links", 300, probe_slot, observed, short.result(), context, hourly_probe=True)
               return 3 if short else 2
 
 
@@ -1054,7 +1175,9 @@ Resources:
               observed = datetime.now(timezone.utc)
               states = alarms.result()
               for service in ("tracker", "contact"):
-                  sample(service, 3600, scheduled, observed, alarm_sample(service, states), context)
+                  active = [code for name, (identifier, code) in ALARMS.items()
+                            if identifier == service and states.get(name) == "ALARM"]
+                  sample(service, 3600, scheduled, observed, alarm_sample(service, states), context, alarm_checks=active)
               metric_checked = min(observed, end - timedelta(milliseconds=1))
               # An older reader can read 'u' as Unknown while the reader and writer deploy separately.
               sample("transcribe", 3600, metric_hour, metric_checked, "u", context, transcription=transcription.result())
@@ -1118,6 +1241,8 @@ Resources:
                   scheduled = parse_time(event["scheduledAt"]) if "scheduledAt" in event else now
                   if not now - timedelta(minutes=3) <= scheduled <= now + timedelta(seconds=20):
                       raise ValueError("Unexpected scheduled time")
+                  if operation == "probes" and "scheduledAt" in event and scheduled.minute != 10:
+                      return {"ok": True, "collected": 0}
                   collected = probes(scheduled, context) if operation == "probes" else hourly(scheduled, context)
                   return {"ok": True, "collected": collected}
               except ERRORS + (TimeoutError,):
@@ -1140,7 +1265,7 @@ Resources:
     Properties:
       Name: website-aws-status-probes
       State: !If [CollectAutomatically, ENABLED, DISABLED]
-      ScheduleExpression: 'cron(0/5 * * * ? *)'
+      ScheduleExpression: 'cron(10 * * * ? *)'
       Targets:
         - Id: Writer
           Arn: !GetAtt Writer.Arn
@@ -1175,7 +1300,7 @@ Resources:
     DependsOn: WriterAsyncConfig
     Properties:
       Name: website-aws-status-alarm-transitions
-      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      State: DISABLED
       EventPattern:
         source: [aws.cloudwatch]
         detail-type: ['CloudWatch Alarm State Change']
@@ -1299,6 +1424,7 @@ Resources:
               "RequestLimitExceeded", "ThrottlingException",
           }
           FIELDS = {"id", "state", "lastChecked", "source", "expiresAt"}
+          REASON_STATES = {"r": "degraded", "t": "degraded", "m": "degraded", "e": "degraded", "n": "unknown"}
           ID_PATTERN = re.compile(r"(?:tool:[a-z0-9][a-z0-9-]{0,63}|(?:project|game):[A-Za-z0-9][A-Za-z0-9_-]{0,63})")
           TIME_PATTERN = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?(?:Z|\+00:00)")
           LOGGER = logging.getLogger(__name__)
@@ -1332,16 +1458,22 @@ Resources:
               if not isinstance(checks, list) or not 1 <= len(checks) <= MAX_CHECKS:
                   raise ValueError("Invalid number of checks")
               seen = set()
-              groups = {}
+              groups, reasons = {}, {}
               max_age = timedelta(hours=3) if browser_ci else MAX_AGE
               for check in checks:
-                  if not isinstance(check, dict) or set(check) != FIELDS:
+                  fields = set(check) if isinstance(check, dict) else set()
+                  if fields != FIELDS and (not browser_ci or fields != FIELDS | {"reasonCode"}):
                       raise ValueError("Invalid catalog check fields")
                   identifier, state, source = check["id"], check["state"], check["source"]
                   if (not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier) or identifier in seen
                       or not isinstance(state, str) or state not in STATES or source not in SOURCES
                       or (browser_ci and source != "browser")):
                       raise ValueError("Invalid catalog check")
+                  if "reasonCode" in check:
+                      code = check["reasonCode"]
+                      if not isinstance(code, str) or REASON_STATES.get(code) != state:
+                          raise ValueError("Invalid browser result reason")
+                      reasons[identifier] = code
                   seen.add(identifier)
                   checked, expires = parse_time(check["lastChecked"]), parse_time(check["expiresAt"])
                   expires_by = min(now, checked) if browser_ci else checked
@@ -1349,10 +1481,10 @@ Resources:
                       or not now < expires <= expires_by + max_age or expires <= checked):
                       raise ValueError("Invalid catalog result lifetime")
                   groups.setdefault(source, {})[identifier] = [state, iso(checked), iso(expires)]
-              return groups
+              return groups, reasons
 
 
-          def record_catalog_hour(incoming, context):
+          def record_catalog_hour(incoming, incoming_reasons, context):
               timestamps = {value[1] for value in incoming.values()}
               if len(timestamps) != 1:
                   raise ValueError("A browser report must have one observation time")
@@ -1382,19 +1514,21 @@ Resources:
                       continue
                   observed = list(item["observed"]) if item else [""] * slots
                   results = dict(item["results"]) if item else {}
-                  if len(observed) != slots or len(results) > slots * MAX_CHECKS:
+                  reasons = dict(item.get("reasons", {})) if item else {}
+                  if len(observed) != slots or max(len(results), len(reasons)) > slots * MAX_CHECKS:
                       raise ValueError("Invalid catalog archive size")
                   if observed[index] >= checked:
                       return
-                  for identifier in results.keys() | incoming_codes.keys():
-                      previous = results.get(identifier, empty)
-                      if len(previous) != slots:
-                          raise ValueError("Invalid catalog history slots")
-                      updated = previous[:index] + incoming_codes.get(identifier, "-") + previous[index + 1:]
-                      if updated == empty:
-                          results.pop(identifier, None)
-                      else:
-                          results[identifier] = updated
+                  for history, new_codes in ((results, incoming_codes), (reasons, incoming_reasons)):
+                      for identifier in history.keys() | new_codes.keys():
+                          previous = history.get(identifier, empty)
+                          if len(previous) != slots:
+                              raise ValueError("Invalid catalog history slots")
+                          updated = previous[:index] + new_codes.get(identifier, "-") + previous[index + 1:]
+                          if updated == empty:
+                              history.pop(identifier, None)
+                          else:
+                              history[identifier] = updated
                   observed[index] = checked
                   if len(results) > slots * MAX_CHECKS:
                       raise ValueError("Catalog archive has too many results")
@@ -1403,9 +1537,12 @@ Resources:
                   if item:
                       request = {"ConditionExpression": "rev = :expected",
                                  "ExpressionAttributeValues": {":expected": revision}}
+                  updated = {**key, "rev": revision + 1, "results": results,
+                             "observed": observed, "expires": expires}
+                  if reasons:
+                      updated["reasons"] = reasons
                   try:
-                      TABLE.put_item(Item={**key, "rev": revision + 1, "results": results,
-                                           "observed": observed, "expires": expires}, **request)
+                      TABLE.put_item(Item=updated, **request)
                       return
                   except BotoCoreError:
                       continue
@@ -1455,9 +1592,9 @@ Resources:
               now = datetime.now(timezone.utc)
               try:
                   browser_ci = context.invoked_function_arn.endswith(":browser-ci")
-                  groups = validate(event, now, browser_ci)
+                  groups, reasons = validate(event, now, browser_ci)
                   if browser_ci:
-                      record_catalog_hour(groups["browser"], context)
+                      record_catalog_hour(groups["browser"], reasons, context)
                   accepted = sum(record_source(source, reports, now, context) for source, reports in groups.items())
                   return {"ok": True, "accepted": accepted}
               except (BotoCoreError, ClientError, KeyError, TypeError, ValueError, TimeoutError, OverflowError):

@@ -1,9 +1,8 @@
 name: Hourly project and tool status
 run-name: ${{ inputs.fallback_slot && format('Hourly status fallback {0}', inputs.fallback_slot) || 'Hourly project and tool status' }}
 
+# The Ohio dispatcher supplies the sole automatic hourly trigger at minute 47.
 on:
-  schedule:
-    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       fallback_slot:
@@ -26,54 +25,32 @@ jobs:
     permissions:
       actions: read
     outputs:
-      covered: ${{ steps.cadence.outputs.covered }}
+      hour: ${{ steps.cadence.outputs.hour }}
     steps:
-      - name: Check whether this UTC hour already has a report
+      - name: Verify the dispatch belongs to the current UTC hour
         id: cadence
-        if: github.event_name == 'schedule' || inputs.fallback_slot != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          FALLBACK_SLOT: ${{ inputs.fallback_slot }}
         shell: bash
         run: |
           set -euo pipefail
           hour=$(date -u '+%Y-%m-%dT%H:00:00Z')
-          since=$(date -u -d "$hour -1 hour" '+%Y-%m-%dT%H:00:00Z')
-          actions="repos/$GITHUB_REPOSITORY/actions"
-          runs_path="$actions/workflows/status-coverage-hourly.yml/runs"
-          # Find the successful publish step even if the suite reported a failed fixture.
-          if ! runs=$(gh api --method GET "$runs_path" -f branch=main -f status=completed \
-            -f "created=>=$since" -F per_page=20 | jq -r --arg hour "$hour" \
-            '.workflow_runs | arrays | .[] | select(.updated_at >= $hour) | .id'); then
-            echo "Could not read recent runs. Continuing with the browser checks."
+          created=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" |
+            jq -er '.created_at | select(type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"))')
+          if [[ "${created:0:13}" != "${hour:0:13}" || ("$FALLBACK_SLOT" != "" && "$FALLBACK_SLOT" != "$hour") ]]; then
+            echo "Dispatch is outside the current UTC hour. Skipping the browser checks."
             exit 0
           fi
-          for run in $runs; do
-            if ! jobs=$(gh api "$actions/runs/$run/jobs?filter=latest&per_page=20"); then
-              echo "Could not read recent job results. Continuing with the browser checks."
-              exit 0
-            fi
-            if jq -e --arg hour "$hour" '
-              .jobs as $jobs
-              | any($jobs[]; .name == "check" and any(.steps[];
-                  .name == "Run the catalog browser checks" and .conclusion == "success"
-                  and (.completed_at | type == "string")
-                  and (.completed_at[:13] == $hour[:13])))
-                and any($jobs[]; .name == "publish / publish" and any(.steps[];
-                  .name == "Publish the browser outcomes" and .conclusion == "success"))
-            ' <<< "$jobs" > /dev/null; then
-              echo "covered=true" >> "$GITHUB_OUTPUT"
-              echo "A browser report already covered the UTC hour starting $hour."
-              exit 0
-            fi
-          done
-          echo "No published browser report for $hour. Continuing with the browser checks."
+          echo "hour=$hour" >> "$GITHUB_OUTPUT"
 
   check:
     needs: cadence
-    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.repository_id == '698339955' && needs.cadence.outputs.covered != 'true' }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.repository_id == '698339955' && needs.cadence.outputs.hour != '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
+      actions: read
       contents: read
       deployments: read
     outputs:
@@ -121,16 +98,78 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - name: Run the catalog browser checks
-        id: check
+      - name: Check for an earlier browser execution in this hour
+        id: hourly
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOUR: ${{ needs.cadence.outputs.hour }}
         shell: bash
         run: |
           set -euo pipefail
+          if [[ "$(date -u '+%Y-%m-%dT%H:00:00Z')" != "$HOUR" ]]; then
+            echo "The UTC hour has ended. Skipping the browser checks."
+            exit 0
+          fi
+
+          since=$(date -u -d "$HOUR -1 hour" '+%Y-%m-%dT%H:00:00Z')
+          actions="repos/$GITHUB_REPOSITORY/actions"
+          runs=$(gh api --method GET --paginate "$actions/workflows/status-coverage-hourly.yml/runs" \
+            -f branch=main -f "created=>=$since" -F per_page=100 | jq -esr '
+              if length > 0 and all(.[]; (.workflow_runs | type) == "array"
+                  and all(.workflow_runs[]; (.id | type) == "number"))
+              then .[].workflow_runs[].id
+              else error("Could not verify recent workflow runs")
+              end
+            ')
+          if ! grep -Fxq "$GITHUB_RUN_ID" <<< "$runs"; then
+            echo "Could not verify the running workflow in the recent history." >&2
+            exit 1
+          fi
+
+          # Inspect all attempts, including this run's earlier attempts and canceled jobs.
+          for run in $runs; do
+            [[ "$run" =~ ^[0-9]+$ ]] || exit 1
+            started=$(gh api --paginate "$actions/runs/$run/jobs?filter=all&per_page=100" |
+              jq -sr --arg hour "$HOUR" '
+                if length > 0 and all(.[]; (.jobs | type) == "array")
+                then any(.[].jobs[] | select(.name == "check") | .steps[]?;
+                  .name == "Run the catalog browser checks" and .conclusion != "skipped"
+                  and (.started_at | type == "string") and .started_at[:13] == $hour[:13])
+                else error("Could not verify recent browser check attempts")
+                end
+              ')
+            if [[ "$started" == true ]]; then
+              echo "The browser checks already began in the UTC hour starting $HOUR."
+              exit 0
+            fi
+          done
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run the catalog browser checks
+        id: check
+        if: steps.hourly.outputs.allowed == 'true'
+        env:
+          HOUR: ${{ needs.cadence.outputs.hour }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$(date -u '+%Y-%m-%dT%H:00:00Z')" != "$HOUR" ]]; then
+            echo "The UTC hour has ended. Skipping the browser checks."
+            exit 0
+          fi
           report="$RUNNER_TEMP/catalog-report.json"
           result=0
           node tests/status-coverage/run.cjs --site-root "$GITHUB_WORKSPACE" --report "$report" || result=$?
           [[ "$result" == 0 || "$result" == 1 ]] && [[ -s "$report" ]] || exit 2
-          jq -ce '{schemaVersion, environment, checkedAt, checks: [.checks[] | {id, status, method}]}' "$report" > "$RUNNER_TEMP/catalog-safe.json"
+          jq -ce '
+            {schemaVersion, environment, checkedAt, checks: [
+              .checks[] | .reasonCode as $reason | {id, status, method} +
+              (if (.status == "fail" and ($reason | type) == "string" and (["r", "t", "m", "e"] | index($reason)) != null)
+                or (.status == "unknown" and $reason == "n")
+               then {reasonCode: $reason} else {} end)
+            ]}
+          ' "$report" > "$RUNNER_TEMP/catalog-safe.json"
           transport="$GITHUB_WORKSPACE/report-transport"
           sealed=$(node "$transport/build/status-report-transport.cjs" seal "$RUNNER_TEMP/catalog-safe.json" "$transport/.github/status-report-public.pem")
           printf 'report=%s\nfailed=%s\n' "$sealed" "$result" >> "$GITHUB_OUTPUT"

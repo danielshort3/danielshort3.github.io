@@ -52,9 +52,13 @@ function isolatedBrowser(browser, base) {
 }
 
 function failureCategory(error) {
-  if (error?.name === 'TimeoutError') return 'The expected browser result did not appear within the check deadline.';
-  if (error?.code === 'ERR_ASSERTION' || error?.matcherResult) return 'The local feature output did not match the expected fixture.';
-  return 'The local feature check could not complete.';
+  if (error?.name === 'TimeoutError') {
+    return { reasonCode: 't', reason: 'The expected browser result did not appear within the check deadline.' };
+  }
+  if (error?.code === 'ERR_ASSERTION' || error?.matcherResult) {
+    return { reasonCode: 'm', reason: 'The local feature output did not match the expected fixture.' };
+  }
+  return { reasonCode: 'e', reason: 'The local feature check could not complete.' };
 }
 
 async function runItem({ browser, base, item, artifactDir }) {
@@ -73,7 +77,7 @@ async function runItem({ browser, base, item, artifactDir }) {
     const category = implementations[item.category];
     const check = category[item.slug] || category.fallback;
     if (routeStatus === 'fail') {
-      result = { status: 'fail', reason: 'The built catalog route did not return its local page.' };
+      result = { status: 'fail', reasonCode: 'r', reason: 'The built catalog route did not return its local page.' };
     } else if (!check) {
       result = unknown('This catalog item has no deterministic feature fixture yet.');
     } else {
@@ -85,7 +89,7 @@ async function runItem({ browser, base, item, artifactDir }) {
       ]);
     }
   } catch (error) {
-    result = { status: 'fail', reason: failureCategory(error) };
+    result = { status: 'fail', ...failureCategory(error) };
     if (process.env.STATUS_COVERAGE_DEBUG === '1') {
       process.stderr.write(item.id + ' ' + String(error?.stack || error) + '\n');
     }
@@ -95,10 +99,12 @@ async function runItem({ browser, base, item, artifactDir }) {
   }
   assert(['pass', 'fail', 'unknown'].includes(result?.status) &&
     typeof result.reason === 'string' && result.reason.length <= 160);
+  const reasonCode = result.status === 'unknown' ? 'n' : result.reasonCode;
   return {
     id: item.id, category: item.category, route: item.route, action: item.action,
     status: result.status, method: 'browser', routeStatus, durationMs: Date.now() - started,
-    checkedAt: new Date().toISOString(), reason: result.reason
+    checkedAt: new Date().toISOString(), reason: result.reason,
+    ...(reasonCode ? { reasonCode } : {})
   };
 }
 

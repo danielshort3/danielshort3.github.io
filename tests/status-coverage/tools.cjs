@@ -111,6 +111,8 @@ async function expectStatusAxis(dashboard, expectedBands) {
 async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
   const period = page.getByRole('combobox', { name: 'Group by' });
   const tooltip = page.getByRole('tooltip');
+  const tooltipStatus = tooltip.locator('.aws-status__tooltip-status');
+  const tooltipDetails = tooltip.locator('.aws-status__tooltip-detail');
   const groups = ['AWS Connections', 'Local services', 'Tools', 'Projects', 'Games'].map((name) => statusGroup(page, name));
   const [aws, localServices, tools, projects, games] = groups;
   const now = new Date('2026-11-01T09:05:00.000Z');
@@ -120,6 +122,7 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   const idle = { completed: 0, failed: 0, inProgress: 0 };
   const idleHour = '2026-11-01T06:00:00.000Z';
   snapshot.hourlyReadyThrough = latestShown;
+  snapshot.connections[0].hours[0].issue += '. Recovery was not observed.';
   snapshot.connections[0].hours.push({ start: idleHour, from: idleHour, to: idleHour, state: 'operational', issue: '' });
   snapshot.connections.push({
     id: 'transcribe',
@@ -203,17 +206,41 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
 
   await awsTicks.last().hover();
   await expect(tooltip.locator('strong')).toContainText('1:00 AM MDT');
-  await expect(tooltip.locator('p')).toContainText('First repeated hour incident');
-  await expect(tooltip.locator(':scope > *')).toHaveCount(2);
-  await expect(tooltip).not.toContainText('Observed');
+  await expect(tooltipStatus).toHaveText('Degraded');
+  await expect(tooltipDetails).toHaveCount(0);
+  await awsTicks.last().click();
+  await expect(tooltipDetails.first()).toHaveText('First repeated hour incident. Recovery was not observed.');
+  await expect(tooltipDetails.last()).toContainText('Observed bounds');
+  await expect(tooltip.locator('time').first()).toHaveAttribute('datetime', '2026-11-01T07:05:00Z');
+  await expect(tooltip.locator('time').last()).toHaveAttribute('datetime', '2026-11-01T07:15:00Z');
+  await awsTicks.last().click();
+  await expect(tooltip).toBeHidden();
+  await aws.summary.last().hover();
+  await expect(tooltipStatus).toHaveText('Degraded');
+  await expect(tooltipDetails).toHaveCount(0);
+  await aws.summary.last().click();
+  await expect(tooltipDetails.first()).toContainText('Fixture connection · First repeated hour incident');
+  await aws.summary.last().press('Escape');
+  await expect(tooltip).toBeHidden();
   await transcribeTicks.last().hover();
   await expect(transcribeTicks.last()).toHaveAccessibleName(/Unknown$/);
-  await expect(tooltip.locator('p')).toContainText('No AWS transcription activity recorded.');
+  await expect(tooltipStatus).toHaveText('Unknown');
+  await expect(tooltipDetails).toHaveCount(0);
+  await transcribeTicks.last().click();
+  await expect(tooltipDetails.first()).toContainText('No AWS transcription activity recorded.');
   await expect(transcribeTicks.nth(-2)).toHaveAccessibleName(/No activity$/);
   await expect(aws.summary.nth(-2)).toHaveAccessibleName(/Operational$/);
-  await transcribeTicks.nth(-3).hover();
-  await expect(tooltip.locator('p')).toHaveText('Failed · 1 failed, 1 completed');
+  await transcribeTicks.nth(-3).focus();
+  await expect(tooltipStatus).toHaveText('Failed');
+  await expect(tooltipDetails).toHaveCount(0);
+  await transcribeTicks.nth(-3).press('Space');
+  await expect(tooltipDetails).toHaveText('1 failed, 1 completed');
+  await expect(dashboard.locator('[data-aws-status-part="history-announcement"]')).toHaveText('1 failed, 1 completed');
   await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/In progress$/);
+  await transcribeTicks.nth(-4).click();
+  await expect(tooltipDetails).toHaveText('1 queued or running');
+  await transcribeTicks.nth(0).click();
+  await expect(tooltipDetails).toHaveText('No check recorded.');
   await expect(aws.rows.filter({ hasText: 'Home GPU' })).toHaveCount(0);
   await expect(localServices.rows.filter({ hasText: 'File Transcriber (AWS)' })).toHaveCount(0);
   await expect(dashboard).toContainText('Offline means the PC stopped reporting.');
@@ -221,26 +248,29 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(homeGpuLastCheck.locator('time')).toHaveAttribute('datetime', '2026-11-01T07:10:00.000Z');
   await expect(homeGpuTicks.nth(-3)).toHaveAccessibleName(/Unknown$/);
   await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Worker unavailable$/);
-  await homeGpuTicks.nth(-2).hover();
-  await expect(tooltip.locator('p')).toHaveText('Worker unavailable · The PC reported that the transcription worker is unavailable.');
+  await homeGpuTicks.nth(-2).focus();
+  await expect(tooltipStatus).toHaveText('Worker unavailable');
+  await expect(tooltipDetails).toHaveCount(0);
+  await homeGpuTicks.nth(-2).press('Enter');
+  await expect(tooltipDetails.first()).toHaveText('The PC reported that the transcription worker is unavailable.');
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
-  await homeGpuTicks.last().hover();
-  await expect(tooltip.locator('p')).toHaveText('Offline · No report arrived from the PC.');
+  await homeGpuTicks.last().click();
+  await expect(tooltipStatus).toHaveText('Offline');
+  await expect(tooltipDetails.first()).toHaveText('No report arrived from the PC.');
   await expect(localServices.summary.last()).toHaveAccessibleName(/Offline$/);
 
   // AWS starts the hour before the catalog reports arrive. A refresh with both
   // types of data still holds the hour until the API marks it ready.
   const freshness = dashboard.locator('[data-aws-status-part="freshness"] time');
-  const refresh = async (checkedAt) => {
-    snapshot.checkedAt = checkedAt;
-    await page.clock.fastForward(5 * 60 * 1000 + 1000);
-    await expect(freshness).toHaveAttribute('datetime', checkedAt);
-  };
   assert.equal(queryCount(), 1);
   for (const { result, latest } of newestCatalogHour) result.hours = result.hours.slice(0, -1) + latest;
   snapshot.homeGpu.hours.push({ start: '2026-11-01T09:00:00.000Z', from: '2026-11-01T09:00:00.000Z',
     to: '2026-11-01T09:00:00.000Z', state: 'operational', issue: '', complete: true, observedAt: '2026-11-01T09:09:00.000Z' });
-  await refresh('2026-11-01T09:09:00.000Z');
+  await page.clock.fastForward(4 * 60 * 1000);
+  assert.equal(queryCount(), 1);
+  snapshot.checkedAt = '2026-11-01T09:09:00.000Z';
+  await dashboard.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
   assert.equal(queryCount(), 2);
   await expect.poll(rowLengths).toEqual(Array(12).fill(70));
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
@@ -260,21 +290,33 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
       if (lengths.size > 1) window.fixtureMixedColumns = true;
     }).observe(element, { childList: true, subtree: true });
   });
+  snapshot.catalogHistory.results['project:fixture'].details = { hours: '-'.repeat(71) + 'm', days: '-'.repeat(90) };
+  await page.clock.fastForward(11 * 60 * 1000);
+  assert.equal(queryCount(), 2);
   snapshot.hourlyReadyThrough = nextHour;
-  await refresh('2026-11-01T09:14:00.000Z');
+  snapshot.checkedAt = '2026-11-01T09:21:00.000Z';
+  await page.clock.fastForward(61 * 1000);
+  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
   assert.equal(queryCount(), 3);
   await expect.poll(rowLengths).toEqual(Array(12).fill(71));
   assert.equal(await page.evaluate(() => window.fixtureMixedColumns), false);
   await expect(aws.summary.last()).toHaveAttribute('data-state', 'operational');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(transcribeTicks.last()).toHaveAccessibleName(/Completed$/);
-  await transcribeTicks.last().hover();
-  await expect(tooltip.locator('p')).toHaveText('Completed');
+  await transcribeTicks.last().click();
+  await expect(tooltipStatus).toHaveText('Completed');
+  await expect(tooltipDetails).toHaveCount(0);
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
-  await homeGpuTicks.last().hover();
-  await expect(tooltip.locator('p')).toHaveText('Online');
+  await homeGpuTicks.last().click();
+  await expect(tooltipStatus).toHaveText('Online');
+  await expect(tooltipDetails).toHaveCount(0);
   await expect(browserTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(projectTicks.last()).toHaveAttribute('data-state', 'degraded');
+  await projects.summary.last().click();
+  await expect(tooltipDetails.first()).toHaveText('Fixture project · The result differed from what the browser check expected.');
+  await expect(tooltipDetails.last()).toContainText('Last check');
+  await expect(tooltip.locator('time')).toHaveAttribute('datetime', '2026-11-01T08:35:00.000Z');
+  await projects.summary.last().click();
   await expect(gameTicks.last()).toHaveAttribute('data-state', 'operational');
   // Both versions of 1 AM belong to the same three-period Mountain date band.
   await expectStatusAxis(dashboard, [
@@ -304,18 +346,22 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   ]);
   await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Offline$/);
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
+  await transcribeTicks.last().click();
+  await expect(tooltipStatus).toHaveText('No activity');
+  await expect(tooltipDetails).toHaveText('No transcription jobs ran in the measured period.');
   await period.selectOption('weekly');
   await expect.poll(rowLengths).toEqual(Array(12).fill(13));
   await expectStatusAxis(dashboard, [['2026-08-04', 5], ['2026-09-07', 4], ['2026-10-05', 4]]);
   await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/Unknown$/);
   await expect(transcribeTicks.nth(-3)).toHaveAccessibleName(/No activity$/);
-  await transcribeTicks.nth(-2).hover();
-  await expect(tooltip.locator('p')).toHaveText('Failed · 1 failed, 2 completed');
+  await transcribeTicks.nth(-2).click();
+  await expect(tooltipStatus).toHaveText('Failed');
+  await expect(tooltipDetails).toHaveText('1 failed, 2 completed');
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
   await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
-  await awsTicks.nth(11).hover();
+  await awsTicks.nth(11).click();
   await expect(tooltip.locator('strong')).toContainText(/Oct 19.*Oct 25/);
-  await expect(tooltip.locator('p')).toContainText('Known outage');
+  await expect(tooltipDetails.first()).toContainText('Known outage');
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   try {
@@ -331,6 +377,9 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
     const mobileTranscribe = ticks(mobileAws, 'File Transcriber (AWS)');
     const mobileHomeGpuTicks = ticks(mobileLocal, 'Home GPU');
+    const mobileTooltip = phone.getByRole('tooltip');
+    const mobileStatus = mobileTooltip.locator('.aws-status__tooltip-status');
+    const mobileDetails = mobileTooltip.locator('.aws-status__tooltip-detail');
     const expectSeparatedTouchTargets = async (row) => {
       const { height, gap } = await row.evaluateAll((ticks) => {
         const boxes = ticks.map((tick) => tick.getBoundingClientRect());
@@ -348,13 +397,15 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await expectSeparatedTouchTargets(mobileTools.summary);
     await expectSeparatedTouchTargets(mobileTicks);
     await mobileTicks.nth(-2).tap();
-    await expect(phone.getByRole('tooltip').locator('strong')).toContainText('1:00 AM MDT');
-    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Degraded');
+    await expect(mobileTooltip.locator('strong')).toContainText('1:00 AM MDT');
+    await expect(mobileStatus).toHaveText('Degraded');
+    await expect(mobileDetails.first()).toContainText('Check reported an issue.');
     await mobileTicks.last().tap();
-    await expect(phone.getByRole('tooltip').locator('strong')).toContainText('1:00 AM MST');
-    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Operational');
+    await expect(mobileTooltip.locator('strong')).toContainText('1:00 AM MST');
+    await expect(mobileStatus).toHaveText('Operational');
+    await expect(mobileDetails).toHaveCount(0);
     await mobilePeriod.selectOption('weekly');
-    await expect(phone.getByRole('tooltip')).toBeHidden();
+    await expect(mobileTooltip).toBeHidden();
     await expect(mobileTicks).toHaveCount(13);
     await expectSeparatedTouchTargets(mobileTools.summary);
     await expectSeparatedTouchTargets(mobileTicks);
@@ -363,22 +414,26 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await mobileLocal.toggle.tap();
     await expectSeparatedTouchTargets(mobileHomeGpuTicks);
     await mobileHomeGpuTicks.nth(-2).tap();
-    await expect(phone.getByRole('tooltip').locator('p')).toContainText('Offline');
+    await expect(mobileStatus).toHaveText('Offline');
     await mobileHomeGpuTicks.last().tap();
-    await expect(phone.getByRole('tooltip').locator('p')).toHaveText('Online');
+    await expect(mobileStatus).toHaveText('Online');
     await mobileAws.toggle.tap();
-    const transcriberToolTip = phone.getByRole('tooltip').locator('p');
     for (const [view, preceding, last] of [
-      ['hourly', /^Unknown/, /^Completed/],
-      ['daily', /^Completed/, /^No activity/],
-      ['weekly', /^Failed/, /^Completed/]
+      ['hourly', 'Unknown', 'Completed'],
+      ['daily', 'Completed', 'No activity'],
+      ['weekly', 'Failed', 'Completed']
     ]) {
       await mobilePeriod.selectOption(view);
       await expectSeparatedTouchTargets(mobileTranscribe);
+      await expectSeparatedTouchTargets(mobileAws.summary);
+      await mobileAws.summary.nth(-2).tap();
+      await expect(mobileDetails.first()).toContainText(/Fixture connection|File Transcriber/);
+      await mobileAws.summary.nth(-2).tap();
+      await expect(mobileTooltip).toBeHidden();
       await mobileTranscribe.nth(-2).tap();
-      await expect(transcriberToolTip).toHaveText(preceding);
+      await expect(mobileStatus).toHaveText(preceding);
       await mobileTranscribe.last().tap();
-      await expect(transcriberToolTip).toHaveText(last);
+      await expect(mobileStatus).toHaveText(last);
     }
     const phoneHomeGpuLastCheck = phone.locator('[data-aws-status-part="home-gpu-last-check"]');
     const { left, right, instantWidth } = await phoneHomeGpuLastCheck.evaluate((node) => {
@@ -391,6 +446,13 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   } finally {
     await mobile.close();
   }
+
+  await page.clock.fastForward(59 * 60 * 1000);
+  assert.equal(queryCount(), 3);
+  snapshot.checkedAt = '2026-11-01T10:21:00.000Z';
+  await page.clock.fastForward(61 * 1000);
+  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
+  assert.equal(queryCount(), 4);
 
   delete snapshot.hourlyReadyThrough;
   delete snapshot.connections[0].hours;

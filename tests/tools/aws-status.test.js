@@ -168,14 +168,20 @@ test('catalog archive exposes only valid history for current catalog IDs', () =>
     dayStart: '2026-08-14',
     observedAt: Array(70).fill(null).concat('2026-11-11T22:25:00.000Z', '2026-11-11T23:05:00.000Z'),
     results: {
-      [id]: { hours: '-'.repeat(70) + 'do', days, raw: 'private raw evidence' },
+      [id]: {
+        hours: '-'.repeat(70) + 'do', days, raw: 'private raw evidence',
+        details: { hours: 'r' + '-'.repeat(69) + 'tr', days: '-'.repeat(89) + 'm', raw: 'secret' }
+      },
       'tool:transcribe': { hours: '-'.repeat(71) + '!', days },
       'tool:no-longer-listed': { hours: '-'.repeat(72), days }
     }
   };
   const current = sanitizeSnapshot({ ...SNAPSHOT, catalogHistory: history }, registered, now);
   assert.deepEqual(current.catalogHistory.results, {
-    [id]: { hours: '-'.repeat(70) + 'd-', days }
+    [id]: {
+      hours: '-'.repeat(70) + 'd-', days,
+      details: { hours: '-'.repeat(70) + 't-', days: '-'.repeat(89) + 'm' }
+    }
   });
   assert.deepEqual(current.catalogHistory.observedAt.slice(-2), ['2026-11-11T22:25:00.000Z', null]);
   assert.equal(current.catalog.find((item) => item.id === id).state, 'operational');
@@ -269,6 +275,10 @@ function browserReport() {
 test('GitHub publishing validates full browser coverage and limits report freshness', () => {
   const now = Date.parse(CHECKED_AT);
   const report = browserReport();
+  report.checks[0].reasonCode = 'e';
+  report.checks[1].reasonCode = 't';
+  report.checks[2].reasonCode = 'n';
+  report.checks[4].reasonCode = 'private fixture';
   const options = { githubOidc: true };
   const payload = prepareReport(report, now, options);
   assert.equal(payload.checks.length, loadStatusCatalog().length);
@@ -277,6 +287,8 @@ test('GitHub publishing validates full browser coverage and limits report freshn
     source: 'browser', expiresAt: '2026-11-12T02:00:00.000Z'
   });
   assert.deepEqual(payload.checks.slice(1, 3).map(({ state }) => state), ['degraded', 'unknown']);
+  assert.deepEqual(payload.checks.slice(0, 5).map(({ reasonCode }) => reasonCode), [undefined, 't', 'n', undefined, undefined]);
+  assert.equal(prepareReport(report, now).checks[1].reasonCode, undefined);
   assert(!JSON.stringify(payload).includes('private fixture'));
   assert.throws(() => prepareReport({ ...report, checks: report.checks.slice(1) }, now, options), /entire catalog/);
   for (const method of ['local', 'production', undefined]) {

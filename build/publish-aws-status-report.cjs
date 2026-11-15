@@ -45,12 +45,16 @@ function prepareReport(report, now = Date.now(), { githubOidc = false, catalogRo
     if (githubOidc && check.method !== 'browser') {
       throw new Error('GitHub publishing requires browser results.');
     }
+    const { status, reasonCode } = check;
+    const recordedReason = githubOidc && typeof reasonCode === 'string' &&
+      ((status === 'fail' && ['r', 't', 'm', 'e'].includes(reasonCode)) || (status === 'unknown' && reasonCode === 'n'));
     return {
       id: check.id,
-      state: STATUS.get(check.status),
+      state: STATUS.get(status),
       lastChecked: checkedAt,
       source: check.method === 'browser' ? 'browser' : 'local',
-      expiresAt
+      expiresAt,
+      ...(recordedReason ? { reasonCode } : {})
     };
   });
   if (githubOidc && ids.size) throw new Error('GitHub publishing requires the entire catalog.');
