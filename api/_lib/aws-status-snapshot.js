@@ -33,7 +33,14 @@ function canonicalTime(value, format) {
   return new Date(time).toISOString().startsWith(value) ? time : NaN;
 }
 
-function sanitizePeriod(period) {
+function sanitizeTranscription(period) {
+  const { completed, failed, inProgress } = period.transcription || {};
+  if (![completed, failed, inProgress].every((count) => Number.isSafeInteger(count) && count >= 0)) return null;
+  const state = failed ? 'degraded' : completed ? 'operational' : 'unknown';
+  return period.state === state ? { completed, failed, inProgress } : null;
+}
+
+function sanitizePeriod(period, includeTranscription) {
   if (!STATES.has(period?.state) || !isTimestamp(period.from) ||
     !isTimestamp(period.to) || Date.parse(period.from) > Date.parse(period.to)) return null;
 
@@ -44,18 +51,20 @@ function sanitizePeriod(period) {
     issue: issueText(period.issue)
   };
   if (isTimestamp(period.observedAt)) clean.observedAt = period.observedAt;
+  const transcription = includeTranscription && sanitizeTranscription(period);
+  if (transcription) clean.transcription = transcription;
   return clean;
 }
 
-function sanitizeDay(day) {
-  const period = DAY_KEY.test(day?.date) && sanitizePeriod(day);
+function sanitizeDay(day, includeTranscription) {
+  const period = DAY_KEY.test(day?.date) && sanitizePeriod(day, includeTranscription);
   return period ? { date: day.date, ...period } : null;
 }
 
-function sanitizeHour(hour) {
+function sanitizeHour(hour, includeTranscription) {
   const start = canonicalTime(hour?.start, HOUR_KEY);
   if (!Number.isFinite(start)) return null;
-  const period = sanitizePeriod(hour);
+  const period = sanitizePeriod(hour, includeTranscription);
   const end = start + HOUR_MS;
   if (!period || Date.parse(period.from) < start || Date.parse(period.to) > end) return null;
 
@@ -89,11 +98,11 @@ function sanitizeCatalogHistory(history, catalog, now) {
   return { hourStart: history.hourStart, dayStart: history.dayStart, observedAt, results };
 }
 
-function sanitizeHistory(periods, limit, key, sanitize) {
+function sanitizeHistory(periods, limit, key, sanitize, includeTranscription) {
   const byKey = new Map();
   if (Array.isArray(periods) && periods.length <= limit) {
     for (const period of periods) {
-      const valid = sanitize(period);
+      const valid = sanitize(period, includeTranscription);
       if (valid && !byKey.has(valid[key])) byKey.set(valid[key], valid);
     }
   }
@@ -101,9 +110,11 @@ function sanitizeHistory(periods, limit, key, sanitize) {
 }
 
 function sanitizeConnection(stored, id, label) {
-  const output = { id, label, days: sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay) };
+  const includeTranscription = id === 'transcribe';
+  const days = sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay, includeTranscription);
+  const output = { id, label, days };
   if (Array.isArray(stored?.hours) && stored.hours.length <= HISTORY_HOURS) {
-    output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour);
+    output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour, includeTranscription);
   }
   return output;
 }

@@ -10,7 +10,7 @@ This standalone CloudFormation stack owns the AWS Status dashboard's private Ohi
 | Every five minutes when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. The slug is empty by default. |
 | Hourly at minute 10 UTC | Five named Tracker and contact metric alarms | Selected alarm states. These do not prove a Tracker save or delivery of contact email. |
 | Hourly at minute 10 UTC | `VGJ-Chatbot-Async` and `VGJ-Markdown-Async` | Endpoint metadata and optional maximum processing time from the previous completed hour. Zero active instances is expected for idle endpoints in service. |
-| Hourly at minute 10 UTC | Existing Ohio Transcribe batch metrics | Accepted `StartTranscriptionJob` requests and batch server errors for the previous hour, at account level. No datapoints means no AWS transcription activity was recorded. Home GPU worker health is separate. |
+| Hourly at minute 10 UTC | Ohio Amazon Transcribe batch job summaries | File Transcriber jobs completed or failed in the previous hour, and jobs still queued or running at the hour boundary. A successful check with no matching jobs in that hour shows No activity. |
 | On state change | The same five Tracker and contact alarms | A recorded transition and a recovery when one is observed. Existing alarm actions and notifications continue independently. |
 
 The collector uses bounded HTTPS reads, exact API requests, and one SDK attempt. It creates no alarms and sends no notifications, model requests, transcriptions, emails, or application writes. No schedules run while `ScheduleEnabled` is `false`.
@@ -25,6 +25,8 @@ The reader returns `{ok, checkedAt, region, days, connections, checks}`. For eac
 
 Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all four System status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page checks for newly available data every five minutes.
 
+The scheduled writer lists batch jobs in Ohio with a region-restricted, read-only permission. It matches File Transcriber job names and records only hourly totals. Completion and failure count in the hour of the AWS completion timestamp. A failed or incomplete listing shows Unknown. Older observations continue to show the request-acceptance evidence they recorded. Home GPU worker health is separate.
+
 ### Home GPU history
 
 Local services has a separate Home GPU timeline when `HomeGpuMonitoring=true`. The `Daniel Short Home GPU Heartbeat` Windows task checks the existing loopback worker health at minute 02 and publishes only `ready`, `unavailable`, or `unknown` over HTTPS to the dedicated Ohio IoT rule. The existing hour's collector runs at minute 10 and records the result. A received ready report is Online, an explicitly unavailable worker is Worker unavailable, and a missing report is Offline and can also indicate a connection or task interruption. No health history is backfilled. AWS Transcribe activity has its own row.
@@ -35,7 +37,7 @@ To pause monitoring, set `HomeGpuMonitoring=false` and disable the Windows task.
 
 ## Deploy and verify
 
-Confirm the intended account through STS, then review an Ohio CloudFormation change set under the deliberate `website-admin` profile. Upload the template to a unique key in the private Ohio deployment-package bucket and use its S3 URL for the change set. The template requires `CAPABILITY_NAMED_IAM` and the existing team OIDC provider. Keep the initial change set at `ScheduleEnabled=false` and `ProbeShortLinkSlug=""`, and retain both configured values for reader-only updates. Set the production-only Vercel variable `AWS_STATUS_FUNCTION_ARN` from `AwsStatusFunctionArn` and `AWS_STATUS_AWS_ROLE_ARN` from `AwsStatusAwsRoleArn`. Reviewed reader updates preserve the unqualified function ARN.
+Confirm the intended account through STS, then review an Ohio CloudFormation change set under the deliberate `website-admin` profile. Upload the template to a unique key in the private Ohio deployment-package bucket and use its S3 URL for the change set. The template requires `CAPABILITY_NAMED_IAM` and the existing team OIDC provider. Keep the initial change set at `ScheduleEnabled=false` and `ProbeShortLinkSlug=""`, and retain the configured values of `ScheduleEnabled`, `ProbeShortLinkSlug`, and `HomeGpuMonitoring` when updating a live stack. Set the production-only Vercel variable `AWS_STATUS_FUNCTION_ARN` from `AwsStatusFunctionArn` and `AWS_STATUS_AWS_ROLE_ARN` from `AwsStatusAwsRoleArn`. Reviewed reader updates preserve the unqualified function ARN.
 
 Run the focused checks from the repository root.
 

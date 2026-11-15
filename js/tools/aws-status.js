@@ -139,10 +139,27 @@
     return { axis, boundaries };
   }
 
-  function weekResult({ dates, label }, byDate) {
+  function transcriptionWeek(days, label) {
+    const measured = days.filter((day) => day?.transcription);
+    if (!measured.length) return null;
+    const transcription = { completed: 0, failed: 0, inProgress: 0 };
+    for (const day of measured) {
+      transcription.completed += day.transcription.completed;
+      transcription.failed += day.transcription.failed;
+      transcription.inProgress += day.transcription.inProgress;
+    }
+    const { completed, failed, inProgress } = transcription;
+    if (!completed && !failed && !inProgress && measured.length !== days.length) return null;
+    return { label, state: failed ? 'degraded' : completed ? 'operational' : 'unknown', transcription };
+  }
+
+  function weekResult({ dates, label }, byDate, includeTranscription) {
     const days = dates.map((date) => byDate.get(date));
-    const incident = days.findLast((day) => day?.state === 'outage') ||
-      days.findLast((day) => day?.state === 'degraded');
+    const transcription = includeTranscription ? transcriptionWeek(days, label) : null;
+    const outage = days.findLast((day) => day?.state === 'outage');
+    const degraded = days.findLast((day) => day?.state === 'degraded');
+    if (!outage && (transcription?.state === 'degraded' || (!degraded && transcription))) return transcription;
+    const incident = outage || degraded;
     if (incident) return { ...incident, label, issue: dateLabel(incident.date) + ' · ' + incident.issue };
     const measured = days.filter((day) => day?.state === 'operational');
     const complete = measured.length === days.length;
@@ -369,7 +386,7 @@
         if (code === 'u') day.issue = 'Missing or inconclusive checks.';
         return [date, { date, ...day }];
       })) : new Map(item.days.map((day) => [day.date, day]));
-      if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate));
+      if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate, item.id === 'transcribe'));
       return dates.map((date) => ({
         state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: labels.get(date)
       }));
@@ -381,14 +398,27 @@
       ticks.setAttribute('aria-label', label + ' ' + timeline.view +
         ' history. Use left and right arrows to choose ' + timeline.period + '.');
       periods.forEach((detail, index) => {
-        const stateLabel = stateLabels[detail.state];
+        let stateLabel = stateLabels[detail.state];
+        let visualState = detail.state;
+        let issue = detail.issue;
+        if (detail.transcription) {
+          const { completed, failed, inProgress } = detail.transcription;
+          stateLabel = failed ? 'Failed' : completed ? 'Completed' : inProgress ? 'In progress' : 'No activity';
+          if (detail.state === 'unknown') visualState = 'neutral';
+          const counts = [
+            failed && `${failed} failed`, completed && `${completed} completed`,
+            inProgress && (timeline.view === 'hourly' ? `${inProgress} in progress` : 'Jobs in progress')
+          ].filter(Boolean);
+          const maxJobs = Math.max(failed, completed, timeline.view === 'hourly' ? inProgress : 0);
+          issue = counts.length > 1 || maxJobs > 1 ? counts.join(', ') : '';
+        }
         const tick = element('button', '', 'aws-status__tick');
         tick.type = 'button';
         tick.tabIndex = index === periods.length - 1 ? 0 : -1;
-        tick.dataset.state = detail.state;
+        tick.dataset.state = visualState;
         if (timeline.boundaries.has(index)) tick.dataset.awsStatusBoundary = '';
         tick.setAttribute('aria-label', detail.label + ', ' + stateLabel);
-        detailsByTick.set(tick, { ...detail, stateLabel });
+        detailsByTick.set(tick, { ...detail, stateLabel, visualState, issue });
         ticks.append(tick);
       });
       return ticks;
@@ -397,8 +427,14 @@
     function groupResult(rows, index) {
       const incident = rows.find((row) => row.periods[index].state === 'outage') ||
         rows.find((row) => row.periods[index].state === 'degraded');
-      if (incident) return { ...incident.periods[index], issue: incident.label };
-      const unknown = rows.some((row) => row.periods[index].state === 'unknown');
+      if (incident) {
+        const { state, label } = incident.periods[index];
+        return { state, label, issue: incident.label };
+      }
+      const unknown = rows.some((row) => {
+        const period = row.periods[index];
+        return period.state === 'unknown' && !period.transcription;
+      });
       return {
         label: rows[0].periods[index].label,
         state: unknown ? 'unknown' : 'operational',
@@ -585,9 +621,11 @@
       const detail = detailsByTick.get(tick);
       const title = element('strong', detail.label);
       const status = element('p', detail.stateLabel, 'aws-status__tooltip-status');
-      status.dataset.state = detail.state;
+      status.dataset.state = detail.visualState;
       const issue = detail.issue?.trim() || '';
-      if (detail.state !== 'operational' && issue) status.append(' · ' + (issue.length > 100 ? issue.slice(0, 99) + '…' : issue));
+      if ((detail.state !== 'operational' || detail.transcription) && issue) {
+        status.append(' · ' + (issue.length > 100 ? issue.slice(0, 99) + '…' : issue));
+      }
       tooltip.replaceChildren(title, status);
       tooltip.hidden = false;
       tick.setAttribute('aria-describedby', tooltip.id);

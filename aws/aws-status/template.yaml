@@ -103,6 +103,7 @@ Resources:
           import re
           from concurrent.futures import ThreadPoolExecutor
           from datetime import date, datetime, time, timedelta, timezone
+          from decimal import Decimal
 
           import boto3
           from boto3.dynamodb.types import TypeDeserializer
@@ -129,7 +130,7 @@ Resources:
           SAMPLES = {
               "-": ("unknown", "No check recorded."),
               "u": ("unknown", "The status source could not be verified."),
-              "n": ("unknown", "No AWS transcription activity recorded."),
+              "n": ("unknown", "The previous status check observed no AWS transcription submissions."),
               "o": ("operational", "The scheduled check passed."),
               "a": ("operational", "Selected alarms reported OK."),
               "s": ("operational", "SageMaker endpoint reported InService."),
@@ -252,7 +253,49 @@ Resources:
               return incidents
 
 
-          def tile(day, row, cadence, now):
+          def transcription_sample(row, slot):
+              observations = row.get("transcription")
+              counts = observations.get(str(slot)) if isinstance(observations, dict) else None
+              fields = ("completed", "failed", "inProgress")
+              if not isinstance(counts, dict) or set(counts) != set(fields):
+                  return None
+              for value in counts.values():
+                  numeric = type(value) is int or (
+                      isinstance(value, Decimal) and value.is_finite() and value == value.to_integral_value()
+                  )
+                  if not numeric or not 0 <= value <= 1000:
+                      return None
+              return {field: int(counts[field]) for field in fields}
+
+
+          def transcription_period(result, counts):
+              if counts["failed"]:
+                  result.update(state="degraded", issue="AWS transcription jobs failed.")
+              elif counts["completed"]:
+                  result.update(state="operational", issue="AWS transcription jobs completed.")
+              elif counts["inProgress"]:
+                  result.update(state="unknown", issue="AWS transcription jobs were queued or running.")
+              else:
+                  result.update(state="unknown", issue="No AWS transcription activity recorded.")
+              result["transcription"] = counts
+              return result
+
+
+          def day_transcription(row, samples, elapsed, capacity):
+              last_closed = min(capacity, elapsed // 3600)
+              observations = [transcription_sample(row, slot) if code == "u" else None
+                              for slot, code in enumerate(samples[:last_closed])]
+              recorded = [counts for counts in observations if counts is not None]
+              if not recorded:
+                  return None
+              # Empty is conclusive only when every closed hour has a verified scan.
+              totals = {field: sum(counts[field] for counts in recorded) for field in recorded[0]}
+              if any(totals.values()) or len(recorded) == last_closed:
+                  return totals
+              return None
+
+
+          def tile(day, row, cadence, now, identifier=None):
               start, end = day_bounds(day)
               result = {"date": day.isoformat(), "state": "unknown", "from": iso(start), "to": iso(end), "issue": "No check recorded."}
               if not row:
@@ -264,6 +307,11 @@ Resources:
               capacity = int((end - start).total_seconds()) // cadence
               if len(samples) > capacity:
                   raise ValueError("Invalid status day length")
+              if identifier == "transcribe":
+                  counts = day_transcription(row, samples, int((now - start).total_seconds()), capacity)
+                  if counts is not None:
+                      result["observedAt"] = iso(checked)
+                      return transcription_period(result, counts)
               observed = [code for code in samples if code != "-"]
               events = row.get("events", [])
               if len(events) > 32:
@@ -307,7 +355,7 @@ Resources:
               return result
 
 
-          def hour_tile(start, day, row, cadence, now):
+          def hour_tile(start, day, row, cadence, now, identifier=None):
               end = start + HOUR
               key = iso(start)
               result = {"start": key, "state": "unknown", "from": key, "to": iso(end), "issue": "No check recorded."}
@@ -324,6 +372,10 @@ Resources:
               observed = [code for code in samples if code != "-"]
               if len(observed) == slots:
                   result["complete"] = True
+              if identifier == "transcribe" and samples == "u" and end <= now:
+                  counts = transcription_sample(row, offset)
+                  if counts is not None:
+                      return transcription_period(result, counts)
 
               # A successful sample at the next boundary can confirm recovery in this bucket.
               next_sample = row.get("samples", "")[offset + slots:offset + slots + 1]
@@ -374,11 +426,11 @@ Resources:
               for offset in range(HOURS - 1, -1, -1):
                   start = current_hour - offset * HOUR
                   day = mountain_day(start)
-                  hours.append(hour_tile(start, day, records.get(day), cadence, now))
+                  hours.append(hour_tile(start, day, records.get(day), cadence, now, identifier))
               return {
                   "id": identifier, "label": label,
                   "days": [
-                      tile(first + timedelta(days=offset), records.get(first + timedelta(days=offset)), cadence, now)
+                      tile(first + timedelta(days=offset), records.get(first + timedelta(days=offset)), cadence, now, identifier)
                       for offset in range(DAYS)
                   ],
                   "hours": hours,
@@ -617,6 +669,12 @@ Resources:
                   StringEquals:
                     'aws:RequestedRegion': us-east-2
               - Effect: Allow
+                Action: transcribe:ListTranscriptionJobs
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': us-east-2
+              - Effect: Allow
                 Action: sagemaker:DescribeEndpoint
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:sagemaker:us-east-2:${AWS::AccountId}:endpoint/VGJ-Chatbot-Async'
@@ -676,6 +734,9 @@ Resources:
               "markdown": "VGJ-Markdown-Async",
           }
           TRANSITIONAL = {"Creating", "Updating", "SystemUpdating", "RollingBack", "Deleting"}
+          TRANSCRIBE_PREFIX = "site-transcribe-"
+          TRANSCRIBE_JOB = re.compile(TRANSCRIBE_PREFIX + r"[a-f0-9]{64}")
+          TRANSCRIBE_MAX_PAGES = 10
           HOME_HOST = "www.danielshort.me"
           COGNITO_HOST = "cognito-idp.us-east-2.amazonaws.com"
           COGNITO_ISSUER = "https://" + COGNITO_HOST + "/us-east-2_y80EG3pKd"
@@ -692,6 +753,7 @@ Resources:
           TABLE = boto3.resource("dynamodb", region_name=REGION, config=CONFIG).Table(os.environ["HISTORY_TABLE"])
           CLOUDWATCH = boto3.client("cloudwatch", region_name=REGION, config=CONFIG)
           SAGEMAKER = boto3.client("sagemaker", region_name=REGION, config=CONFIG)
+          TRANSCRIBE = boto3.client("transcribe", region_name=REGION, config=CONFIG)
 
 
           def iso(value):
@@ -752,7 +814,7 @@ Resources:
               raise ValueError("Status write contention")
 
 
-          def sample(service, cadence, scheduled, observed, code, context, max_ms=None):
+          def sample(service, cadence, scheduled, observed, code, context, max_ms=None, transcription=None):
               day, start, end, expires = day_range(scheduled)
               slot = int((scheduled - start).total_seconds()) // cadence
               seen = iso(observed if start <= observed < end else scheduled)
@@ -760,9 +822,12 @@ Resources:
               def update(row):
                   samples = row.get("samples", "")
                   if slot < len(samples) and samples[slot] != "-":
-                      return None
+                      if samples[slot] != "u" or transcription is None or str(slot) in row.get("transcription", {}):
+                          return None
                   padded = samples.ljust(slot + 1, "-")
                   row["samples"] = padded[:slot] + code + padded[slot + 1:]
+                  if transcription is not None:
+                      row["transcription"] = {**row.get("transcription", {}), str(slot): transcription}
                   row["checked"] = max(row.get("checked", seen), seen)
                   row["expires"] = expires
                   if max_ms is not None:
@@ -896,16 +961,55 @@ Resources:
                   return False, None
 
 
-          def transcribe_status(successes, errors):
-              success_available, success_count = successes
-              errors_available, error_count = errors
-              if error_count is not None and error_count > 0:
-                  return "e"
-              if not success_available or not errors_available:
-                  return "u"
-              if success_count is not None and success_count > 0:
-                  return "b"
-              return "n"
+          def read_transcription(start, end, context):
+              counts = {"completed": 0, "failed": 0, "inProgress": 0}
+              request = {"JobNameContains": TRANSCRIBE_PREFIX, "MaxResults": 100}
+              seen_jobs, seen_tokens = set(), set()
+              try:
+                  for _ in range(TRANSCRIBE_MAX_PAGES):
+                      # Leave the other hourly checks time to write their own observations.
+                      if context.get_remaining_time_in_millis() < 10000:
+                          raise TimeoutError("Transcription status read reached its deadline")
+                      page = TRANSCRIBE.list_transcription_jobs(**request)
+                      jobs = page["TranscriptionJobSummaries"]
+                      if not isinstance(jobs, list) or len(jobs) > request["MaxResults"]:
+                          raise ValueError("Invalid transcription jobs page")
+                      for job in jobs:
+                          name = job["TranscriptionJobName"]
+                          if not TRANSCRIBE_JOB.fullmatch(name):
+                              continue
+                          if name in seen_jobs:
+                              raise ValueError("Duplicate transcription job")
+                          seen_jobs.add(name)
+                          created = job["CreationTime"]
+                          if created.utcoffset() is None:
+                              raise ValueError("Invalid transcription creation time")
+                          if created >= end:
+                              continue
+                          state = job["TranscriptionJobStatus"]
+                          if state in ("FAILED", "COMPLETED"):
+                              finished = job["CompletionTime"]
+                              if finished.utcoffset() is None or finished < created:
+                                  raise ValueError("Invalid transcription completion time")
+                              if start <= finished < end:
+                                  counts[state.lower()] += 1
+                              elif finished >= end:
+                                  counts["inProgress"] += 1
+                          elif state in ("QUEUED", "IN_PROGRESS") and "CompletionTime" not in job:
+                              counts["inProgress"] += 1
+                          else:
+                              raise ValueError("Invalid transcription status")
+                      if "NextToken" not in page:
+                          return counts
+                      token = page["NextToken"]
+                      if not isinstance(token, str) or not 0 < len(token) <= 8192 or token in seen_tokens:
+                          raise ValueError("Invalid transcription jobs page token")
+                      seen_tokens.add(token)
+                      request["NextToken"] = token
+                  raise ValueError("Transcription jobs exceed the read limit")
+              except ERRORS + (TimeoutError, AttributeError):
+                  LOGGER.warning("AWS Status could not verify transcription outcomes")
+                  return None
 
 
           def read_home_gpu(scheduled, context):
@@ -933,16 +1037,11 @@ Resources:
 
           def hourly(scheduled, context):
               end = scheduled.replace(minute=0, second=0, microsecond=0)
-              dimensions = [
-                  {"Name": "ServiceType", "Value": "Batch"},
-                  {"Name": "Operation", "Value": "StartTranscriptionJob"},
-                  {"Name": "Domain", "Value": "Transcribe"},
-              ]
-              with ThreadPoolExecutor(max_workers=8 if HOME_GPU_MONITORING else 7) as executor:
+              metric_hour = end - timedelta(hours=1)
+              with ThreadPoolExecutor(max_workers=7 if HOME_GPU_MONITORING else 6) as executor:
                   home_gpu = executor.submit(read_home_gpu, scheduled, context) if HOME_GPU_MONITORING else None
                   alarms = executor.submit(read_alarms, context)
-                  successes = executor.submit(metric, "AWS/Transcribe", "SuccessfulRequestCount", dimensions, "Sum", end, context)
-                  errors = executor.submit(metric, "AWS/Transcribe", "SyncServerErrorCount", dimensions, "Sum", end, context)
+                  transcription = executor.submit(read_transcription, metric_hour, end, context)
                   endpoints = {
                       service: (
                           executor.submit(read_endpoint, name, context),
@@ -956,9 +1055,9 @@ Resources:
               states = alarms.result()
               for service in ("tracker", "contact"):
                   sample(service, 3600, scheduled, observed, alarm_sample(service, states), context)
-              metric_hour = end - timedelta(hours=1)
               metric_checked = min(observed, end - timedelta(milliseconds=1))
-              sample("transcribe", 3600, metric_hour, metric_checked, transcribe_status(successes.result(), errors.result()), context)
+              # An older reader can read 'u' as Unknown while the reader and writer deploy separately.
+              sample("transcribe", 3600, metric_hour, metric_checked, "u", context, transcription=transcription.result())
               for service, (status, performance) in endpoints.items():
                   _, max_ms = performance.result()
                   same_day = mountain_day(metric_hour) == mountain_day(scheduled)

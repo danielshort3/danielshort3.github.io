@@ -127,6 +127,37 @@ test('hourly history keeps valid observations ordered and handles older reader r
   assert.equal(Object.hasOwn(sanitize({ ...daily, hours: Array(73).fill(incident) }), 'hours'), false);
 });
 
+test('verified transcription counts are typed and exposed only on File Transcriber history', () => {
+  const counts = { completed: 1, failed: 0, inProgress: 0 };
+  const baseHour = SNAPSHOT.connections[0].hours[0];
+  const hour = (number, state, transcription) => ({
+    ...baseHour, state, transcription,
+    start: `2026-11-11T${number}:00:00.000Z`,
+    from: `2026-11-11T${number}:00:00Z`,
+    to: `2026-11-11T${number}:10:00Z`
+  });
+  const days = [{ ...SNAPSHOT.connections[0].days[0], state: 'operational', transcription: counts }];
+  const sanitized = sanitizeSnapshot({ ...SNAPSHOT, connections: [
+    { id: 'transcribe', days, hours: [
+      hour(17, 'operational', { ...counts, jobName: 'private-job-name' }),
+      hour(18, 'degraded', { ...counts, failed: 1 }),
+      hour(19, 'unknown', { ...counts, completed: 0 }),
+      hour(20, 'unknown', counts),
+      hour(21, 'operational', { ...counts, failed: -1 }),
+      hour(22, 'operational')
+    ] },
+    { id: 'tracker', days, hours: [hour(17, 'operational', counts)] }
+  ] }, []);
+  const transcribe = sanitized.connections.find(({ id }) => id === 'transcribe');
+  const tracker = sanitized.connections.find(({ id }) => id === 'tracker');
+  assert.deepEqual(transcribe.days[0].transcription, counts);
+  assert.deepEqual(transcribe.hours.map((tile) => tile.transcription), [
+    counts, { ...counts, failed: 1 }, { ...counts, completed: 0 }, undefined, undefined, undefined
+  ]);
+  assert.equal(tracker.days[0].transcription, undefined);
+  assert.equal(tracker.hours[0].transcription, undefined);
+});
+
 test('catalog archive exposes only valid history for current catalog IDs', () => {
   const registered = loadStatusCatalog();
   const id = 'tool:text-compare';

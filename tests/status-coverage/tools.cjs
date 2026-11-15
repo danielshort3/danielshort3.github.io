@@ -117,13 +117,31 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await page.clock.setSystemTime(now);
   const latestShown = '2026-11-01T07:00:00.000Z';
   const nextHour = '2026-11-01T08:00:00.000Z';
+  const idle = { completed: 0, failed: 0, inProgress: 0 };
+  const idleHour = '2026-11-01T06:00:00.000Z';
   snapshot.hourlyReadyThrough = latestShown;
+  snapshot.connections[0].hours.push({ start: idleHour, from: idleHour, to: idleHour, state: 'operational', issue: '' });
   snapshot.connections.push({
     id: 'transcribe',
     label: 'File Transcriber (AWS)',
-    days: [],
-    hours: [latestShown, nextHour].map((start) => ({
-      start, from: start, to: start, state: 'unknown', issue: 'No AWS transcription activity recorded.'
+    days: [
+      ['2026-10-11', 'unknown', idle],
+      ...Array.from({ length: 7 }, (_, index) => [`2026-10-${12 + index}`, 'unknown', idle]),
+      ['2026-10-23', 'operational', { ...idle, completed: 2 }],
+      ['2026-10-24', 'degraded', { ...idle, failed: 1 }],
+      ['2026-10-30', 'operational', { ...idle, completed: 1 }],
+      ['2026-10-31', 'unknown', idle]
+    ].map(([date, state, transcription]) => ({
+      date, from: date + 'T12:00:00Z', to: date + 'T12:00:00Z', state, transcription, issue: ''
+    })),
+    hours: [
+      ['2026-11-01T04:00:00.000Z', 'unknown', { ...idle, inProgress: 1 }],
+      ['2026-11-01T05:00:00.000Z', 'degraded', { ...idle, completed: 1, failed: 1 }],
+      [idleHour, 'unknown', idle],
+      [latestShown, 'unknown', undefined, 'No AWS transcription activity recorded.'],
+      [nextHour, 'operational', { ...idle, completed: 1 }]
+    ].map(([start, state, transcription, issue = '']) => ({
+      start, from: start, to: start, state, issue, transcription
     }))
   });
   snapshot.homeGpu = {
@@ -189,9 +207,13 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(tooltip.locator(':scope > *')).toHaveCount(2);
   await expect(tooltip).not.toContainText('Observed');
   await transcribeTicks.last().hover();
-  await expect(transcribeTicks.and(page.locator('[data-state="unknown"]'))).toHaveCount(70);
-  await expect(transcribeTicks.last()).toHaveAttribute('data-state', 'unknown');
+  await expect(transcribeTicks.last()).toHaveAccessibleName(/Unknown$/);
   await expect(tooltip.locator('p')).toContainText('No AWS transcription activity recorded.');
+  await expect(transcribeTicks.nth(-2)).toHaveAccessibleName(/No activity$/);
+  await expect(aws.summary.nth(-2)).toHaveAccessibleName(/Operational$/);
+  await transcribeTicks.nth(-3).hover();
+  await expect(tooltip.locator('p')).toHaveText('Failed · 1 failed, 1 completed');
+  await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/In progress$/);
   await expect(aws.rows.filter({ hasText: 'Home GPU' })).toHaveCount(0);
   await expect(localServices.rows.filter({ hasText: 'File Transcriber (AWS)' })).toHaveCount(0);
   await expect(dashboard).toContainText('Offline means the PC stopped reporting.');
@@ -243,9 +265,11 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   assert.equal(queryCount(), 3);
   await expect.poll(rowLengths).toEqual(Array(12).fill(71));
   assert.equal(await page.evaluate(() => window.fixtureMixedColumns), false);
-  await expect(aws.summary.last()).toHaveAttribute('data-state', 'unknown');
+  await expect(aws.summary.last()).toHaveAttribute('data-state', 'operational');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
-  await expect(transcribeTicks.last()).toHaveAccessibleName(/Unknown$/);
+  await expect(transcribeTicks.last()).toHaveAccessibleName(/Completed$/);
+  await transcribeTicks.last().hover();
+  await expect(tooltip.locator('p')).toHaveText('Completed');
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
   await homeGpuTicks.last().hover();
   await expect(tooltip.locator('p')).toHaveText('Online');
@@ -283,6 +307,10 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await period.selectOption('weekly');
   await expect.poll(rowLengths).toEqual(Array(12).fill(13));
   await expectStatusAxis(dashboard, [['2026-08-04', 5], ['2026-09-07', 4], ['2026-10-05', 4]]);
+  await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/Unknown$/);
+  await expect(transcribeTicks.nth(-3)).toHaveAccessibleName(/No activity$/);
+  await transcribeTicks.nth(-2).hover();
+  await expect(tooltip.locator('p')).toHaveText('Failed · 1 failed, 2 completed');
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
   await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
   await awsTicks.nth(11).hover();
@@ -297,9 +325,11 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await phone.clock.install({ time: now });
     await visit(phone, base, item.route);
     const mobilePeriod = phone.getByRole('combobox', { name: 'Group by' });
+    const mobileAws = statusGroup(phone, 'AWS Connections');
     const mobileTools = statusGroup(phone, 'Tools');
     const mobileLocal = statusGroup(phone, 'Local services');
     const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
+    const mobileTranscribe = ticks(mobileAws, 'File Transcriber (AWS)');
     const mobileHomeGpuTicks = ticks(mobileLocal, 'Home GPU');
     const expectSeparatedTouchTargets = async (row) => {
       const { height, gap } = await row.evaluateAll((ticks) => {
@@ -336,6 +366,20 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     await expect(phone.getByRole('tooltip').locator('p')).toContainText('Offline');
     await mobileHomeGpuTicks.last().tap();
     await expect(phone.getByRole('tooltip').locator('p')).toHaveText('Online');
+    await mobileAws.toggle.tap();
+    const transcriberToolTip = phone.getByRole('tooltip').locator('p');
+    for (const [view, preceding, last] of [
+      ['hourly', /^Unknown/, /^Completed/],
+      ['daily', /^Completed/, /^No activity/],
+      ['weekly', /^Failed/, /^Completed/]
+    ]) {
+      await mobilePeriod.selectOption(view);
+      await expectSeparatedTouchTargets(mobileTranscribe);
+      await mobileTranscribe.nth(-2).tap();
+      await expect(transcriberToolTip).toHaveText(preceding);
+      await mobileTranscribe.last().tap();
+      await expect(transcriberToolTip).toHaveText(last);
+    }
     const phoneHomeGpuLastCheck = phone.locator('[data-aws-status-part="home-gpu-last-check"]');
     const { left, right, instantWidth } = await phoneHomeGpuLastCheck.evaluate((node) => {
       const { left, right } = node.getBoundingClientRect();
