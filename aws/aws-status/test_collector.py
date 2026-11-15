@@ -215,6 +215,57 @@ class CollectorTests(TestCase):
     self.assertNotIn("observedAt", hours[-2])
     self.assertEqual(hours[-1]["observedAt"], self.reader.iso(NOW))
 
+  def test_legacy_probes_use_five_minute_coverage_and_new_hours_use_the_recorded_probe(self):
+    day = date(2026, 11, 12)
+    start, _ = self.reader.day_bounds(day)
+    current = start + timedelta(hours=1, minutes=10)
+    for slot in range(12):
+      at = start + timedelta(minutes=5 * slot)
+      self.writer.sample("cognito", 300, at, at, "o", self.context)
+    self.writer.sample("cognito", 300, current, current, "o", self.context, hourly_probe=True)
+    row = self.table.rows[("cognito", day.isoformat())]
+    self.assertEqual(row["hourlyProbes"], "-h")
+    self.assertEqual(row["samples"], "o" * 12 + "--o")
+    self.assertEqual(self.reader.tile(day, row, 300, current + timedelta(minutes=15), "cognito")["state"], "operational")
+    gap = start + timedelta(hours=2)
+    now = gap + timedelta(hours=1, minutes=20)
+    before_gap = self.reader.hour_tile(gap - timedelta(hours=1), day, row, 300, now, "cognito")
+    self.assertEqual(before_gap["state"], "operational")
+    self.assertTrue(before_gap["complete"])
+
+    # A legacy point in the gap does not fill either the twelve legacy slots or an hourly observation.
+    point = gap + timedelta(minutes=10)
+    self.writer.sample("cognito", 300, point, point, "o", self.context)
+    next_check = gap + timedelta(hours=1, minutes=10)
+    self.writer.sample("cognito", 300, next_check, next_check, "u", self.context, hourly_probe=True)
+    row = self.table.rows[("cognito", day.isoformat())]
+    self.assertEqual(row["hourlyProbes"], "-h-h")
+    missing = self.reader.hour_tile(gap, day, row, 300, now, "cognito")
+    self.assertEqual(missing["state"], "unknown")
+    self.assertNotIn("complete", missing)
+    unknown = self.reader.hour_tile(gap + timedelta(hours=1), day, row, 300, now, "cognito")
+    self.assertEqual(unknown["state"], "unknown")
+    self.assertTrue(unknown["complete"])
+    self.assertEqual(self.reader.tile(day, row, 300, now, "cognito")["state"], "unknown")
+
+  def test_hourly_probes_use_distinct_mountain_fall_back_hours_and_report_recovery(self):
+    day = date(2026, 11, 1)
+    first = datetime(2026, 11, 1, 7, 10, tzinfo=timezone.utc)
+    second = first + timedelta(hours=1)
+    now = second + timedelta(minutes=2)
+    for at, code in ((first, "f"), (second, "o")):
+      self.writer.sample("short-links", 300, at, at, code, self.context, hourly_probe=True)
+    row = self.table.rows[("short-links", day.isoformat())]
+    failure, restored = (self.reader.hour_tile(at.replace(minute=0), day, row, 300, now, "short-links")
+                         for at in (first, second))
+    self.assertEqual((failure["state"], restored["state"]), ("outage", "operational"))
+    self.assertTrue(failure["complete"])
+    self.assertTrue(restored["complete"])
+    self.assertEqual(failure["from"], self.reader.iso(first))
+    self.assertEqual(failure["to"], self.reader.iso(second.replace(minute=0)))
+    self.assertIn("Recovery was observed after this hour.", failure["issue"])
+    self.assertEqual(row["hourlyProbes"], "-hh")
+
   def test_hourly_samples_do_not_include_a_future_scheduled_slot(self):
     current = NOW.replace(minute=0)
     future = NOW + timedelta(minutes=5)
@@ -261,8 +312,21 @@ class CollectorTests(TestCase):
     snapshot = self.read()
     self.assertEqual(snapshot["checks"][0]["id"], "project:website")
     self.assertEqual(snapshot["checks"][0]["state"], "operational")
+    self.assertEqual(snapshot["checks"][0]["expiresAt"], self.reader.iso(NOW + timedelta(minutes=75)))
+    with patch.object(StubClock, "now", return_value=NOW + timedelta(hours=1)):
+      self.assertEqual(self.read()["checks"][0]["id"], "project:website")
+    with patch.object(StubClock, "now", return_value=NOW + timedelta(minutes=75)):
+      self.assertEqual(self.read()["checks"], [])
     self.assertNotIn("ignore this", json.dumps(snapshot))
     self.assertNotIn(("short-links", "2026-11-12"), self.table.rows)
+
+  def test_old_probe_schedule_delivery_is_dropped_before_making_requests(self):
+    scheduled = NOW + timedelta(minutes=5)
+    with patch.object(StubClock, "now", return_value=scheduled), patch.object(http.client, "HTTPSConnection") as connect:
+      event = {"operation": "probes", "scheduledAt": self.writer.iso(scheduled)}
+      self.assertEqual(self.writer.handler(event, self.context), {"ok": True, "collected": 0})
+    connect.assert_not_called()
+    self.assertEqual(self.table.write_count, 0)
 
   def test_optional_short_links_head_accepts_only_exact_location(self):
     response = Mock(status=302)
@@ -560,6 +624,43 @@ class CollectorTests(TestCase):
     self.assertEqual(tracker["issue"], "Tracker API 5xx alarm entered ALARM.")
     self.assertNotIn("private reasons", repr(self.table.rows))
 
+  def test_named_hourly_alarm_details_are_fixed_and_legacy_open_transitions_do_not_extend(self):
+    name = "website-job-tracker-api-5xx"
+    self.cloudwatch.describe_alarms.return_value = {
+      "MetricAlarms": [{"AlarmName": alarm, "StateValue": "ALARM" if alarm == name else "OK",
+                       "StateReason": "private alarm reason"} for alarm in self.writer.ALARMS],
+    }
+    self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+    tracker = next(item for item in self.read()["connections"] if item["id"] == "tracker")
+    latest = tracker["hours"][-1]
+    self.assertIn("Tracker API 5xx alarm", latest["issue"])
+    row = self.table.rows[("tracker", self.writer.mountain_day(NOW).isoformat())]
+    self.assertEqual(list(row["alarmChecks"].values()), [["ta"]])
+    self.assertNotIn("private alarm reason", repr(row))
+
+    old = NOW.replace(minute=0) - timedelta(minutes=5)
+    delayed = NOW + timedelta(hours=1, minutes=5)
+    row["events"] = [[self.reader.iso(old), "ta", "ALARM"], [self.reader.iso(delayed), "ta", "ALARM"]]
+    duration = "job-application-tracker-lambda-duration-high"
+    self.cloudwatch.describe_alarms.return_value["MetricAlarms"] = [
+      {"AlarmName": alarm, "StateValue": "ALARM" if alarm == duration else "OK"} for alarm in self.writer.ALARMS
+    ]
+    with patch.object(StubClock, "now", return_value=NOW + timedelta(hours=1)):
+      self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+      tracker = next(item for item in self.read()["connections"] if item["id"] == "tracker")
+    self.assertIn("Tracker Lambda duration alarm", tracker["days"][-1]["issue"])
+
+    self.cloudwatch.describe_alarms.return_value["MetricAlarms"] = [
+      {"AlarmName": alarm, "StateValue": "OK"} for alarm in self.writer.ALARMS
+    ]
+    with patch.object(StubClock, "now", return_value=NOW + timedelta(hours=2)):
+      self.assertTrue(self.writer.handler({"operation": "hourly"}, self.context)["ok"])
+      tracker = next(item for item in self.read()["connections"] if item["id"] == "tracker")
+    self.assertEqual(tracker["hours"][-1]["state"], "operational")
+    self.assertEqual(tracker["hours"][-2]["state"], "degraded")
+    self.assertIn("Tracker Lambda duration alarm", tracker["hours"][-2]["issue"])
+    self.assertIn("Tracker API 5xx alarm", tracker["hours"][-3]["issue"])
+
   def test_hourly_alarm_bounds_stop_at_hour_edge_and_exclude_an_exact_boundary_recovery(self):
     day = self.reader.mountain_day(NOW)
     current = NOW.replace(minute=0)
@@ -710,6 +811,59 @@ class CollectorTests(TestCase):
     self.assertEqual(snapshot["checks"], [])
     self.assertIn("x", snapshot["catalogHistory"]["results"]["tool:one"]["hours"])
 
+  def test_browser_reason_history_is_sparse_safe_and_chooses_the_latest_worst_state(self):
+    self.context.invoked_function_arn += ":browser-ci"
+    route, wait, unknown, legacy = "tool:text-compare", "tool:transcribe", "tool:watermark-remover", "project:website"
+    earlier_at, later_at = NOW - timedelta(minutes=20), NOW - timedelta(minutes=8)
+    earlier = [
+      {**sample_report(route, "degraded", "browser", checked=earlier_at), "reasonCode": "r"},
+      {**sample_report(wait, "degraded", "browser", checked=earlier_at), "reasonCode": "t"},
+      {**sample_report(unknown, "unknown", "browser", checked=earlier_at), "reasonCode": "n"},
+      sample_report(legacy, "operational", "browser", checked=earlier_at),
+    ]
+    later = [
+      {**sample_report(wait, "degraded", "browser", checked=later_at), "reasonCode": "m"},
+      sample_report(route, "operational", "browser", checked=later_at),
+    ]
+    for checks in (earlier, later):
+      self.assertEqual(self.report.handler({"checks": checks}, self.context), {"ok": True, "accepted": len(checks)})
+    tiles = self.read()["catalogHistory"]["results"]
+    self.assertEqual(tiles[wait]["hours"][-2:], "dd")
+    self.assertEqual(tiles[wait]["details"]["hours"][-2:], "tm")
+    self.assertEqual(tiles[wait]["details"]["days"][-1], "m")
+    self.assertEqual(tiles[route]["hours"][-2:], "do")
+    self.assertEqual(tiles[route]["details"]["days"][-1], "r")
+    self.assertEqual(tiles[unknown]["details"]["days"][-1], "n")
+    self.assertNotIn("details", tiles[legacy])
+    self.assertTrue(all(len(value) == 3 for value in self.table.rows[("catalog", "browser")]["results"].values()))
+
+    # A newer report can omit details and must not inherit reasons from the superseded hour.
+    bare = sample_report(wait, "degraded", "browser")
+    self.assertEqual(self.report.handler({"checks": [bare]}, self.context), {"ok": True, "accepted": 1})
+    details = self.read()["catalogHistory"]["results"][wait]["details"]
+    self.assertEqual(details["hours"][-2:], "t-")
+    self.assertEqual(details["days"][-1], "-")
+    row = next(row for (pk, sk), row in self.table.rows.items() if pk == "catalog" and sk.startswith("report#"))
+    self.assertEqual(set(row["reasons"]), {route, wait, unknown})
+    row["reasons"][wait] = row["reasons"][wait].replace("t", "n")  # Invalid reason for a degraded observation.
+    degraded = self.read()["catalogHistory"]["results"][wait]
+    self.assertEqual(degraded["hours"][-2:], "dd")
+    self.assertNotIn("details", degraded)
+
+  def test_only_browser_alias_accepts_allowlisted_reason_state_pairs(self):
+    base = sample_report("tool:text-compare", "degraded", "browser")
+    with self.assertLogs("Report", level="WARNING"):
+      no_alias = self.report.handler({"checks": [{**base, "reasonCode": "e"}]}, self.context)
+    self.assertFalse(no_alias["ok"])
+    self.context.invoked_function_arn += ":browser-ci"
+    for malformed in (None, "", False, ["e"], "private output", "n", "rr"):
+      with self.subTest(reason=malformed), self.assertLogs("Report", level="WARNING"):
+        result = self.report.handler({"checks": [{**base, "reasonCode": malformed}]}, self.context)
+        self.assertFalse(result["ok"])
+    self.assertEqual(self.table.write_count, 0)
+    result = self.report.handler({"checks": [{**base, "reasonCode": "e"}]}, self.context)
+    self.assertEqual(result, {"ok": True, "accepted": 1})
+
   def test_browser_archive_must_be_durable_before_successful_report_receipt(self):
     self.table.conflicts = 3
     with self.assertLogs(self.report.LOGGER, "WARNING"):
@@ -809,6 +963,10 @@ class CollectorTests(TestCase):
     # The private S3 TemplateURL allows up to 1 MB.
     self.assertLessEqual(len(TEMPLATE.encode()), 1_000_000)
     self.assertNotIn("AWS::CloudWatch::Alarm", TEMPLATE)
+    probes = TEMPLATE.split("  PeriodicProbes:\n")[1].split("  HourlyMetadata:")[0]
+    transitions = TEMPLATE.split("  SelectedAlarmTransitions:\n")[1].split("  AllowPeriodicProbes:")[0]
+    self.assertIn("ScheduleExpression: 'cron(10 * * * ? *)'", probes)
+    self.assertIn("State: DISABLED", transitions)
     self.assertNotIn("sagemaker:InvokeEndpoint", TEMPLATE)
     self.assertNotIn("transcribe:StartTranscriptionJob", TEMPLATE)
     self.assertNotIn("ses:SendEmail", TEMPLATE)

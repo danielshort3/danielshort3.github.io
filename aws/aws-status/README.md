@@ -6,24 +6,25 @@ This standalone CloudFormation stack owns the AWS Status dashboard's private Ohi
 
 | Schedule | Source | Evidence |
 | --- | --- | --- |
-| Every five minutes | Fixed public homepage HEAD and Cognito OIDC discovery GET | Homepage HTTP 200 and the exact Ohio Cognito issuer and JWKS URI. Discovery does not test a user login. |
-| Every five minutes when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. The slug is empty by default. |
+| Hourly at minute 10 UTC | Fixed public homepage HEAD and Cognito OIDC discovery GET | Homepage HTTP 200 and the exact Ohio Cognito issuer and JWKS URI. Discovery does not test a user login. |
+| Hourly at minute 10 UTC when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. The slug is empty by default. |
 | Hourly at minute 10 UTC | Five named Tracker and contact metric alarms | Selected alarm states. These do not prove a Tracker save or delivery of contact email. |
 | Hourly at minute 10 UTC | `VGJ-Chatbot-Async` and `VGJ-Markdown-Async` | Endpoint metadata and optional maximum processing time from the previous completed hour. Zero active instances is expected for idle endpoints in service. |
 | Hourly at minute 10 UTC | Ohio Amazon Transcribe batch job summaries | File Transcriber jobs completed or failed in the previous hour, and jobs still queued or running at the hour boundary. A successful check with no matching jobs in that hour shows No activity. |
-| On state change | The same five Tracker and contact alarms | A recorded transition and a recovery when one is observed. Existing alarm actions and notifications continue independently. |
 
-The collector uses bounded HTTPS reads, exact API requests, and one SDK attempt. It creates no alarms and sends no notifications, model requests, transcriptions, emails, or application writes. No schedules run while `ScheduleEnabled` is `false`.
+The dashboard samples Tracker and contact alarms hourly. Existing CloudWatch actions and notifications continue independently.
+
+The collector uses bounded HTTPS reads, exact API requests, and one SDK attempt. It creates no alarms and sends no notifications, model requests, transcriptions, emails, or application writes. The AWS collector schedules are disabled while `ScheduleEnabled` is `false`.
 
 ## History and permissions
 
-The on-demand DynamoDB table stores compact five-minute or hourly observation slots and up to 32 selected alarm transitions per connection per Mountain day. UTC timestamps keep incident times distinct across daylight-saving changes. Missing slots remain unknown. The reader returns 72 hourly and 90 daily tiles per connection from the same bounded partition queries. A failure tile shows one representative incident with observed bounds, exact alarm transition times when available, and whether recovery was observed. Periodic samples show observed status and coverage.
+The on-demand DynamoDB table stores compact hourly observations per connection per Mountain day. Earlier five-minute samples and exact alarm transitions remain readable. UTC timestamps keep incident times distinct across daylight-saving changes. Missing slots remain unknown. The reader returns 72 hourly and 90 daily tiles per connection from the same bounded partition queries. A failure tile shows one representative incident with observed bounds, exact alarm transition times when available, and whether recovery was observed. Periodic samples show observed status and coverage.
 
 History rows expire after 90 Mountain dates. TTL removes expired rows asynchronously, so the reader also enforces the date range and expiration. The table is retained on stack deletion or replacement. Only status evidence is stored, with no application records, raw alarm reasons, or response bodies. The Vercel role cannot invoke the scheduled collector or report writer. The reporter may write only the catalog partition and the collector may write only the fixed connection and homepage partitions.
 
 The reader returns `{ok, checkedAt, region, days, connections, checks}`. For each connection, `days` contains Mountain calendar days and `hours` contains UTC buckets. The dashboard displays the hourly buckets in Mountain time and groups daily tiles into Monday–Sunday weeks for the weekly view. `checkedAt` is null until an observation is recorded. Catalog results are keyed by source so the website can keep production, browser and local evidence distinct. The homepage HEAD result is marked `method: "homepage-head"`.
 
-Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all four System status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page checks for newly available data every five minutes.
+Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all four System status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page refreshes automatically once an hour at minute 21. Manual Refresh fetches the latest stored history.
 
 The scheduled writer lists batch jobs in Ohio with a region-restricted, read-only permission. It matches File Transcriber job names and records only hourly totals. Completion and failure count in the hour of the AWS completion timestamp. A failed or incomplete listing shows Unknown. Older observations continue to show the request-acceptance evidence they recorded. Home GPU worker health is separate.
 
@@ -71,9 +72,9 @@ Require `ok: true` and the expected `accepted` count before treating the report 
 
 ### Hourly GitHub Actions reports
 
-The [hourly workflow](../../.github/workflows/status-coverage-hourly.yml) gives GitHub four opportunities each hour, at minutes 7, 22, 37 and 52 UTC. Before building, each scheduled run checks for a browser report already published for that UTC hour. It runs the suite if the last publish failed or the workflow history is unavailable. Manual runs always check and publish. GitHub can delay or drop scheduled events, so verify actual coverage using the successful publish steps in the [run history](https://github.com/danielshort3/danielshort3.github.io/actions/workflows/status-coverage-hourly.yml). Browser results expire three hours after the check.
+The Ohio scheduler starts the [hourly workflow](../../.github/workflows/status-coverage-hourly.yml) at minute 47 UTC. Before starting the suite, the workflow checks whether another run already started browser checks in that UTC hour. This applies to dispatcher and manual starts. If a report is missing, check the [run history](https://github.com/danielshort3/danielshort3.github.io/actions/workflows/status-coverage-hourly.yml) for the browser and publish steps. Browser results expire three hours after the check.
 
-The workflow selects the most recent successful Vercel production revision reported in GitHub and runs the catalog browser suite on a standard public-repository runner. The browser job has no AWS credentials. The separate publish job uses a 15-minute AWS session and sends only the result IDs, statuses and timestamps. Completed runs with test failures still publish their outcomes. An interrupted run leaves the previous report to expire.
+The workflow selects the most recent successful Vercel production revision reported in GitHub and runs the catalog browser suite on a standard public-repository runner. The browser job has no AWS credentials. The separate publish job uses a 15-minute AWS session and sends the result IDs, statuses, timestamps, and optional allowlisted browser reason codes. Completed runs with test failures still publish their outcomes. An interrupted run leaves the previous report to expire.
 
 Vercel compares changes against its last successful deployment for the branch. A commit limited to the hourly workflow and its listed support files can skip the website build while the new workflow still runs from `main`. Changes to the site, API, fixtures, or AWS template trigger the website build.
 
@@ -81,15 +82,15 @@ Deploy the report code change in `template.yaml` first. Use temporary admin acce
 
 The separate stack publishes the reviewed code as a version and points `browser-ci` at it. When changing report code, update this stack with the new deployed hash to move the alias. Only the exact GitHub main workflow identity can assume the publisher role, which can invoke only that alias. The alias accepts browser results with an expiry no more than three hours from observation and submission. Use `GithubReporterRoleArn` and `BrowserReportAliasArn` from that stack's outputs. The manual path above continues to invoke the unqualified function.
 
-For Projects & Tools history, deploy the reader and report code in `template.yaml` first, preserving both existing parameters. In `github-reporter.yaml`, retain the original `ReportCodeSha256`, set `HistoryReportCodeSha256` to the new report code hash, and set `UseCatalogHistory=true`. Review the change set for the additional pinned version and the existing alias target update. Set `UseCatalogHistory=false` to move the alias back while retaining both versions.
+For Projects & Tools history, deploy the reader and report code in `template.yaml` first, preserving the existing stack parameters. In `github-reporter.yaml`, retain the original `ReportCodeSha256`, set `HistoryReportCodeSha256` to the new report code hash, and set `UseCatalogHistory=true`. Review the change set for the additional pinned version and the existing alias target update. Set `UseCatalogHistory=false` to move the alias back while retaining both versions.
 
 The browser alias preserves the latest complete report for each elapsed UTC hour in a Mountain calendar-day row under the existing catalog partition. Archived rows expire after 90 Mountain dates, independent of live result freshness. The dashboard shows 72 hourly slots, 90 calendar days, and Monday–Sunday weeks clipped to that range. Earlier periods and missing checks appear as Unknown. History records browser fixture outcomes and uses the report's observation time. It starts with the first archived run.
 
 Verify one default-branch publish through the alias and confirm the browser result appears in the private dashboard. Confirm the same role cannot invoke the unqualified report, reader or scheduled collector, and confirm the alias rejects a non-browser source. Removing the separate stack disables CI publishing and removes its provider, so verify no other role uses that provider before stack deletion.
 
-### Independent fallback
+### Hourly browser scheduler
 
-The [Ohio fallback stack](github-fallback.yaml) checks the browser workflow at minute 47 UTC. If the hour has no completed browser run that published results, the dispatcher requests the same workflow on main. GitHub serializes runs, and the workflow checks for a completed report again before it launches browsers. Native and backup triggers give each hour more than one opportunity to publish. Report timestamps reflect when the browser checks completed.
+The [Ohio scheduler stack](github-fallback.yaml) dispatches the browser workflow on main at minute 47 UTC when the hour has no published report. GitHub serializes runs and checks whether the browser suite already started that hour. Report timestamps reflect when the browser checks completed.
 
 Install a private GitHub App on only this repository with Actions read and write and mandatory metadata read. Store its client ID, installation ID and GitHub-generated signing key in the Standard SecureString parameter `/website-aws-status/fallback/github-app` in the Ohio account. Keep the key out of the repository and workflow. The dispatcher uses it to request a short-lived token limited to this repository. It checks the token scope before using it.
 

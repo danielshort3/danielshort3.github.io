@@ -384,8 +384,12 @@
     border-width: 1px 0 0 1px;
   }
 
-  .aws-status__tooltip-status {
+  .aws-status__tooltip-status,
+  .aws-status__tooltip-detail {
     margin: 0;
+  }
+
+  .aws-status__tooltip-status {
     color: var(--aws-status-ink);
   }
 

@@ -73,6 +73,14 @@ function sanitizeHour(hour, includeTranscription) {
   return { start: hour.start, ...period, ...(hour.complete === true ? { complete: true } : {}) };
 }
 
+function sanitizeCatalogDetails(codes, states) {
+  if (typeof codes !== 'string' || codes.length !== states.length) return '-'.repeat(states.length);
+  return [...states].map((state, index) => {
+    const reason = codes[index];
+    return (state === 'd' && /^[rtme]$/.test(reason)) || (state === 'u' && reason === 'n') ? reason : '-';
+  }).join('');
+}
+
 function sanitizeCatalogHistory(history, catalog, now) {
   const start = canonicalTime(history?.hourStart, HOUR_KEY);
   if (!Number.isFinite(start) || !Number.isFinite(canonicalTime(history.dayStart, DAY_KEY)) ||
@@ -90,10 +98,12 @@ function sanitizeCatalogHistory(history, catalog, now) {
     const item = history.results[id];
     if (typeof item?.hours !== 'string' || !HOUR_STATES.test(item.hours) ||
       typeof item.days !== 'string' || !DAY_STATES.test(item.days)) continue;
-    results[id] = {
-      hours: [...item.hours].map((state, index) => observedAt[index] ? state : '-').join(''),
-      days: item.days
-    };
+    const hours = [...item.hours].map((state, index) => observedAt[index] ? state : '-').join('');
+    const days = item.days;
+    const detailHours = sanitizeCatalogDetails(item.details?.hours, hours);
+    const detailDays = sanitizeCatalogDetails(item.details?.days, days);
+    const details = /[rtmen]/.test(detailHours + detailDays) ? { hours: detailHours, days: detailDays } : null;
+    results[id] = { hours, days, ...(details ? { details } : {}) };
   }
   return { hourStart: history.hourStart, dayStart: history.dayStart, observedAt, results };
 }
