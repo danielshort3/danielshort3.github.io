@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { createHmac, randomBytes } = require('node:crypto');
+const { createHmac, generateKeyPairSync, randomBytes, sign } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -14,18 +14,30 @@ const GPU_ORIGIN = 'https://daniel-pc.tail9686c5.ts.net:8443';
 const LAUNCH_API = '/api/tools/watermark-remover';
 const LAUNCH_PATH = '/home-tools/watermark/session';
 
-function request({ method = 'POST', origin = SITE_ORIGIN, cookie = '', url = LAUNCH_API } = {}) {
+function request({ method = 'POST', origin = SITE_ORIGIN, cookie = '', bearer = '', url = LAUNCH_API } = {}) {
   const req = {
     method,
     url,
     headers: { host: 'www.danielshort.me', 'x-forwarded-proto': 'https', origin, cookie }
   };
+  if (bearer) req.headers.authorization = 'Bearer ' + bearer;
   const res = {
     headers: {},
     setHeader(name, value) { this.headers[name] = value; },
     end(value) { this.body = JSON.parse(value); }
   };
   return route(req, res).then(() => res);
+}
+
+function configureEnvironment(t, configured) {
+  const original = Object.fromEntries(Object.keys(configured).map((key) => [key, process.env[key]]));
+  t.after(() => {
+    for (const [key, value] of Object.entries(original)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+  Object.assign(process.env, configured);
 }
 
 test('launch endpoint validates the Tools administrator cookie, origin, configuration and scoped ticket', async (t) => {
@@ -40,14 +52,7 @@ test('launch endpoint validates the Tools administrator cookie, origin, configur
     VERCEL: '1',
     VERCEL_ENV: 'production'
   };
-  const original = Object.fromEntries(Object.keys(configured).map((key) => [key, process.env[key]]));
-  t.after(() => {
-    for (const [key, value] of Object.entries(original)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-  });
-  Object.assign(process.env, configured);
+  configureEnvironment(t, configured);
   const cookie = (claims) => `${COOKIE_NAME}=${createSessionFromClaims(claims).value}`;
   const admin = cookie({ sub: 'fixture-admin', 'cognito:groups': ['admin'] });
   const nonAdmin = cookie({ sub: 'fixture-member', email: 'verified-admin@example.test' });
@@ -94,6 +99,57 @@ test('launch endpoint validates the Tools administrator cookie, origin, configur
   assert.equal((await request({ cookie: admin })).body.launchUrl, 'http://127.0.0.1:8788' + LAUNCH_PATH);
   process.env.HOME_GPU_WATERMARK_SECRET = '';
   assert.equal((await request({ cookie: admin })).statusCode, 503);
+});
+
+test('launch accepts only a verified Cognito administrator ID token when the Tools cookie is unavailable', async (t) => {
+  const issuer = 'https://cognito-idp.example.test/watermark';
+  const clientId = 'watermark-tools-fixture';
+  configureEnvironment(t, {
+    HOME_GPU_WATERMARK_SECRET: randomBytes(32).toString('base64url'),
+    HOME_GPU_WATERMARK_ORIGIN: GPU_ORIGIN,
+    TOOLS_SESSION_SECRETS: '',
+    TOOLS_SESSION_SECRET: '',
+    TOOLS_COGNITO_ISSUER: issuer,
+    TOOLS_COGNITO_CLIENT_ID: clientId,
+    TOOLS_ADMIN_EMAILS: 'verified-admin@example.test',
+    TOOLS_ADMIN_GROUPS: 'admin'
+  });
+
+  const { publicKey, privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const kid = 'watermark-fixture';
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    assert.equal(url, issuer + '/.well-known/jwks.json');
+    return { ok: true, async json() { return { keys: [{ ...publicKey.export({ format: 'jwk' }), kid }] }; } };
+  });
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const issue = (claims) => {
+    const payload = {
+      iss: issuer, aud: clientId, token_use: 'id', exp: Math.floor(Date.now() / 1000) + 300,
+      sub: 'fixture-cognito-admin', 'cognito:groups': ['admin'], ...claims
+    };
+    const signingInput = encode({ alg: 'RS256', kid }) + '.' + encode(payload);
+    return signingInput + '.' + sign('RSA-SHA256', Buffer.from(signingInput), privateKey).toString('base64url');
+  };
+  const adminToken = issue();
+  assert.equal((await request({ bearer: adminToken })).statusCode, 200);
+  const accept = await request({ bearer: adminToken, cookie: COOKIE_NAME + '=unavailable' });
+  assert.equal(accept.statusCode, 200);
+  assert.equal(accept.body.launchUrl, GPU_ORIGIN + LAUNCH_PATH);
+  assert.equal(JSON.parse(Buffer.from(accept.body.ticket.split('.')[0], 'base64url')).sub, 'fixture-cognito-admin');
+
+  const member = { 'cognito:groups': [], email: 'verified-admin@example.test' };
+  const badSignature = adminToken.split('.').slice(0, 2).join('.') + '.' + Buffer.alloc(256).toString('base64url');
+  for (const [options, status] of [
+    [{ bearer: issue({ ...member, email_verified: false }) }, 403],
+    [{ bearer: issue({ aud: 'wrong-client' }) }, 401],
+    [{ bearer: badSignature }, 401],
+    [{ bearer: adminToken, origin: 'https://unknown.example' }, 403]
+  ]) {
+    const rejected = await request(options);
+    assert.equal(rejected.statusCode, status);
+    assert.equal(rejected.body.ticket, undefined);
+  }
+  assert.equal((await request({ bearer: issue({ ...member, email_verified: true }) })).statusCode, 200);
 });
 
 test('browser exposes the launch only to admins and hands the ticket off in a top-level form POST', async () => {
