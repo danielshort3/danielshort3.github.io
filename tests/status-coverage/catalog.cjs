@@ -20,6 +20,7 @@ const actions = {
   'tool:text-compare': 'Compare two fixed texts and verify the rendered addition and removal.',
   'tool:transcribe': 'Select synthetic audio and verify that it is queued in the browser.',
   'tool:utm-batch-builder': 'Generate one tagged URL and verify its fields and export control.',
+  'tool:watermark-remover': 'Verify the admin launch gate and post a test ticket to a fixture worker.',
   'tool:word-frequency': 'Analyze repeated words and verify the selected word count.',
   'project:androidApp': 'Load the Android review release feed and verify the published download metadata.',
   'project:babynames': 'Load the bundled data and verify name recommendations change with the selected group.',

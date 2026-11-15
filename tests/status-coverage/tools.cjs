@@ -761,6 +761,61 @@ async function transcribe({ page, base, item }) {
   return local('The synthetic audio appeared in the upload queue. AWS transcription was not run.');
 }
 
+async function watermark({ context, page, base, item }) {
+  await fixtureAuth(context, 'guest');
+  const ticket = 'status-fixture.ticket';
+  const launchUrl = base + '/home-tools/watermark/session';
+  const apiMethods = [];
+  const workerPosts = [];
+  const launchResponse = Promise.withResolvers();
+  await context.route(base + '/api/tools/watermark-remover', async (route) => {
+    apiMethods.push(route.request().method());
+    await launchResponse.promise;
+    return route.fulfill({ json: { ok: true, launchUrl, ticket } });
+  });
+  await context.route(launchUrl, (route) => {
+    const request = route.request();
+    workerPosts.push({
+      method: request.method(),
+      navigation: request.isNavigationRequest(),
+      fields: [...new URLSearchParams(request.postData() || '')]
+    });
+    return route.fulfill({ contentType: 'text/html', body: '<h1>Fixture worker reached</h1>' });
+  });
+
+  await visit(page, base, item.route);
+  const open = page.locator('[data-watermark-open]');
+  const statusSelector = '[data-watermark-status]';
+  await text(page, statusSelector, 'Sign in with an administrator account to open Watermark Remover.');
+  await expect(open).toBeHidden();
+  await expect(open).toBeDisabled();
+
+  await page.evaluate(() => {
+    window.fixtureRole = 'member';
+    document.dispatchEvent(new CustomEvent('tools:auth-changed'));
+  });
+  await text(page, statusSelector, 'This account does not have administrator access.');
+  await expect(open).toBeHidden();
+  await expect(open).toBeDisabled();
+  assert.deepEqual(apiMethods, []);
+  assert.deepEqual(workerPosts, []);
+
+  await showStatusAsAdmin(page);
+  await expect(open).toBeVisible();
+  await expect(open).toBeEnabled();
+  try {
+    await open.dblclick();
+    await expect(open).toBeDisabled();
+  } finally {
+    launchResponse.resolve();
+  }
+  await page.waitForURL(launchUrl);
+  await expect(page.getByRole('heading', { name: 'Fixture worker reached' })).toBeVisible();
+  assert.deepEqual(apiMethods, ['POST']);
+  assert.deepEqual(workerPosts, [{ method: 'POST', navigation: true, fields: [['ticket', ticket]] }]);
+  return local('The portal withheld access from guests and members and posted one admin launch ticket to the fixture worker.');
+}
+
 function priorSuite(relative, reason) {
   return async ({ browser, base, artifactDir }) => {
     await require('../site/' + relative)({ browser, base, artifactDir });
@@ -784,6 +839,7 @@ const tools = {
   'text-compare': compare,
   transcribe,
   'utm-batch-builder': utm,
+  'watermark-remover': watermark,
   'word-frequency': words
 };
 
