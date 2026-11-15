@@ -100,6 +100,9 @@ assert.equal(pageItem.name, 'Resolved title');
 assert.equal(pageItem.durationSeconds, 90);
 assert.equal(pageItem.bytes, 4096);
 assert.equal(isRecoverableItem({ ...pageItem, status: 'failed', runToken: 'never-use-aws' }), false);
+assert.equal(isRecoverableItem({ ...pageItem, provider: 'aws', status: 'failed', runToken: 'aws-page-run' }), true);
+assert.equal(isRecoverableItem({ ...urlItem, provider: 'aws', status: 'canceled', quoteToken: 'aws-url-quote', uploadComplete: true }), true);
+assert.equal(isRecoverableItem({ ...urlItem, provider: 'aws', status: 'failed', quoteToken: 'aws-url-quote', uploadComplete: false }), false);
 
 assert.deepEqual(captureUrlSources([
   fileItem,

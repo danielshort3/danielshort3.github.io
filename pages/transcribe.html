@@ -119,7 +119,7 @@
 })();</script>
   <link rel="stylesheet" href="dist/styles.1ddbd25f.css">
   <link rel="stylesheet" href="dist/styles-tools.ec8eac8a.css">
-  <link rel="stylesheet" href="css/components/whisper-transcribe-monitor.css?v=7a80b5e1ed14">
+  <link rel="stylesheet" href="css/components/whisper-transcribe-monitor.css?v=8a18f59e1b27">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
@@ -131,10 +131,10 @@
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
-  <script defer src="dist/site-shell.5ad74a93.js"></script>
+  <script defer src="dist/site-shell.63526e3b.js"></script>
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:transcribe","path":"/tools/transcribe","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/whisper-transcribe-monitor.css?v=7a80b5e1ed14","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.5ad74a93.js","/js/tools/tool-share-link.js","/js/tools/whisper-transcribe-monitor.js?v=8e45fd2d2ca8","/dist/site-tools-account.de11193e.js","/dist/site-consent.a6d261d1.js"],"module":"tools:transcribe"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:transcribe","path":"/tools/transcribe","category":"tools","view":"detail","navigation":"hard","styles":["/dist/styles.1ddbd25f.css","/dist/styles-tools.ec8eac8a.css","/css/components/whisper-transcribe-monitor.css?v=8a18f59e1b27","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.63526e3b.js","/js/tools/tool-share-link.js","/js/tools/whisper-transcribe-monitor.js?v=d9fe41d29fe1","/dist/site-tools-account.afd8d9e8.js","/dist/site-consent.a6d261d1.js"],"module":"tools:transcribe"}</script>
 </head>
 <body data-page="transcribe" class="transcribe-page tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-tools-state="empty" data-tools-autosave="false" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="transcribe" data-personal-fit="viewport" data-site-route-id="tools:transcribe" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="hard" data-personal-chrome="compact" data-site-route-module="tools:transcribe">
   <a href="/tools/transcribe#main" class="skip-link" data-navigation="hard">Skip to main content</a>
@@ -224,33 +224,11 @@
         <article class="whispermon-card whispermon-card-wide transcribe-shell" id="transcribe-shell" data-transcribe-view-state="upload" data-transcribe-provider="aws" data-transcribe-has-files="false">
           <form id="transcribe-form" class="contact-form" novalidate>
             <section class="transcribe-view transcribe-view-upload transcribe-workspace" id="transcribe-upload-view" data-transcribe-view="upload" aria-labelledby="transcribe-upload-title">
-              <div class="transcribe-provider-controls" id="transcribe-provider-controls" hidden>
-                <fieldset class="transcribe-method" id="transcribe-method" hidden>
-                  <legend>Process with</legend>
-                  <div class="transcribe-method-options" role="radiogroup" aria-describedby="transcribe-method-help">
-                    <label class="transcribe-method-option" data-provider="aws">
-                      <input type="radio" name="transcribe-provider" value="aws" checked>
-                      <span>AWS</span>
-                    </label>
-                    <label class="transcribe-method-option" data-provider="local">
-                      <input type="radio" name="transcribe-provider" value="local" disabled>
-                      <span>Home GPU</span>
-                    </label>
-                  </div>
-                  <p class="transcribe-method-help" id="transcribe-method-help" hidden></p>
-                </fieldset>
-
-                <div class="transcribe-local-state" id="transcribe-local-state" data-state="checking" data-transcribe-provider-panel="local" role="status" aria-live="polite" hidden>
-                  <span class="transcribe-local-state-dot" aria-hidden="true"></span>
-                  <span id="transcribe-local-state-copy">Checking home GPU...</span>
-                  <button type="button" class="btn-ghost" id="transcribe-local-refresh">Retry</button>
-                </div>
-              </div>
               <div class="transcribe-main">
                 <div class="transcribe-upload-heading">
                   <div class="transcribe-view-heading">
                     <h2 id="transcribe-upload-title">Upload files</h2>
-                    <p id="transcribe-upload-copy">Add files, review the batch, and start.</p>
+                    <p id="transcribe-upload-copy">Add files to prepare a batch for transcription.</p>
                   </div>
                   <button type="button" class="btn-secondary" id="transcribe-add-more-files" data-transcribe-requires-files hidden>Add files</button>
                 </div>
@@ -272,6 +250,12 @@
                     </label>
                   </div>
                 </fieldset>
+
+                <div class="transcribe-local-state" id="transcribe-local-state" data-state="checking" role="status" aria-label="Link preparation" aria-live="polite" hidden>
+                  <span class="transcribe-local-state-dot" aria-hidden="true"></span>
+                  <span id="transcribe-local-state-copy">Checking link preparation on your home PC...</span>
+                  <button type="button" class="btn-ghost" id="transcribe-local-refresh">Retry connection</button>
+                </div>
 
                 <div class="transcribe-url-panel" id="transcribe-url-panel" hidden>
                   <label for="transcribe-url">YouTube video URL</label>
@@ -314,6 +298,27 @@
                   </span>
                   <button type="button" class="btn-primary transcribe-dropzone-button" id="transcribe-add-files">Choose files</button>
                 </div>
+
+                <div class="transcribe-preparation-feedback">
+                  <p id="transcribe-preparation-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                  <button type="button" class="btn-secondary" id="transcribe-retry-preparation" hidden>Retry preparation</button>
+                </div>
+              </div>
+              <div class="transcribe-provider-controls" id="transcribe-provider-controls" hidden>
+                <fieldset class="transcribe-method" id="transcribe-method" hidden>
+                  <legend id="transcribe-method-label">Transcribe with</legend>
+                  <div class="transcribe-method-options" role="radiogroup" aria-labelledby="transcribe-method-label" aria-describedby="transcribe-method-help">
+                    <label class="transcribe-method-option" data-provider="local">
+                      <input type="radio" name="transcribe-provider" value="local" disabled>
+                      <span>Home GPU</span>
+                    </label>
+                    <label class="transcribe-method-option" data-provider="aws">
+                      <input type="radio" name="transcribe-provider" value="aws" checked>
+                      <span>AWS</span>
+                    </label>
+                  </div>
+                  <p class="transcribe-method-help" id="transcribe-method-help" hidden></p>
+                </fieldset>
               </div>
               <div class="transcribe-sidebar transcribe-batch-panel" id="transcribe-batch-review" data-transcribe-batch>
                 <div class="transcribe-view-heading">
@@ -326,7 +331,7 @@
                 </div>
 
                 <div class="transcribe-cost-review" id="transcribe-cost-review" data-provider="aws" data-transcribe-requires-files hidden>
-                  <p class="transcribe-estimated-total" data-transcribe-provider-panel="aws"><span>Estimated total</span> <strong id="transcribe-total">$0.00</strong></p>
+                  <p class="transcribe-estimated-total" data-transcribe-provider-panel="aws"><span>Estimated total</span> <strong id="transcribe-total">—</strong></p>
                   <p id="transcribe-local-total" data-transcribe-provider-panel="local" hidden>Home GPU processing</p>
                   <label class="transcribe-approval">
                     <input id="transcribe-approve" type="checkbox">
@@ -489,8 +494,8 @@
     </div>
   </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
-  <script defer src="js/tools/whisper-transcribe-monitor.js?v=8e45fd2d2ca8"></script>
-  <script defer src="dist/site-tools-account.de11193e.js"></script>
+  <script defer src="js/tools/whisper-transcribe-monitor.js?v=d9fe41d29fe1"></script>
+  <script defer src="dist/site-tools-account.afd8d9e8.js"></script>
 
   <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>

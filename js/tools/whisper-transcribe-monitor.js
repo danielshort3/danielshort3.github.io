@@ -3,6 +3,7 @@
 
   const TOOL_ID = 'transcribe';
   const API_BASE = '/api/tools/transcribe';
+  const AWS_FILENAME_LIMIT = 120;
   const DEFAULT_CONFIG = {
     configured: false,
     service: 'Amazon Transcribe',
@@ -202,6 +203,8 @@
   const pageStatusEl = $id('transcribe-page-status');
   const pageVideosEl = $id('transcribe-page-videos');
   const pageCandidatesEl = $id('transcribe-page-candidates');
+  const preparationStatusEl = $id('transcribe-preparation-status');
+  const retryPreparationBtn = $id('transcribe-retry-preparation');
   const addPageVideosBtn = $id('transcribe-add-page-videos');
   const uploadTitleEl = $id('transcribe-upload-title');
   const summaryEl = $id('transcribe-summary');
@@ -275,6 +278,7 @@
     sourceKind: 'file',
     localUrlImportReady: false,
     localPageImportReady: false,
+    mediaPreparation: false,
     pageScan: null,
     pageScanController: null,
     localConfig: null,
@@ -326,11 +330,11 @@
 
   const isLocalProvider = () => state.provider === PROVIDER_LOCAL;
 
-  const urlImportIsReady = () => isLocalProvider() && isAdminUser() &&
-    state.localConfig?.urlImportEnabled === true && state.localUrlImportReady && state.localStatus === 'online';
+  const urlImportIsReady = () => isAdminUser() &&
+    state.localConfig?.urlImportEnabled === true && state.localUrlImportReady;
 
-  const pageImportIsReady = () => isLocalProvider() && isAdminUser() &&
-    state.localConfig?.pageImportEnabled === true && state.localPageImportReady && state.localStatus === 'online';
+  const pageImportIsReady = () => isAdminUser() &&
+    state.localConfig?.pageImportEnabled === true && state.localPageImportReady;
 
   const scanIsCurrent = (scan) => scan?.expiresAt > Date.now();
 
@@ -935,7 +939,21 @@
     return Number(cost.toFixed(6));
   };
 
-  const acceptedFiles = () => state.files.filter((item) => item.status !== 'skipped');
+  const acceptedFiles = () => state.files.filter((item) => item.status !== 'skipped' && !item.providerIssue);
+
+  const readyFiles = () => acceptedFiles().filter((item) => item.status === 'ready');
+
+  const preparationIsCurrent = (item) => Boolean(item.preparation?.media &&
+    item.preparation.ownerSub === getAuthSub() && item.preparation.expiresAt > Date.now());
+
+  const needsPreparation = (item) => isImportedSource(item) &&
+    (['preparing', 'prepare-error'].includes(item.status) ||
+      (item.status === 'ready' && (item.preparation || !isLocalProvider()) && !preparationIsCurrent(item)));
+
+  const queueLimit = () => Math.max(
+    Number(state.config.maxFilesPerRun) || DEFAULT_CONFIG.maxFilesPerRun,
+    Number(state.localConfig?.maxFilesPerRun) || DEFAULT_CONFIG.maxFilesPerRun
+  );
 
   const completedFiles = () => state.files.filter((item) => item.status === 'complete');
 
@@ -946,7 +964,7 @@
   const finalTotal = () => [...completedFiles(), ...partialFiles()]
     .reduce((sum, item) => sum + Number(item.costUsd || item.estimatedCostUsd || 0), 0);
 
-  const countedForRunLimit = () => state.files.filter((item) => !['checking', 'skipped'].includes(item.status)).length;
+  const countedForRunLimit = () => state.files.filter((item) => item.status !== 'skipped').length;
 
   const authIsReady = () => {
     const authApi = window.ToolsAuth;
@@ -999,10 +1017,10 @@
     }
     if (dropzoneEl) dropzoneEl.dataset.compact = hasFiles ? 'true' : 'false';
     setText(dropzoneTitleEl, hasFiles ? 'Drop more files here' : 'Drop files here');
-    const source = localActive ? state.sourceKind : 'file';
+    const source = admin ? state.sourceKind : 'file';
     const urlSelected = source === 'url';
     const pageSelected = source === 'page';
-    if (sourcePickerEl) sourcePickerEl.hidden = !localActive;
+    if (sourcePickerEl) sourcePickerEl.hidden = !admin;
     if (dropzoneEl) dropzoneEl.hidden = source !== 'file';
     if (addFilesBtn) addFilesBtn.hidden = hasFiles;
     if (addMoreFilesBtn) addMoreFilesBtn.hidden = !hasFiles || source !== 'file';
@@ -1010,13 +1028,13 @@
     if (pagePanelEl) pagePanelEl.hidden = !pageSelected;
     sourceInputs.forEach((input) => {
       input.checked = input.value === source;
-      input.disabled = state.busy || state.analyzing || !localActive;
+      input.disabled = state.busy || state.analyzing || !admin;
     });
-    setText(uploadTitleEl, localActive ? 'Add media' : hasFiles ? 'Files' : 'Upload files');
+    setText(uploadTitleEl, admin ? 'Add media' : hasFiles ? 'Files' : 'Upload files');
     setText(urlAvailabilityEl, state.localConfigLoading
       ? 'Checking URL import availability...'
       : urlImportIsReady()
-        ? 'The home PC downloads the audio and checks its duration when you start.'
+        ? 'The home PC prepares the audio before transcription.'
         : 'URL import is unavailable. Start or update the Home GPU worker, then retry its connection.');
     setText(pageAvailabilityEl, state.localConfigLoading
       ? 'Checking web page import availability...'
@@ -1032,12 +1050,12 @@
     });
 
     if (localStateEl) {
-      localStateEl.hidden = !localActive;
-      localStateEl.setAttribute('aria-live', localActive ? 'polite' : 'off');
+      localStateEl.hidden = !admin;
+      localStateEl.setAttribute('aria-live', admin ? 'polite' : 'off');
       localStateEl.setAttribute('aria-atomic', 'true');
     }
     if (localRefreshBtn) {
-      localRefreshBtn.hidden = !localActive || (!['offline', 'unavailable'].includes(state.localStatus) &&
+      localRefreshBtn.hidden = !admin || (!['offline', 'unavailable'].includes(state.localStatus) &&
         !(urlSelected && !urlImportIsReady()) && !(pageSelected && !pageImportIsReady()));
     }
     if (usageEl) usageEl.hidden = isLocalProvider();
@@ -1052,9 +1070,8 @@
     const minimumSeconds = Math.max(0, Number(config.minDurationSeconds) || DEFAULT_CONFIG.minDurationSeconds);
     const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');
     setText(detailServiceEl, serviceName);
-    setText(detailMinimumEl, localActive && source !== 'file'
-      ? 'No minimum'
-      : minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
+    const minimumLabel = minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds);
+    setText(detailMinimumEl, localActive ? `${minimumLabel} for files` : minimumLabel);
     setText(detailPriceEl, `$${Number(state.config.pricePerMinute || DEFAULT_CONFIG.pricePerMinute).toFixed(3)} / min`);
     if (summaryEl) summaryEl.hidden = !hasFiles;
     if (emptyBatchEl) emptyBatchEl.hidden = hasFiles;
@@ -1068,7 +1085,7 @@
 
   const updateMethodUi = () => {
     const admin = state.admin && isAdminUser();
-    const locked = state.busy || state.analyzing || state.files.length > 0;
+    const locked = state.busy || state.analyzing || state.view !== 'upload';
     if (providerControlsEl) providerControlsEl.hidden = !admin;
     if (methodEl) methodEl.hidden = !admin;
     methodInputs.forEach((input) => {
@@ -1084,17 +1101,17 @@
       input.checked = input.value === state.provider;
     });
     if (localRefreshBtn) localRefreshBtn.disabled = !admin || state.localConfigLoading || state.busy;
-    setText(methodHelpEl, locked ? 'Remove all media to change the processing method.' : '');
+    setText(methodHelpEl, locked ? 'The service is locked while the batch is running.' : '');
     if (methodHelpEl) methodHelpEl.hidden = !locked;
 
     if (isLocalProvider()) {
       setText(providerKickerEl, 'Home GPU');
-      setText(uploadCopyEl, 'Choose a source to add media.');
+      setText(uploadCopyEl, 'Add media, then choose a transcription service.');
       if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_LOCAL;
       setText(approvalCopyEl, 'Process this media temporarily on my home PC.');
     } else {
       setText(providerKickerEl, 'Amazon Transcribe');
-      setText(uploadCopyEl, 'Add audio or video, then review the estimate.');
+      setText(uploadCopyEl, admin ? 'Add media, then choose a transcription service.' : 'Add audio or video, then review the estimate.');
       if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_AWS;
       setText(approvalCopyEl, 'Approve the estimated charge shown above.');
     }
@@ -1168,18 +1185,18 @@
     const authed = authIsReady();
     const wasAdmin = state.admin;
     state.admin = authed && isAdminUser();
-    if (!state.admin && isLocalProvider() && !state.files.length && !state.busy) {
+    if (!state.admin && isLocalProvider() && !state.busy) {
       state.provider = PROVIDER_AWS;
       if (approveEl) approveEl.checked = false;
     }
     const accountSub = authed ? getAuthSub() : '';
-    if (state.accountSub !== accountSub) {
+    if (state.accountSub !== accountSub || (wasAdmin && !state.admin)) {
       clearPageScan();
       if (pageUrlEl) pageUrlEl.value = '';
-      if (!state.busy && state.files.some((item) => item.sourceKind === 'page')) {
-        state.files = state.files.filter((item) => item.sourceKind !== 'page');
-        if (!state.admin && !state.files.length) state.provider = PROVIDER_AWS;
-        if (approveEl) approveEl.checked = false;
+      if (approveEl) approveEl.checked = false;
+      if (!state.busy && state.view === 'upload' && state.files.some(isImportedSource)) {
+        state.files.filter(isImportedSource).forEach(discardPreparation);
+        state.files = state.files.filter((item) => !isImportedSource(item));
         renderTable();
         renderResults();
       }
@@ -1198,7 +1215,7 @@
     }
 
     const shouldPreferLocal = state.admin && !wasAdmin && state.providerChoice !== PROVIDER_AWS &&
-      !state.files.length && !state.busy;
+      state.view === 'upload' && !state.busy;
     if (shouldPreferLocal) {
       const localKnownUnavailable = state.localConfig !== null && (
         state.localConfig?.enabled !== true || state.localConfig?.configured !== true
@@ -1210,15 +1227,55 @@
 
     updateMethodUi();
     updateSummary();
-    if (shouldPreferLocal && isLocalProvider()) void refreshLocalWorkerStatus();
+    if (state.admin && !wasAdmin) void refreshLocalWorkerStatus();
     renderUsage();
     updateControls();
   };
 
+  const reviewQueuedMedia = () => {
+    if (state.busy || state.view !== 'upload') return;
+    const config = activeConfig();
+    const limit = Number(config.maxFilesPerRun) || DEFAULT_CONFIG.maxFilesPerRun;
+    const maxBytes = Number(config.maxFileBytes) || DEFAULT_CONFIG.maxFileBytes;
+    const maxDuration = Number(config.maxServiceDurationSeconds) || DEFAULT_CONFIG.maxServiceDurationSeconds;
+    const formats = supportedFormats();
+    let readyCount = 0;
+    let estimate = 0;
+    for (const item of state.files) {
+      if (item.status !== 'ready') continue;
+      item.provider = state.provider;
+      item.providerIssue = '';
+      item.estimatedCostUsd = 0;
+      item.billableSeconds = 0;
+      if (needsPreparation(item)) continue;
+      if (readyCount >= limit) {
+        item.providerIssue = `This service accepts up to ${limit} items per batch.`;
+        continue;
+      }
+      if (!isImportedSource(item) || item.preparation) {
+        const minimum = isImportedSource(item) && isLocalProvider() ? 0 : Number(config.minDurationSeconds) || 1;
+        if (!formats.has(item.extension)) item.providerIssue = 'This service does not support the media format.';
+        else if (item.bytes > maxBytes) item.providerIssue = `File exceeds ${formatBytes(maxBytes)} for this service.`;
+        else if (item.durationSeconds < minimum) item.providerIssue = `Under ${minimum} second${minimum === 1 ? '' : 's'} for this service.`;
+        else if (item.durationSeconds > maxDuration) item.providerIssue = `Exceeds this service's ${formatClock(maxDuration)} media limit.`;
+        if (item.providerIssue) continue;
+      }
+      const cost = estimatedCost(item.durationSeconds);
+      if (!isLocalProvider() && estimate + cost > Number(config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)) {
+        item.providerIssue = `Total estimate cap is ${formatUsd(config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)}.`;
+        continue;
+      }
+      readyCount += 1;
+      estimate += cost;
+      item.billableSeconds = billableSeconds(item.durationSeconds);
+      item.estimatedCostUsd = cost;
+    }
+  };
+
   const updateSummary = () => {
     const totalCount = state.files.length;
-    const readyCount = state.files.filter((item) => item.status === 'ready').length;
-    const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
+    const readyCount = readyFiles().filter((item) => !needsPreparation(item)).length;
+    const skippedCount = state.files.filter((item) => item.status === 'skipped' || item.providerIssue).length;
     const completedCount = completedFiles().length;
     const partialCount = partialFiles().length;
     const failedCount = state.files.filter((item) => item.status === 'failed').length;
@@ -1235,6 +1292,8 @@
 
     const parts = [];
     if (readyCount) parts.push(`${readyCount} ready`);
+    const awaiting = state.files.filter(needsPreparation).length;
+    if (awaiting) parts.push(`${awaiting} awaiting preparation`);
     if (skippedCount) parts.push(`${skippedCount} skipped`);
     if (completedCount) parts.push(`${completedCount} complete`);
     if (partialCount) parts.push(`${partialCount} partial`);
@@ -1246,12 +1305,16 @@
       parts.join(' · '),
       skippedCount || partialCount || failedCount ? 'warning' : 'success'
     );
-    setText(totalEl, formatUsd(completedCount || partialCount ? runCost : totalCost));
+    setText(totalEl, awaiting ? 'Pending preparation' : formatUsd(completedCount || partialCount ? runCost : totalCost));
     syncProviderUi();
   };
 
   const statusLabel = (item) => {
+    if (item.providerIssue) return item.providerIssue;
     if (item.status === 'checking') return 'Checking';
+    if (item.status === 'preparing') return 'Preparing media';
+    if (item.status === 'prepare-error') return item.prepareError || 'Preparation failed';
+    if (needsPreparation(item)) return 'Media must be prepared';
     if (item.status === 'skipped') return `Skipped: ${item.skipReason || 'Not eligible'}`;
     if (item.status === 'ready') return 'Ready';
     if (item.status === 'presigning') return item.provider === PROVIDER_LOCAL ? 'Requesting secure ticket' : 'Preparing upload';
@@ -1275,7 +1338,7 @@
   };
 
   const rowTone = (item) => {
-    if (item.status === 'skipped') return 'warning';
+    if (item.status === 'skipped' || item.providerIssue || item.status === 'prepare-error') return 'warning';
     if (item.status === 'partial') return 'warning';
     if (item.status === 'failed') return 'error';
     if (item.status === 'complete') return 'success';
@@ -1292,6 +1355,7 @@
   const resumableFiles = () => state.files.filter(isRecoverableItem);
 
   const renderTable = () => {
+    reviewQueuedMedia();
     if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
     fileRowsEl.innerHTML = state.files.map((item) => {
       const removable = canRemoveItem(item);
@@ -1302,7 +1366,7 @@
         item.extension ? item.extension.toUpperCase() : '',
         !item.durationSeconds && isImportedSource(item) ? 'Duration checked on home PC' : ''
       ].filter(Boolean).join(' · ');
-      const showStatus = item.status !== 'ready';
+      const showStatus = item.status !== 'ready' || Boolean(item.providerIssue) || needsPreparation(item);
       return `
       <article class="transcribe-file-card" data-tone="${escapeHtml(rowTone(item))}">
         <div class="transcribe-file-main">
@@ -1445,14 +1509,21 @@
 
   const updateControls = () => {
     updateMethodUi();
-    const readyCount = acceptedFiles().filter((item) => item.status === 'ready').length;
+    const readyCount = readyFiles().length;
+    const preparing = state.files.some((item) => item.status === 'preparing');
+    const needsMedia = state.files.some(needsPreparation);
+    if (preparationStatusEl) {
+      const message = preparing ? 'Preparing media for either transcription service…' : needsMedia
+        ? state.mediaPreparation
+          ? 'Retry preparation or remove the item before starting.'
+          : 'This worker needs media preparation support to use imported videos with AWS.'
+        : '';
+      setStatus(preparationStatusEl, message, needsMedia && !preparing ? 'warning' : '');
+      preparationStatusEl.hidden = !message;
+    }
+    if (retryPreparationBtn) retryPreparationBtn.hidden = preparing || !needsMedia || !state.mediaPreparation;
     const approved = Boolean(approveEl && approveEl.checked);
-    const localConfigPending = isLocalProvider() && (
-      state.localConfigLoading ||
-      state.localConfig?.enabled !== true ||
-      state.localConfig?.configured !== true
-    );
-    const pickerDisabled = state.busy || state.analyzing || localConfigPending;
+    const pickerDisabled = state.busy || state.analyzing;
     if (fileEl) fileEl.disabled = pickerDisabled;
     if (addFilesBtn) addFilesBtn.disabled = pickerDisabled;
     if (addMoreFilesBtn) addMoreFilesBtn.disabled = pickerDisabled;
@@ -1469,11 +1540,11 @@
       dropzoneEl.dataset.disabled = pickerDisabled ? 'true' : 'false';
       dropzoneEl.setAttribute('aria-disabled', pickerDisabled ? 'true' : 'false');
     }
-    if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
+    if (approveEl) approveEl.disabled = state.busy || state.analyzing || needsMedia || readyCount === 0;
     if (startBtn) {
-      const urlsReady = !acceptedFiles().some((item) => item.status === 'ready' && item.sourceKind === 'url') || urlImportIsReady();
-      const pagesReady = !acceptedFiles().some((item) => item.status === 'ready' && item.sourceKind === 'page') || pageImportIsReady();
-      const ready = authIsReady() && runConfigIsValid() && urlsReady && pagesReady && approved && readyCount > 0;
+      const urlsReady = !readyFiles().some((item) => item.sourceKind === 'url' && !item.preparation) || urlImportIsReady();
+      const pagesReady = !readyFiles().some((item) => item.sourceKind === 'page' && !item.preparation) || pageImportIsReady();
+      const ready = authIsReady() && runConfigIsValid() && !needsMedia && urlsReady && pagesReady && approved && readyCount > 0;
       startBtn.disabled = state.busy || state.analyzing || !ready;
       startBtn.dataset.ready = ready ? 'true' : 'false';
     }
@@ -1509,7 +1580,7 @@
     return readJson(res);
   };
 
-  const workerFetchJson = async (workerOrigin, path, ticket = '', options = {}) => {
+  const workerFetch = (workerOrigin, path, ticket = '', options = {}) => {
     const origin = normalizeWorkerOrigin(workerOrigin);
     const headers = new Headers(options.headers || {});
     if (ticket) headers.set('Authorization', `Bearer ${ticket}`);
@@ -1520,14 +1591,18 @@
     };
     if (isLoopbackWorkerOrigin(origin)) requestOptions.targetAddressSpace = 'loopback';
     const request = new Request(new URL(path, `${origin}/`), requestOptions);
-    return readJson(await fetch(request));
+    return fetch(request);
   };
 
+  const workerFetchJson = async (...args) => readJson(await workerFetch(...args));
+
   const refreshLocalWorkerStatus = async () => {
-    if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;
+    if (!isAdminUser() || state.localConfigLoading) return;
     state.localConfigLoading = true;
     state.localUrlImportReady = false;
     state.localPageImportReady = false;
+    state.mediaPreparation = false;
+    const ownerSub = getAuthSub();
     setLocalStatus('checking', 'Checking Home GPU...');
     updateMethodUi();
     const fallbackToAws = (message) => {
@@ -1548,6 +1623,7 @@
         return;
       }
 
+      if (ownerSub !== getAuthSub() || !isAdminUser()) return;
       state.localConfig = { ...config };
       if (config.enabled !== true || config.configured !== true) {
         const message = cleanText(config.disabledReason) || (config.enabled !== true
@@ -1556,8 +1632,6 @@
         fallbackToAws(message);
         return;
       }
-      if (!isLocalProvider()) return;
-
       let workerOrigin;
       try {
         workerOrigin = normalizeWorkerOrigin(config.workerOrigin);
@@ -1569,21 +1643,24 @@
 
       try {
         const health = await workerFetchJson(workerOrigin, '/v1/health', '', { method: 'GET' });
-        const healthStatus = cleanText(health?.status).toLowerCase();
-        if (health?.ready !== true || ['offline', 'unavailable', 'error', 'failed'].includes(healthStatus)) {
+        if (ownerSub !== getAuthSub() || !isAdminUser()) return;
+        const capabilities = health?.capabilities || {};
+        state.mediaPreparation = capabilities.mediaPreparation === true;
+        state.localUrlImportReady = state.mediaPreparation ? capabilities.urlPreparation === true : capabilities.urlImport === true;
+        state.localPageImportReady = state.mediaPreparation ? capabilities.pagePreparation === true : capabilities.pageImport === true;
+        if (health?.ready === true) {
+          setLocalStatus('online', 'Home PC is online.');
+        } else if (state.mediaPreparation) {
+          setLocalStatus('unavailable', 'Media preparation is available. Home GPU transcription is unavailable.');
+        } else {
           throw new Error('Worker is not ready.');
         }
-        state.localUrlImportReady = health?.capabilities?.urlImport === true;
-        state.localPageImportReady = health?.capabilities?.pageImport === true;
-        setLocalStatus('online', 'Home GPU is online and ready.');
       } catch {
         setLocalStatus('offline', 'Home GPU is offline. Start the worker, then check again.');
       }
     } finally {
       state.localConfigLoading = false;
-      updateMethodUi();
-      updateSummary();
-      updateControls();
+      renderTable();
       if (!isLocalProvider()) void loadUsage();
     }
   };
@@ -1921,6 +1998,7 @@
     }
 
     const restorePickerFocus = [addFilesBtn, addMoreFilesBtn].includes(document.activeElement);
+    const alreadyQueued = countedForRunLimit();
     const existingFingerprints = new Set(state.files.map((item) => item.fingerprint).filter(Boolean));
     const newItems = files.map((file, index) => {
       const item = createFileItem(file, state.files.length + index);
@@ -1944,9 +2022,9 @@
     renderResults();
     setStatus(runStatusEl, `Checking ${newItems.length} added file${newItems.length === 1 ? '' : 's'}...`, '');
 
-    const config = activeConfig();
-    const formats = supportedFormats();
-    let acceptedCost = estimatedTotal();
+    const formats = new Set(DEFAULT_CONFIG.supportedFormats);
+    const maxBytes = Math.max(Number(state.config.maxFileBytes) || DEFAULT_CONFIG.maxFileBytes,
+      Number(state.localConfig?.maxFileBytes) || DEFAULT_CONFIG.maxFileBytes);
     let addedAcceptedCount = 0;
 
     for (let i = 0; i < newItems.length; i += 1) {
@@ -1955,9 +2033,9 @@
         renderTable();
         continue;
       }
-      if (countedForRunLimit() >= Number(config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
+      if (alreadyQueued + addedAcceptedCount >= queueLimit()) {
         item.status = 'skipped';
-        item.skipReason = `Run limit is ${config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun} files.`;
+        item.skipReason = `Batch limit is ${queueLimit()} items.`;
         renderTable();
         continue;
       }
@@ -1973,33 +2051,17 @@
         renderTable();
         continue;
       }
-      if (item.bytes > Number(config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)) {
+      if (item.bytes > maxBytes) {
         item.status = 'skipped';
-        item.skipReason = `File exceeds ${formatBytes(config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)}.`;
+        item.skipReason = `File exceeds ${formatBytes(maxBytes)}.`;
         renderTable();
         continue;
       }
 
       item.durationSeconds = await probeDuration(item.file, item.extension);
-      if (!Number.isFinite(Number(item.durationSeconds))) {
+      if (!Number.isFinite(item.durationSeconds) || item.durationSeconds <= 0) {
         item.status = 'skipped';
         item.skipReason = 'Unable to read duration before upload.';
-        renderTable();
-        continue;
-      }
-      if (item.durationSeconds < Number(config.minDurationSeconds || 1)) {
-        item.status = 'skipped';
-        const minimumDuration = Number(config.minDurationSeconds || 1);
-        item.skipReason = `Under ${minimumDuration} second${minimumDuration === 1 ? '' : 's'}.`;
-        renderTable();
-        continue;
-      }
-      const exceedsServiceDuration = isLocalProvider()
-        ? item.durationSeconds > Number(config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)
-        : item.durationSeconds > Number(state.config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds);
-      if (exceedsServiceDuration) {
-        item.status = 'skipped';
-        item.skipReason = `Exceeds ${(config.service || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe'))}'s ${formatClock(config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)} media limit.`;
         renderTable();
         continue;
       }
@@ -2019,17 +2081,7 @@
         }
       }
 
-      item.billableSeconds = billableSeconds(item.durationSeconds);
-      item.estimatedCostUsd = estimatedCost(item.durationSeconds);
-      if (!isLocalProvider() && acceptedCost + item.estimatedCostUsd > Number(state.config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)) {
-        item.status = 'skipped';
-        item.skipReason = `Total estimate cap is ${formatUsd(state.config.maxTotalCostUsd)}.`;
-        renderTable();
-        continue;
-      }
-
       item.status = 'ready';
-      acceptedCost += item.estimatedCostUsd;
       addedAcceptedCount += 1;
       renderTable();
     }
@@ -2065,12 +2117,12 @@
       setStatus(urlStatusEl, 'This video is already in the batch.', 'warning');
       return;
     }
-    if (countedForRunLimit() >= Number(activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
-      setStatus(urlStatusEl, `The batch limit is ${activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun} items. Remove an item before adding another.`, 'warning');
+    if (countedForRunLimit() >= queueLimit()) {
+      setStatus(urlStatusEl, `The batch limit is ${queueLimit()} items. Remove an item before adding another.`, 'warning');
       return;
     }
     const videoId = new URL(sourceUrl).searchParams.get('v');
-    state.files.push({
+    const item = {
       id: `${Date.now()}-url-${Math.random().toString(36).slice(2)}`,
       sourceKind: 'url',
       sourceUrl,
@@ -2082,12 +2134,14 @@
       billableSeconds: 0,
       estimatedCostUsd: 0,
       costUsd: 0,
-      provider: PROVIDER_LOCAL,
+      provider: state.provider,
       progress: 0,
       status: 'ready',
       skipReason: '',
       transcript: ''
-    });
+    };
+    state.files.push(item);
+    if (state.mediaPreparation) void prepareImportedMedia(item);
     if (urlEl) {
       urlEl.value = '';
       urlEl.removeAttribute('aria-invalid');
@@ -2215,13 +2269,13 @@
     const candidates = scan.candidates.filter((candidate) =>
       selection.has(candidate.id) && !state.files.some((item) => item.pageCandidateId === candidate.id));
     if (!candidates.length) return;
-    const limit = Number(activeConfig().maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun);
+    const limit = queueLimit();
     if (countedForRunLimit() + candidates.length > limit) {
       setStatus(pageStatusEl, `The batch limit is ${limit} items. Select fewer videos or remove an item.`, 'warning');
       return;
     }
     for (const candidate of candidates) {
-      state.files.push({
+      const item = {
         id: `page-${candidate.id}`,
         sourceKind: 'page',
         pageScan: scan,
@@ -2234,12 +2288,14 @@
         billableSeconds: 0,
         estimatedCostUsd: 0,
         costUsd: 0,
-        provider: PROVIDER_LOCAL,
+        provider: state.provider,
         progress: 0,
         status: 'ready',
         skipReason: '',
         transcript: ''
-      });
+      };
+      state.files.push(item);
+      if (state.mediaPreparation) void prepareImportedMedia(item);
     }
     if (approveEl) approveEl.checked = false;
     setStatus(pageStatusEl, `${candidates.length} video${candidates.length === 1 ? '' : 's'} added to the batch.`, 'success');
@@ -2249,6 +2305,144 @@
     renderTable();
     renderResults();
     markSessionDirty();
+  };
+
+  const preparationExpiry = (value) => typeof value === 'number' ? value : Date.parse(value);
+
+  const discardPreparation = (item) => {
+    const job = item.preparation;
+    if (!job) return;
+    item.preparation = null;
+    job.controller.abort();
+    releasePreparation(job);
+  };
+
+  const releasePreparation = (job) => {
+    if (!job.localTicket || job.releaseRequested) return;
+    job.releaseRequested = true;
+    void cancelLocalItem(job);
+  };
+
+  const createPreparation = async (item, job) => {
+    const signal = job.controller.signal;
+    const headers = { 'Content-Type': 'application/json' };
+    const fromPage = item.sourceKind === 'page';
+    let input;
+    if (fromPage) {
+      let scan = item.pageScan;
+      if (!scan || scan.ownerSub !== job.ownerSub) throw new Error('Find the video on its web page again.');
+      if (!scanIsCurrent(scan)) {
+        scan = await requestPageScan(scan.pageUrl, signal);
+        item.pageScan = scan;
+      }
+      if (!scan.candidates.some((candidate) => candidate.id === item.pageCandidateId)) {
+        throw new Error('This video changed. Find the video on its web page again.');
+      }
+      const id = Array.from(window.crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+        byte.toString(16).padStart(2, '0')).join('');
+      job.localJobId = id;
+      job.localWorkerOrigin = scan.workerOrigin;
+      job.localTicket = scan.ticket;
+      job.expiresAt = scan.expiresAt;
+      input = { id, scanId: scan.id, candidateId: item.pageCandidateId };
+    } else {
+      const signed = await authFetchJson(`${API_BASE}/local-url-ticket`, {
+        method: 'POST', headers, signal, body: JSON.stringify({ sourceUrl: item.sourceUrl })
+      });
+      if (signed?.job?.sourceKind !== 'url' || normalizeYouTubeUrl(signed.job.sourceUrl) !== item.sourceUrl) {
+        throw new Error('The website returned a media preparation ticket for a different video.');
+      }
+      job.localJobId = cleanText(signed.job.id);
+      job.localWorkerOrigin = normalizeWorkerOrigin(signed.workerOrigin);
+      job.localTicket = cleanText(signed.ticket);
+      job.expiresAt = preparationExpiry(signed.expiresAt);
+      input = { id: job.localJobId, sourceUrl: item.sourceUrl };
+    }
+    if (!/^[a-f0-9]{32}$/.test(job.localJobId) || !job.localTicket || !(job.expiresAt > Date.now())) {
+      throw new Error('The media preparation ticket is invalid or expired.');
+    }
+    const created = await workerFetchJson(job.localWorkerOrigin,
+      fromPage ? '/v1/page-preparations' : '/v1/url-preparations', job.localTicket, {
+        method: 'POST', headers, signal, body: JSON.stringify(input)
+      });
+    if (created?.id !== job.localJobId) throw new Error('The worker returned a different preparation ID.');
+    if (fromPage) {
+      const jobTicket = cleanText(created.jobTicket);
+      const expiresAt = preparationExpiry(created.expiresAt);
+      if (!jobTicket || !(expiresAt > Date.now())) throw new Error('The worker did not return a valid preparation ticket.');
+      job.localTicket = jobTicket;
+      job.expiresAt = expiresAt;
+    }
+  };
+
+  const preparedMedia = (data) => {
+    const media = data?.media;
+    const filename = cleanText(media?.filename);
+    const format = cleanText(media?.format).toLowerCase();
+    const contentType = cleanText(media?.contentType).toLowerCase();
+    const bytes = Number(media?.bytes);
+    const durationSeconds = Number(media?.durationSeconds);
+    if (!filename || /[\\/\u0000-\u001f\u007f]/.test(filename) || [...filename].length > 240 || getExtension(filename) !== format ||
+        !DEFAULT_CONFIG.supportedFormats.includes(format) ||
+        !/^(?:(?:audio|video)\/[a-z0-9.+-]+|application\/octet-stream)$/.test(contentType) ||
+        !Number.isSafeInteger(bytes) || bytes < 1 || bytes > DEFAULT_CONFIG.maxFileBytes ||
+        !Number.isFinite(durationSeconds) || durationSeconds <= 0 ||
+        durationSeconds > DEFAULT_CONFIG.maxServiceDurationSeconds) {
+      throw new Error('The worker returned invalid prepared-media details.');
+    }
+    const suffix = `.${format}`;
+    const stem = filename.slice(0, -suffix.length)
+      .replace(/[^a-zA-Z0-9._ -]+/g, '_')
+      .replace(/\s+/g, ' ')
+      .slice(0, AWS_FILENAME_LIMIT - suffix.length)
+      .trim();
+    return { filename: `${stem || 'Prepared media'}${suffix}`, format, contentType, bytes, durationSeconds };
+  };
+
+  const prepareImportedMedia = async (item) => {
+    if (!isAdminUser() || !state.mediaPreparation || state.busy ||
+        (item.sourceKind === 'page' ? !pageImportIsReady() : !urlImportIsReady())) return;
+    discardPreparation(item);
+    const job = { ownerSub: getAuthSub(), controller: new AbortController() };
+    const signal = job.controller.signal;
+    const ownsItem = () => !signal.aborted && item.preparation === job &&
+      state.files.includes(item) && job.ownerSub === getAuthSub();
+    item.preparation = job;
+    item.status = 'preparing';
+    item.prepareError = '';
+    if (approveEl) approveEl.checked = false;
+    renderTable();
+    try {
+      await createPreparation(item, job);
+      while (ownsItem() && job.expiresAt > Date.now()) {
+        const data = await workerFetchJson(job.localWorkerOrigin, localJobPath(job), job.localTicket, { signal });
+        if (!ownsItem()) return;
+        if (data?.status === 'prepared') {
+          job.media = preparedMedia(data);
+          item.mediaFilename = job.media.filename;
+          item.extension = job.media.format;
+          item.contentType = job.media.contentType;
+          item.bytes = job.media.bytes;
+          item.durationSeconds = job.media.durationSeconds;
+          item.status = 'ready';
+          renderTable();
+          return;
+        }
+        if (!['queued', 'processing'].includes(data?.status)) {
+          throw new Error(responseErrorMessage(data, 'The worker could not prepare this media.'));
+        }
+        await sleep(LOCAL_POLL_INTERVAL_MS);
+      }
+      if (ownsItem()) throw new Error('Media preparation expired. Retry or remove this item.');
+    } catch (error) {
+      if (!ownsItem()) return;
+      discardPreparation(item);
+      item.status = 'prepare-error';
+      item.prepareError = friendlyTranscribeError(error?.message || 'Media preparation failed.');
+      renderTable();
+    } finally {
+      if (signal.aborted) releasePreparation(job);
+    }
   };
 
   const abortActive = () => {
@@ -2308,7 +2502,7 @@
         if (value === undefined || value === null) return;
         body.append(key, String(value));
       });
-      body.append('file', item.file, item.name || 'media');
+      body.append('file', item.file, item.mediaFilename || item.name || 'media');
       xhr.send(body);
       return;
     }
@@ -2458,7 +2652,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          filename: item.name,
+          filename: item.mediaFilename || item.name,
           contentType: item.contentType,
           bytes: item.bytes,
           durationSeconds: item.durationSeconds
@@ -2476,6 +2670,7 @@
     renderTable();
     await uploadFile(item, presign);
     item.uploadComplete = true;
+    discardPreparation(item);
     persistActiveRunRecovery();
     if (state.canceled) throw new Error('Canceled.');
 
@@ -2847,12 +3042,67 @@
     await pollLocalRun(item);
   };
 
-  const runSelectedFile = async (item) => {
-    if (isImportedSource(item) && item.provider !== PROVIDER_LOCAL) {
-      throw new Error('URL imports can only be processed on Home GPU.');
-    }
-    if (item.provider !== PROVIDER_LOCAL) return runFile(item);
+  const runPreparedOnAws = async (item) => {
+    if (!preparationIsCurrent(item)) throw new Error('The prepared media expired. Prepare it again before starting.');
+    const job = item.preparation;
+    const controller = new AbortController();
+    state.activeController = controller;
+    item.status = 'uploading';
+    renderTable();
     try {
+      const response = await workerFetch(job.localWorkerOrigin, localJobPath(job, '/media'), job.localTicket, {
+        method: 'GET',
+        redirect: 'error',
+        signal: controller.signal
+      });
+      if (!response.ok) await readJson(response);
+      if (Number(response.headers.get('Content-Length')) !== job.media.bytes ||
+          response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== job.media.contentType) {
+        await response.body?.cancel();
+        throw new Error('The prepared media does not match the approved estimate.');
+      }
+      const blob = await response.blob();
+      if (blob.size !== job.media.bytes || !preparationIsCurrent(item)) {
+        throw new Error('The prepared media changed or expired. Prepare it again before starting.');
+      }
+      item.file = new File([blob], job.media.filename, { type: job.media.contentType });
+      if (state.canceled) throw new Error('Canceled.');
+      await runFile(item);
+    } finally {
+      item.file = null;
+      if (state.activeController === controller) state.activeController = null;
+    }
+  };
+
+  const runPreparedLocally = async (item) => {
+    if (!preparationIsCurrent(item)) throw new Error('The prepared media expired. Prepare it again before starting.');
+    const job = item.preparation;
+    item.localJobId = job.localJobId;
+    item.localWorkerOrigin = job.localWorkerOrigin;
+    item.localTicket = job.localTicket;
+    item.localTicketExpiresAt = new Date(job.expiresAt).toISOString();
+    item.status = 'starting';
+    renderTable();
+    const controller = new AbortController();
+    state.activeController = controller;
+    try {
+      await workerFetchJson(item.localWorkerOrigin, localJobPath(item, '/transcribe'), item.localTicket, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+        signal: controller.signal
+      });
+      item.preparation = null;
+    } finally {
+      if (state.activeController === controller) state.activeController = null;
+    }
+    await pollLocalRun(item);
+  };
+
+  const runSelectedFile = async (item) => {
+    if (item.provider !== PROVIDER_LOCAL) return isImportedSource(item) ? runPreparedOnAws(item) : runFile(item);
+    try {
+      if (item.preparation) return await runPreparedLocally(item);
       return await (item.sourceKind === 'page' ? runLocalPageVideo(item) : runLocalFile(item));
     } catch (err) {
       if (!state.canceled && isTransientRunError(err)) {
@@ -2950,7 +3200,7 @@
   const resumeItem = async (item) => resumeQueue([item]);
 
   const runBatch = async ({ reportOutcome = false } = {}) => {
-    if (state.busy || state.analyzing) return;
+    if (state.busy || state.analyzing || state.view !== 'upload') return;
     if (!authIsReady()) {
       setStatus(runStatusEl, 'Sign in before starting transcription jobs.', 'warning');
       updateAuthUi();
@@ -2976,13 +3226,20 @@
       return;
     }
 
-    const queue = acceptedFiles().filter((item) => item.status === 'ready');
-    if (queue.some((item) => item.sourceKind === 'url') && !urlImportIsReady()) {
+    reviewQueuedMedia();
+    if (state.files.some(needsPreparation)) {
+      if (approveEl) approveEl.checked = false;
+      setStatus(runStatusEl, 'Prepare all imported media before approving and starting the batch.', 'warning');
+      renderTable();
+      return;
+    }
+    const queue = readyFiles();
+    if (queue.some((item) => item.sourceKind === 'url' && !item.preparation) && !urlImportIsReady()) {
       setStatus(runStatusEl, 'URL import is unavailable on the Home GPU worker. Check its connection and try again.', 'warning');
       if (reportOutcome) reportRunError('validation');
       return;
     }
-    if (queue.some((item) => item.sourceKind === 'page') && !pageImportIsReady()) {
+    if (queue.some((item) => item.sourceKind === 'page' && !item.preparation) && !pageImportIsReady()) {
       setStatus(runStatusEl, 'Web page import is unavailable on the Home GPU worker. Check its connection and try again.', 'warning');
       if (reportOutcome) reportRunError('validation');
       return;
@@ -3004,6 +3261,7 @@
       return;
     }
 
+    const ownerSub = getAuthSub();
     state.canceled = false;
     setView('processing');
     setBusy(true);
@@ -3019,6 +3277,7 @@
 
     for (let i = 0; i < queue.length; i += 1) {
       const item = queue[i];
+      if (getAuthSub() !== ownerSub) state.canceled = true;
       if (state.canceled) break;
       try {
         setStatus(runStatusEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`, '');
@@ -3047,6 +3306,7 @@
       }
     }
 
+    state.files.forEach(discardPreparation);
     const completed = queue.filter((item) => item.status === 'complete').length;
     const partial = queue.filter((item) => item.status === 'partial').length;
     const failed = queue.filter((item) => item.status === 'failed').length;
@@ -3086,7 +3346,10 @@
     state.analyzing = false;
     abortActive();
     clearPageScan();
+    state.files.forEach(discardPreparation);
     state.files = [];
+    state.providerChoice = '';
+    state.provider = isAdminUser() && state.localConfig?.configured !== false ? PROVIDER_LOCAL : PROVIDER_AWS;
     clearActiveRunRecovery();
     if (fileEl) fileEl.value = '';
     if (urlEl) {
@@ -3157,7 +3420,7 @@
   methodInputs.forEach((input) => {
     input.addEventListener('change', () => {
       if (!input.checked) return;
-      if (state.files.length || state.busy || state.analyzing) {
+      if (state.busy || state.analyzing || state.view !== 'upload') {
         updateMethodUi();
         return;
       }
@@ -3169,22 +3432,15 @@
       }
       state.provider = nextProvider;
       state.providerChoice = nextProvider;
-      if (!isLocalProvider()) {
-        clearPageScan();
-        if (pageUrlEl) pageUrlEl.value = '';
-      }
       if (approveEl) approveEl.checked = false;
       if (processingDetailsEl) processingDetailsEl.open = false;
       if (isLocalProvider()) {
         state.usageRequestId += 1;
         state.usageLoading = false;
       }
-      updateMethodUi();
-      updateSummary();
-      updateControls();
+      renderTable();
       setStatus(runStatusEl, '', '');
-      if (isLocalProvider()) void refreshLocalWorkerStatus();
-      else void loadUsage();
+      if (!isLocalProvider()) void loadUsage();
       markSessionDirty();
     });
   });
@@ -3195,9 +3451,15 @@
     });
   }
 
+  retryPreparationBtn?.addEventListener('click', () => {
+    if (state.busy || state.analyzing) return;
+    state.files.filter((item) => item.status !== 'preparing' && needsPreparation(item))
+      .forEach((item) => { void prepareImportedMedia(item); });
+  });
+
   sourceInputs.forEach((input) => {
     input.addEventListener('change', () => {
-      if (!input.checked || state.busy || state.analyzing || !isLocalProvider()) return;
+      if (!input.checked || state.busy || state.analyzing || !isAdminUser()) return;
       state.sourceKind = ['file', 'url', 'page'].includes(input.value) ? input.value : 'file';
       setStatus(urlStatusEl, '', '');
       updateControls();
@@ -3287,6 +3549,7 @@
       const removedIndex = state.files.findIndex((entry) => entry.id === id);
       const item = removedIndex >= 0 ? state.files[removedIndex] : null;
       if (!item || !canRemoveItem(item)) return;
+      discardPreparation(item);
       state.files = state.files.filter((entry) => entry.id !== id);
       if (item.sourceKind === 'page') renderPageCandidates();
       persistActiveRunRecovery();
