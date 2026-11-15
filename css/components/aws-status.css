@@ -21,30 +21,15 @@
     position: relative;
   }
 
-  .aws-status__toolbar,
-  .aws-status__heading,
+  .aws-status__toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
   .aws-status__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-8) var(--space-16);
-  }
-
-  .aws-status__toolbar {
-    justify-content: space-between;
-  }
-
-  .aws-status__heading {
-    gap: var(--space-4) var(--space-12);
-  }
-
-  .aws-status__heading p {
-    padding-inline-start: var(--space-12);
-    border-inline-start: 1px solid var(--surface-border);
-  }
-
-  .aws-status__actions {
-    margin-inline-start: auto;
     justify-content: flex-end;
     gap: var(--space-8) var(--space-12);
   }
@@ -59,11 +44,6 @@
   }
 
   .aws-status__history-control {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-8);
-    color: var(--text-muted);
     font-size: 0.9rem;
   }
 
@@ -78,17 +58,10 @@
   }
 
   .aws-status__actions p,
-  .aws-status__heading p,
   .aws-status__empty {
     margin: 0;
     color: var(--text-muted);
     font-size: 0.9rem;
-  }
-
-  .aws-status__heading h2 {
-    margin: 0;
-    font-size: clamp(1.4rem, 3vw, 1.85rem);
-    line-height: 1.2;
   }
 
   .aws-status__notice {
@@ -124,6 +97,7 @@
     min-width: 0;
   }
 
+  .aws-status__axis,
   .aws-status__group-summary,
   .aws-status__history-row {
     display: grid;
@@ -133,8 +107,61 @@
     border-bottom: 1px solid var(--surface-border);
   }
 
+  .aws-status__axis-spacer {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    align-self: stretch;
+    background: var(--surface);
+  }
+
+  .aws-status__axis-bands,
+  .aws-status__ticks {
+    display: grid;
+    gap: 2px;
+  }
+
+  .aws-status__axis-bands {
+    grid-template-columns: repeat(var(--aws-status-period-count), minmax(0, 1fr));
+  }
+
+  .aws-status__axis-band,
+  .aws-status__tick[data-aws-status-boundary] {
+    position: relative;
+  }
+
+  .aws-status__axis-band + .aws-status__axis-band::before,
+  .aws-status__tick[data-aws-status-boundary]::after {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: -1px;
+    width: 1px;
+    background: var(--surface-border);
+    pointer-events: none;
+    content: "";
+  }
+
+  .aws-status__axis-label {
+    position: sticky;
+    inset-inline-start: var(--aws-status-label-width);
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: hidden;
+    padding-block: var(--space-4) var(--space-8);
+    color: var(--text-light);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .aws-status__group-summary {
     min-height: 3.75rem;
+  }
+
+  .aws-status__group-items[data-aws-status-moving] {
+    overflow: clip;
   }
 
   .aws-status__history-row {
@@ -200,6 +227,12 @@
     transform: rotate(45deg);
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    .aws-status__group-toggle::before {
+      transition: transform 220ms cubic-bezier(.2, .7, .2, 1);
+    }
+  }
+
   .aws-status__group-count {
     color: var(--text-muted);
     font-size: 0.78em;
@@ -216,10 +249,8 @@
   }
 
   .aws-status__ticks {
-    display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
-    gap: 2px;
   }
 
   .aws-status__tick {
@@ -245,11 +276,11 @@
   }
 
   .aws-status__tick::before {
-    height: 16px;
+    height: 18px;
   }
 
-  .aws-status__group-summary .aws-status__tick::before {
-    height: 22px;
+  .aws-status__tick[data-state="unknown"]::before {
+    height: 4px;
   }
 
   .aws-status__tick[data-state="degraded"]::before {
@@ -276,10 +307,6 @@
     font-size: 0.82rem;
   }
 
-  .aws-status__legend [data-aws-status-part="history-start"] {
-    margin-inline-start: var(--aws-status-label-width);
-  }
-
   .aws-status__legend ul {
     flex-basis: 100%;
     gap: var(--space-6) var(--space-16);
@@ -294,8 +321,12 @@
     border-radius: 2px;
   }
 
+  .aws-status__legend li[data-state="unknown"]::before {
+    height: 4px;
+  }
+
   .aws-status [data-state="operational"] {
-    --aws-status-fill: #1cb77b;
+    --aws-status-fill: #1c9863;
     --aws-status-ink: var(--brand-success);
   }
 
@@ -310,7 +341,7 @@
   }
 
   .aws-status [data-state="unknown"] {
-    --aws-status-fill: #cbd5e1;
+    --aws-status-fill: #9aa5b4;
     --aws-status-ink: var(--brand-graphite);
   }
 
@@ -401,10 +432,6 @@
     .aws-status__legend {
       gap: var(--space-4);
     }
-
-    .aws-status__legend [data-aws-status-part="history-start"] {
-      margin-inline-start: 0;
-    }
   }
 
   @media (max-width: 46rem) and (pointer: coarse) {
@@ -428,6 +455,10 @@
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"][data-page-masthead] {
     --masthead-title-size: clamp(1.75rem, 3vw, 2.75rem);
     border-bottom-color: var(--panel-color);
+  }
+
+  [data-personal-tool-header="aws-status"] .personal-tool-header__summary {
+    display: none;
   }
 
   body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"] [data-page-masthead-parent] {

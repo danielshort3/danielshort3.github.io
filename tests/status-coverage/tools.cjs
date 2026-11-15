@@ -78,6 +78,36 @@ function statusGroup(page, name) {
   };
 }
 
+async function expectStatusAxis(dashboard, expectedBands) {
+  const axis = dashboard.locator('.aws-status__axis');
+  await expect(axis).toHaveCount(1);
+  const actual = await axis.evaluate((element) => {
+    const grid = element.closest('[data-aws-status-part="history-grid"]');
+    const rows = [...grid.querySelectorAll('.aws-status__ticks')];
+    const bands = [...element.querySelectorAll('.aws-status__axis-band')];
+    let start = 0;
+    const aligned = bands.every((band) => {
+      const count = Number(band.dataset.periodCount);
+      const rect = band.getBoundingClientRect();
+      const matches = rows.every((row) => {
+        const first = row.children[start];
+        const last = row.children[start + count - 1];
+        return first && last &&
+          Math.abs(rect.left - first.getBoundingClientRect().left) < 1 &&
+          Math.abs(rect.right - last.getBoundingClientRect().right) < 1;
+      });
+      start += count;
+      return matches && Boolean(band.querySelector('.aws-status__axis-label')?.textContent.trim());
+    });
+    return {
+      bands: bands.map((band) => [band.dataset.start, Number(band.dataset.periodCount)]),
+      aligned,
+      coversEveryPeriod: rows.length > 0 && rows.every((row) => row.children.length === start)
+    };
+  });
+  expect(actual).toEqual({ bands: expectedBands, aligned: true, coversEveryPeriod: true });
+}
+
 async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
   const period = page.getByRole('combobox', { name: 'Group by' });
   const tooltip = page.getByRole('tooltip');
@@ -222,6 +252,17 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await expect(browserTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(projectTicks.last()).toHaveAttribute('data-state', 'degraded');
   await expect(gameTicks.last()).toHaveAttribute('data-state', 'operational');
+  // Both versions of 1 AM belong to the same three-period Mountain date band.
+  await expectStatusAxis(dashboard, [
+    ['2026-10-29', 20], ['2026-10-30', 24], ['2026-10-31', 24], ['2026-11-01', 3]
+  ]);
+  const marks = (ticks) => ticks.evaluateAll((elements) => elements.slice(-4).map((tick) => {
+    const { height, backgroundColor, backgroundImage, borderRadius } = getComputedStyle(tick, '::before');
+    return { state: tick.dataset.state, height, backgroundColor, backgroundImage, borderRadius };
+  }));
+  const summaryMarks = await marks(localServices.summary);
+  expect(summaryMarks.map((mark) => mark.state)).toEqual(['unknown', 'degraded', 'outage', 'operational']);
+  expect(await marks(homeGpuTicks)).toEqual(summaryMarks);
   await awsTicks.last().hover();
   await expect(tooltip.locator('strong')).toContainText('1:00 AM MST');
   await awsTicks.last().press('ArrowLeft');
@@ -232,10 +273,16 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
 
   await period.selectOption('daily');
   await expect.poll(rowLengths).toEqual(Array(12).fill(89));
+  await expectStatusAxis(dashboard, [
+    ['2026-08-04', 6], ['2026-08-10', 7], ['2026-08-17', 7], ['2026-08-24', 7],
+    ['2026-08-31', 7], ['2026-09-07', 7], ['2026-09-14', 7], ['2026-09-21', 7],
+    ['2026-09-28', 7], ['2026-10-05', 7], ['2026-10-12', 7], ['2026-10-19', 7], ['2026-10-26', 6]
+  ]);
   await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Offline$/);
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
   await period.selectOption('weekly');
   await expect.poll(rowLengths).toEqual(Array(12).fill(13));
+  await expectStatusAxis(dashboard, [['2026-08-04', 5], ['2026-09-07', 4], ['2026-10-05', 4]]);
   await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
   await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
   await awsTicks.nth(11).hover();
