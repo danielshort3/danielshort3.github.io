@@ -924,7 +924,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   ['/tools/word-frequency', '/games/roulette', '/games/probability-engine'].forEach((route) => {
     assert(!html.includes(`href="${route}"`), `homepage preview should leave ${route} to its full directory`);
   });
-  ['campaign-creative-tracker', 'short-links', 'ga4-utm-performance', 'job-application-tracker', 'transcribe'].forEach((toolId) => {
+  const restrictedToolIds = [
+    'aws-status',
+    'campaign-creative-tracker',
+    'ga4-utm-performance',
+    'job-application-tracker',
+    'short-links',
+    'transcribe',
+    'watermark-remover'
+  ];
+  restrictedToolIds.forEach((toolId) => {
     assert(!JSON.stringify(categories).includes(`\"id\":\"${toolId}\"`),
       `homepage should not expose hidden tool ${toolId}`);
   });
@@ -1038,13 +1047,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(homeLibraryData.tools.items.every((item) =>
     item.image === versionedImageUrl(`/${toolsById.get(item.id)?.iconImage}`) && item.imageAlt === ''),
   'every public tool library card should reuse its original canonical PNG icon');
-  assert(toolsById.get('aws-status')?.visibility === 'admin' && allTools.every((tool) => {
+  assert(['aws-status', 'watermark-remover'].every((id) => toolsById.get(id)?.visibility === 'admin') && allTools.every((tool) => {
     if (tool.iconImage !== `img/tools/icons/${tool.slug}.png`) return false;
     const buffer = fs.readFileSync(path.join(ROOT, tool.iconImage));
     return buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
       buffer.readUInt32BE(16) > 0 && buffer.readUInt32BE(20) > 0;
   }),
-  'all catalog tools should retain valid original PNG assets and AWS Status should be admin-only');
+  'all catalog tools should retain valid original PNG assets and AWS Status and Watermark Remover should be admin-only');
   const featuredTools = categories.find((category) => category.id === 'tools').items;
   assert(featuredTools.every((tool) => homeLibraryData.tools.items.some((item) =>
     item.id === tool.id && item.image === versionedImageUrl(`/${tool.image}`))),
@@ -1191,7 +1200,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     String(tool.visibility || 'public').toLowerCase() !== 'public' || tool.hidden || tool.noindex);
   const publicTools = toolsDirectoryItems.filter((tool) =>
     String(tool.visibility || 'public').toLowerCase() === 'public' && !tool.hidden && !tool.noindex);
-  assert(excludedTools.length === 6 && excludedTools.some((tool) => tool.id === 'aws-status') &&
+  assert(JSON.stringify(excludedTools.map((tool) => tool.id).sort()) === JSON.stringify(restrictedToolIds) &&
     excludedTools.every((tool) => !libraryToolIds.has(tool.id)) &&
     publicTools.every((tool) => libraryToolIds.has(tool.id)) &&
     homeLibraryData.tools.items.every((tool) => publicTools.some((source) => source.id === tool.id)),

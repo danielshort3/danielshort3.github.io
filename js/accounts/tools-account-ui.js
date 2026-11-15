@@ -24,6 +24,7 @@
     'campaign-creative-tracker': { name: 'Campaign Creative Tracker', href: '/tools/campaign-creative-tracker' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
     'transcribe': { name: 'File Transcriber', href: '/tools/transcribe' },
+    'watermark-remover': { name: 'Watermark Remover', href: '/tools/watermark-remover' },
     'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/transcribe' }
   };
 
@@ -31,6 +32,7 @@
     'job-application-tracker': { persistence: 'custom' },
     'short-links': { persistence: 'none', embedded: true },
     'aws-status': { persistence: 'none', trackOpen: false },
+    'watermark-remover': { persistence: 'none', trackOpen: false },
     'transcribe': { persistence: 'custom', signInMode: 'popup' },
     'whisper-transcribe-monitor': { persistence: 'custom', signInMode: 'popup' }
   };

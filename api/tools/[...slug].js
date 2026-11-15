@@ -13,6 +13,7 @@ const handleActivity = require('../_lib/tools-endpoints/activity');
 const handleTranscribe = require('../_lib/tools-endpoints/transcribe');
 const handleAuth = require('../_lib/tools-endpoints/auth');
 const handleAwsStatus = require('../_lib/tools-endpoints/aws-status');
+const handleWatermarkRemover = require('../_lib/tools-endpoints/watermark-remover');
 
 function getEndpointSegmentsFromRequest(req){
   const querySlug = req.query && req.query.slug;
@@ -41,6 +42,7 @@ module.exports = async (req, res) => {
   if (endpoint === 'transcribe') return handleTranscribe(req, res, rest);
   if (endpoint === 'auth') return handleAuth(req, res, rest);
   if (endpoint === 'aws-status' && rest.length === 0) return handleAwsStatus(req, res);
+  if (endpoint === 'watermark-remover' && rest.length === 0) return handleWatermarkRemover(req, res);
 
   sendJson(res, 404, { ok: false, error: 'Not Found' });
 };

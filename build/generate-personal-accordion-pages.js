@@ -48,6 +48,7 @@ const INTERNAL_TOOL_PAGE_IDS = Object.freeze([
   'campaign-creative-tracker',
   'ga4-utm-performance',
   'transcribe',
+  'watermark-remover',
   'tools-dashboard',
   'job-application-copilot',
   'job-application-copilot-privacy'
