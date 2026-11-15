@@ -21,6 +21,7 @@
   const HARD_BOUNDARY_PATHS = new Set([
     '/tools/background-remover',
     '/tools/transcribe',
+    '/tools/watermark-remover',
     '/tools/job-application-tracker'
   ]);
   const PERSISTENT_BODY_CLASSES = new Set([

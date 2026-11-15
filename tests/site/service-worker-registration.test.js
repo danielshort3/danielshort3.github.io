@@ -42,13 +42,20 @@ function testMetadataGeneration() {
     assert(!result.includes('/old-register.js'));
   }
 
-  for (const tool of ['text-compare', 'job-application-tracker']) {
+  for (const tool of ['text-compare', 'job-application-tracker', 'watermark-remover']) {
     const file = `pages/${tool}.html`;
     const legacyPage = read(file).replace(/<script\b[^>]*\bid="ds-sw-register"[^>]*>[\s\S]*?<\/script>/i, legacy);
     const output = injectScripts(injectHead(legacyPage, file).html, file).html;
     assertRegistration(output, `${tool} final build output`);
     const manifest = validatePersonalRouteDocument(output);
     assert.equal(manifest.scripts.filter((src) => src === registrationPath).length, 1, 'Route manifests must classify the shared external script once');
+    if (tool === 'watermark-remover') {
+      const controller = '/js/tools/watermark-remover.js';
+      const version = crypto.createHash('sha256').update(fs.readFileSync(path.join(root, controller))).digest('hex').slice(0, 12);
+      assert(manifest.scripts.includes(`${controller}?v=${version}`), 'The launch controller must carry its current content version');
+      assert(!manifest.scripts.includes(controller), 'An old unversioned controller must stay out of the manifest');
+      assert.equal(injectScripts(output, file).html, output, 'Versioning the build twice must keep the same launch controller URL');
+    }
   }
 
   const softPage = injectScripts(injectHead(read('pages/text-compare.html'), 'pages/text-compare.html').html, 'pages/text-compare.html').html;

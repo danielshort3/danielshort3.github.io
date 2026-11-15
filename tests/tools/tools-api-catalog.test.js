@@ -12,8 +12,8 @@ const accountSource = fs.readFileSync(path.join(root, 'js/accounts/tools-account
 const catalogMatch = /  const TOOL_CATALOG = (\{[\s\S]*?\n  \});/.exec(accountSource);
 assert(catalogMatch, 'The shared account UI must expose its tool catalog');
 const catalog = vm.runInNewContext(`(${catalogMatch[1]})`);
-const readOnlyToolId = 'aws-status';
-const toolIds = Object.keys(catalog).filter((id) => id !== readOnlyToolId);
+const privateToolIds = ['aws-status', 'watermark-remover'];
+const toolIds = Object.keys(catalog).filter((id) => !privateToolIds.includes(id));
 
 function response() {
   return {
@@ -26,9 +26,11 @@ function response() {
 }
 
 async function run() {
-  assert(catalog[readOnlyToolId], 'AWS Status must be reachable in the shared account UI');
-  assert.match(accountSource, /'aws-status': \{ persistence: 'none', trackOpen: false \}/);
-  assert(!KNOWN_TOOL_IDS.has(readOnlyToolId), 'AWS Status should not accept account activity or snapshots');
+  for (const id of privateToolIds) {
+    assert(catalog[id], `${id} must be reachable in the shared account UI`);
+    assert(accountSource.includes(`'${id}': { persistence: 'none', trackOpen: false }`));
+    assert(!KNOWN_TOOL_IDS.has(id), `${id} should not accept account activity or snapshots`);
+  }
   assert(toolIds.includes('campaign-creative-tracker'), 'The browser regression must include Campaign Creative Tracker');
   for (const id of toolIds) {
     assert(KNOWN_TOOL_IDS.has(id), `Account UI tool ${id} must be accepted by activity and session APIs`);
@@ -37,7 +39,7 @@ async function run() {
   for (const file of fs.readdirSync(path.join(root, 'content/tools')).filter((name) => name.endsWith('.json'))) {
     const tool = JSON.parse(fs.readFileSync(path.join(root, 'content/tools', file), 'utf8'));
     assert(catalog[tool.slug], `Configured tool ${tool.slug} must have a shared account entry`);
-    if (tool.slug === readOnlyToolId) continue;
+    if (privateToolIds.includes(tool.slug)) continue;
     assert(KNOWN_TOOL_IDS.has(tool.slug), `Configured tool ${tool.slug} must be accepted by the API`);
   }
 

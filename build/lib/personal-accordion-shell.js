@@ -19,7 +19,8 @@ const HARD_NAVIGATION_PATHS = Object.freeze([
   '/tools/aws-status',
   '/tools/background-remover',
   '/tools/job-application-tracker',
-  '/tools/transcribe'
+  '/tools/transcribe',
+  '/tools/watermark-remover'
 ]);
 
 const CATEGORY_CONFIG = Object.freeze({

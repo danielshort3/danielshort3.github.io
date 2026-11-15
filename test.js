@@ -1782,8 +1782,9 @@ try {
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
     assert(publicTools.length === 10, 'anonymous tools directory should expose 10 public tools by default');
     assert(accountTools.length === 2, 'signed-in tools directory should include 2 account-only tools');
-    assert(adminTools.length === 4 && adminTools.some((tool) => tool.slug === 'aws-status'),
-      'admin tools directory should include AWS Status and retain the existing admin tools');
+    assert(adminTools.length === 5 && ['aws-status', 'watermark-remover'].every((slug) =>
+      adminTools.some((tool) => tool.slug === slug)),
+      'admin tools directory should include AWS Status and Watermark Remover and retain the existing admin tools');
     assert(toolRecords.some((tool) => tool.slug === 'transcribe' && tool.visibility === 'authed'),
       'File Transcriber should be listed as an account-only tool');
     const sitemap = readFile('sitemap.xml');

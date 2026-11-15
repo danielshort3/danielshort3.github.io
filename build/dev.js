@@ -15,6 +15,7 @@ const { spawnSync } = require('child_process');
 const { loadLocalEnvironment } = require('./lib/local-env');
 const { handleLocalChatbotRequest } = require('./lib/local-chatbot-proxy');
 const { handleLocalJobTrackerRequest } = require('./lib/local-job-tracker-proxy');
+const { getWorkerOrigin: getWatermarkWorkerOrigin } = require('../api/_lib/tools-endpoints/watermark-remover');
 
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
@@ -847,6 +848,17 @@ function createLocalServer({ envDir = root } = {}) {
   const vercelConfig = readVercelConfig();
   const redirects = compileRoutes(vercelConfig.redirects);
   const rewrites = compileRoutes(vercelConfig.rewrites);
+  const watermarkOrigin = getWatermarkWorkerOrigin(process.env);
+  if (watermarkOrigin.startsWith('http://')) {
+    for (const rule of vercelConfig.headers || []) {
+      if (!['/tools/watermark-remover', '/tools/watermark-remover.html'].includes(rule.source)) continue;
+      const policy = rule.headers?.find((header) => header.key === 'Content-Security-Policy');
+      if (policy) {
+        policy.value = policy.value.replace(/form-action ([^;]+);/,
+          `form-action $1 ${watermarkOrigin}/home-tools/watermark/;`);
+      }
+    }
+  }
   const responseHeaders = compileRoutes(vercelConfig.headers);
 
   return http.createServer((req, res) => {

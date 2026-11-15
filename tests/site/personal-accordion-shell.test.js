@@ -428,9 +428,9 @@ function runPersonalAccordionShellTests({ assert }) {
     config.relPath.replace(/\\/g, '/'),
     config
   ]));
-  assert(uniqueManagedPages.length === 53,
-    'The personal shell route sweep should cover four category roots, six utility/fallback pages, 17 projects, 19 tools, and seven games');
-  assert(INTERNAL_TOOL_PAGE_IDS.length === 9 && INTERNAL_TOOL_PAGE_IDS.includes('aws-status') &&
+  assert(uniqueManagedPages.length === 54,
+    'The personal shell route sweep should cover four category roots, six utility/fallback pages, 17 projects, 20 tools, and seven games');
+  assert(INTERNAL_TOOL_PAGE_IDS.length === 10 && ['aws-status', 'watermark-remover'].every((id) => INTERNAL_TOOL_PAGE_IDS.includes(id)) &&
     INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
   assert(Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, 'project-starfall'),
@@ -557,9 +557,9 @@ function runPersonalAccordionShellTests({ assert }) {
       `public/${relativePath} should reference the hashed personal shell stylesheet exactly once`);
   });
 
-  assert(HARD_TOOL_PAGE_IDS.length === 4 && HARD_TOOL_PAGE_IDS.includes('aws-status') &&
+  assert(HARD_TOOL_PAGE_IDS.length === 5 && ['aws-status', 'watermark-remover'].every((id) => HARD_TOOL_PAGE_IDS.includes(id)) &&
     HARD_TOOL_PAGE_IDS.every((itemId) => HARD_NAVIGATION_PATHS.includes(`/tools/${itemId}`)),
-  'The generator and route manifest should share all four native navigation boundaries');
+  'The generator and route manifest should share all five native navigation boundaries');
 
   const homeHtml = read('index.html');
   const homeManifest = getRouteManifest(homeHtml);

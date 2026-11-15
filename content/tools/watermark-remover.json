@@ -1,0 +1,15 @@
+{
+  "slug": "watermark-remover",
+  "title": "Watermark Remover",
+  "href": "tools/watermark-remover",
+  "iconImage": "img/tools/icons/watermark-remover.png",
+  "categoryId": "tools-media",
+  "privacy": "Files travel directly to the home computer for processing. Watermark Remover requires administrator access.",
+  "inputs": ["Sheet music images", "Song details", "Order of worship PDF"],
+  "outputs": ["Single-song or assembled PDF", "Multi-song download"],
+  "summary": "Process sheet music images, single songs, and orders of worship on the Home GPU.",
+  "visibility": "admin",
+  "hidden": true,
+  "order": 4,
+  "noindex": true
+}
