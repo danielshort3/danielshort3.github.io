@@ -12,6 +12,7 @@
   const HOME_GPU_STALE_MS = 75 * 60 * 1000;
   const REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
+  const GROUP_MOTION_MS = 220;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
   const HOME_GPU_STATES = { operational: 'Online', degraded: 'Worker unavailable', outage: 'Offline', unknown: 'Unknown' };
   const GROUPS = ['Tools', 'Projects', 'Games'];
@@ -25,15 +26,19 @@
     x: ['outage', 'Check failed.']
   };
   const HISTORY_VIEWS = {
-    hourly: { range: 'Last 72 hours', start: '72 hours ago', end: 'Latest shown hour', period: 'an hour' },
-    daily: { range: 'Last 90 days', start: '90 days ago', end: 'Today', period: 'a day' },
-    weekly: { range: 'Last 90 days', start: '90 days ago', end: 'This week', period: 'a week' }
+    hourly: { range: 'Last 72 hours', period: 'an hour' },
+    daily: { range: 'Last 90 days', period: 'a day' },
+    weekly: { range: 'Last 90 days', period: 'a week' }
   };
 
   const civilDateFormat = new Intl.DateTimeFormat('en-CA', {
     timeZone: HISTORY_ZONE, year: 'numeric', month: '2-digit', day: '2-digit'
   });
   const dayFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', dateStyle: 'medium' });
+  const axisDayFormat = new Intl.DateTimeFormat(undefined, {
+    timeZone: 'UTC', month: 'short', day: 'numeric'
+  });
+  const axisMonthFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', month: 'short' });
   const shortDayFormat = new Intl.DateTimeFormat(undefined, {
     timeZone: HISTORY_ZONE, month: 'short', day: 'numeric'
   });
@@ -93,6 +98,45 @@
       const last = dateLabel(week.at(-1));
       return { dates: week, label: first === last ? first : first + ' – ' + last };
     });
+  }
+
+  function historyBands({ view, hours, dates, weeks }) {
+    if (view === 'daily') {
+      return calendarWeeks(dates).map(({ dates: week }) => ({ start: week[0], count: week.length }));
+    }
+    const starts = hours ? hours.map(({ from }) => mountainDay(from)) : weeks.map(({ dates: week }) => week[0]);
+    const bands = [];
+    for (const start of starts) {
+      const key = view === 'weekly' ? start.slice(0, 7) : start;
+      const previous = bands.at(-1);
+      if (previous?.key === key) previous.count++;
+      else bands.push({ key, start, count: 1 });
+    }
+    return bands;
+  }
+
+  function renderHistoryAxis(timeline, periodCount) {
+    const axis = element('div', '', 'aws-status__axis');
+    axis.setAttribute('aria-hidden', 'true');
+    const bands = element('div', '', 'aws-status__axis-bands');
+    bands.style.setProperty('--aws-status-period-count', String(periodCount));
+    const format = timeline.view === 'weekly' ? axisMonthFormat : axisDayFormat;
+    const boundaries = new Set();
+    let offset = 0;
+    for (const { start, count } of historyBands(timeline)) {
+      if (offset > 0) boundaries.add(offset);
+      offset += count;
+      const band = element('div', '', 'aws-status__axis-band');
+      band.style.gridColumn = 'span ' + count;
+      band.dataset.start = start;
+      band.dataset.periodCount = String(count);
+      const label = element('time', format.format(Date.parse(start + 'T00:00:00Z')), 'aws-status__axis-label');
+      label.dateTime = start;
+      band.append(label);
+      bands.append(band);
+    }
+    axis.append(element('div', '', 'aws-status__axis-spacer'), bands);
+    return { axis, boundaries };
   }
 
   function weekResult({ dates, label }, byDate) {
@@ -207,8 +251,6 @@
     const grid = part('history-grid');
     const scroll = part('history-scroll');
     const rangeLabel = part('history-range');
-    const startLabel = part('history-start');
-    const endLabel = part('history-end');
     const empty = part('history-empty');
     const homeGpuDetails = part('home-gpu-details');
     const homeGpuStatus = part('home-gpu-last-check');
@@ -223,6 +265,7 @@
     let refreshTimer;
     let nextRefreshAt = 0;
     let tooltipTimer;
+    let tooltipFrame = null;
     let activeTick;
     let pinnedTick;
 
@@ -243,6 +286,8 @@
 
     function hideTooltip() {
       clearTimeout(tooltipTimer);
+      if (tooltipFrame !== null) window.cancelAnimationFrame(tooltipFrame);
+      tooltipFrame = null;
       activeTick?.removeAttribute('aria-describedby');
       activeTick = null;
       pinnedTick = null;
@@ -341,6 +386,7 @@
         tick.type = 'button';
         tick.tabIndex = index === periods.length - 1 ? 0 : -1;
         tick.dataset.state = detail.state;
+        if (timeline.boundaries.has(index)) tick.dataset.awsStatusBoundary = '';
         tick.setAttribute('aria-label', detail.label + ', ' + stateLabel);
         detailsByTick.set(tick, { ...detail, stateLabel });
         ticks.append(tick);
@@ -380,25 +426,62 @@
       body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
       toggle.setAttribute('aria-controls', homeGpu && homeGpuDetails ? body.id + ' ' + homeGpuDetails.id : body.id);
       section.append(summary, body);
-      function renderItems() {
-        const open = expandedGroups.has(group);
-        toggle.setAttribute('aria-expanded', String(open));
+      let motion = null;
+
+      function settleItems(open) {
         body.hidden = !open;
-        body.replaceChildren(...(open ? rows.map(({ label, periods }) => {
-          const row = element('div', '', 'aws-status__history-row');
-          row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline, stateLabels));
-          return row;
-        }) : []));
+        if (!open) body.replaceChildren();
+        delete body.dataset.awsStatusMoving;
+      }
+
+      function renderItems(animate = false) {
+        const open = expandedGroups.has(group);
+        // Read the height before canceling so reversing a toggle starts where it is now.
+        const from = animate ? body.getBoundingClientRect().height : 0;
+        motion?.cancel();
+        motion = null;
+        toggle.setAttribute('aria-expanded', String(open));
+        if (!open && body.contains(document.activeElement)) toggle.focus({ preventScroll: true });
+        body.inert = !open;
+        if (open) {
+          body.hidden = false;
+          if (!body.firstChild) {
+            body.replaceChildren(...rows.map(({ label, periods }) => {
+              const row = element('div', '', 'aws-status__history-row');
+              row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline, stateLabels));
+              return row;
+            }));
+          }
+        }
         if (homeGpu && homeGpuDetails && homeGpuStatus) {
           homeGpuDetails.hidden = !open;
           homeGpuStatus.replaceChildren(...(open ? homeGpuLastCheck(items[0].hours) : []));
         }
+        const to = animate && open ? body.getBoundingClientRect().height : 0;
+        if (!animate || from === to) {
+          settleItems(open);
+          return;
+        }
+        body.dataset.awsStatusMoving = '';
+        const animation = body.animate([{ height: from + 'px' }, { height: to + 'px' }], {
+          duration: GROUP_MOTION_MS,
+          easing: 'cubic-bezier(.2, .7, .2, 1)',
+          fill: 'both'
+        });
+        motion = animation;
+        animation.onfinish = () => {
+          if (motion !== animation) return;
+          settleItems(open);
+          animation.cancel();
+          motion = null;
+          if (body.isConnected) positionTooltip();
+        };
       }
       toggle.addEventListener('click', () => {
         hideTooltip();
         if (expandedGroups.has(group)) expandedGroups.delete(group);
         else expandedGroups.add(group);
-        renderItems();
+        renderItems(typeof body.animate === 'function' && window.matchMedia('(prefers-reduced-motion: no-preference)').matches);
       });
       renderItems();
       return section;
@@ -406,7 +489,7 @@
 
     function renderHistory(left) {
       const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
-      const { range, start, end, period } = HISTORY_VIEWS[view];
+      const { range, period } = HISTORY_VIEWS[view];
       const now = Date.now();
       const cutoff = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
         ? Date.parse(snapshot.hourlyReadyThrough) : null;
@@ -419,10 +502,6 @@
         hours: view === 'hourly' ? recentHours(now).filter((hour) => cutoff === null || hour.from <= cutoff) : null
       };
       rangeLabel.textContent = range;
-      startLabel.textContent = start;
-      endLabel.textContent = cutoff === null ? end : {
-        hourly: 'Latest completed hour', daily: 'Latest completed day', weekly: 'Latest shown week'
-      }[view];
       grid.dataset.granularity = view;
       const catalogData = catalogHistory(snapshot);
       const catalog = {
@@ -434,6 +513,8 @@
         ...GROUPS.map((group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
       ];
       const periodCount = (timeline.hours || timeline.weeks || dates).length;
+      const { axis, boundaries } = renderHistoryAxis(timeline, periodCount);
+      timeline.boundaries = boundaries;
       if (homeGpuDetails) homeGpuDetails.hidden = true;
       const sections = groups.filter(([, items]) => items.length > 0 && periodCount > 0)
         .map(([group, items, data]) => renderGroup(group, items, timeline, data));
@@ -441,7 +522,7 @@
       const focusToggle = focus?.querySelector('.aws-status__group-toggle') === document.activeElement;
       const focusHistory = document.activeElement?.parentElement?.getAttribute('aria-label');
       const focusDate = document.activeElement?.getAttribute('aria-label');
-      grid.replaceChildren(...sections);
+      grid.replaceChildren(...(sections.length ? [axis, ...sections] : []));
       history.hidden = sections.length === 0;
       empty.hidden = sections.length > 0;
       alignHistory(left);
@@ -484,6 +565,13 @@
       tooltip.style.top = Math.max(margin, Math.min(window.innerHeight - height - margin, top)) + 'px';
       tooltip.style.setProperty('--aws-status-tip', Math.max(12, Math.min(width - 12, center - left)) + 'px');
       tooltip.dataset.side = above ? 'above' : 'below';
+      // An expanding group can move the selected tick in a later row.
+      if (tooltipFrame === null && grid.querySelector('[data-aws-status-moving]')) {
+        tooltipFrame = window.requestAnimationFrame(() => {
+          tooltipFrame = null;
+          if (grid.querySelector('[data-aws-status-moving]')) positionTooltip();
+        });
+      }
     }
 
     function showTooltip(tick) {
