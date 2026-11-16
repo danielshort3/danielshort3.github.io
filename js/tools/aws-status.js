@@ -84,13 +84,14 @@
       new Date(end - (HISTORY_DAYS - 1 - index) * DAY_MS).toISOString().slice(0, 10));
   }
 
+  function hourPeriod(from) {
+    const to = from + HOUR_MS;
+    return { start: new Date(from).toISOString(), label: hourLabel(from, to), from, to };
+  }
+
   function recentHours(time) {
     const end = Math.floor(time / HOUR_MS) * HOUR_MS;
-    return Array.from({ length: HISTORY_HOURS }, (_, index) => {
-      const from = end - (HISTORY_HOURS - 1 - index) * HOUR_MS;
-      const to = from + HOUR_MS;
-      return { start: new Date(from).toISOString(), label: hourLabel(from, to), from, to };
-    });
+    return Array.from({ length: HISTORY_HOURS }, (_, index) => hourPeriod(end - (HISTORY_HOURS - 1 - index) * HOUR_MS));
   }
 
   function calendarWeeks(dates) {
@@ -433,21 +434,20 @@
       return ticks;
     }
 
-    function groupResult(rows, index) {
-      const incident = rows.find((row) => row.periods[index].state === 'outage') ||
-        rows.find((row) => row.periods[index].state === 'degraded');
-      if (incident) return { ...incident.periods[index], service: incident.label };
-      const unknown = rows.filter((row) => {
-        const period = row.periods[index];
-        return period.state === 'unknown' && !period.transcription;
-      });
-      const source = unknown.find((row) => row.periods[index].issue !== 'No check recorded.') || unknown[0];
-      if (source) return { ...source.periods[index], service: source.label };
-      return { label: rows[0].periods[index].label, state: 'operational' };
+    function groupResult(rows) {
+      const incident = rows.find(({ period }) => period.state === 'outage') ||
+        rows.find(({ period }) => period.state === 'degraded');
+      if (incident) return { ...incident.period, service: incident.label };
+      const unknown = rows.filter(({ period }) => period.state === 'unknown' && !period.transcription);
+      const source = unknown.find(({ period }) => period.issue !== 'No check recorded.') || unknown[0];
+      if (source) return { ...source.period, service: source.label };
+      return { label: rows[0].period.label, state: 'operational' };
     }
 
-    function renderGroup(group, items, timeline, catalog) {
+    function renderGroup(group, items, timeline, summaryHour, catalog) {
       const rows = items.map((item) => ({ label: item.label, periods: historyPeriods(item, timeline, catalog) }));
+      const summaryTimeline = { hours: [summaryHour] };
+      const latest = groupResult(items.map((item) => ({ label: item.label, period: historyPeriods(item, summaryTimeline, catalog)[0] })));
       const homeGpu = group === 'Local services';
       const stateLabels = homeGpu ? HOME_GPU_STATES : STATES;
       const section = element('section', '', 'aws-status__group');
@@ -460,8 +460,13 @@
       count.setAttribute('aria-hidden', 'true');
       toggle.append(count);
       heading.append(toggle);
-      const summaryPeriods = homeGpu ? rows[0].periods : rows[0].periods.map((_, index) => groupResult(rows, index));
-      summary.append(heading, renderTicks(group, summaryPeriods, timeline, stateLabels));
+      const stateLabel = stateLabels[latest.state];
+      const status = element('button', stateLabel, 'aws-status__summary-status');
+      status.type = 'button';
+      status.dataset.state = latest.state;
+      status.setAttribute('aria-label', group + ' latest status, ' + stateLabel);
+      detailsByTick.set(status, { ...latest, stateLabel, visualState: latest.state, view: 'hourly' });
+      summary.append(heading, status);
       const body = element('div', '', 'aws-status__group-items');
       body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
       toggle.setAttribute('aria-controls', homeGpu && homeGpuDetails ? body.id + ' ' + homeGpuDetails.id : body.id);
@@ -519,9 +524,11 @@
       }
       toggle.addEventListener('click', () => {
         hideTooltip();
+        const openingFirst = !expandedGroups.has(group) && !grid.querySelector('.aws-status__group-items:not([hidden])');
         if (expandedGroups.has(group)) expandedGroups.delete(group);
         else expandedGroups.add(group);
         renderItems(typeof body.animate === 'function' && window.matchMedia('(prefers-reduced-motion: no-preference)').matches);
+        if (openingFirst) alignHistory();
       });
       renderItems();
       return section;
@@ -533,6 +540,8 @@
       const now = Date.now();
       const cutoff = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
         ? Date.parse(snapshot.hourlyReadyThrough) : null;
+      const latestClosed = Math.floor(now / HOUR_MS) * HOUR_MS - HOUR_MS;
+      const summaryHour = hourPeriod(Math.min(cutoff ?? latestClosed, latestClosed));
       const firstUnsettledDay = cutoff === null ? null : mountainDay(cutoff + HOUR_MS);
       const dates = view === 'hourly' ? [] : recentDates(now).filter((date) => !firstUnsettledDay || date < firstUnsettledDay);
       const timeline = {
@@ -557,9 +566,10 @@
       timeline.boundaries = boundaries;
       if (homeGpuDetails) homeGpuDetails.hidden = true;
       const sections = groups.filter(([, items]) => items.length > 0 && periodCount > 0)
-        .map(([group, items, data]) => renderGroup(group, items, timeline, data));
+        .map(([group, items, data]) => renderGroup(group, items, timeline, summaryHour, data));
       const focus = document.activeElement?.closest('.aws-status__group');
       const focusToggle = focus?.querySelector('.aws-status__group-toggle') === document.activeElement;
+      const focusSummary = document.activeElement?.matches('.aws-status__summary-status');
       const focusHistory = document.activeElement?.parentElement?.getAttribute('aria-label');
       const focusDate = document.activeElement?.getAttribute('aria-label');
       grid.replaceChildren(...(sections.length ? [axis, ...sections] : []));
@@ -569,10 +579,12 @@
       if (!focus) return;
       const restored = sections.find((section) => section.dataset.group === focus.dataset.group);
       const toggle = restored?.querySelector('.aws-status__group-toggle');
+      const status = restored?.querySelector('.aws-status__summary-status');
       const row = [...(restored?.querySelectorAll('.aws-status__ticks') || [])]
         .find((ticks) => ticks.getAttribute('aria-label') === focusHistory);
       const tick = [...(row?.children || [])].find((candidate) => candidate.getAttribute('aria-label') === focusDate);
-      (focusToggle ? toggle : tick || row?.lastElementChild || toggle)?.focus({ preventScroll: true });
+      const nextFocus = focusToggle ? toggle : focusSummary ? status : tick || row?.lastElementChild || toggle;
+      nextFocus?.focus({ preventScroll: true });
     }
 
     function renderStatus() {
@@ -588,7 +600,7 @@
       if (!activeTick) return;
       const tick = activeTick.getBoundingClientRect();
       const clip = scroll.getBoundingClientRect();
-      const stickyLabel = activeTick.parentElement.previousElementSibling?.getBoundingClientRect();
+      const stickyLabel = activeTick.closest('.aws-status__ticks')?.previousElementSibling?.getBoundingClientRect();
       if (tick.right <= (stickyLabel?.right ?? clip.left) || tick.left >= clip.right ||
         tick.bottom <= Math.max(0, clip.top) || tick.top >= Math.min(window.innerHeight, clip.bottom)) {
         hideTooltip();
@@ -671,39 +683,41 @@
       tooltipTimer = setTimeout(hideTooltip, 150);
     }
 
-    function tickFrom(event) {
-      const tick = event.target.closest?.('.aws-status__tick');
-      return detailsByTick.has(tick) ? tick : null;
+    function statusControlFrom(event) {
+      const control = event.target.closest?.('.aws-status__tick, .aws-status__summary-status');
+      return detailsByTick.has(control) ? control : null;
     }
 
     function setCurrentTick(tick) {
-      const current = tick.parentElement.querySelector('[tabindex="0"]');
+      const row = tick.closest('.aws-status__ticks');
+      if (!row) return;
+      const current = row.querySelector('[tabindex="0"]');
       if (current) current.tabIndex = -1;
       tick.tabIndex = 0;
     }
 
     function installHistoryControls() {
       readings.addEventListener('pointerover', (event) => {
-        const tick = tickFrom(event);
+        const tick = statusControlFrom(event);
         if (tick && event.pointerType !== 'touch' && !pinnedTick) showTooltip(tick);
       });
       readings.addEventListener('pointerout', (event) => {
-        const tick = tickFrom(event);
+        const tick = statusControlFrom(event);
         if (tick && !tooltip.contains(event.relatedTarget)) queueTooltipClose(tick);
       });
       readings.addEventListener('focusin', (event) => {
-        const tick = tickFrom(event);
+        const tick = statusControlFrom(event);
         if (!tick) return;
         setCurrentTick(tick);
         if (pinnedTick !== tick) pinnedTick = null;
         showTooltip(tick);
       });
       readings.addEventListener('focusout', (event) => {
-        const tick = tickFrom(event);
+        const tick = statusControlFrom(event);
         if (tick && tick === activeTick && !tooltip.contains(event.relatedTarget)) hideTooltip();
       });
       readings.addEventListener('click', (event) => {
-        const tick = tickFrom(event);
+        const tick = statusControlFrom(event);
         if (!tick) return;
         if (pinnedTick === tick) {
           hideTooltip();
@@ -714,9 +728,10 @@
         showTooltip(tick);
       });
       readings.addEventListener('keydown', (event) => {
-        const tick = tickFrom(event);
-        if (!tick || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        const siblings = [...tick.parentElement.children];
+        const tick = statusControlFrom(event);
+        const row = tick?.closest('.aws-status__ticks');
+        if (!row || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const siblings = [...row.children];
         const index = siblings.indexOf(tick);
         const next = {
           ArrowLeft: siblings[Math.max(0, index - 1)],
@@ -731,7 +746,7 @@
       tooltip.addEventListener('pointerenter', () => clearTimeout(tooltipTimer));
       tooltip.addEventListener('pointerleave', () => queueTooltipClose(activeTick));
       document.addEventListener('pointerdown', (event) => {
-        if (activeTick && !tickFrom(event) && !tooltip.contains(event.target)) hideTooltip();
+        if (activeTick && !statusControlFrom(event) && !tooltip.contains(event.target)) hideTooltip();
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && activeTick) {

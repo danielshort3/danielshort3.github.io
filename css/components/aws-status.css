@@ -74,6 +74,8 @@
 
   .aws-status__group-toggle:focus-visible,
   .aws-status__history-control select:focus-visible,
+  .aws-status__summary-status:focus-visible,
+  .aws-status__summary-status[aria-describedby],
   .aws-status__tick:focus-visible,
   .aws-status__tick[aria-describedby] {
     outline: 2px solid var(--brand-midnight);
@@ -86,19 +88,27 @@
   }
 
   .aws-status__history-scroll {
+    container-type: inline-size;
     overflow-x: auto;
   }
 
   .aws-status__history-grid {
-    min-width: 46rem;
+    --aws-status-history-width: 46rem;
   }
 
   .aws-status__history-grid[data-granularity="weekly"] {
-    min-width: 0;
+    --aws-status-history-width: 0rem;
+  }
+
+  .aws-status__history-grid:has(.aws-status__group-items:not([hidden])) {
+    min-width: var(--aws-status-history-width);
+  }
+
+  .aws-status__history-grid:not(:has(.aws-status__group-items:not([hidden]))) .aws-status__axis {
+    display: none;
   }
 
   .aws-status__axis,
-  .aws-status__group-summary,
   .aws-status__history-row {
     display: grid;
     grid-template-columns: var(--aws-status-label-width) minmax(0, 1fr);
@@ -157,7 +167,47 @@
   }
 
   .aws-status__group-summary {
+    position: sticky;
+    inset-inline-start: 0;
+    display: flex;
+    box-sizing: border-box;
+    width: 100cqi;
     min-height: 3.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-inline-end: var(--aws-status-edge);
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .aws-status__summary-status {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    border: 0;
+    border-radius: var(--radius-card);
+    background: transparent;
+    color: var(--aws-status-ink);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .aws-status__summary-status::before {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 2px;
+    background: var(--aws-status-fill);
+    content: "";
+  }
+
+  .aws-status__summary-status[data-state="unknown"]::before {
+    height: 4px;
   }
 
   .aws-status__group-items[data-aws-status-moving] {
@@ -170,9 +220,6 @@
 
   .aws-status__group-heading,
   .aws-status__service {
-    position: sticky;
-    z-index: 1;
-    left: 0;
     align-self: stretch;
     margin: 0;
     line-height: 1.25;
@@ -181,7 +228,7 @@
 
   .aws-status__group-heading {
     display: flex;
-    background: var(--surface);
+    min-width: 0;
     font-size: clamp(0.88rem, 1.5vw, 1rem);
   }
 
@@ -207,7 +254,8 @@
   }
 
   @media (hover: hover) {
-    .aws-status__group-toggle:hover {
+    .aws-status__group-toggle:hover,
+    .aws-status__summary-status:hover {
       background: var(--surface-accent);
     }
   }
@@ -240,6 +288,9 @@
   }
 
   .aws-status__service {
+    position: sticky;
+    z-index: 1;
+    left: 0;
     display: grid;
     align-content: center;
     padding: var(--space-6) var(--space-12) var(--space-6) calc(var(--aws-status-edge) + var(--space-8));
@@ -423,11 +474,11 @@
     }
 
     .aws-status__history-grid {
-      min-width: 115rem;
+      --aws-status-history-width: 115rem;
     }
 
     .aws-status__history-grid[data-granularity="hourly"] {
-      min-width: 94rem;
+      --aws-status-history-width: 94rem;
     }
 
     .aws-status__tick {
@@ -441,11 +492,11 @@
 
   @media (max-width: 46rem) and (pointer: coarse) {
     .aws-status__history-grid {
-      min-width: 145rem;
+      --aws-status-history-width: 145rem;
     }
 
     .aws-status__history-grid[data-granularity="hourly"] {
-      min-width: 118rem;
+      --aws-status-history-width: 118rem;
     }
   }
 }
