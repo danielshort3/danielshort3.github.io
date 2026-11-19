@@ -434,10 +434,12 @@ function processHtml(html, relPath) {
       `$1?v=${version}$2`
     );
   }
-  if (relPath === 'pages/watermark-remover.html') {
-    const controller = 'js/tools/watermark-remover.js';
-    const version = createHash('sha256').update(fs.readFileSync(path.join(root, controller))).digest('hex').slice(0, 12);
-    next = next.replace(/(\bsrc="\/?js\/tools\/watermark-remover\.js)(?:\?v=[a-f0-9]+)?"/gi, `$1?v=${version}"`);
+  if (relPath === 'pages/watermark-remover.html' || relPath === 'pages/aws-status.html') {
+    next = next.replace(/(\bsrc="\/?)(js\/tools\/(?:watermark-remover|aws-status)\.js)(?:\?v=[a-f0-9]+)?"/gi,
+      (_, prefix, controller) => {
+        const version = createHash('sha256').update(fs.readFileSync(path.join(root, controller))).digest('hex').slice(0, 12);
+        return `${prefix}${controller}?v=${version}"`;
+      });
   }
   if (relPath === 'pages/short-links.html' || relPath === 'pages/qr-code-generator.html') {
     // These controllers share a placement URL contract and must match their page markup on first reload.

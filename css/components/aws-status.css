@@ -104,11 +104,21 @@
     min-width: var(--aws-status-history-width);
   }
 
-  .aws-status__history-grid:not(:has(.aws-status__group-items:not([hidden]))) .aws-status__axis {
-    display: none;
+  .aws-status__axis {
+    display: grid;
+    grid-template-rows: minmax(0, 0fr);
+    overflow: clip;
+    visibility: hidden;
+    opacity: 0;
   }
 
-  .aws-status__axis,
+  .aws-status__history-grid:has(.aws-status__group-toggle[aria-expanded="true"]) .aws-status__axis {
+    grid-template-rows: minmax(0, 1fr);
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .aws-status__axis-row,
   .aws-status__history-row {
     display: grid;
     grid-template-columns: var(--aws-status-label-width) minmax(0, 1fr);
@@ -276,6 +286,11 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    .aws-status__axis {
+      transition: grid-template-rows 220ms cubic-bezier(.2, .7, .2, 1),
+        opacity 220ms ease, visibility 220ms;
+    }
+
     .aws-status__group-toggle::before {
       transition: transform 220ms cubic-bezier(.2, .7, .2, 1);
     }
