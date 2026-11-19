@@ -444,6 +444,10 @@ function getHomeAccordionIconDefinitions() {
 }
 
 function renderHomeAccordionCard(item, categoryId) {
+  const summary = escapeHtml(item?.summary || '');
+  const summaryHtml = item?.compactSummary
+    ? `<span class="home-accordion__summary-full">${summary}</span> <span class="home-accordion__summary-compact">${escapeHtml(item.compactSummary)}</span>`
+    : summary;
   const href = String(item && item.href || '').trim();
   const normalizedHref = href ? normalizeHref(href) : '';
   const tag = href ? 'a' : 'article';
@@ -480,7 +484,7 @@ function renderHomeAccordionCard(item, categoryId) {
     '                <span class="home-accordion__card-copy">',
     item && item.badge ? `                  <span class="home-accordion__card-badge">${escapeHtml(item.badge)}</span>` : '',
     `                  <strong>${escapeHtml(item && item.title || 'Explore')}</strong>`,
-    item && item.summary ? `                  <span>${escapeHtml(item.summary)}</span>` : '',
+    summary ? `                  <span>${summaryHtml}</span>` : '',
     '                </span>',
     href ? `                <span class="home-accordion__card-arrow" data-home-icon="${external ? 'external-arrow' : 'arrow'}" aria-hidden="true">${homeLinkArrowImage(external, categoryId)}</span>` : '',
     `              </${tag}>`,

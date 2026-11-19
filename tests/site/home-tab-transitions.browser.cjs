@@ -11,6 +11,7 @@ const path = require('node:path');
 const sharp = require('sharp');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { createLocalServer } = require('../../build/dev');
+const personalHome = require('../../content/audiences/personal.json');
 
 const root = path.resolve(__dirname, '../..');
 const mapColor = [64, 160, 96];
@@ -130,6 +131,20 @@ async function runViewport({ browser, base, artifactDir }, settings) {
     assert.equal(await page.locator('[data-site-tab].is-active').count(), 0,
       `${settings.name} has no selected rail before opening About.`);
     await page.locator('#pcz-reject').click();
+    phase = 'projects-overview';
+    await page.locator('[data-site-tab="projects"]').click();
+    await settle(page, 'projects');
+    const borderWidth = await page.locator('.site-frame__slot').evaluate(slot =>
+      getComputedStyle(slot, '::after').borderRightWidth);
+    assert.equal(borderWidth, '2px', `${settings.name} paints the slim Projects frame after opening the tab.`);
+    const categories = personalHome.page.sections.find(section => section.props?.categories).props.categories;
+    const featuredProjects = categories.find(category => category.id === 'projects').items;
+    for (const project of featuredProjects) {
+      const summary = settings.name === 'mobile' ? project.compactSummary : project.summary;
+      const link = page.getByRole('link', { name: `${project.title} ${summary}`, exact: true });
+      assert.equal(await link.getAttribute('href'), project.href,
+        `${settings.name} exposes only the intended summary on the ${project.title} link.`);
+    }
     await page.locator('[data-site-tab="about"]').click();
     await settle(page, 'about');
     await page.evaluate(() => document.fonts.ready);

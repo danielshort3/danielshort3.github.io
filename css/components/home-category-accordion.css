@@ -12,6 +12,10 @@
     background: var(--home-canvas);
   }
 
+  body[data-page="home"][data-audience="personal"] {
+    --home-welcome-column-width: 490px;
+  }
+
   .home-accordion:not(.site-frame) {
     box-sizing: border-box;
     width: 100%;
@@ -25,9 +29,13 @@
     --home-panel-border-width: 6px;
   }
 
+  body[data-audience="personal"] .home-accordion:not(.site-frame):not(.is-library-mode) .home-accordion__item--projects {
+    --home-panel-border-width: 2px;
+  }
+
   .home-accordion:not(.site-frame)[data-home-view="closed"] {
     display: grid;
-    grid-template-columns: minmax(0, 580px) minmax(280px, 360px);
+    grid-template-columns: minmax(0, var(--home-welcome-column-width, 580px)) minmax(280px, 360px);
     align-items: center;
     justify-content: center;
     gap: clamp(40px, 6vw, 104px);
@@ -551,6 +559,10 @@
     line-height: 1.45;
   }
 
+  .home-accordion__summary-compact {
+    display: none;
+  }
+
   .home-accordion__card-badge {
     width: max-content;
     padding: 5px 8px;
@@ -894,15 +906,15 @@
     }
 
     .home-accordion__card {
-      grid-template-columns: 74px minmax(0, 1fr) 22px;
+      grid-template-columns: var(--home-card-thumbnail-size, 74px) minmax(0, 1fr) 22px;
       gap: 12px;
       min-height: 90px;
       padding: 9px;
     }
 
     .home-accordion__card-media {
-      width: 74px;
-      height: 74px;
+      width: var(--home-card-thumbnail-size, 74px);
+      height: var(--home-card-thumbnail-size, 74px);
       border-radius: 10px;
     }
 
@@ -954,6 +966,25 @@
     }
   }
 
+  @media (max-width: 768px) {
+    body[data-audience="personal"] .home-accordion__item--projects {
+      --home-card-thumbnail-size: 56px;
+    }
+
+    body[data-audience="personal"] .home-accordion__item--projects .home-accordion__card-copy > span:not(.home-accordion__card-badge) {
+      font-size: .9375rem;
+      line-height: 1.4;
+    }
+
+    .home-accordion__summary-full {
+      display: none;
+    }
+
+    .home-accordion__summary-compact {
+      display: inline;
+    }
+  }
+
   @media (max-width: 360px) {
     .home-accordion__cards {
       padding-inline: 12px;
@@ -961,15 +992,15 @@
 
     .home-accordion__card {
       position: relative;
-      grid-template-columns: 58px minmax(0, 1fr);
+      grid-template-columns: var(--home-card-thumbnail-size, 58px) minmax(0, 1fr);
       align-items: start;
       gap: 10px;
       padding: 10px;
     }
 
     .home-accordion__card-media {
-      width: 58px;
-      height: 58px;
+      width: var(--home-card-thumbnail-size, 58px);
+      height: var(--home-card-thumbnail-size, 58px);
     }
 
     .home-accordion__card-copy {

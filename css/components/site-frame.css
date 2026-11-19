@@ -116,6 +116,9 @@
   .site-frame[data-frame-home="true"][data-frame-view="overview"][data-frame-audience="personal"] {
     --frame-panel-border-width: 6px;
   }
+  .site-frame[data-frame-home="true"][data-frame-view="overview"][data-frame-audience="personal"][data-frame-category="projects"] {
+    --frame-panel-border-width: 2px;
+  }
   .site-frame[data-frame-fit="viewport"][data-frame-compact="false"] .site-frame__stage {
     height: var(--frame-height);
     min-height: min(540px, var(--frame-height));
@@ -527,7 +530,7 @@
   .site-frame__tab-toggle { display: none; }
   .site-frame.site-frame[data-frame-view="closed"][data-frame-compact="false"] {
     display: grid;
-    grid-template-columns: minmax(0, 580px) minmax(280px, 360px);
+    grid-template-columns: minmax(0, var(--home-welcome-column-width, 580px)) minmax(280px, 360px);
     align-items: center;
     justify-content: center;
     gap: clamp(40px, 6vw, 104px);
