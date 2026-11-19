@@ -110,6 +110,30 @@ async function expectStatusAxis(dashboard, expectedBands) {
   expect(actual).toEqual({ bands: expectedBands, aligned: true, coversEveryPeriod: true });
 }
 
+async function expectAxisMotion(toggle, opening) {
+  const heights = await toggle.evaluate(async (button) => {
+    const grid = button.closest('[data-aws-status-part="history-grid"]');
+    const summary = grid.querySelector('.aws-status__group-summary');
+    const offset = () => summary.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+    const before = offset();
+    button.click();
+    const immediate = offset();
+    const animations = grid.getAnimations({ subtree: true });
+    for (const animation of animations) {
+      animation.pause();
+      animation.currentTime = animation.effect.getTiming().duration / 2;
+    }
+    const midway = offset();
+    for (const animation of animations) animation.play();
+    await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
+    return { before, immediate, midway, after: offset() };
+  });
+  const direction = opening ? 1 : -1;
+  expect(Math.abs(heights.immediate - heights.before)).toBeLessThan(1);
+  expect(direction * (heights.midway - heights.before)).toBeGreaterThan(1);
+  expect(direction * (heights.after - heights.midway)).toBeGreaterThan(1);
+}
+
 async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
   const period = page.getByRole('combobox', { name: 'Group by' });
   const tooltip = page.getByRole('tooltip');
@@ -197,6 +221,11 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   const initialSummaries = ['Degraded', 'Offline', 'Degraded', 'Operational', 'Operational'];
   const publishedSummaries = ['Operational', 'Online', 'Unknown', 'Degraded', 'Operational'];
   await expectSummaries(initialSummaries);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expectAxisMotion(aws.toggle, true);
+  await expectAxisMotion(aws.toggle, false);
+  await expect(axis).toBeHidden();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const group of groups) {
     await expect(group.toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(group.rows).toHaveCount(0);

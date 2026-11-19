@@ -143,7 +143,9 @@
       band.append(label);
       bands.append(band);
     }
-    axis.append(element('div', '', 'aws-status__axis-spacer'), bands);
+    const row = element('div', '', 'aws-status__axis-row');
+    row.append(element('div', '', 'aws-status__axis-spacer'), bands);
+    axis.append(row);
     return { axis, boundaries };
   }
 
