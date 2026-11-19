@@ -9,7 +9,6 @@
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
   const TABLE_LAYOUT_MEDIA_QUERY = '(min-width: 900px)';
-  const MASTER_DETAIL_MEDIA_QUERY = '(min-width: 1240px)';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -91,14 +90,14 @@
   const expiresAtInput = editorForm.querySelector('[data-shortlinks="expires-at"]');
   const resultEl = document.querySelector('[data-shortlinks="create-result"]');
   const qrLibraryEl = document.querySelector('[data-shortlinks="qr-library"]');
-  const analyticsRange = document.querySelector('[data-shortlinks="analytics-range"]');
   const analyticsContent = document.querySelector('[data-shortlinks="analytics-content"]');
-  const analyticsStatus = document.querySelector('[data-shortlinks="analytics-status"]');
   let editingLink = null;
   let resultLink = null;
-  let analyticsRequestId = 0;
+  let suggestedEnding = '';
+  let pendingDestinationChange = null;
+  let lastDestinationChange = null;
+  let detailTab = new URLSearchParams(window.location.search).get('section') || 'overview';
   let clickHistoryRequestId = 0;
-  let activeAnalyticsSlug = '';
   let editorAudienceExplicit = false;
   let workspaceEpoch = 0;
   let accessRefreshPromise = null;
@@ -251,10 +250,8 @@
   let memorySavedViews = [];
   let pendingInitialDetailSlug = normalizeSlugInput(new URLSearchParams(window.location.search).get('link'));
   let activeDetailSlug = pendingInitialDetailSlug;
-  let detailInsightsRequestId = 0;
   let detailSelectionDismissed = true;
   let lastAnnouncedDetailSlug = '';
-  const detailInsightsCache = new Map();
   let projectHealth = { total: 0, missing: 0, mismatched: 0, checked: false };
   let allSets = [];
   let activeSetId = '';
@@ -350,7 +347,7 @@
   window.SiteRoutes?.addCleanup?.(() => {
     workspaceDisposed = true;
     workspaceEpoch += 1;
-    analyticsRequestId += 1;
+
     clickHistoryRequestId += 1;
     closeEditorOverlay();
     window.clearTimeout(accessCardAttentionTimer);
@@ -439,18 +436,9 @@
   const tableLayoutQuery = typeof window.matchMedia === 'function'
     ? window.matchMedia(TABLE_LAYOUT_MEDIA_QUERY)
     : null;
-  const masterDetailQuery = typeof window.matchMedia === 'function'
-    ? window.matchMedia(MASTER_DETAIL_MEDIA_QUERY)
-    : null;
-
   function prefersTableLayout(){
     if (tableLayoutQuery) return !!tableLayoutQuery.matches;
     return typeof window.innerWidth === 'number' ? window.innerWidth >= 900 : true;
-  }
-
-  function prefersMasterDetailLayout(){
-    if (masterDetailQuery) return !!masterDetailQuery.matches;
-    return typeof window.innerWidth === 'number' ? window.innerWidth >= 1240 : true;
   }
 
   function getSavedToken(){
@@ -835,9 +823,9 @@
     return String(link?.label || link?.contextTitle || link?.slug || 'Untitled link');
   }
 
-  function qrEditorUrl(link, download = false){
-    const path = window.ShortLinksClient.qrEditorUrl(link.slug);
-    return download ? `${path}&download=png` : path;
+  function qrEditorUrl(link, download = false, placement = ''){
+    const path = window.ShortLinksClient.qrEditorUrl(link.slug, { placement });
+    return download ? path + '#export' : path;
   }
 
   function drawBasicQr(canvas, link, size = 256){
@@ -882,24 +870,7 @@
   }
 
   function downloadQr(link){
-    if (link?.qrDesign) {
-      window.location.assign(qrEditorUrl(link, true));
-      return;
-    }
-    const canvas = document.createElement('canvas');
-    if (!drawBasicQr(canvas, link, 1024)) {
-      setStatus(listStatusEl, 'QR preview is unavailable. Open Customize QR to try again.', 'error');
-      return;
-    }
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = `${String(link.slug).replace(/[^a-z0-9_-]/gi, '-')}-qr.png`;
-      anchor.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }, 'image/png');
+    window.location.assign(qrEditorUrl(link, true));
   }
 
   function makeLinkAction(label, onClick, href){
@@ -990,92 +961,21 @@
     });
   }
 
-  async function refreshAnalytics(slug = ''){
-    if (!analyticsContent) return;
-    activeAnalyticsSlug = slug;
-    const requestId = ++analyticsRequestId;
-    const days = analyticsRange?.value || '30';
-    analyticsContent.replaceChildren();
-    setStatus(analyticsStatus, 'Loading activity…');
-    try {
-      const data = await api(`/api/short-links?view=analytics&days=${encodeURIComponent(days)}${slug ? `&slug=${encodeURIComponent(slug)}` : ''}`);
-      if (requestId !== analyticsRequestId || !analyticsContent.isConnected) return;
-      const report = data.analytics;
-      if (!report) throw new Error('Activity summary is unavailable. Please refresh.');
-      const metrics = document.createElement('div');
-      metrics.className = 'shortlinks-analytics-metrics';
-      [['Link clicks', report.totals.linkClicks], ['QR visits', report.totals.qrScans], ['Combined / older activity', report.totals.unknownClicks], ['Total recorded visits', report.totals.clicks]].forEach(([label, count]) => {
-        const metric = document.createElement('div');
-        metric.className = 'shortlinks-analytics-metric';
-        const caption = document.createElement('span');
-        caption.textContent = label;
-        const value = document.createElement('strong');
-        value.textContent = formatCount(count);
-        metric.append(caption, value);
-        metrics.appendChild(metric);
-      });
-      analyticsContent.appendChild(metrics);
-      const section = document.createElement('section');
-      section.className = 'shortlinks-analytics-card';
-      const heading = document.createElement('h3');
-      heading.textContent = slug ? `Activity for ${getLinkTitle(getLinkBySlug(slug) || { slug })}` : 'Activity over time';
-      section.appendChild(heading);
-      const daily = Array.isArray(report.daily) ? report.daily : [];
-      if (!daily.some(day => day.clicks)) {
-        const empty = document.createElement('p');
-        empty.textContent = 'No recorded activity in this period. Share a link or QR code to start seeing results.';
-        section.appendChild(empty);
-      } else {
-        const chart = document.createElement('div');
-        chart.className = 'shortlinks-analytics-trend';
-        chart.setAttribute('role', 'img');
-        chart.setAttribute('aria-label', `Daily recorded visits. ${formatCount(report.totals.clicks)} in the selected period. A daily breakdown follows.`);
-        const maximum = Math.max(1, ...daily.map(day => Number(day.clicks) || 0));
-        daily.forEach(day => {
-          const column = document.createElement('div');
-          column.className = 'shortlinks-analytics-bar';
-          column.style.setProperty('--bar-height', `${Math.max(0, Number(day.clicks) || 0) / maximum * 100}%`);
-          column.title = `${day.date}: ${formatCount(day.clicks)} visits`;
-          const bar = document.createElement('span');
-          column.appendChild(bar);
-          chart.appendChild(column);
-        });
-        section.appendChild(chart);
-        const dates = document.createElement('p');
-        dates.className = 'shortlinks-analytics-dates';
-        dates.textContent = `${daily[0]?.date || ''} — ${daily[daily.length - 1]?.date || ''}`;
-        section.appendChild(dates);
-        const disclosure = document.createElement('details');
-        const summary = document.createElement('summary');
-        summary.textContent = 'Daily breakdown';
-        const table = document.createElement('table');
-        table.className = 'shortlinks-table';
-        const header = table.createTHead().insertRow();
-        ['Date', 'Link clicks', 'QR visits', 'Combined', 'Total'].forEach(label => {
-          const cell = document.createElement('th');
-          cell.scope = 'col';
-          cell.textContent = label;
-          header.appendChild(cell);
-        });
-        const body = table.createTBody();
-        daily.filter(day => day.clicks).slice().reverse().forEach(day => {
-          const row = body.insertRow();
-          [day.date, day.linkClicks, day.qrScans, day.unknownClicks, day.clicks].forEach(value => {
-            row.insertCell().textContent = typeof value === 'number' ? formatCount(value) : value;
-          });
-        });
-        disclosure.append(summary, table);
-        section.appendChild(disclosure);
+  function mountActivity(host, slug){
+    window.ShortLinksActivity.mount(host, {
+      slug,
+      async load(days){
+        const query = new URLSearchParams({ view: 'analytics', days });
+        if (slug) query.set('slug', slug);
+        const data = await api('/api/short-links?' + query);
+        if (!data.analytics) throw new Error('Activity summary is unavailable.');
+        return data.analytics;
       }
-      analyticsContent.appendChild(section);
-      const note = document.createElement('p');
-      note.className = 'shortlinks-analytics-note';
-      note.textContent = `${report.completeness?.note || ''} QR visits count openings of a QR-specific address. Older visits cannot be separated into clicks and QR visits.`.trim();
-      analyticsContent.appendChild(note);
-      setStatus(analyticsStatus, report.completeness?.truncated ? 'Showing available activity; some records were outside this report.' : '', report.completeness?.truncated ? 'warning' : '');
-    } catch (error) {
-      if (requestId === analyticsRequestId) setStatus(analyticsStatus, error.message, 'error');
-    }
+    });
+  }
+
+  function refreshAnalytics(slug = ''){
+    if (analyticsContent && hasWorkspaceAccess()) mountActivity(analyticsContent, slug);
   }
 
   function toCsvCell(value){
@@ -1473,24 +1373,6 @@
     }) || null;
   }
 
-  function focusDetailAction(action){
-    const control = detailPanelEl?.querySelector(`[data-shortlinks-detail-action="${String(action || '')}"]`);
-    if (control && typeof control.focus === 'function') control.focus();
-  }
-
-  function formatRelativeClickTime(value){
-    const timestamp = new Date(String(value || '')).getTime();
-    if (!Number.isFinite(timestamp)) return formatTimestamp(value) || 'Unknown time';
-    const delta = Math.max(0, Date.now() - timestamp);
-    const minutes = Math.max(1, Math.round(delta / 60000));
-    if (minutes < 60) return `${minutes} min ago`;
-    const hours = Math.round(minutes / 60);
-    if (hours < 24) return `${hours} hr ago`;
-    const days = Math.round(hours / 24);
-    if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
-    return formatTimestamp(value) || 'Unknown time';
-  }
-
   function toClickCount(value){
     if (value === null || typeof value === 'undefined' || value === '') return null;
     const count = Number(value);
@@ -1538,376 +1420,287 @@
     return `${formatCount(count)} earlier aggregate click${count === 1 ? '' : 's'} preserved as a historical baseline.`;
   }
 
-  function getDetailTrendSeries(items, dayCount = 14){
-    const days = Math.max(2, Number(dayCount) || 14);
-    const now = new Date();
-    const endUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    const startUtc = endUtc - ((days - 1) * 86400000);
-    const counts = Array.from({ length: days }, () => 0);
-    (Array.isArray(items) ? items : []).forEach((item) => {
-      const clickedAt = new Date(String(item?.clickedAt || '')).getTime();
-      if (!Number.isFinite(clickedAt)) return;
-      const clicked = new Date(clickedAt);
-      const clickedUtc = Date.UTC(clicked.getUTCFullYear(), clicked.getUTCMonth(), clicked.getUTCDate());
-      const index = Math.floor((clickedUtc - startUtc) / 86400000);
-      if (index >= 0 && index < counts.length) counts[index] += 1;
-    });
-    return counts;
+  function detailText(tag, value, className){
+    const element = document.createElement(tag);
+    element.textContent = value;
+    if (className) element.className = className;
+    return element;
   }
 
-  function renderDetailTrend(host, history){
-    if (!host) return;
-    host.replaceChildren();
-    const normalized = normalizeClickHistoryPayload(history);
-    const validItems = normalized.events.filter((item) => {
-      return Number.isFinite(new Date(String(item?.clickedAt || '')).getTime());
-    });
-    if (!validItems.length) {
-      const empty = document.createElement('p');
-      empty.className = 'shortlinks-detail-chart-empty';
-      empty.textContent = getHistoricalBaselineCopy(normalized) || 'No detailed click events yet.';
-      host.appendChild(empty);
-      return;
-    }
-
-    const counts = getDetailTrendSeries(validItems, 14);
-    const recentTotal = counts.reduce((total, count) => total + count, 0);
-    if (!recentTotal) {
-      const empty = document.createElement('p');
-      empty.className = 'shortlinks-detail-chart-empty';
-      empty.textContent = 'No recorded click events in the last 14 days.';
-      host.appendChild(empty);
-      return;
-    }
-    const width = 520;
-    const height = 126;
-    const padding = 10;
-    const baseline = height - padding;
-    const max = Math.max(1, ...counts);
-    const points = counts.map((count, index) => {
-      const x = padding + (index * ((width - (padding * 2)) / (counts.length - 1)));
-      const y = baseline - ((count / max) * (height - (padding * 2)));
-      return { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) };
-    });
-    const linePoints = points.map(point => `${point.x},${point.y}`).join(' ');
-    const areaPoints = points.map(point => `${point.x} ${point.y}`).join(' L ');
-    const areaPath = `M ${points[0].x} ${baseline} L ${areaPoints} L ${points[points.length - 1].x} ${baseline} Z`;
-
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', `Recorded clicks over the last 14 days. ${recentTotal} detailed event${recentTotal === 1 ? '' : 's'} shown.`);
-    [padding, height / 2, baseline].forEach((y) => {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', String(padding));
-      line.setAttribute('x2', String(width - padding));
-      line.setAttribute('y1', String(y));
-      line.setAttribute('y2', String(y));
-      line.setAttribute('class', 'shortlinks-detail-chart-grid');
-      svg.appendChild(line);
-    });
-    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    area.setAttribute('d', areaPath);
-    area.setAttribute('class', 'shortlinks-detail-chart-area');
-    svg.appendChild(area);
-    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    polyline.setAttribute('points', linePoints);
-    polyline.setAttribute('class', 'shortlinks-detail-chart-line');
-    svg.appendChild(polyline);
-    host.appendChild(svg);
+  function addDetailValue(list, label, value){
+    const row = document.createElement('div');
+    row.append(detailText('dt', label), detailText('dd', value));
+    list.appendChild(row);
   }
 
-  function renderDetailActivity(host, history){
-    if (!host) return;
-    host.replaceChildren();
-    const normalized = normalizeClickHistoryPayload(history);
-    const recent = normalized.events
-      .slice()
-      .sort((a, b) => new Date(String(b?.clickedAt || '')).getTime() - new Date(String(a?.clickedAt || '')).getTime())
-      .slice(0, 5);
-    if (!recent.length) {
-      const empty = document.createElement('p');
-      empty.className = 'shortlinks-detail-activity-empty';
-      empty.textContent = getHistoricalBaselineCopy(normalized) || 'No detailed click activity to show.';
-      host.appendChild(empty);
-      return;
-    }
+  function cancelDestinationReview(){
+    pendingDestinationChange = null;
+    editorForm.classList.remove('is-reviewing');
+    editorForm.querySelector('[data-shortlinks="destination-review"]').hidden = true;
+  }
 
-    const list = document.createElement('div');
-    list.className = 'shortlinks-detail-activity-list';
-    recent.forEach((item) => {
+  function showDestinationReview(payload){
+    pendingDestinationChange = payload;
+    const review = editorForm.querySelector('[data-shortlinks="destination-review"]');
+    const values = review.querySelector('dl');
+    values.replaceChildren();
+    addDetailValue(values, 'Current destination', editingLink.destination);
+    addDetailValue(values, 'New destination', payload.destination);
+    const printed = (editingLink.placements || []).filter(item => item.channel === 'qr');
+    review.querySelector('p').textContent = printed.length
+      ? 'This also updates the printed QR placements: ' + printed.map(item => item.name).join(', ') + '.'
+      : 'The published short URL and its QR code will open this destination.';
+    setStatus(editorStatusEl, '');
+    editorForm.classList.add('is-reviewing');
+    review.hidden = false;
+    review.querySelector('h3').focus();
+  }
+
+  editorForm.querySelector('[data-shortlinks="confirm-destination"]').addEventListener('click', () => {
+    if (pendingDestinationChange) void createOrUpdateLink(pendingDestinationChange);
+  });
+  editorForm.querySelector('[data-shortlinks="cancel-review"]').addEventListener('click', () => {
+    cancelDestinationReview();
+    destinationInput.focus();
+  });
+
+  function reviewRestoration(link, destination){
+    openEditorForLink(link);
+    destinationInput.value = destination;
+    void handleCreateLink();
+  }
+
+  function setDetailLocation(slug, tab){
+    const url = new URL(window.location.href);
+    if (slug) url.searchParams.set('link', slug);
+    else url.searchParams.delete('link');
+    if (slug && tab !== 'overview') url.searchParams.set('section', tab);
+    else url.searchParams.delete('section');
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url);
+  }
+
+  function renderPlacements(host, link){
+    const placements = link.placements || [];
+    if (!placements.length) host.appendChild(detailText('p', 'Add a placement to see which printed code or shared link brings people here.'));
+    placements.forEach(placement => {
       const row = document.createElement('div');
-      row.className = 'shortlinks-detail-activity-row';
-      const dot = document.createElement('span');
-      dot.className = 'shortlinks-detail-activity-dot';
-      dot.setAttribute('aria-hidden', 'true');
-      const copy = document.createElement('span');
-      const when = document.createElement('strong');
-      when.textContent = formatRelativeClickTime(item?.clickedAt);
-      const browser = summarizeUserAgent(getClickString(item, 'userAgent')).browser;
-      const source = getClickString(item, 'refererHost') || browser || 'Direct visit';
-      const location = formatClickLocation(item);
-      const meta = document.createElement('span');
-      meta.textContent = location ? `${source} · ${location}` : source;
-      copy.appendChild(when);
-      copy.appendChild(meta);
-      row.appendChild(dot);
-      row.appendChild(copy);
-      list.appendChild(row);
+      row.className = 'shortlinks-detail-line';
+      const info = document.createElement('div');
+      info.append(detailText('strong', placement.name), detailText('small', placement.channel === 'qr' ? 'QR code' : 'Short link'));
+      const actions = document.createElement('div');
+      actions.className = 'shortlinks-action-row';
+      const copy = makeLinkAction('Copy link', () => copyTextToClipboard({
+        text: window.ShortLinksClient.publicUrl(link.slug, { placement: placement.id, qr: placement.channel === 'qr' }),
+        button: copy, statusTarget: feedback, successMessage: 'Placement link copied.'
+      }));
+      actions.appendChild(copy);
+      if (placement.channel === 'qr') actions.appendChild(makeLinkAction('Download QR', null, qrEditorUrl(link, true, placement.id)));
+      row.append(info, actions);
+      host.appendChild(row);
     });
-    host.appendChild(list);
+    const add = document.createElement('details');
+    add.className = 'shortlinks-detail-disclosure';
+    add.appendChild(detailText('summary', 'Add placement'));
+    const form = document.createElement('form');
+    form.className = 'shortlinks-placement-form';
+    const nameLabel = detailText('label', 'Placement name');
+    const name = document.createElement('input');
+    name.required = true;
+    name.maxLength = 80;
+    name.placeholder = 'Visitor center brochure';
+    nameLabel.appendChild(name);
+    const channelLabel = detailText('label', 'Channel');
+    const channel = document.createElement('select');
+    channel.add(new Option('QR code', 'qr'));
+    channel.add(new Option('Short link', 'link'));
+    channelLabel.appendChild(channel);
+    const submit = detailText('button', 'Add placement', 'btn-primary');
+    submit.type = 'submit';
+    form.append(nameLabel, channelLabel, submit);
+    add.appendChild(form);
+    const feedback = detailText('p', '', 'contact-form-status');
+    feedback.setAttribute('role', 'status');
+    host.append(add, feedback);
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (submit.disabled) return;
+      if (!name.value.trim()) {
+        setStatus(feedback, 'Enter a placement name.', 'error');
+        name.focus();
+        return;
+      }
+      submit.disabled = true;
+      try {
+        const data = await api('/api/short-links/' + encodeURIComponent(link.slug), {
+          method: 'PATCH',
+          body: JSON.stringify({ addPlacement: { name: name.value.trim(), channel: channel.value }, expectedUpdatedAt: link.updatedAt })
+        });
+        upsertLinkInMemory(data.link);
+        markSessionDirty();
+        if (host.isConnected) {
+          renderDetailPanel(data.link);
+          const status = detailPanelEl.querySelector('[role="tabpanel"] .contact-form-status');
+          setStatus(status, 'Placement added.', 'success');
+          detailPanelEl.querySelector('.shortlinks-detail-disclosure > summary')?.focus();
+        }
+      } catch (error) {
+        setStatus(feedback, error.message, 'error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
   }
 
-  async function loadDetailInsights(slug, chartHost, activityHost, requestId){
-    const cleanSlug = normalizeSlugInput(slug);
-    if (!cleanSlug) return;
-    try {
-      let history = detailInsightsCache.get(cleanSlug);
-      if (!history || !Array.isArray(history.events)) {
-        const data = await api(`/api/short-links/clicks/${encodeURIComponent(cleanSlug)}?limit=100`, { method: 'GET' });
-        history = normalizeClickHistoryPayload(data);
-        detailInsightsCache.set(cleanSlug, history);
-      }
-      if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
-      renderDetailTrend(chartHost, history);
-      renderDetailActivity(activityHost, history);
-    } catch (err) {
-      if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
-      [chartHost, activityHost].forEach((host) => {
-        if (!host) return;
-        host.replaceChildren();
-        const message = document.createElement('p');
-        message.className = 'shortlinks-detail-activity-empty';
-        message.textContent = err?.message || 'Click history is unavailable.';
-        host.appendChild(message);
-      });
+  function renderLinkOverview(host, link, status){
+    const address = detailText('a', link.destination, 'shortlinks-detail-destination');
+    address.href = formatAbsoluteUrl(link.destination);
+    address.target = '_blank';
+    address.rel = 'noopener noreferrer';
+    const destination = document.createElement('div');
+    destination.className = 'shortlinks-detail-line';
+    const main = document.createElement('div');
+    main.append(detailText('h4', 'Destination'), address);
+    const edit = makeLinkAction('Edit destination', () => openEditorForLink(link));
+    edit.dataset.shortlinksDetailAction = 'edit';
+    destination.append(main, edit);
+    host.appendChild(destination);
+
+    if (lastDestinationChange?.slug === link.slug && lastDestinationChange.to === link.destination) {
+      const notice = document.createElement('div');
+      notice.className = 'shortlinks-undo';
+      notice.append(detailText('span', 'Destination updated.'), makeLinkAction('Undo', () => reviewRestoration(link, lastDestinationChange.from)));
+      host.appendChild(notice);
     }
+    const history = document.createElement('details');
+    history.className = 'shortlinks-detail-disclosure';
+    history.appendChild(detailText('summary', 'Destination history'));
+    const entries = link.destinationHistory || [];
+    if (!entries.length) history.appendChild(detailText('p', 'No previous destinations recorded.'));
+    entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'shortlinks-detail-line';
+      const info = document.createElement('div');
+      info.append(detailText('strong', entry.destination), detailText('small', formatTimestamp(entry.changedAt)));
+      row.appendChild(info);
+      if (entry.destination !== link.destination) row.appendChild(makeLinkAction('Restore', () => reviewRestoration(link, entry.destination)));
+      history.appendChild(row);
+    });
+    host.appendChild(history);
+    const metadata = document.createElement('details');
+    metadata.className = 'shortlinks-detail-disclosure';
+    metadata.appendChild(detailText('summary', 'Link details'));
+    const values = document.createElement('dl');
+    values.className = 'shortlinks-detail-grid';
+    [
+      ['Status', getLinkHealth(link).label], ['Created', formatTimestamp(link.createdAt) || 'Unknown'],
+      ['Last updated', formatTimestamp(link.updatedAt) || 'Unknown'], ['Expiration', link.expiresAt ? new Date(link.expiresAt * 1000).toLocaleString() : 'Never'],
+      ['Tags', (link.tags || []).join(', ') || 'None'], ['Campaign', link.batchTitle || link.templateTitle || 'None']
+    ].forEach(([label, value]) => addDetailValue(values, label, value));
+    metadata.append(values, buildActionMenu([
+      { label: 'Edit link settings', onSelect: () => openEditorForLink(link) },
+      { label: 'Customize QR code', href: qrEditorUrl(link), target: '_self' },
+      { label: 'Test destination', onSelect: () => testRedirect(link.slug, null, status) },
+      { label: link.disabled ? 'Enable link' : 'Disable link', onSelect: () => setLinkDisabled(link, !link.disabled, status) },
+      { label: 'View click history', onSelect: () => openClicksModal(link.slug) },
+      { label: 'Delete link', danger: true, onSelect: () => deleteLinkEntry(link, status) }
+    ], { label: 'Manage link' }));
+    host.appendChild(metadata);
   }
 
   function renderDetailPanel(link){
     if (!detailPanelEl) return;
+    const entering = !!link && lastAnnouncedDetailSlug !== link.slug;
+    const priorFeedback = !entering && detailPanelEl.querySelector('[data-shortlinks="detail-feedback"]');
     detailPanelEl.replaceChildren();
     detailPanelEl.hidden = !link;
     detailPanelEl.closest('.shortlinks-master-detail')?.classList.toggle('has-selection', !!link);
-    detailInsightsRequestId += 1;
-
+    detailPanelEl.closest('[data-shortlinks="workspace"]')?.classList.toggle('is-showing-link', !!link);
     if (!link) {
       activeDetailSlug = '';
       lastAnnouncedDetailSlug = '';
-      const empty = document.createElement('div');
-      empty.className = 'shortlinks-detail-empty';
-      const title = document.createElement('h3');
-      title.textContent = 'Select a link';
-      const copy = document.createElement('p');
-      copy.textContent = 'Choose a redirect from the list to inspect its destination, health, clicks, and actions.';
-      empty.appendChild(title);
-      empty.appendChild(copy);
-      detailPanelEl.appendChild(empty);
       syncActiveDetailRows();
       return;
     }
-
-    activeDetailSlug = normalizeSlugInput(link.slug);
-    const requestId = detailInsightsRequestId;
-    const shortUrl = buildShortUrl(link.slug);
-    const destinationUrl = formatAbsoluteUrl(link.destination);
-    const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
-
-    const back = document.createElement('button');
-    back.type = 'button';
-    back.className = 'shortlinks-detail-back';
-    back.textContent = '← Back to all links';
-    back.addEventListener('click', () => {
-      const returnTrigger = getDetailTriggerForSlug(link.slug);
+    if (entering && lastAnnouncedDetailSlug) detailTab = 'overview';
+    if (!['overview', 'placements', 'activity'].includes(detailTab)) detailTab = 'overview';
+    activeDetailSlug = link.slug;
+    lastAnnouncedDetailSlug = link.slug;
+    setDetailLocation(link.slug, detailTab);
+    const back = makeLinkAction('← All links', () => {
       detailSelectionDismissed = true;
+      detailTab = 'overview';
+      setDetailLocation('', 'overview');
       renderDetailPanel(null);
-      const libraryHeading = document.getElementById('shortlinks-links-title');
-      if (!prefersMasterDetailLayout() && libraryHeading) {
-        listEl.scrollTop = 0;
-        libraryHeading.setAttribute('tabindex', '-1');
-        libraryHeading.focus({ preventScroll: true });
-        libraryHeading.scrollIntoView({
-          block: 'start',
-          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-        });
-      } else if (returnTrigger && returnTrigger.isConnected && typeof returnTrigger.focus === 'function') returnTrigger.focus();
+      getDetailTriggerForSlug(link.slug)?.focus();
     });
-    detailPanelEl.appendChild(back);
-
+    back.className = 'shortlinks-detail-back';
     const head = document.createElement('div');
     head.className = 'shortlinks-detail-head';
     const titleRow = document.createElement('div');
     titleRow.className = 'shortlinks-detail-title-row';
-    const title = document.createElement('h3');
-    title.textContent = getLinkTitle(link);
-    titleRow.appendChild(title);
-    titleRow.appendChild(makeHealthPill(link));
-    head.appendChild(titleRow);
-
+    const title = detailText('h1', getLinkTitle(link));
+    title.tabIndex = -1;
+    const url = buildShortUrl(link.slug);
+    const short = detailText('a', url.replace(/^https?:\/\//, ''));
+    short.href = url;
+    short.target = '_blank';
+    short.rel = 'noopener noreferrer';
+    titleRow.append(title, short);
     const actions = document.createElement('div');
-    actions.className = 'shortlinks-detail-actions shortlinks-action-row shortlinks-action-row-compact';
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'btn-secondary';
-    editButton.dataset.shortlinksDetailAction = 'edit';
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => {
-      openEditorForLink({
-        slug: link.slug,
-        destination: link.destination,
-        disabled: !!link.disabled,
-        expiresAt
-      });
-    });
-    const copyButton = document.createElement('button');
-    copyButton.type = 'button';
-    copyButton.className = 'btn-secondary';
-    copyButton.dataset.shortlinksDetailAction = 'copy';
-    copyButton.textContent = 'Copy';
-    copyButton.addEventListener('click', async () => {
-      await copyTextToClipboard({
-        text: shortUrl,
-        button: copyButton,
-        statusTarget: listStatusEl,
-        successMessage: `Copied: ${shortUrl}`
-      });
-    });
-    const testButton = document.createElement('button');
-    testButton.type = 'button';
-    testButton.className = 'btn-secondary';
-    testButton.dataset.shortlinksDetailAction = 'test';
-    testButton.textContent = 'Test';
-    testButton.addEventListener('click', async () => {
-      await testRedirect(link.slug, testButton);
-      focusDetailAction('test');
-    });
-    const toggleButton = document.createElement('button');
-    toggleButton.type = 'button';
-    toggleButton.className = link.disabled ? 'btn-secondary' : 'btn-ghost';
-    toggleButton.dataset.shortlinksDetailAction = 'toggle';
-    toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
-    toggleButton.addEventListener('click', async () => {
-      await setLinkDisabled(link, !link.disabled, listStatusEl);
-      focusDetailAction('toggle');
-    });
-    actions.appendChild(editButton);
-    actions.appendChild(makeLinkAction('QR code', null, qrEditorUrl(link)));
-    const detailMenu = buildActionMenu([
-      { label: 'Open short link', href: shortUrl },
-      { label: 'Open destination', href: destinationUrl },
-      { label: 'Test destination', onSelect: () => testRedirect(link.slug, null) },
-      { label: link.disabled ? 'Enable link' : 'Disable link', onSelect: () => setLinkDisabled(link, !link.disabled, listStatusEl) },
-      { label: 'View click history', onSelect: async () => openClicksModal(link.slug) },
-      { label: 'Delete link', danger: true, onSelect: async () => deleteLinkEntry(link, listStatusEl) }
-    ], {
-      label: 'More',
-      ariaLabel: `${buildPublicPath(link.slug)} more actions`
-    });
-    if (detailMenu) actions.appendChild(detailMenu);
-    head.appendChild(actions);
-    detailPanelEl.appendChild(head);
-
-    const shortBlock = document.createElement('div');
-    shortBlock.className = 'shortlinks-detail-link-block';
-    const shortLabel = document.createElement('span');
-    shortLabel.textContent = 'Short URL';
-    const shortRow = document.createElement('div');
-    shortRow.className = 'shortlinks-detail-url-row';
-    const shortCode = document.createElement('code');
-    shortCode.textContent = shortUrl;
-    const inlineCopy = document.createElement('button');
-    inlineCopy.type = 'button';
-    inlineCopy.className = 'shortlinks-detail-copy-button';
-    inlineCopy.textContent = 'Copy';
-    inlineCopy.addEventListener('click', async () => {
-      await copyTextToClipboard({
-        text: shortUrl,
-        button: inlineCopy,
-        statusTarget: listStatusEl,
-        successMessage: `Copied: ${shortUrl}`
-      });
-    });
-    shortRow.appendChild(shortCode);
-    shortRow.appendChild(inlineCopy);
-    shortBlock.appendChild(shortLabel);
-    shortBlock.appendChild(shortRow);
-    detailPanelEl.appendChild(shortBlock);
-
-    const destinationBlock = document.createElement('div');
-    destinationBlock.className = 'shortlinks-detail-link-block';
-    const destinationLabel = document.createElement('span');
-    destinationLabel.textContent = 'Destination';
-    const destination = document.createElement('a');
-    destination.className = 'shortlinks-detail-destination';
-    destination.href = destinationUrl;
-    destination.target = '_blank';
-    destination.rel = 'noopener noreferrer';
-    destination.textContent = destinationUrl;
-    destinationBlock.appendChild(destinationLabel);
-    destinationBlock.appendChild(destination);
-    detailPanelEl.appendChild(destinationBlock);
-
-    const qrSection = document.createElement('section');
-    qrSection.className = 'shortlinks-detail-qr';
-    qrSection.appendChild(makeQrPreview(link));
-    const qrCopy = document.createElement('div');
-    const qrTitle = document.createElement('h4');
-    qrTitle.textContent = 'QR code';
-    const qrHelp = document.createElement('p');
-    qrHelp.textContent = 'The link and QR code share this destination. Update it here without reprinting your code.';
-    const qrActions = document.createElement('div');
-    qrActions.className = 'shortlinks-qr-card-actions';
-    qrActions.append(makeLinkAction('Download QR', () => downloadQr(link)), makeLinkAction('Customize QR', null, qrEditorUrl(link)));
-    qrCopy.append(qrTitle, qrHelp, qrActions);
-    qrSection.appendChild(qrCopy);
-    detailPanelEl.appendChild(qrSection);
-
-    const activity = document.createElement('div');
-    activity.className = 'shortlinks-detail-activity-summary';
-    const total = document.createElement('p');
-    total.textContent = formatCount(link.clicks) + ' total visits';
-    const analytics = makeLinkAction('View analytics', () => {
-      setActiveMode('analytics', { skipAnalytics: true });
-      void refreshAnalytics(link.slug);
-    });
-    activity.append(total, analytics);
-    detailPanelEl.appendChild(activity);
-
-    const metadata = document.createElement('details');
-    metadata.className = 'shortlinks-detail-metadata';
-    const metadataTitle = document.createElement('summary');
-    metadataTitle.textContent = 'Link details';
-    const grid = document.createElement('dl');
-    grid.className = 'shortlinks-detail-grid';
-    [
-      ['Created', formatTimestamp(link.createdAt) || 'Unknown'],
-      ['Last updated', formatTimestamp(link.updatedAt) || 'Unknown'],
-      ['Expiration', expiresAt ? new Date(expiresAt * 1000).toLocaleString() : 'Never'],
-      ['Tags', (link.tags || []).join(', ') || 'None'],
-      ['Campaign', link.batchTitle || link.templateTitle || 'None']
-    ].forEach(([label, value]) => {
-      const wrap = document.createElement('div');
-      const dt = document.createElement('dt');
-      dt.textContent = label;
-      const dd = document.createElement('dd');
-      dd.textContent = value;
-      wrap.append(dt, dd);
-      grid.appendChild(wrap);
-    });
-    metadata.append(metadataTitle, grid);
-    detailPanelEl.appendChild(metadata);
-
-    if (activeDetailSlug !== lastAnnouncedDetailSlug) {
-      const announcer = document.createElement('p');
-      announcer.className = 'visually-hidden';
-      announcer.setAttribute('role', 'status');
-      announcer.textContent = `Showing details for ${buildPublicPath(link.slug)}.`;
-      detailPanelEl.appendChild(announcer);
-      lastAnnouncedDetailSlug = activeDetailSlug;
+    actions.className = 'shortlinks-action-row';
+    const feedback = priorFeedback || detailText('p', '', 'contact-form-status');
+    feedback.dataset.shortlinks = 'detail-feedback';
+    feedback.setAttribute('role', 'status');
+    const copyLink = button => copyTextToClipboard({ text: url, button, statusTarget: feedback, successMessage: 'Link copied.' });
+    if (detailTab === 'overview') {
+      const copy = makeLinkAction('Copy link', () => copyLink(copy));
+      actions.append(copy, makeLinkAction('Download QR', null, qrEditorUrl(link, true)));
+    } else if (detailTab === 'activity') {
+      actions.appendChild(buildActionMenu([
+        { label: 'Copy link', onSelect: () => copyLink(null) },
+        { label: 'Download QR', href: qrEditorUrl(link, true), target: '_self' }
+      ], { label: 'Share' }));
     }
-
+    head.append(titleRow, actions);
+    const tabs = document.createElement('div');
+    tabs.className = 'shortlinks-detail-tabs';
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', 'Link detail');
+    const names = ['Overview', 'Placements', 'Activity'];
+    names.forEach((label, index) => {
+      const key = label.toLowerCase();
+      const tab = makeLinkAction(label, () => {
+        if (detailTab !== key) {
+          detailTab = key;
+          renderDetailPanel(link);
+          document.getElementById('shortlinks-detail-tab-' + key)?.focus();
+        }
+      });
+      tab.className = 'shortlinks-detail-tab';
+      tab.id = 'shortlinks-detail-tab-' + key;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-controls', 'shortlinks-detail-content');
+      tab.setAttribute('aria-selected', String(detailTab === key));
+      tab.tabIndex = detailTab === key ? 0 : -1;
+      tab.addEventListener('keydown', event => {
+        const target = { ArrowLeft: (index + 2) % 3, ArrowRight: (index + 1) % 3, Home: 0, End: 2 }[event.key];
+        if (target === undefined) return;
+        event.preventDefault();
+        tabs.children[target].click();
+      });
+      tabs.appendChild(tab);
+    });
+    const host = document.createElement('section');
+    host.id = 'shortlinks-detail-content';
+    host.className = 'shortlinks-detail-content';
+    host.setAttribute('role', 'tabpanel');
+    host.setAttribute('aria-labelledby', 'shortlinks-detail-tab-' + detailTab);
+    detailPanelEl.append(back, head, feedback, tabs, host);
+    if (detailTab === 'activity') mountActivity(host, link.slug);
+    else if (detailTab === 'placements') renderPlacements(host, link);
+    else renderLinkOverview(host, link, feedback);
+    if (entering && !editorPanelEl.classList.contains('is-active')) title.focus({ preventScroll: true });
     syncActiveDetailRows();
-
   }
 
   function renderDashboardSummary(){
@@ -2519,6 +2312,7 @@
     if (!slug) return;
 
     const normalized = {
+      ...link,
       slug,
       destination: typeof link.destination === 'string' ? link.destination : '',
       permanent: !!link.permanent,
@@ -3936,20 +3730,15 @@
     syncAudienceFieldVisibility();
     setActiveMode('single');
     destinationInput.focus();
-    const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
-    setEditorMeta(slug ? `Editing ${buildPublicPath(slug)}` : 'New short link');
-    setStatus(
-      editorStatusEl,
-      slug ? `Editing ${buildPublicPath(slug)}${disabled ? ' (disabled)' : ''}${expiresLabel}` : 'Ready to create a new link.',
-      'success'
-    );
+    if (editingLink) document.querySelector('[data-shortlinks="customize-link"] summary').textContent = 'Link settings';
+    setStatus(editorStatusEl, '');
   }
 
   function startNewLinkFromList(){
     clearEditor();
     setActiveMode('single');
     setEditorMeta('New short link');
-    setStatus(editorStatusEl, 'Ready to create a new short link.', 'success');
+    setStatus(editorStatusEl, '');
     if (destinationInput && typeof destinationInput.focus === 'function') {
       destinationInput.focus({ preventScroll: false });
     }
@@ -4511,6 +4300,7 @@
     setStatus(healthStatusEl, '');
     try {
       const data = await api('/api/short-links', { method: 'GET' });
+      if (epoch !== workspaceEpoch) return;
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
       allLinks = Array.isArray(data.links) ? data.links : [];
       linksLoaded = true;
@@ -4518,7 +4308,6 @@
         activeDetailSlug = pendingInitialDetailSlug;
         pendingInitialDetailSlug = '';
       }
-      detailInsightsCache.clear();
       pruneSelectedSlugs();
       applyFilterAndRender();
       setSystemHealth('Links loaded', 'Primary table available', '');
@@ -4583,12 +4372,25 @@
     }
   }
 
+  function updateShortUrlPreview(){
+    if (!suggestedEnding) {
+      const bytes = window.crypto.getRandomValues(new Uint8Array(DEFAULT_RANDOM_LENGTH));
+      const alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
+      suggestedEnding = Array.from(bytes, byte => alphabet[byte % alphabet.length]).join('');
+    }
+    const preview = editorForm.querySelector('[data-shortlinks="short-url-preview"]');
+    preview.textContent = buildShortUrl(normalizeSlugInput(slugInput.value) || suggestedEnding);
+  }
+
+  slugInput.addEventListener('input', updateShortUrlPreview);
+
   function getSelectedSlugMode(){
     return normalizeSlugInput(slugInput?.value) ? 'custom' : 'random';
   }
 
   function syncSlugModeState(){
     const mode = getSelectedSlugMode();
+    updateShortUrlPreview();
     if (slugModeSelect) slugModeSelect.value = mode;
     if (slugFieldEl) slugFieldEl.hidden = false;
     if (randomLengthFieldEl) randomLengthFieldEl.hidden = true;
@@ -4612,6 +4414,12 @@
     const slugMode = getSelectedSlugMode();
     const slug = normalizeSlugInput(slugInput.value);
     const randomLength = clampRandomLength(randomLengthInput?.value, DEFAULT_RANDOM_LENGTH);
+    if (slugInput.value.trim() && !/^[a-z0-9_-]+(?:\/[a-z0-9_-]+)*$/i.test(slug)) {
+      editorForm.querySelector('[data-shortlinks="customize-link"]').open = true;
+      setStatus(editorStatusEl, 'Use letters, numbers, hyphens or underscores in the link ending. Use a slash between segments.', 'error');
+      slugInput.focus();
+      return null;
+    }
     let rawDestination = String(destinationInput.value || '').trim();
     if (rawDestination && !rawDestination.startsWith('/') && !/^[a-z][a-z0-9+.-]*:/i.test(rawDestination)) {
       rawDestination = `https://${rawDestination}`;
@@ -4655,6 +4463,8 @@
   function setEditorBusy(isBusy){
     const busy = !!isBusy;
     const controls = [
+      editorForm.querySelector('[data-shortlinks="confirm-destination"]'),
+      editorForm.querySelector('[data-shortlinks="cancel-review"]'),
       createLinkButton,
       getPermanentButton,
       getTemporaryButton,
@@ -4682,7 +4492,9 @@
   async function createOrUpdateLink({ slug, slugMode, randomLength, destination, permanent, expiresAt, statusEl, audienceKey, label, tags }){
     const targetStatus = statusEl || editorStatusEl;
 
+    if (createLinkButton?.dataset.saving === 'true') return null;
     setEditorBusy(true);
+    if (createLinkButton) createLinkButton.dataset.saving = 'true';
     const creatingRandom = slugMode === 'random';
     const isEditing = !!editingLink;
     setStatus(targetStatus, isEditing ? 'Saving changes…' : 'Creating your link…');
@@ -4692,24 +4504,32 @@
         permanent: !!permanent,
         label: typeof label === 'string' ? label : labelInput?.value.trim() || '',
         tags: Array.isArray(tags) ? tags : [],
-        slugMode: creatingRandom ? 'random' : 'custom'
+        slug: creatingRandom ? suggestedEnding : slug,
+        slugMode: 'custom'
       };
-      if (creatingRandom) body.randomLength = clampRandomLength(randomLength, DEFAULT_RANDOM_LENGTH);
-      else body.slug = slug;
       if (typeof expiresAt !== 'undefined') body.expiresAt = expiresAt;
       if (!isEditing) body.intent = 'create';
       if (isEditing) {
         // Changing a destination must not rename a published link or discard its settings.
         delete body.slug;
         delete body.slugMode;
+        if (destination === editingLink.destination) delete body.destination;
+        if (body.label === (editingLink.label || '')) delete body.label;
+        if (JSON.stringify(body.tags) === JSON.stringify(editingLink.tags || [])) delete body.tags;
+        body.expectedUpdatedAt = editingLink.updatedAt;
         if (Number(editingLink.expiresAt || 0) === Number(body.expiresAt || 0)) delete body.expiresAt;
-        if (!body.expiresAt && editingLink.permanent) delete body.permanent;
+        if ((!body.expiresAt && editingLink.permanent) || editingLink.permanent === body.permanent) delete body.permanent;
+        if (Object.keys(body).length === 1) {
+          setStatus(targetStatus, 'There are no changes to save.');
+          return null;
+        }
       }
       const data = await api(isEditing ? `/api/short-links/${encodeURIComponent(editingLink.slug)}` : '/api/short-links', {
         method: isEditing ? 'PATCH' : 'POST',
         body: JSON.stringify(body)
       });
-      const savedLink = data && data.link ? data.link : { slug, destination };
+      const savedLink = data.link;
+      if (!savedLink?.slug) throw new Error('The server did not return the saved link.');
       if (savedLink && savedLink.slug) upsertLinkInMemory(savedLink);
 
       const resolvedSlug = normalizeSlugInput(savedLink?.slug || slug);
@@ -4718,22 +4538,43 @@
         : destination;
       const shortUrl = buildShareShortUrl(resolvedSlug, resolvedDestination, audienceKey);
       let copied = false;
-      try {
-        await navigator.clipboard.writeText(shortUrl);
-        copied = true;
-      } catch {}
+      if (!isEditing) {
+        try {
+          await navigator.clipboard.writeText(shortUrl);
+          copied = true;
+        } catch {}
+      }
 
+      if (isEditing && editingLink.destination !== savedLink.destination) {
+        lastDestinationChange = { slug: savedLink.slug, from: editingLink.destination, to: savedLink.destination };
+      }
       setEditorMeta(`Saved ${buildPublicPath(resolvedSlug)}`);
       setStatus(editorStatusEl, `${isEditing ? 'Changes saved' : 'Link created'}${copied ? ' and copied' : ''}.`, 'success');
-      showCreateResult(savedLink, isEditing);
+      if (isEditing) {
+        cancelDestinationReview();
+        detailTab = 'overview';
+        activeDetailSlug = savedLink.slug;
+        setActiveMode('links');
+        applyFilterAndRender();
+      } else {
+        showCreateResult(savedLink, false);
+      }
       markSessionDirty();
       await refreshLinks();
+      if (isEditing) detailPanelEl.querySelector('.shortlinks-detail-title-row h1')?.focus();
       return shortUrl;
     } catch (err) {
-      setStatus(targetStatus, err.message, 'error');
+      if (!isEditing && creatingRandom && err.status === 409) {
+        suggestedEnding = '';
+        updateShortUrlPreview();
+        setStatus(targetStatus, 'That automatic ending was just taken. Review the new short URL and create the link again.', 'error');
+      } else {
+        setStatus(targetStatus, err.message, 'error');
+      }
       markSessionDirty();
       return null;
     } finally {
+      if (createLinkButton) delete createLinkButton.dataset.saving;
       setEditorBusy(false);
       syncSlugModeState();
       syncCreateTimingVisibility();
@@ -4744,9 +4585,11 @@
     editingLink = null;
     editorAudienceExplicit = false;
     resultLink = null;
+    editorForm.querySelector('[data-shortlinks="customize-link"] summary').textContent = 'Customize link';
     editorForm.hidden = false;
-    const moreOptions = editorForm.querySelector('[data-shortlinks="create-options"]');
-    if (moreOptions) moreOptions.open = false;
+    cancelDestinationReview();
+    suggestedEnding = '';
+    editorForm.querySelectorAll('details[open]').forEach(details => { details.open = false; });
     if (resultEl) resultEl.hidden = true;
     if (labelInput) labelInput.value = '';
     if (tagsInput) tagsInput.value = '';
@@ -5415,7 +5258,11 @@
   }
 
   clearButton.addEventListener('click', () => {
-    clearEditor();
+    if (editingLink) openEditorForLink(editingLink);
+    else {
+      clearEditor();
+      destinationInput.focus();
+    }
   });
 
   if (editorCloseButton) {
@@ -5428,11 +5275,17 @@
     editorPanelEl.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
+        if (createLinkButton?.dataset.saving === 'true') return;
+        if (pendingDestinationChange) {
+          cancelDestinationReview();
+          destinationInput.focus();
+          return;
+        }
         closeEditorOverlay({ restoreFocus: true });
         return;
       }
       if (event.key !== 'Tab') return;
-      const focusable = Array.from(editorPanelEl.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'))
+      const focusable = Array.from(editorPanelEl.querySelectorAll('button, input, select, textarea, summary, a[href], [tabindex]:not([tabindex="-1"])'))
         .filter((control) => !control.disabled && control.getClientRects().length > 0);
       if (!focusable.length) return;
       const first = focusable[0];
@@ -5554,7 +5407,11 @@
     if (!payload) return;
     const expiration = getCreateExpirationConfig();
     if (!expiration) return;
-    await createOrUpdateLink(Object.assign({}, payload, expiration));
+    if (editingLink && payload.destination !== editingLink.destination) {
+      showDestinationReview({ ...payload, ...expiration });
+      return;
+    }
+    await createOrUpdateLink({ ...payload, ...expiration });
   }
 
   async function handleGetPermanent(){
@@ -5704,7 +5561,7 @@
       } else {
         linksLoaded = false;
         allLinks = [];
-        setStatus(analyticsStatus, 'Sign in with an authorized account or connect workspace access to view activity.');
+
         renderDetailPanel(null);
         renderQrLibrary();
         clearList();
@@ -5716,14 +5573,14 @@
   function handleWorkspaceAccessChange(){
     if (!editorForm.isConnected) return;
     workspaceEpoch += 1;
-    analyticsRequestId += 1;
+
     accessRefreshPromise = null;
     analyticsContent?.replaceChildren();
-    setStatus(analyticsStatus, '');
+
     linksLoaded = false;
     allLinks = [];
     allSets = [];
-    detailInsightsCache.clear();
+    pendingInitialDetailSlug = normalizeSlugInput(new URLSearchParams(window.location.search).get('link'));
     activeDetailSlug = '';
     renderDetailPanel(null);
     clearList();
@@ -5754,7 +5611,7 @@
     if (resultLink) downloadQr(resultLink);
   });
   resultEl?.querySelector('[data-shortlinks="result-new"]')?.addEventListener('click', startNewLinkFromList);
-  analyticsRange?.addEventListener('change', () => { void refreshAnalytics(activeAnalyticsSlug); });
+
 
 
   if (modeTabEls.length) {
@@ -5915,14 +5772,14 @@
     });
   }
 
-  [tableLayoutQuery, masterDetailQuery].filter(Boolean).forEach((query) => {
+  if (tableLayoutQuery) {
     const handleLayoutChange = () => applyFilterAndRender();
-    if (typeof query.addEventListener === 'function') {
-      query.addEventListener('change', handleLayoutChange);
-    } else if (typeof query.addListener === 'function') {
-      query.addListener(handleLayoutChange);
+    if (typeof tableLayoutQuery.addEventListener === 'function') {
+      tableLayoutQuery.addEventListener('change', handleLayoutChange);
+    } else {
+      tableLayoutQuery.addListener?.(handleLayoutChange);
     }
-  });
+  }
 
   if (exportModeSelect) {
     exportModeSelect.addEventListener('change', () => {

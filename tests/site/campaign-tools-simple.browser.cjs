@@ -155,6 +155,7 @@ async function checkQr(page, artifactDir, width) {
   const tabs = await page.locator('[data-qrtool-tab]').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().top));
   assert(Math.max(...tabs) - Math.min(...tabs) <= 1, 'QR settings tabs remain in one row');
   await page.getByRole('tab', { name: 'Download', exact: true }).click();
+  await page.getByText('Export settings', { exact: true }).click();
   await page.locator('#qrtool-image-size').selectOption('512');
   const done = page.waitForEvent('download');
   await download.click();
@@ -164,7 +165,7 @@ async function checkQr(page, artifactDir, width) {
   const png = fs.readFileSync(saved);
   assert.equal(png.readUInt32BE(16), 512, 'Download uses the single chosen size');
   assert.equal(png.readUInt32BE(20), 512);
-  await page.getByRole('tab', { name: 'Content', exact: true }).click();
+  await page.getByRole('button', { name: /QR settings/ }).click();
   assert(await download.isVisible(), 'Download remains available in Content');
   await page.getByRole('tab', { name: 'Style', exact: true }).click();
   assert(await download.isVisible(), 'Download remains available in Style');

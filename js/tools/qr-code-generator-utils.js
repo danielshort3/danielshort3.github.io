@@ -280,8 +280,37 @@
     return out;
   };
 
+  // PDF coordinates use 72 points per inch. Center complete labels on a US Letter sheet.
+  const getPrintLayout = (layout, inches, width, height) => {
+    if (layout === 'artwork') return { width, height, placements: [{ x: 0, y: 0, scale: 1 }] };
+    const edge = [1, 1.5, 2, 3].includes(Number(inches)) ? Number(inches) * 72 : 144;
+    const single = layout === 'label';
+    const pageWidth = single ? edge : 612;
+    const pageHeight = single ? edge : 792;
+    const gap = 9;
+    const margin = 18;
+    const cols = single ? 1 : Math.floor((pageWidth - 2 * margin + gap) / (edge + gap));
+    const rows = single ? 1 : Math.floor((pageHeight - 2 * margin + gap) / (edge + gap));
+    const left = (pageWidth - cols * edge - (cols - 1) * gap) / 2;
+    const top = (pageHeight - rows * edge - (rows - 1) * gap) / 2;
+    const scale = edge / Math.max(width, height);
+    const placements = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        placements.push({
+          x: left + col * (edge + gap) + (edge - width * scale) / 2,
+          y: pageHeight - top - edge - row * (edge + gap) + (edge - height * scale) / 2,
+          scale,
+        });
+        if (layout === 'test') return { width: pageWidth, height: pageHeight, placements };
+      }
+    }
+    return { width: pageWidth, height: pageHeight, placements };
+  };
+
   return {
     encodeConfig,
+    getPrintLayout,
     decodeConfig,
     buildWifiPayload,
     buildVcardPayload,

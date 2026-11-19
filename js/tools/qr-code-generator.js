@@ -147,11 +147,13 @@
   const captionBgColorLabel = $('#qrtool-caption-bg-color-label');
 
   const downloadPngBtn = $('#qrtool-download-png');
-  const downloadSvgBtn = $('#qrtool-download-svg');
-  const downloadPdfBtn = $('#qrtool-download-pdf');
+  const downloadButton = $('[data-qrtool-download]');
+  const formatSelect = $('#qrtool-format');
+  const printLayoutSelect = $('#qrtool-print-layout');
+  const printSizeSelect = $('#qrtool-print-size');
+  const printTestButton = $('[data-qrtool-print-test]');
   const copyPngBtn = $('#qrtool-copy-png');
   const copySvgBtn = $('#qrtool-copy-svg');
-  const downloadAllBtn = $('#qrtool-download-all');
   const exportStatusEl = $('#qrtool-export-status');
 
   const configNameInput = $('#qrtool-config-name');
@@ -580,10 +582,17 @@
     }
     if (managedMode) {
       return !linkedLoading && linkedLink
-        ? window.ShortLinksClient?.publicUrl(linkedLink.slug, { qr: true }) || ''
+        ? window.ShortLinksClient?.publicUrl(linkedLink.slug, { qr: true, placement: selectedPlacement()?.id }) || ''
         : '';
     }
     return String(dataInput?.value || '');
+  };
+
+  const selectedPlacement = () => {
+    if (!linkedLink) return null;
+    const params = new URL(window.location.href).searchParams;
+    if (params.get('link') !== linkedLink.slug) return null;
+    return linkedLink.placements?.find(item => item.id === params.get('placement')) || null;
   };
 
   const applyDataValue = (value, { forceUrlMode = true } = {}) => {
@@ -886,6 +895,20 @@
     tabs.panels.forEach((panel) => {
       panel.hidden = panel.dataset.qrtoolPanel !== safeName;
     });
+    const previous = document.body.dataset.qrtoolView;
+    document.body.dataset.qrtoolView = safeName;
+    const exportView = safeName === 'export';
+    if (exportView && previous && previous !== 'export') document.body.dataset.qrtoolReturnTab = previous;
+    const previewStage = $('#qrtool-stage');
+    if (previewStage) {
+      if (exportView) $('[data-qrtool-download-preview]').appendChild(previewStage);
+      else $('.qrtool-preview-card').insertBefore(previewStage, $('.qrtool-preview-info'));
+    }
+    if (shouldFocus && window.history?.replaceState) {
+      const url = new URL(window.location.href);
+      url.hash = safeName === 'generate' ? 'content' : safeName;
+      window.history.replaceState(window.history.state, '', url);
+    }
     if (name === 'templates' || name === 'logo') {
       const disclosure = $(`#qrtool-panel-${name}`);
       if (disclosure) disclosure.open = true;
@@ -893,7 +916,8 @@
     if (tabs.panelWrap) tabs.panelWrap.scrollTop = 0;
     if (shouldFocus) {
       const activeButton = visibleButtons.find(button => button.dataset.qrtoolTab === safeName);
-      if (activeButton) activeButton.focus();
+      const target = exportView ? $('#qrtool-download-heading') || activeButton : activeButton;
+      if (target) target.focus();
     }
   };
 
@@ -1981,7 +2005,7 @@
     return str.length * size * factor;
   };
 
-  const buildPdf = (qrData, options, exportPx) => {
+  const buildPdf = (qrData, options, exportPx, layout = 'artwork', inches = 2) => {
     const { darkModules, moduleCount } = qrData;
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
@@ -2349,7 +2373,7 @@
     pushHeader();
 
     startObj(1);
-    pushStr('<< /Type /Catalog /Pages 2 0 R >>\n');
+    pushStr('<< /Type /Catalog /Pages 2 0 R /ViewerPreferences << /PrintScaling /None >> >>\n');
     endObj();
 
     startObj(2);
@@ -2358,13 +2382,18 @@
 
     startObj(3);
     const resourceDict = resources.length ? `<< ${resources.join(' ')} >>` : '<< >>';
-    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt.toFixed(3)} ${pageHeightPt.toFixed(3)}] /Resources ${resourceDict} /Contents 4 0 R >>\n`);
+    const page = QrUtils.getPrintLayout(layout, inches, pageWidthPt, pageHeightPt);
+    const artworkId = imgBytes?.length ? 6 : 5;
+    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${page.width} ${page.height}] /Resources << /XObject << /QR ${artworkId} 0 R >> >> /Contents 4 0 R >>\n`);
     endObj();
 
     startObj(4);
-    const contentBytes = encoder.encode(contentStr);
-    pushStr(`<< /Length ${contentBytes.length} >>\nstream\n`);
-    pushBytes(contentBytes);
+    const commands = page.placements.map(({ scale, x, y }) =>
+      `q ${scale.toFixed(8)} 0 0 ${scale.toFixed(8)} ${x.toFixed(4)} ${y.toFixed(4)} cm /QR Do Q\n`
+    ).join('');
+    const pageBytes = encoder.encode(commands);
+    pushStr(`<< /Length ${pageBytes.length} >>\nstream\n`);
+    pushBytes(pageBytes);
     pushStr('endstream\n');
     endObj();
 
@@ -2376,7 +2405,14 @@
       endObj();
     }
 
-    const objCount = imgBytes && imgBytes.length ? 5 : 4;
+    startObj(artworkId);
+    const artBytes = encoder.encode(contentStr);
+    pushStr(`<< /Type /XObject /Subtype /Form /BBox [0 0 ${pageWidthPt} ${pageHeightPt}] /Resources ${resourceDict} /Length ${artBytes.length} >>\nstream\n`);
+    pushBytes(artBytes);
+    pushStr('endstream\n');
+    endObj();
+
+    const objCount = artworkId;
     const xrefStart = offset;
     pushStr(`xref\n0 ${objCount + 1}\n`);
     pushStr('0000000000 65535 f \n');
@@ -2824,13 +2860,24 @@
 
   const setPreviewState = (value) => {
     if (stage) stage.dataset.previewState = value;
+    const ready = value === 'ready';
+    [downloadPngBtn, downloadButton, printTestButton, copyPngBtn, copySvgBtn].forEach(control => { control.disabled = !ready; });
+    const identity = $('[data-qrtool-download-identity]');
+    identity.hidden = !ready;
+    if (ready) {
+      const names = { url: 'Website link', text: 'Text', wifi: 'Wi-Fi network', vcard: 'Contact card' };
+      $('[data-qrtool-download-title]').textContent = selectedPlacement()?.name || linkedLink?.label || names[getPayloadMode()];
+      const address = $('[data-qrtool-download-url]');
+      address.textContent = getPayloadMode() === 'url' ? state.data.replace(/^https?:\/\//i, '') : '';
+      address.hidden = !address.textContent;
+    }
     emptyOverlay?.classList.toggle('hide', value === 'ready');
     canvas.setAttribute('aria-hidden', value === 'ready' ? 'false' : 'true');
     metaEl.hidden = value === 'empty';
     if (value === 'empty') updateEmptyPreviewCopy();
     if (value === 'error') {
       if (emptyTitle) emptyTitle.textContent = 'Preview unavailable';
-      if (emptyDescription) emptyDescription.textContent = 'Review the message above and try again.';
+      if (emptyDescription) emptyDescription.textContent = 'Check the content length and QR settings.';
     }
   };
 
@@ -2849,12 +2896,7 @@
       setWarnings([]);
       setVerification('');
       setInlineStatus(fixStatusEl, '');
-      downloadPngBtn.disabled = true;
-      downloadSvgBtn.disabled = true;
-      downloadPdfBtn.disabled = true;
-      if (copyPngBtn) copyPngBtn.disabled = true;
-      if (copySvgBtn) copySvgBtn.disabled = true;
-      if (downloadAllBtn) downloadAllBtn.disabled = true;
+
       if (autofixBtn) autofixBtn.disabled = true;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
@@ -2887,12 +2929,7 @@
           : 'Payload is too long for current settings. Shorten the payload or reduce complexity.',
       }]);
       setVerification('');
-      downloadPngBtn.disabled = true;
-      downloadSvgBtn.disabled = true;
-      downloadPdfBtn.disabled = true;
-      if (copyPngBtn) copyPngBtn.disabled = true;
-      if (copySvgBtn) copySvgBtn.disabled = true;
-      if (downloadAllBtn) downloadAllBtn.disabled = true;
+
       if (autofixBtn) autofixBtn.disabled = false;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
@@ -2914,12 +2951,6 @@
 
     renderQrToCanvas(canvas, { moduleCount, darkModules }, getRenderOptions());
 
-    downloadPngBtn.disabled = false;
-    downloadSvgBtn.disabled = false;
-    downloadPdfBtn.disabled = false;
-    if (copyPngBtn) copyPngBtn.disabled = false;
-    if (copySvgBtn) copySvgBtn.disabled = false;
-    if (downloadAllBtn) downloadAllBtn.disabled = false;
     scheduleScanVerification();
     schedulePersistLastConfig();
     scheduleSyncShareUrl();
@@ -3350,7 +3381,9 @@
   };
   const showLinkError = (error, target = linkStatus) => {
     const needsAccess = error?.status === 401 || error?.status === 403;
-    setInlineStatus(target, error?.message || 'Unable to load this link. Please try again.', 'error');
+    const message = error?.message || 'Unable to load this link. Please try again.';
+    setInlineStatus(target, message, 'error');
+    if (target === linkStatus) setInlineStatus($('#qrtool-export-status'), message, 'error');
     if (linkAccess && needsAccess) linkAccess.hidden = false;
     const pickerSignin = $('[data-qrtool-picker-signin]');
     if (pickerSignin) pickerSignin.hidden = !needsAccess;
@@ -3359,10 +3392,12 @@
     const url = new URL(window.location.href);
     const slug = managedMode ? linkedLink?.slug || pendingLinkedSlug : '';
     if (slug) {
+      if (url.searchParams.get('link') !== slug) url.searchParams.delete('placement');
       url.searchParams.set('link', slug);
       url.searchParams.delete('cfg');
     } else {
       url.searchParams.delete('link');
+      url.searchParams.delete('placement');
       url.searchParams.delete('download');
     }
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
@@ -3381,6 +3416,7 @@
     syncLinkedUrl();
     render();
     setInlineStatus(linkStatus, 'Loading saved link and QR design…');
+    setInlineStatus($('#qrtool-export-status'), '');
     try {
       if (!window.ShortLinksClient) throw new Error('Link management is unavailable. Reload this page to try again.');
       const result = await window.ShortLinksClient.get(pendingLinkedSlug);
@@ -3388,6 +3424,8 @@
       const link = result.link;
       if (!link?.slug || !link.destination) throw new Error('This saved link could not be found. Choose another link.');
       linkedLink = link;
+      const requestedPlacement = new URL(window.location.href).searchParams.get('placement');
+      if (requestedPlacement && !selectedPlacement()) throw new Error('This placement could not be found. Reopen the QR code from its link.');
       pendingLinkedSlug = '';
       const design = link.qrDesign ? selectQrDesign(link.qrDesign) : {
         dotStyle: 'square', cornerStyle: 'square', fg: '#102c46', bg: '#FFFFFF',
@@ -3571,26 +3609,28 @@
     sourceCanvas.toBlob((blob) => resolve(blob || null), type || 'image/png');
   });
 
-  const buildExportArtifacts = async (size) => {
+  const buildExportArtifacts = async (format) => {
     if (getPayloadMode() === 'url' && managedMode && (linkedLoading || !linkedLink)) return null;
     readStateFromControls();
     render();
     if (!state.darkModules) return null;
-    const safeSize = clamp(toInt(size, 1024), 128, 8192);
-    const outCanvas = document.createElement('canvas');
-    outCanvas.width = safeSize;
-    outCanvas.height = safeSize;
-    renderQrToCanvas(outCanvas, { moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions());
-    const pngBlob = await canvasToBlob(outCanvas, 'image/png');
-    if (!pngBlob) return null;
-    const svg = buildSvg({ moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions(), safeSize);
-    const pdfBytes = buildPdf({ moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions({ forceSolidBackground: true }), safeSize);
-    return {
-      size: safeSize,
-      pngBlob,
-      svg,
-      pdfBytes,
-    };
+    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
+    const qr = { moduleCount: state.moduleCount, darkModules: state.darkModules };
+    const options = getRenderOptions();
+    const result = { size };
+    if (format === 'pdf' || format === 'test' || format === 'zip') {
+      const layout = format === 'test' ? 'test' : printLayoutSelect.value;
+      result.pdfBytes = buildPdf(qr, getRenderOptions({ forceSolidBackground: true }), size, layout, printSizeSelect.value);
+    }
+    if (format === 'svg' || format === 'zip') result.svg = buildSvg(qr, options, size);
+    if (format === 'png' || format === 'zip') {
+      const output = document.createElement('canvas');
+      output.width = output.height = size;
+      renderQrToCanvas(output, qr, options);
+      result.pngBlob = await canvasToBlob(output, 'image/png');
+      if (!result.pngBlob) return null;
+    }
+    return result;
   };
 
   const handleControlMutation = () => {
@@ -4066,45 +4106,60 @@
     render();
   }, 160));
 
-  const getSelectedExportSize = () => clamp(toInt(imageSizeSelect?.value, 1024), 128, 8192);
+  const syncExportFormat = () => {
+    const format = formatSelect.value;
+    downloadButton.textContent = 'Download ' + format.toUpperCase();
+    $('[data-qrtool-print-controls]').hidden = format !== 'pdf';
+    $('[data-qrtool-label-size]').hidden = printLayoutSelect.value === 'artwork';
+    printTestButton.hidden = printLayoutSelect.value === 'artwork';
+    setInlineStatus(exportStatusEl, '');
+  };
 
-  downloadPngBtn.addEventListener('click', async () => {
-    if (!state.darkModules) return;
-    const artifacts = await buildExportArtifacts(getSelectedExportSize());
-    if (!artifacts) {
-      setInlineStatus(exportStatusEl, 'Could not create PNG export.', 'error');
-      return;
+  let exportPending = false;
+  const downloadFormat = async (format, status = exportStatusEl) => {
+    if (exportPending || !state.darkModules) return;
+    exportPending = true;
+    const base = fileNameSafe(filenameInput.value);
+    try {
+      const artifacts = await buildExportArtifacts(format);
+      if (!artifacts) throw new Error('Unable to prepare the file. Check the QR preview.');
+      if (format === 'png') {
+        downloadBlob(artifacts.pngBlob, base + '.png');
+      } else if (format === 'svg') {
+        downloadBlob(new Blob([artifacts.svg], { type: 'image/svg+xml;charset=utf-8' }), base + '.svg');
+      } else if (format === 'pdf' || format === 'test') {
+        downloadBlob(new Blob([artifacts.pdfBytes], { type: 'application/pdf' }), base + (format === 'test' ? '-print-test.pdf' : '.pdf'));
+      } else if (format === 'zip') {
+        if (!buildZipBytes) throw new Error('Could not prepare the ZIP. Individual formats remain available.');
+        const zip = buildZipBytes([
+          { name: base + '.png', data: new Uint8Array(await artifacts.pngBlob.arrayBuffer()) },
+          { name: base + '.svg', data: artifacts.svg },
+          { name: base + '.pdf', data: artifacts.pdfBytes },
+        ]);
+        downloadBlob(new Blob([zip], { type: 'application/zip' }), base + '-exports.zip');
+      }
+      const message = format === 'test' ? 'Test PDF downloaded. Print at Actual size (100%) and scan the code.'
+        : format === 'pdf' ? 'PDF downloaded. Print at Actual size (100%).' : format.toUpperCase() + ' downloaded.';
+      setInlineStatus(status, message, 'success');
+    } catch (error) {
+      setInlineStatus(status, error.message || 'The download could not be prepared.', 'error');
+    } finally {
+      exportPending = false;
     }
-    downloadBlob(artifacts.pngBlob, `${fileNameSafe(filenameInput.value)}.png`);
-    setInlineStatus(exportStatusEl, `PNG downloaded (${artifacts.size}px).`, 'success');
-  });
+  };
 
-  downloadSvgBtn.addEventListener('click', async () => {
-    if (!state.darkModules) return;
-    const artifacts = await buildExportArtifacts(getSelectedExportSize());
-    if (!artifacts) {
-      setInlineStatus(exportStatusEl, 'Could not create SVG export.', 'error');
-      return;
-    }
-    downloadBlob(new Blob([artifacts.svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
-    setInlineStatus(exportStatusEl, 'SVG downloaded.', 'success');
-  });
-
-  downloadPdfBtn.addEventListener('click', async () => {
-    if (!state.darkModules) return;
-    const artifacts = await buildExportArtifacts(getSelectedExportSize());
-    if (!artifacts) {
-      setInlineStatus(exportStatusEl, 'Could not create PDF export.', 'error');
-      return;
-    }
-    downloadBlob(new Blob([artifacts.pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
-    setInlineStatus(exportStatusEl, 'PDF downloaded.', 'success');
-  });
+  formatSelect.addEventListener('change', syncExportFormat);
+  printLayoutSelect.addEventListener('change', syncExportFormat);
+  $('[data-qrtool-open-download]').addEventListener('click', () => activateTab('export', true));
+  $('[data-qrtool-back]').addEventListener('click', () => activateTab(document.body.dataset.qrtoolReturnTab || 'generate', true));
+  downloadPngBtn.addEventListener('click', () => downloadFormat('png', document.body.dataset.qrtoolView === 'export' ? exportStatusEl : $('#qrtool-quick-status')));
+  downloadButton.addEventListener('click', () => downloadFormat(formatSelect.value));
+  printTestButton.addEventListener('click', () => downloadFormat('test'));
 
   if (copyPngBtn) {
     copyPngBtn.addEventListener('click', async () => {
       if (!state.darkModules) return;
-      const artifacts = await buildExportArtifacts(getSelectedExportSize());
+      const artifacts = await buildExportArtifacts('png');
       if (!artifacts) {
         setInlineStatus(exportStatusEl, 'Could not create PNG copy.', 'error');
         return;
@@ -4126,7 +4181,7 @@
   if (copySvgBtn) {
     copySvgBtn.addEventListener('click', async () => {
       if (!state.darkModules) return;
-      const artifacts = await buildExportArtifacts(getSelectedExportSize());
+      const artifacts = await buildExportArtifacts('svg');
       if (!artifacts) {
         setInlineStatus(exportStatusEl, 'Could not create SVG copy.', 'error');
         return;
@@ -4140,37 +4195,11 @@
     });
   }
 
-  if (downloadAllBtn) {
-    downloadAllBtn.addEventListener('click', async () => {
-      if (!state.darkModules) return;
-      const artifacts = await buildExportArtifacts(getSelectedExportSize());
-      if (!artifacts) {
-        setInlineStatus(exportStatusEl, 'Could not generate export package.', 'error');
-        return;
-      }
-      const base = fileNameSafe(filenameInput.value);
-      if (!buildZipBytes) {
-        downloadBlob(artifacts.pngBlob, `${base}.png`);
-        downloadBlob(new Blob([artifacts.svg], { type: 'image/svg+xml;charset=utf-8' }), `${base}.svg`);
-        downloadBlob(new Blob([artifacts.pdfBytes], { type: 'application/pdf' }), `${base}.pdf`);
-        setInlineStatus(exportStatusEl, 'ZIP unavailable in this build. Downloaded all files separately.', 'warning');
-        return;
-      }
-      const pngBytes = new Uint8Array(await artifacts.pngBlob.arrayBuffer());
-      const zipBytes = buildZipBytes([
-        { name: `${base}.png`, data: pngBytes },
-        { name: `${base}.svg`, data: artifacts.svg },
-        { name: `${base}.pdf`, data: artifacts.pdfBytes },
-      ]);
-      downloadBlob(new Blob([zipBytes], { type: 'application/zip' }), `${base}-exports.zip`);
-      setInlineStatus(exportStatusEl, 'ZIP downloaded with PNG, SVG, and PDF.', 'success');
-    });
-  }
-
   form.addEventListener('submit', (event) => {
     event.preventDefault();
   });
 
+  syncExportFormat();
   initTabs();
   setUiMode(DEFAULTS.uiMode);
   setPayloadMode(DEFAULTS.payloadMode);

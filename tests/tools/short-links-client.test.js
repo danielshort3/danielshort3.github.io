@@ -37,6 +37,9 @@ async function run(){
   assert.strictEqual(client.publicUrl('p/portfolio'), 'https://dshort.me/p/portfolio');
   assert.strictEqual(client.publicUrl('p/portfolio', { qr: true }), 'https://dshort.me/p/portfolio?__qr=1');
   assert.strictEqual(client.qrEditorUrl('p/portfolio'), '/tools/qr-code-generator?link=p%2Fportfolio');
+  assert.strictEqual(client.publicUrl('p/portfolio', { qr: true, placement: 'front-desk' }), 'https://dshort.me/p/portfolio?__qr=1&__p=front-desk');
+  assert.strictEqual(client.publicUrl('p/portfolio', { placement: 'newsletter' }), 'https://dshort.me/p/portfolio?__p=newsletter');
+  assert.strictEqual(client.qrEditorUrl('p/portfolio', { placement: 'front-desk' }), '/tools/qr-code-generator?link=p%2Fportfolio&placement=front-desk');
   await client.create({ destination: 'https://example.com', intent: 'overwrite' });
   assert.strictEqual(JSON.parse(requests.at(-1).body).intent, 'create', 'normal creation cannot fall back to upsert');
   assert.strictEqual(requests.at(-1).headers.get('Authorization'), 'Bearer replacement');
@@ -51,7 +54,7 @@ async function run(){
   await assert.rejects(client.request('/api/unrelated'), /workspace/);
   context.fetch = async () => ({ ok: false, status: 403, json: async () => ({ ok: false, error: 'Unauthorized' }) });
   await assert.rejects(client.list(), error => error.status === 403 && /authorized account/.test(error.message));
-  return 17;
+  return 20;
 }
 
 module.exports = run;

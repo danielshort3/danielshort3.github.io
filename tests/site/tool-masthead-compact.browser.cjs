@@ -56,6 +56,7 @@ async function runCase(base, browser, width, route = '/tools/qr-code-generator')
     if (route !== '/tools') {
       await page.getByRole('tab', { name: 'Download', exact: true }).click();
       assert(await page.locator('#qrtool-panel-export').isVisible(), `${width}px: Download tab opens its panel.`);
+      await page.getByRole('button', { name: /QR settings/ }).click();
     } else {
       const category = page.getByRole('link', { name: 'Text', exact: true });
       const target = await category.getAttribute('href');

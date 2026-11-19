@@ -58,12 +58,41 @@ async function run(){
       updatedAt: '2026-09-01T00:00:00.000Z', contextCompany: 'Example',
       qrDesign: { schemaVersion: 1, fg: '#3095AA' }
     };
-    const patch = management.buildLinkPatch({ destination: 'https://example.test/after' }, existing);
-    assert.deepStrictEqual(patch, { destination: 'https://example.test/after' });
+    const editTime = '2026-09-02T12:00:00.000Z';
+    const patch = management.buildLinkPatch({ destination: 'https://example.test/after', expectedUpdatedAt: existing.updatedAt }, existing, editTime);
+    assert.deepStrictEqual(patch, { destination: 'https://example.test/after', destinationHistory: [{ destination: existing.destination, changedAt: editTime }] });
+    assert.equal(management.nextLinkTimestamp({ updatedAt: editTime }, Date.parse(editTime)), '2026-09-02T12:00:00.001Z');
+    const edited = { ...existing, ...patch, updatedAt: editTime };
+    assert.throws(() => management.buildLinkPatch({ destination: existing.destination, expectedUpdatedAt: existing.updatedAt }, edited), error => error.statusCode === 409);
+    assert.deepStrictEqual(management.buildLinkPatch({ destination: edited.destination }, edited), { destination: edited.destination });
+    const restore = management.buildLinkPatch({ destination: patch.destinationHistory[0].destination, expectedUpdatedAt: editTime }, edited);
+    assert.equal(restore.destination, existing.destination);
+    const encoded = helpers.normalizeDestination('/' + '山'.repeat(2010), { absolutizeInternalPath: true });
+    assert(encoded.length > 2048);
+    assert.throws(() => management.buildLinkPatch({ destination: encoded }, existing), /valid destination/);
+    const longHistory = Array.from({ length: 25 }, (_, i) => ({ destination: encoded + i, changedAt: editTime }));
+    const legacyLong = { ...existing, destination: encoded, destinationHistory: longHistory };
+    const fromLong = management.buildLinkPatch({ destination: existing.destination }, legacyLong, editTime);
+    assert(Buffer.byteLength(JSON.stringify(fromLong.destinationHistory)) <= 128 * 1024);
+    assert(fromLong.destinationHistory.length > 1 && fromLong.destinationHistory.length < 25);
+    assert.equal(management.buildLinkPatch({ destination: encoded }, { ...legacyLong, ...fromLong }).destination, encoded);
+    assert.deepStrictEqual(restore.destinationHistory.map(entry => entry.destination), [edited.destination, existing.destination]);
+    const { placements } = management.buildLinkPatch({ addPlacement: { name: ' Visitor center  brochure ', channel: 'qr' } }, edited);
+    assert.equal(placements[0].name, 'Visitor center brochure');
+    assert.match(placements[0].id, /^[A-Za-z0-9_-]{8}$/);
+    assert.equal(placements[0].channel, 'qr');
+    assert.throws(() => management.buildLinkPatch({ addPlacement: { name: 'visitor center brochure', channel: 'qr' } }, { ...edited, placements }), /already exists/);
+    assert.throws(() => management.buildLinkPatch({ addPlacement: { name: 'Poster', channel: 'other' } }, edited), /QR code or short link/);
+    assert.throws(() => management.buildLinkPatch({ addPlacement: { name: ' ', channel: 'qr' } }, edited), /placement name/);
+    assert.deepStrictEqual(management.serializeLink(existing).placements, []);
+    assert.deepStrictEqual(management.serializeLink(edited).destinationHistory, patch.destinationHistory);
     const command = store.buildLinkUpdate({ tableName: 'test-links', slug: existing.slug, patch, updatedAt: 'later', expectedUpdatedAt: existing.updatedAt });
     assert(!/clicks|disabled|expiresAt|contextCompany|qrDesign/.test(command.UpdateExpression), 'Editing a destination must not overwrite other link state');
     assert(command.ConditionExpression.includes('#updatedAt = :expectedUpdatedAt'), 'Concurrent edits must not silently overwrite each other');
+    assert(command.UpdateExpression.includes('#destinationHistory = :destinationHistory'), 'History and destination must be written atomically');
+    assert(store.buildLinkUpdate({ tableName: 'test', slug: 'old', patch, updatedAt: editTime, expectedUpdatedAt: null }).ConditionExpression.includes('attribute_not_exists(#updatedAt)'));
     assert.throws(() => management.buildLinkPatch({ slug: 'renamed', label: 'New' }, existing), /cannot be renamed/);
+    assert.throws(() => management.buildLinkPatch({ destination: 'https://' }, existing), /valid destination/);
     assert.deepStrictEqual(management.buildLinkPatch({ expiresAt: 0 }, existing), { expiresAt: 0 });
     assert.throws(() => management.buildLinkPatch({ expiresAt: future }, { ...existing, permanent: true, expiresAt: 0 }), /temporary redirect/);
     assert.deepStrictEqual(management.normalizeTags([' work ', 'work', 'launch']), ['work', 'launch']);
@@ -103,6 +132,11 @@ async function run(){
     });
     await assert.rejects(isolatedStore.upsertLink({ slug: existing.slug, destination: 'https://example.test/new', createOnly: true }), error => error.code === 'SLUG_CONFLICT');
     assert.equal(lastTransaction, undefined, 'A create request must never update a preexisting record');
+    await isolatedStore.upsertLink({ slug: existing.slug, destination: 'https://example.test/legacy-edit', updatedAt: editTime });
+    const legacyEdit = lastTransaction.TransactItems[1].Update;
+    assert.equal(legacyEdit.ExpressionAttributeValues[':destinationHistory'][0].destination, existing.destination);
+    assert.equal(legacyEdit.ExpressionAttributeValues[':priorUpdatedAt'], existing.updatedAt);
+    assert(legacyEdit.ConditionExpression.includes('#priorUpdatedAt = :priorUpdatedAt'));
     storedRecord = null;
     await isolatedStore.upsertLink({ slug: 'new-link', destination: 'https://example.test/new', createOnly: true, updatedAt: 'now' });
     const atomicCreate = lastTransaction.TransactItems[1].Update;
@@ -117,6 +151,7 @@ async function run(){
     assert.equal(redirect._internal.buildRedirectTarget({ url: '/Portfolio?__qr=0' }, 'https://example.test', 'https://dshort.me').channel, 'link');
     assert.equal(store.buildClickEventItem({ slug: 'a', clickId: '1', clickedAt: 'now', channel: 'qr' }).channel, 'qr');
     assert.equal(store.buildClickEventItem({ slug: 'a', clickId: '1', clickedAt: 'now' }).channel, 'unknown');
+    assert.equal(store.buildClickEventItem({ slug: 'a', clickId: '1', clickedAt: 'now', placementId: placements[0].id }).placementId, placements[0].id);
 
     const cookie = claims => sessions.createSessionFromClaims({ sub: 'test-user', exp: Math.floor(Date.now() / 1000) + 3600, ...claims }).cookie.split(';')[0];
     const adminCookie = cookie({ 'cognito:groups': ['admin'] });
@@ -166,6 +201,8 @@ async function run(){
     assert.equal(res.body.link.disabled, true);
     assert.equal(res.body.link.contextCompany, 'Example');
     assert.equal(res.body.link.qrDesign.fg, '#3095AA');
+    res = await call(single, 'PATCH', '/api/short-links/Portfolio', { destination: existing.destination, expectedUpdatedAt: 'old' });
+    assert.equal(res.statusCode, 409);
     res = await call(single, 'PATCH', '/api/short-links/Portfolio', { qrDesign: null });
     assert.equal(res.body.link.qrDesign, null);
     const authorizedWrites = writes;
@@ -192,18 +229,49 @@ async function run(){
     assert.equal(all.daily.reduce((sum, day) => sum + day.clicks, 0), 3, 'Undated activity must not be fabricated into the trend');
     assert.equal(management.buildAnalyticsReport({ links: [], items: [], truncated: true, now }).completeness.complete, false);
 
+    const placedEvents = [
+      { slug: 'Portfolio', clickedAt: '2026-09-05T10:00:00Z', channel: 'qr', placementId: placements[0].id },
+      { slug: 'Portfolio', clickedAt: '2026-09-05T11:00:00Z', channel: 'link' },
+      { slug: 'Portfolio', clickedAt: '2026-08-23T00:00:00Z', channel: 'qr', placementId: placements[0].id },
+      { slug: 'Portfolio', clickedAt: '2026-08-22T23:59:59Z', channel: 'qr' }
+    ];
+    const framed = { ...existing, clicks: placedEvents.length, placements };
+    const period = management.buildAnalyticsReport({ links: [framed], items: placedEvents, now, days: '7', slug: 'Portfolio' });
+    assert.deepStrictEqual(period.previous, { clicks: 1, start: '2026-08-23', end: '2026-08-29', complete: true });
+    assert.deepStrictEqual(period.placements, [
+      { id: '', name: 'Unassigned', channel: 'link', clicks: 1, slug: 'Portfolio' },
+      { ...placements[0], clicks: 1, slug: 'Portfolio' }
+    ]);
+    assert.equal(all.previous, null);
+    assert.equal(all.placements.reduce((sum, row) => sum + row.clicks, 0), all.totals.clicks);
+    const perLinkApi = loadModule('api/short-links/index.js', { '../_lib/short-links-store': {
+      getLinkWithLegacyFallback: async slug => slug === framed.slug ? framed : null,
+      findLinkByLowerSlug: async slug => slug.toLowerCase() === framed.slug.toLowerCase() ? framed : null,
+      listAnalyticsEvents: async ({ slug }) => { assert.equal(slug, framed.slug); return { items: placedEvents }; }
+    } });
+    res = await call(perLinkApi, 'GET', '/api/short-links?view=analytics&slug=portfolio&days=all');
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.analytics.placements.find(row => row.id === placements[0].id).clicks, 2);
+
     let recorded;
     const redirectHandler = loadModule('api/go/[...slug].js', {
       '../_lib/short-links-store': {
-        getLinkWithLegacyFallback: async () => ({ ...existing, disabled: false, permanent: true, expiresAt: 0 }),
+        getLinkWithLegacyFallback: async () => ({ ...existing, placements, disabled: false, permanent: true, expiresAt: 0 }),
         recordClick: async event => { recorded = event; }
       }
     });
-    res = await call(redirectHandler, 'GET', '/go/Portfolio?__qr=1&utm_source=poster');
+    res = await call(redirectHandler, 'GET', `/go/Portfolio?__qr=1&__p=${placements[0].id}&utm_source=poster`);
     assert.equal(res.statusCode, 302, 'QR redirects remain editable even for legacy permanent links');
     assert.equal(res.headers['Cache-Control'], 'no-store');
     assert.equal(recorded.channel, 'qr');
     assert(!res.headers.Location.includes('__qr'));
+    assert(!res.headers.Location.includes('__p'));
+    assert.equal(recorded.placementId, placements[0].id);
+    res = await call(redirectHandler, 'GET', '/go/Portfolio?__qr=1&__p=unknown&utm_source=kept');
+    assert.equal(recorded.placementId, '', 'Unrecognized placements must not create analytics labels');
+    assert.equal(res.headers.Location, 'https://example.test/before?utm_source=kept');
+    await call(redirectHandler, 'GET', `/go/Portfolio?__p=${placements[0].id}`);
+    assert.equal(recorded.placementId, '', 'QR placements cannot attribute ordinary link visits');
     recorded = null;
     await call(redirectHandler, 'HEAD', '/go/Portfolio?__qr=1');
     assert.equal(recorded, null, 'Health probes must not count as QR visits');

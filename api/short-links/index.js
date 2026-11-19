@@ -8,6 +8,8 @@ const { serializeLink, normalizeTags, normalizeQrDesign, buildAnalyticsReport } 
 
 const {
   isSlugConflictError,
+  getLinkWithLegacyFallback,
+  findLinkByLowerSlug,
   listLinks,
   listLinksPage,
   listAnalyticsEvents,
@@ -245,11 +247,16 @@ async function handleAnalytics(req, res, params){
     return;
   }
   try {
-    let links = await listLinks();
-    if (requestedSlug) links = links.filter(link => normalizeSlugLower(link.slug) === normalizeSlugLower(requestedSlug));
-    if (requestedSlug && !links.length) {
-      sendJson(res, 404, { ok: false, error: 'Link not found' });
-      return;
+    let links;
+    if (requestedSlug) {
+      const link = await getLinkWithLegacyFallback(requestedSlug) || await findLinkByLowerSlug(requestedSlug);
+      if (!link) {
+        sendJson(res, 404, { ok: false, error: 'Link not found' });
+        return;
+      }
+      links = [link];
+    } else {
+      links = await listLinks();
     }
     const slug = requestedSlug ? links[0].slug : '';
     const history = await listAnalyticsEvents({ slug });

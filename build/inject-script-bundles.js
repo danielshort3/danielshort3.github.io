@@ -439,6 +439,14 @@ function processHtml(html, relPath) {
     const version = createHash('sha256').update(fs.readFileSync(path.join(root, controller))).digest('hex').slice(0, 12);
     next = next.replace(/(\bsrc="\/?js\/tools\/watermark-remover\.js)(?:\?v=[a-f0-9]+)?"/gi, `$1?v=${version}"`);
   }
+  if (relPath === 'pages/short-links.html' || relPath === 'pages/qr-code-generator.html') {
+    // These controllers share a placement URL contract and must match their page markup on first reload.
+    next = next.replace(/(\bsrc="\/?)(js\/(?:tools\/(?:short-links-client|qr-code-generator(?:-utils)?)|admin\/short-links(?:-activity)?)\.js)(?:\?v=[a-f0-9]+)?"/g,
+      (_, prefix, asset) => {
+        const version = createHash('sha256').update(fs.readFileSync(path.join(root, asset))).digest('hex').slice(0, 12);
+        return `${prefix}${asset}?v=${version}"`;
+      });
+  }
   const finalized = finalizePersonalRouteDocument(next, { home: relPath === 'index.html' });
   if (/\bid="site-route-manifest"/i.test(finalized)) validatePersonalRouteDocument(finalized);
   return { html: finalized, changed: finalized !== html };

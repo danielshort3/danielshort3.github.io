@@ -1,3 +1,4 @@
+const { deepStrictEqual } = require('node:assert');
 const utils = require('../../js/tools/qr-code-generator-utils.js');
 
 module.exports = function runQrCodeGeneratorUtilsTests({ assert }) {
@@ -40,6 +41,15 @@ module.exports = function runQrCodeGeneratorUtilsTests({ assert }) {
   const decoded = utils.decodeConfig(token);
   assert(decoded && decoded.a === 1 && decoded.b === 'test', 'config token should round-trip');
   assert(decoded.nested && decoded.nested.c === true, 'config token should preserve nested fields');
+
+  const sheet = utils.getPrintLayout('sheet', '2', 1024, 1280);
+  deepStrictEqual([sheet.width, sheet.height], [612, 792]);
+  assert(sheet.placements.length === 15 && sheet.placements.every(({ x, y, scale }) =>
+    x >= 0 && y >= 0 && x + 1024 * scale <= sheet.width && y + 1280 * scale <= sheet.height && 1280 * scale === 144),
+  'Captioned artwork must fit fully within each two-inch label.');
+  deepStrictEqual(utils.getPrintLayout('test', '2', 1024, 1280).placements, sheet.placements.slice(0, 1));
+  deepStrictEqual(utils.getPrintLayout('label', '3', 1024, 1024), { width: 216, height: 216, placements: [{ x: 0, y: 0, scale: 216 / 1024 }] });
+  deepStrictEqual(utils.getPrintLayout('artwork', '2', 512, 614), { width: 512, height: 614, placements: [{ x: 0, y: 0, scale: 1 }] });
 
   const zipBytes = utils.buildZip([
     { name: 'a.txt', data: 'hello' },
