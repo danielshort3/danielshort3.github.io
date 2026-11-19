@@ -36,6 +36,7 @@ async function run() {
       }
     },
     '../_lib/short-links-management': {
+      nextLinkTimestamp: require('../../api/_lib/short-links-management').nextLinkTimestamp,
       serializeLink: (link) => link,
       buildLinkPatch: (body) => body
     },

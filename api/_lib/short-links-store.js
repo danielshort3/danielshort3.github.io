@@ -26,6 +26,7 @@ const {
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 const { resolveAwsCredentials } = require('./aws-credentials');
+const { nextLinkTimestamp, revisedDestinations } = require('./short-links-management');
 const {
   SET_KEY_PREFIX,
   BATCH_KEY_PREFIX,
@@ -311,6 +312,7 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
   const client = getDocClient();
   const currentLink = await getLink(slug);
   const currentIsLink = isLinkEntity(currentLink);
+  if (currentIsLink) updatedAt = nextLinkTimestamp(currentLink, Date.parse(updatedAt) || Date.now());
   if (createOnly && currentLink) throw createSlugConflictError(slug);
   if (currentLink && !currentIsLink) throw createSlugConflictError(slug);
   const currentClicksPresent = Boolean(
@@ -352,6 +354,10 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
     ':createdAt': updatedAt,
     ':initialClicks': initialClicks
   };
+  if (currentIsLink && currentLink.destination && currentLink.destination !== destination) {
+    setExpressions.push('destinationHistory = :destinationHistory');
+    values[':destinationHistory'] = revisedDestinations(currentLink, updatedAt);
+  }
 
   if (permanent) {
     removeExpressions.push('expiresAt');
@@ -414,6 +420,15 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
         ExpressionAttributeNames: { '#slug': 'slug' }
       };
   if (currentClicksPresent) values[':priorClicks'] = currentClicks;
+  if (currentIsLink) {
+    linkCondition.ExpressionAttributeNames['#priorUpdatedAt'] = 'updatedAt';
+    if (typeof currentLink.updatedAt === 'string') {
+      linkCondition.ConditionExpression += ' AND #priorUpdatedAt = :priorUpdatedAt';
+      values[':priorUpdatedAt'] = currentLink.updatedAt;
+    } else {
+      linkCondition.ConditionExpression += ' AND attribute_not_exists(#priorUpdatedAt)';
+    }
+  }
 
   try {
     const transactItems = [
@@ -490,7 +505,7 @@ function buildLinkUpdate({ tableName, slug, patch, updatedAt, expectedUpdatedAt 
   const values = { ':linkType': 'link', ':updatedAt': updatedAt };
   const sets = ['#updatedAt = :updatedAt'];
   const removes = [];
-  const allowed = new Set(['destination', 'label', 'tags', 'expiresAt', 'permanent', 'disabled', 'qrDesign']);
+  const allowed = new Set(['destination', 'destinationHistory', 'placements', 'label', 'tags', 'expiresAt', 'permanent', 'disabled', 'qrDesign']);
   Object.entries(patch).forEach(([key, value]) => {
     if (!allowed.has(key)) return;
     names[`#${key}`] = key;
@@ -501,9 +516,11 @@ function buildLinkUpdate({ tableName, slug, patch, updatedAt, expectedUpdatedAt 
     }
   });
   let condition = 'attribute_exists(#slug) AND (attribute_not_exists(#entityType) OR #entityType = :linkType)';
-  if (typeof expectedUpdatedAt === 'string' && expectedUpdatedAt) {
+  if (typeof expectedUpdatedAt === 'string') {
     condition += ' AND #updatedAt = :expectedUpdatedAt';
     values[':expectedUpdatedAt'] = expectedUpdatedAt;
+  } else if (expectedUpdatedAt === null) {
+    condition += ' AND attribute_not_exists(#updatedAt)';
   }
   return {
     TableName: tableName, Key: { slug }, ConditionExpression: condition,
@@ -693,6 +710,7 @@ function buildClickEventItem(event){
     clickId,
     entityType: 'clickEvent',
     channel: ['qr', 'link'].includes(event.channel) ? event.channel : 'unknown',
+    ...(event.placementId ? { placementId: event.placementId } : {}),
     clickedAt,
     destination: sanitizeValue(event.destination, 2048),
     statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,

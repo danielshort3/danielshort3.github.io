@@ -53,11 +53,19 @@
     return data;
   };
 
-  const publicUrl = (slug, { qr = false } = {}) => {
+  const publicUrl = (slug, { qr = false, placement = '' } = {}) => {
     const ending = String(slug || '').trim().replace(/^\/+|\/+$/g, '').split('/').map(encodeURIComponent).join('/');
-    return `https://dshort.me/${ending}${qr ? '?__qr=1' : ''}`;
+    const url = new URL(`https://dshort.me/${ending}`);
+    if (qr) url.searchParams.set('__qr', '1');
+    if (placement) url.searchParams.set('__p', placement);
+    return url.href;
   };
-  const qrEditorUrl = (slug) => `/tools/qr-code-generator?link=${encodeURIComponent(String(slug || ''))}`;
+  const qrEditorUrl = (slug, { placement = '' } = {}) => {
+    const url = new URL('/tools/qr-code-generator', window.location.origin);
+    url.searchParams.set('link', String(slug || ''));
+    if (placement) url.searchParams.set('placement', placement);
+    return url.pathname + url.search;
+  };
   window.ShortLinksClient = Object.freeze({
     getToken, setToken, clearToken: () => setToken(''), request, publicUrl, qrEditorUrl,
     list: () => request('/api/short-links'),

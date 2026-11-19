@@ -219,7 +219,7 @@ function generateRandomSlug(length){
 function normalizeDestination(destination, options = {}){
   const raw = String(destination || '').trim();
   if (!raw) return '';
-  if (raw.length > 2048) return '';
+  if (raw.length > 2048 && !(options.allowSavedUrl && /^https?:\/\//i.test(raw))) return '';
   if (raw.startsWith('/')) {
     if (options && options.absolutizeInternalPath) {
       try {
@@ -230,7 +230,14 @@ function normalizeDestination(destination, options = {}){
     }
     return raw;
   }
-  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      new URL(raw);
+      return raw;
+    } catch {
+      return '';
+    }
+  }
   return '';
 }
 

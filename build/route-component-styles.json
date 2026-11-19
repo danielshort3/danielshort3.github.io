@@ -50,13 +50,15 @@
     "css/components/project-image-viewer.css"
   ],
   "/short-links": [
-    "css/components/short-links.css"
+    "css/components/short-links.css",
+    "css/components/short-links-activity.css"
   ],
   "/tools/aws-status": [
     "css/components/aws-status.css"
   ],
   "/tools/short-links": [
-    "css/components/short-links.css"
+    "css/components/short-links.css",
+    "css/components/short-links-activity.css"
   ],
   "/games/ocean-wave-simulation": [
     "css/components/games.css",

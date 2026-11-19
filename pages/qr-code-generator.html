@@ -118,7 +118,7 @@
 })();</script>
   <link rel="stylesheet" href="dist/styles.ebcf1bb0.css">
   <link rel="stylesheet" href="dist/styles-tools.ec8eac8a.css">
-  <link rel="stylesheet" href="css/components/qr-code-generator.css?v=1e82fe66407d">
+  <link rel="stylesheet" href="css/components/qr-code-generator.css?v=28b77161e88a">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
@@ -141,7 +141,7 @@
   <script type="application/ld+json" id="site-jsonld">
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/tools/qr-code-generator#webpage","url":"https://www.danielshort.me/tools/qr-code-generator","name":"QR Code Generator | Daniel Short","description":"Generate business-grade QR codes with templates, customization controls, logo embedding, and high-resolution exports. Runs locally in your browser.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/social/tool-qr-code-generator.png?v=59e5665f071f"},"mainEntity":{"@id":"https://www.danielshort.me/tools/qr-code-generator#app"},"breadcrumb":{"@id":"https://www.danielshort.me/tools/qr-code-generator#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/tools/qr-code-generator#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Tools","item":"https://www.danielshort.me/tools"},{"@type":"ListItem","position":3,"name":"QR Code Generator","item":"https://www.danielshort.me/tools/qr-code-generator"}]}]}
   </script>
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:qr-code-generator","path":"/tools/qr-code-generator","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.ebcf1bb0.css","/dist/styles-tools.ec8eac8a.css","/css/components/qr-code-generator.css?v=1e82fe66407d","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.5ad74a93.js","/js/tools/tool-share-link.js","/js/tools/qr-code-generator-utils.js","/js/tools/qr-core.js","/js/tools/tool-workspace.js","/js/tools/short-links-client.js","/js/tools/qr-code-generator.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.a6d261d1.js"],"module":"tools:qr-code-generator"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:qr-code-generator","path":"/tools/qr-code-generator","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.ebcf1bb0.css","/dist/styles-tools.ec8eac8a.css","/css/components/qr-code-generator.css?v=28b77161e88a","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.5ad74a93.js","/js/tools/tool-share-link.js","/js/tools/qr-code-generator-utils.js?v=ded457f9e01f","/js/tools/qr-core.js","/js/tools/tool-workspace.js","/js/tools/short-links-client.js?v=38a547813d2c","/js/tools/qr-code-generator.js?v=fcaaadf1a247","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.a6d261d1.js"],"module":"tools:qr-code-generator"}</script>
 </head>
 <body data-page="qr-code-generator" class="qrtool-page tools-tool-page site-page personal-accordion-page" data-tools-layout="media" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="qr-code-generator" data-personal-fit="viewport" data-site-route-id="tools:qr-code-generator" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:qr-code-generator">
   <a href="/tools/qr-code-generator#main" class="skip-link">Skip to main content</a>
@@ -596,82 +596,129 @@
                 </details>
               </div>
               <div id="qrtool-panel-export" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-export" data-qrtool-panel="export" hidden>
-                <div class="qrtool-two-col">
-                  <div class="qrtool-control">
-                    <label class="qrtool-label" for="qrtool-filename">File name</label>
-                    <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
-                  </div>
-                  <div class="qrtool-control">
-                    <label class="qrtool-label" for="qrtool-image-size">Image size</label>
-                    <select id="qrtool-image-size" class="qrtool-select">
-                      <option value="512">512 px · Sticker</option>
-                      <option value="1024" selected>1024 px · Web</option>
-                      <option value="2048">2048 px · Print</option>
-                      <option value="4096">4096 px · Poster</option>
-                    </select>
-                  </div>
+                <button type="button" class="qrtool-export-back" data-qrtool-back>← &nbsp;QR settings</button>
+                <h2 id="qrtool-download-heading" tabindex="-1" data-personal-tool-content-title>Download QR code</h2>
+                <div class="qrtool-download-preview" data-qrtool-download-preview></div>
+                <div class="qrtool-download-identity" data-qrtool-download-identity hidden>
+                  <strong data-qrtool-download-title></strong>
+                  <span data-qrtool-download-url></span>
                 </div>
-                <details class="qrtool-disclosure">
-                  <summary>Caption</summary>
-                  <div class="qrtool-field">
-                    <label class="qrtool-check">
-                      <input id="qrtool-caption-enabled" type="checkbox">
-                      Add a caption band below the QR code (all exports)
-                    </label>
+                <div class="qrtool-control qrtool-format-control">
+                  <label class="qrtool-label" for="qrtool-format">Format</label>
+                  <select id="qrtool-format" class="qrtool-select">
+                    <option value="png">PNG image</option>
+                    <option value="svg">SVG vector</option>
+                    <option value="pdf">Print PDF</option>
+                    <option value="zip" id="qrtool-download-all">ZIP with PNG, SVG and PDF</option>
+                  </select>
+                </div>
+                <div class="qrtool-print-controls" data-qrtool-print-controls hidden>
+                  <div class="qrtool-two-col">
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-caption-text">Caption text</label>
-                      <textarea id="qrtool-caption-text" class="qrtool-input" rows="2" maxlength="120" autocomplete="off" spellcheck="false" placeholder="example.com" disabled>
-                      </textarea>
+                      <label class="qrtool-label" for="qrtool-print-layout">Layout</label>
+                      <select class="qrtool-select" id="qrtool-print-layout">
+                        <option value="sheet">Label sheet</option>
+                        <option value="label">Single label</option>
+                        <option value="artwork">Original artwork</option>
+                      </select>
                     </div>
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-size">Caption size <span id="qrtool-caption-size-value" class="qrtool-value">5%</span>
-                        </label>
-                        <input id="qrtool-caption-size" type="range" min="3" max="10" value="5" step="1" disabled>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-align">Alignment</label>
-                        <select id="qrtool-caption-align" class="qrtool-select" disabled>
-                          <option value="center" selected>Center</option>
-                          <option value="left">Left</option>
-                          <option value="right">Right</option>
-                        </select>
-                      </div>
+                    <div class="qrtool-control" data-qrtool-label-size>
+                      <label class="qrtool-label" for="qrtool-print-size">Label size</label>
+                      <select class="qrtool-select" id="qrtool-print-size">
+                        <option value="1">1 × 1 in</option>
+                        <option value="1.5">1.5 × 1.5 in</option>
+                        <option value="2" selected>2 × 2 in</option>
+                        <option value="3">3 × 3 in</option>
+                      </select>
                     </div>
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-color-style">Text color</label>
-                        <select id="qrtool-caption-color-style" class="qrtool-select" disabled>
-                          <option value="auto" selected>Auto (use foreground)</option>
-                          <option value="custom">Custom</option>
-                        </select>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-bg-style">Background</label>
-                        <select id="qrtool-caption-bg-style" class="qrtool-select" disabled>
-                          <option value="auto" selected>Auto (match background)</option>
-                          <option value="white">White</option>
-                          <option value="custom">Custom</option>
-                          <option value="none">None (transparent)</option>
-                        </select>
-                      </div>
+                  </div>
+                  <button type="button" class="qrtool-print-test" data-qrtool-print-test disabled>Test at print size</button>
+                </div>
+                <button type="button" class="btn-primary qrtool-download-primary" data-qrtool-download disabled>Download PNG</button>
+                <p class="qrtool-help qrtool-download-status" id="qrtool-export-status" role="status" aria-live="polite"></p>
+                <details class="qrtool-disclosure qrtool-export-settings">
+                  <summary>Export settings</summary>
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-filename">File name</label>
+                      <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
                     </div>
-                    <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-image-size">Image size</label>
+                      <select id="qrtool-image-size" class="qrtool-select">
+                        <option value="512">512 px · Sticker</option>
+                        <option value="1024" selected>1024 px · Web</option>
+                        <option value="2048">2048 px · Print</option>
+                        <option value="4096">4096 px · Poster</option>
+                      </select>
+                    </div>
+                  </div>
+                  <details class="qrtool-disclosure">
+                    <summary>Caption</summary>
+                    <div class="qrtool-field">
+                      <label class="qrtool-check">
+                        <input id="qrtool-caption-enabled" type="checkbox">
+                        Add a caption band below the QR code (all exports)
+                      </label>
                       <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-color">Text color</label>
-                        <div class="qrtool-color-row">
-                          <input id="qrtool-caption-color" class="qrtool-color" type="color" value="#3095aa" aria-label="Caption text color" disabled>
-                          <span id="qrtool-caption-color-label" class="qrtool-chip">#3095AA</span>
+                        <label class="qrtool-label" for="qrtool-caption-text">Caption text</label>
+                        <textarea id="qrtool-caption-text" class="qrtool-input" rows="2" maxlength="120" autocomplete="off" spellcheck="false" placeholder="example.com" disabled>
+                        </textarea>
+                      </div>
+                      <div class="qrtool-two-col">
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-size">Caption size <span id="qrtool-caption-size-value" class="qrtool-value">5%</span>
+                          </label>
+                          <input id="qrtool-caption-size" type="range" min="3" max="10" value="5" step="1" disabled>
+                        </div>
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-align">Alignment</label>
+                          <select id="qrtool-caption-align" class="qrtool-select" disabled>
+                            <option value="center" selected>Center</option>
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                          </select>
                         </div>
                       </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-bg-color">Background color</label>
-                        <div class="qrtool-color-row">
-                          <input id="qrtool-caption-bg-color" class="qrtool-color" type="color" value="#131b22" aria-label="Caption background color" disabled>
-                          <span id="qrtool-caption-bg-color-label" class="qrtool-chip">#131B22</span>
+                      <div class="qrtool-two-col">
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-color-style">Text color</label>
+                          <select id="qrtool-caption-color-style" class="qrtool-select" disabled>
+                            <option value="auto" selected>Auto (use foreground)</option>
+                            <option value="custom">Custom</option>
+                          </select>
+                        </div>
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-bg-style">Background</label>
+                          <select id="qrtool-caption-bg-style" class="qrtool-select" disabled>
+                            <option value="auto" selected>Auto (match background)</option>
+                            <option value="white">White</option>
+                            <option value="custom">Custom</option>
+                            <option value="none">None (transparent)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="qrtool-two-col">
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-color">Text color</label>
+                          <div class="qrtool-color-row">
+                            <input id="qrtool-caption-color" class="qrtool-color" type="color" value="#3095aa" aria-label="Caption text color" disabled>
+                            <span id="qrtool-caption-color-label" class="qrtool-chip">#3095AA</span>
+                          </div>
+                        </div>
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-caption-bg-color">Background color</label>
+                          <div class="qrtool-color-row">
+                            <input id="qrtool-caption-bg-color" class="qrtool-color" type="color" value="#131b22" aria-label="Caption background color" disabled>
+                            <span id="qrtool-caption-bg-color-label" class="qrtool-chip">#131B22</span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </details>
+                  <div class="qrtool-actions">
+                    <button type="button" id="qrtool-copy-png" class="btn-secondary" disabled>Copy image</button>
+                    <button type="button" id="qrtool-copy-svg" class="btn-secondary" disabled>Copy SVG</button>
                   </div>
                 </details>
               </div>
@@ -775,24 +822,15 @@
             </p>
             <p class="qrtool-hint">Tip: for logo QR codes, choose higher error correction and keep strong contrast.</p>
           </div>
-          <div class="qrtool-export-actions tool-workspace-actions">
+          <div class="qrtool-actions">
             <button type="button" id="qrtool-download-png" class="btn-primary" disabled>Download PNG</button>
-            <details class="qrtool-export-more">
-              <summary class="btn-secondary">More formats</summary>
-              <div class="qrtool-export-more-menu">
-                <button type="button" id="qrtool-download-svg" class="btn-secondary" disabled>Download SVG</button>
-                <button type="button" id="qrtool-download-pdf" class="btn-secondary" disabled>Download PDF</button>
-                <button type="button" id="qrtool-copy-svg" class="btn-secondary" disabled>Copy SVG</button>
-                <button type="button" id="qrtool-download-all" class="btn-secondary" disabled>Download All (ZIP)</button>
-              </div>
-            </details>
-            <button type="button" id="qrtool-copy-png" class="btn-secondary" disabled>Copy image</button>
+            <button type="button" class="btn-secondary" data-qrtool-open-download>Download options</button>
           </div>
           <div class="qrtool-design-save" data-qrtool-design-save hidden>
             <button type="button" class="btn-secondary" data-qrtool-save-design>Save QR design</button>
             <p class="qrtool-help" data-qrtool-design-status role="status" aria-live="polite">Save this design with your link to reuse it on any device.</p>
           </div>
-          <p id="qrtool-export-status" class="qrtool-help" role="status" aria-live="polite">
+          <p id="qrtool-quick-status" class="qrtool-help" role="status" aria-live="polite">
           </p>
         </div>
       </div>
@@ -855,11 +893,11 @@
   </div>
 </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
-  <script defer src="js/tools/qr-code-generator-utils.js"></script>
+  <script defer src="js/tools/qr-code-generator-utils.js?v=ded457f9e01f"></script>
   <script defer src="js/tools/qr-core.js"></script>
   <script defer src="js/tools/tool-workspace.js"></script>
-  <script defer src="js/tools/short-links-client.js"></script>
-  <script defer src="js/tools/qr-code-generator.js"></script>
+  <script defer src="js/tools/short-links-client.js?v=38a547813d2c"></script>
+  <script defer src="js/tools/qr-code-generator.js?v=fcaaadf1a247"></script>
   <script defer src="dist/site-tools-account.2e6c9ae7.js"></script>
 
   <script defer src="dist/site-consent.a6d261d1.js"></script>

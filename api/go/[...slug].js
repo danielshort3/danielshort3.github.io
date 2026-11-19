@@ -109,16 +109,19 @@ function getSlugFromRequest(req){
   }
 }
 
-function buildRedirectTarget(req, destination, base){
+function buildRedirectTarget(req, destination, base, placements = []){
   const reqUrl = new URL(req.url, base);
   const destUrl = new URL(destination, base);
   const channel = reqUrl.searchParams.get('__qr') === '1' ? 'qr' : 'link';
+  const requestedPlacement = reqUrl.searchParams.get('__p');
+  const placement = requestedPlacement && placements.find(item => item.id === requestedPlacement && item.channel === channel);
   destUrl.searchParams.delete('__qr');
+  destUrl.searchParams.delete('__p');
   reqUrl.searchParams.forEach((value, key) => {
-    if (key === '__qr' || key === 'slug' || key === '...slug' || key === 'first' || key === 'rest' || key.startsWith('...')) return;
+    if (key === '__qr' || key === '__p' || key === 'slug' || key === '...slug' || key === 'first' || key === 'rest' || key.startsWith('...')) return;
     destUrl.searchParams.append(key, value);
   });
-  return { finalUrl: destUrl.toString(), channel };
+  return { finalUrl: destUrl.toString(), channel, placementId: placement?.id || '' };
 }
 
 module.exports = async (req, res) => {
@@ -202,8 +205,9 @@ module.exports = async (req, res) => {
   const base = getRequestBaseUrl(req);
   let finalUrl;
   let channel = 'link';
+  let placementId = '';
   try {
-    ({ finalUrl, channel } = buildRedirectTarget(req, destination, base));
+    ({ finalUrl, channel, placementId } = buildRedirectTarget(req, destination, base, Array.isArray(link.placements) ? link.placements : []));
   } catch {
     finalUrl = destination;
   }
@@ -221,6 +225,7 @@ module.exports = async (req, res) => {
       clickId,
       clickedAt: now.toISOString(),
       channel,
+      placementId,
       currentAggregateClicks: Number.isFinite(Number(link.clicks))
         ? Math.max(0, Math.floor(Number(link.clicks)))
         : 0,

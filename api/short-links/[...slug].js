@@ -3,7 +3,7 @@
 */
 'use strict';
 
-const { serializeLink, buildLinkPatch } = require('../_lib/short-links-management');
+const { serializeLink, buildLinkPatch, nextLinkTimestamp } = require('../_lib/short-links-management');
 
 const { deleteLink, getLinkWithLegacyFallback, updateLink } = require('../_lib/short-links-store');
 const {
@@ -102,18 +102,18 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const now = new Date().toISOString();
-
     let updated;
+    let now;
     try {
       const current = await getLinkWithLegacyFallback(slug);
       if (!current) {
         sendJson(res, 404, { ok: false, error: 'Not Found' });
         return;
       }
-      const patch = buildLinkPatch(body, current);
+      now = nextLinkTimestamp(current);
+      const patch = buildLinkPatch(body, current, now);
       updated = await updateLink({
-        slug: current.slug, patch, updatedAt: now, expectedUpdatedAt: current.updatedAt
+        slug: current.slug, patch, updatedAt: now, expectedUpdatedAt: current.updatedAt ?? null
       });
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
@@ -124,8 +124,8 @@ module.exports = async (req, res) => {
         sendJson(res, 409, { ok: false, error: 'This link changed. Reload it and try again.' });
         return;
       }
-      if (err.statusCode === 400) {
-        sendJson(res, 400, { ok: false, error: err.message });
+      if (err.statusCode === 400 || err.statusCode === 409) {
+        sendJson(res, err.statusCode, { ok: false, error: err.message });
         return;
       }
       sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });

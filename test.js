@@ -39161,12 +39161,13 @@ try {
       adminJs.includes('data-shortlinks-link-slug') &&
       adminJs.includes("dataset.shortlinks = 'detail-trigger'") &&
       adminJs.includes("setAttribute('aria-controls', 'shortlinks-detail-panel')") &&
-      adminJs.includes('prefersMasterDetailLayout'),
-      'short links should keep row selection synchronized with the accessible persistent inspector');
+      adminJs.includes("classList.toggle('is-showing-link', !!link)"),
+      'short links should keep row selection synchronized with the focused detail view');
     assert(adminJs.includes("mode !== 'single'") && adminJs.includes("clean === 'single'") &&
       adminJs.includes('closeEditorOverlay({ restoreFocus: true })'),
       'short links should keep a visible workspace tab selected while the editor overlay is open');
-    assert(adminJs.includes('focusDetailAction') && adminJs.includes('getDetailTriggerForSlug') &&
+    assert(adminJs.includes('getDetailTriggerForSlug(link.slug)?.focus()') &&
+      adminJs.includes("tab.setAttribute('aria-controls', 'shortlinks-detail-content')") &&
       !adminJs.includes('renderLegacyDetailPanel'),
       'short links should restore detail-action focus and avoid retaining the legacy inspector renderer');
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
@@ -39963,12 +39964,12 @@ try {
       assert(html.includes('<main id="main">') && html.includes('data-tools-account="dock"'),
         `${file} should retain its account and main content hooks`);
       const scripts = Array.from(html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*>/g), (match) => match[1]);
-      const entryIndex = scripts.indexOf(`js/tools/${toolId}.js`);
+      const entryIndex = scripts.findIndex(src => src.split('?')[0] === `js/tools/${toolId}.js`);
       const accountIndex = scripts.findIndex((script) => /^dist\/site-tools-account(?:\.[0-9a-f]+)?\.js$/.test(script));
       assert(entryIndex >= 0 && accountIndex > entryIndex,
         `${file} should register its capture and restore hooks before account initialization`);
       const manifest = JSON.parse(html.match(/<script\b[^>]*id="site-route-manifest"[^>]*>([\s\S]*?)<\/script>/)?.[1] || '{}');
-      assert(manifest.scripts?.includes(`/js/tools/${toolId}.js`),
+      assert(manifest.scripts?.includes('/' + scripts[entryIndex]),
         `${file} should retain its tool entry in the route manifest`);
 
       const tabs = Array.from(html.matchAll(/<button\b[^>]*\bdata-workspace-tab(?:\s|=|>)[^>]*>/g), (match) => match[0]);

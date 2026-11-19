@@ -116,7 +116,8 @@
 })();</script>
   <link rel="stylesheet" href="dist/styles.ebcf1bb0.css">
   <link rel="stylesheet" href="dist/styles-tools.ec8eac8a.css">
-  <link rel="stylesheet" href="css/components/short-links.css?v=8b42899d83c7">
+  <link rel="stylesheet" href="css/components/short-links.css?v=1c7672527578">
+  <link rel="stylesheet" href="css/components/short-links-activity.css?v=17c680dd8a6e">
   <link rel="icon" href="favicon.ico?v=5e1bbcc3ebfd" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png?v=c5ae3655697b">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png?v=b85b9f96ebf9">
@@ -134,7 +135,7 @@
   <meta name="twitter:creator" content="@danielshort3">
 
 <link rel="stylesheet" href="dist/styles-personal-accordion.ebd1a622.css">
-  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:short-links","path":"/tools/short-links","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.ebcf1bb0.css","/dist/styles-tools.ec8eac8a.css","/css/components/short-links.css?v=8b42899d83c7","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.5ad74a93.js","/js/tools/tool-share-link.js","/js/tools/short-links-client.js","/js/tools/qr-core.js","/js/admin/short-links.js","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.a6d261d1.js"],"module":"tools:short-links"}</script>
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"tools:short-links","path":"/tools/short-links","category":"tools","view":"detail","navigation":"soft","styles":["/dist/styles.ebcf1bb0.css","/dist/styles-tools.ec8eac8a.css","/css/components/short-links.css?v=1c7672527578","/css/components/short-links-activity.css?v=17c680dd8a6e","/dist/styles-personal-accordion.ebd1a622.css"],"scripts":["/js/common/service-worker-register.js","/dist/site-shell.5ad74a93.js","/js/tools/tool-share-link.js","/js/tools/short-links-client.js?v=38a547813d2c","/js/tools/qr-core.js","/js/admin/short-links-activity.js?v=b3203c668076","/js/admin/short-links.js?v=f1418dfe2c79","/dist/site-tools-account.2e6c9ae7.js","/dist/site-consent.a6d261d1.js"],"module":"tools:short-links"}</script>
 </head>
 <body data-page="short-links" class="short-links-page tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="short-links" data-personal-fit="viewport" data-site-route-id="tools:short-links" data-site-route-category="tools" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact" data-site-route-module="tools:short-links">
   <a href="/tools/short-links#main" class="skip-link">Skip to main content</a>
@@ -316,9 +317,7 @@
               <section class="shortlinks-shell-card shortlinks-create-card" aria-labelledby="shortlinks-create-title">
                 <div class="shortlinks-card-head shortlinks-card-head-create">
                   <div class="shortlinks-card-copy">
-                    <p class="shortlinks-kicker">Ready to share</p>
                     <h2 id="shortlinks-create-title" class="section-title">Create a short link</h2>
-                    <p class="shortlinks-panel-lead">One destination for your short link and QR code.</p>
                   </div>
                   <div class="shortlinks-editor-head-actions">
                     <p class="shortlinks-editor-meta" data-shortlinks="editor-meta" aria-live="polite">New short link</p>
@@ -330,34 +329,44 @@
                     <div class="form-field shortlinks-field-main">
                       <label for="shortlinks-destination">Destination URL</label>
                       <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://example.com/your-page" data-shortlinks="destination" required aria-describedby="shortlinks-destination-help">
-                      <p id="shortlinks-destination-help" class="contact-form-note">Where should this link take people?</p>
-                    </div>
-                    <div class="form-field">
-                      <label for="shortlinks-label">Title <span class="shortlinks-optional">(optional)</span></label>
-                      <input id="shortlinks-label" type="text" autocomplete="off" maxlength="160" placeholder="Give this link a name" data-shortlinks="label">
-                    </div>
-                    <div class="form-field" data-shortlinks="slug-field">
-                      <label for="shortlinks-slug">Custom ending <span class="shortlinks-optional">(optional)</span></label>
-                      <div class="shortlinks-url-input">
-                        <span aria-hidden="true">dshort.me/</span>
-                        <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="auto-generated" data-shortlinks="slug" aria-describedby="shortlinks-slug-help">
-                      </div>
-                      <p id="shortlinks-slug-help" class="contact-form-note">Leave blank and we will create a short ending for you.</p>
-                    </div>
-                    <div class="shortlinks-legacy-control" hidden>
-                      <label for="shortlinks-slug-mode">Short code type</label>
-                      <select id="shortlinks-slug-mode" data-shortlinks="slug-mode">
-                        <option value="custom">Custom short code</option>
-                        <option value="random" selected>Random short code</option>
-                      </select>
-                    </div>
-                    <div class="shortlinks-legacy-control" data-shortlinks="random-length-field" hidden>
-                      <label for="shortlinks-random-length">Random length</label>
-                      <input id="shortlinks-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="random-length">
+                      <p id="shortlinks-destination-help" class="shortlinks-inline-preview">Short URL <output data-shortlinks="short-url-preview"></output></p>
                     </div>
                   </div>
+                  <details class="shortlinks-create-options" data-shortlinks="customize-link">
+                    <summary>Customize link</summary>
+                    <div class="shortlinks-options-fields">
+                      <div class="form-field">
+                        <label for="shortlinks-label">Title <span class="shortlinks-optional">(optional)</span></label>
+                        <input id="shortlinks-label" type="text" autocomplete="off" maxlength="160" placeholder="Give this link a name" data-shortlinks="label">
+                      </div>
+                      <div class="form-field" data-shortlinks="slug-field">
+                        <label for="shortlinks-slug">Custom ending <span class="shortlinks-optional">(optional)</span></label>
+                        <div class="shortlinks-url-input">
+                          <span aria-hidden="true">dshort.me/</span>
+                          <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="auto-generated" data-shortlinks="slug" aria-describedby="shortlinks-slug-help">
+                        </div>
+                        <p id="shortlinks-slug-help" class="contact-form-note">Leave blank and we will create a short ending for you.</p>
+                      </div>
+                      <div class="shortlinks-legacy-control" hidden>
+                        <label for="shortlinks-slug-mode">Short code type</label>
+                        <select id="shortlinks-slug-mode" data-shortlinks="slug-mode">
+                          <option value="custom">Custom short code</option>
+                          <option value="random" selected>Random short code</option>
+                        </select>
+                      </div>
+                      <div class="shortlinks-legacy-control" data-shortlinks="random-length-field" hidden>
+                        <label for="shortlinks-random-length">Random length</label>
+                        <input id="shortlinks-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="random-length">
+                      </div>
+                      <div class="shortlinks-site-options">
+                        <button type="button" class="btn-secondary" data-shortlinks="destination-picker-open">Choose a website page</button>
+                        <p class="contact-form-note">You can also enter a site path beginning with /.</p>
+                      </div>
+                      <button type="button" class="shortlinks-reset-link" data-shortlinks="clear">Reset form</button>
+                    </div>
+                  </details>
                   <details class="shortlinks-create-options" data-shortlinks="create-options">
-                    <summary>More options <span>Tags, expiration, and campaign tracking</span></summary>
+                    <summary>Tracking &amp; expiration</summary>
                     <div class="shortlinks-options-fields">
                       <div class="form-field">
                         <label for="shortlinks-tags">Tags</label>
@@ -409,23 +418,25 @@
                           </div>
                         </div>
                       </fieldset>
-                      <div class="shortlinks-site-options">
-                        <button type="button" class="btn-secondary" data-shortlinks="destination-picker-open">Choose a website page</button>
-                        <p class="contact-form-note">You can also enter a site path beginning with /.</p>
-                      </div>
+
                     </div>
                   </details>
+                  <section class="shortlinks-review" data-shortlinks="destination-review" aria-labelledby="shortlinks-review-title" hidden>
+                    <h3 id="shortlinks-review-title" tabindex="-1">Review destination change</h3>
+                    <dl data-shortlinks="review-values"></dl>
+                    <p data-shortlinks="review-impact"></p>
+                    <div class="shortlinks-action-row">
+                      <button type="button" class="btn-primary" data-shortlinks="confirm-destination">Save destination</button>
+                      <button type="button" class="btn-secondary" data-shortlinks="cancel-review">Cancel</button>
+                    </div>
+                  </section>
                   <div class="form-actions shortlinks-action-row shortlinks-editor-actions">
                     <button type="submit" class="btn-primary" data-shortlinks="create-link"><span class="btn-label">Create link</span></button>
-                    <button type="button" class="btn-ghost" data-shortlinks="clear">Reset</button>
                   </div>
                   <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
                 </form>
                 <section class="shortlinks-create-result" data-shortlinks="create-result" aria-label="Your link is ready" hidden>
                   <div class="shortlinks-result-copy"><p data-shortlinks="result-status" role="status" aria-live="polite"></p>
-                    <span class="shortlinks-result-badge">Ready to share</span>
-                    <h3>Your link is ready</h3>
-                    <p>Share your short link or download its QR code.</p>
                     <a class="shortlinks-result-url" data-shortlinks="result-url" target="_blank" rel="noopener noreferrer"></a>
                     <p class="shortlinks-result-destination" data-shortlinks="result-destination"></p>
                     <div class="shortlinks-action-row">
@@ -457,19 +468,8 @@
               <div class="shortlinks-library-head">
                 <div>
                   <h2>Link activity</h2>
-                  <p>See how people reach your destinations through links and QR codes.</p>
                 </div>
-                <label class="shortlinks-view shortlinks-analytics-range">
-                  <span class="shortlinks-view-label">Date range</span>
-                  <select data-shortlinks="analytics-range">
-                    <option value="7">Last 7 days</option>
-                    <option value="30" selected>Last 30 days</option>
-                    <option value="90">Last 90 days</option>
-                    <option value="all">All time</option>
-                  </select>
-                </label>
               </div>
-              <div class="contact-form-status" data-shortlinks="analytics-status" role="status" aria-live="polite"></div>
               <div class="shortlinks-analytics-content" data-shortlinks="analytics-content"></div>
             </section>
 
@@ -862,9 +862,10 @@
     </div>
   </footer>
   <script defer src="js/tools/tool-share-link.js"></script>
-  <script defer src="js/tools/short-links-client.js"></script>
+  <script defer src="js/tools/short-links-client.js?v=38a547813d2c"></script>
   <script defer src="js/tools/qr-core.js"></script>
-  <script defer src="js/admin/short-links.js"></script>
+  <script defer src="js/admin/short-links-activity.js?v=b3203c668076"></script>
+  <script defer src="js/admin/short-links.js?v=f1418dfe2c79"></script>
   <script defer src="dist/site-tools-account.2e6c9ae7.js"></script>
   <script defer src="dist/site-consent.a6d261d1.js"></script>
 </body>
