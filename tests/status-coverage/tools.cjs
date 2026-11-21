@@ -73,48 +73,51 @@ function statusGroup(page, name) {
   const group = page.locator('.aws-status__group[data-group="' + name + '"]');
   return {
     toggle: group.getByRole('button', { name, exact: true }),
-    summary: group.locator('.aws-status__summary-status'),
-    summaryTicks: group.locator('.aws-status__group-summary .aws-status__tick'),
-    body: group.locator('.aws-status__group-items'),
     rows: group.locator('.aws-status__history-row')
   };
 }
 
-async function expectStatusAxis(dashboard, expectedBands) {
-  const axis = dashboard.locator('.aws-status__axis');
-  await expect(axis).toBeVisible();
-  const actual = await axis.evaluate((element) => {
-    const grid = element.closest('[data-aws-status-part="history-grid"]');
-    const rows = [...grid.querySelectorAll('.aws-status__ticks')];
-    const bands = [...element.querySelectorAll('.aws-status__axis-band')];
-    let start = 0;
-    const aligned = bands.every((band) => {
-      const count = Number(band.dataset.periodCount);
-      const rect = band.getBoundingClientRect();
-      const matches = rows.every((row) => {
-        const first = row.children[start];
-        const last = row.children[start + count - 1];
-        return first && last &&
-          Math.abs(rect.left - first.getBoundingClientRect().left) < 1 &&
-          Math.abs(rect.right - last.getBoundingClientRect().right) < 1;
-      });
-      start += count;
-      return matches && Boolean(band.querySelector('.aws-status__axis-label')?.textContent.trim());
-    });
-    return {
-      bands: bands.map((band) => [band.dataset.start, Number(band.dataset.periodCount)]),
-      aligned,
-      coversEveryPeriod: rows.length > 0 && rows.every((row) => row.children.length === start)
-    };
-  });
-  expect(actual).toEqual({ bands: expectedBands, aligned: true, coversEveryPeriod: true });
+function statusRow(page, id) {
+  const row = page.locator('.aws-status__history-row[data-item-id="' + id + '"]');
+  return { row, dots: row.locator('.aws-status__tick'), panel: row.locator('.aws-status__period-detail'),
+    checks: row.locator('.aws-status__check-list li') };
 }
 
-async function expectAxisMotion(toggle, opening) {
-  const heights = await toggle.evaluate(async (button) => {
+async function expectMatrix(page, starts) {
+  const grid = page.locator('[data-aws-status-part="history-grid"]');
+  await expect(grid).toHaveAttribute('data-granularity', 'six-hour');
+  const headers = grid.locator('.aws-status__axis-times .aws-status__axis-time');
+  await expect(headers).toHaveCount(6);
+  await expect(headers.last().locator('.aws-status__axis-latest')).toHaveText('Latest');
+  await expect.poll(() => headers.locator('time').evaluateAll((times) =>
+    times.map((time) => time.dateTime))).toEqual(starts);
+  const positions = await grid.evaluate((matrix) => {
+    const headers = [...matrix.querySelectorAll('.aws-status__axis-time')];
+    const rows = [...matrix.querySelectorAll('.aws-status__ticks')];
+    const center = (node) => {
+      const bounds = node.getBoundingClientRect();
+      return bounds.x + bounds.width / 2;
+    };
+    return rows.map((row) => {
+      const buttons = [...row.querySelectorAll('button')];
+      return {
+        starts: buttons.map((button) => button.dataset.period),
+        aligned: buttons.every((button, index) => Math.abs(center(button) - center(headers[index])) < 2),
+        latest: buttons.flatMap((button, index) => button.hasAttribute('data-latest') ? [index] : [])
+      };
+    });
+  });
+  expect(positions.length).toBeGreaterThan(0);
+  for (const position of positions) expect(position).toEqual({ starts, aligned: true, latest: [5] });
+}
+
+async function expectGroupMotion(toggle, opening, measure = 'axis') {
+  const heights = await toggle.evaluate(async (button, measure) => {
     const grid = button.closest('[data-aws-status-part="history-grid"]');
     const summary = grid.querySelector('.aws-status__group-summary');
-    const offset = () => summary.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+    const body = document.getElementById(button.getAttribute('aria-controls'));
+    const offset = () => measure === 'body' ? body.getBoundingClientRect().height :
+      summary.getBoundingClientRect().top - grid.getBoundingClientRect().top;
     const before = offset();
     button.click();
     const immediate = offset();
@@ -127,11 +130,18 @@ async function expectAxisMotion(toggle, opening) {
     for (const animation of animations) animation.play();
     await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
     return { before, immediate, midway, after: offset() };
-  });
+  }, measure);
   const direction = opening ? 1 : -1;
   expect(Math.abs(heights.immediate - heights.before)).toBeLessThan(1);
   expect(direction * (heights.midway - heights.before)).toBeGreaterThan(1);
   expect(direction * (heights.after - heights.midway)).toBeGreaterThan(1);
+}
+
+async function openStatusGroup(page, name) {
+  const group = statusGroup(page, name);
+  if (await group.toggle.getAttribute('aria-expanded') !== 'true') await group.toggle.click();
+  await expect(group.rows.first()).toBeVisible();
+  return group;
 }
 
 async function verifyStatusLinks(page, base, item, snapshot, catalog) {
@@ -151,12 +161,12 @@ async function verifyStatusLinks(page, base, item, snapshot, catalog) {
     id, label: title, group: groups[category], state: 'unknown', lastChecked: null, issue: ''
   }));
   await visit(page, base, item.route);
-  for (const group of ['AWS Connections', 'Local services', ...Object.values(groups)]) {
-    await statusGroup(page, group).toggle.click();
+  for (const group of [...Object.values(groups), 'Site & shared services']) {
+    await openStatusGroup(page, group);
   }
   const expected = [
-    ...services.map(([, label, route]) => ['AWS Connections', label, route]),
-    ['Local services', 'Home GPU', '/tools/transcribe'],
+    ...services.filter(([id]) => ['cognito', 'contact', 'markdown'].includes(id))
+      .map(([, label, route]) => ['Site & shared services', label, route]),
     ...catalog.map(({ category, title, route }) => [groups[category], title, route])
   ];
   const headingLinks = page.locator('.aws-status__history-row h4 a[href]');
@@ -169,9 +179,9 @@ async function verifyStatusLinks(page, base, item, snapshot, catalog) {
   const project = catalog.find(({ id }) => id === 'project:handwritingRating');
   const row = statusGroup(page, 'Projects').rows.filter({ has: page.getByRole('heading', { name: project.title, exact: true }) });
   const link = row.getByRole('link', { name: project.title, exact: true });
-  const hour = row.getByRole('button').last();
+  const hour = row.locator('.aws-status__tick').last();
   await hour.press('Enter');
-  await expect(page.getByRole('tooltip')).toContainText('No check recorded.');
+  await expect(row.locator('.aws-status__period-detail')).toContainText('No report');
   await expect(page).toHaveURL(base + item.route);
   await hour.press('Escape');
   await hour.press('Shift+Tab');
@@ -181,80 +191,100 @@ async function verifyStatusLinks(page, base, item, snapshot, catalog) {
   await expect(page.getByRole('heading', { level: 1, name: project.title, exact: true })).toBeVisible();
 
   await visit(page, base, item.route);
-  const tools = statusGroup(page, 'Tools');
-  await tools.toggle.click();
+  const tools = await openStatusGroup(page, 'Tools');
   await tools.rows.getByRole('link', { name: 'Text Compare', exact: true }).click();
   await expect(page).toHaveURL(base + '/tools/text-compare');
   await expect(page.getByRole('heading', { level: 1, name: 'Text Compare', exact: true })).toBeVisible();
 }
 
-async function unifiedStatusTool({ browser, context, page, base, item, catalog, snapshot, queryCount }) {
-  const period = page.getByRole('combobox', { name: 'Group by' });
-  const tooltip = page.getByRole('tooltip');
-  const tooltipStatus = tooltip.locator('.aws-status__tooltip-status');
-  const tooltipDetails = tooltip.locator('.aws-status__tooltip-detail');
-  const groups = ['AWS Connections', 'Local services', 'Tools', 'Projects', 'Games'].map((name) => statusGroup(page, name));
-  const [aws, localServices, tools, projects, games] = groups;
-  const now = new Date('2026-11-01T09:05:00.000Z');
-  await page.clock.setSystemTime(now);
-  const latestShown = '2026-11-01T07:00:00.000Z';
-  const nextHour = '2026-11-01T08:00:00.000Z';
-  const idle = { completed: 0, failed: 0, inProgress: 0 };
-  const idleHour = '2026-11-01T06:00:00.000Z';
-  snapshot.hourlyReadyThrough = latestShown;
-  snapshot.connections[0].hours[0].issue += '. Recovery was not observed.';
-  snapshot.connections[0].hours.push(
-    { start: '2026-11-01T05:00:00.000Z', from: '2026-11-01T05:05:00Z', to: '2026-11-01T05:15:00Z',
-      state: 'outage', issue: 'Earlier outage.' },
-    { start: idleHour, from: idleHour, to: idleHour, state: 'operational', issue: '' }
-  );
-  snapshot.connections.push({
-    id: 'transcribe',
-    label: 'File Transcriber (AWS)',
-    days: [
-      ['2026-10-11', 'unknown', idle],
-      ...Array.from({ length: 7 }, (_, index) => [`2026-10-${12 + index}`, 'unknown', idle]),
-      ['2026-10-23', 'operational', { ...idle, completed: 2 }],
-      ['2026-10-24', 'degraded', { ...idle, failed: 1 }],
-      ['2026-10-30', 'operational', { ...idle, completed: 1 }],
-      ['2026-10-31', 'unknown', idle]
-    ].map(([date, state, transcription]) => ({
-      date, from: date + 'T12:00:00Z', to: date + 'T12:00:00Z', state, transcription, issue: ''
-    })),
-    hours: [
-      ['2026-11-01T04:00:00.000Z', 'unknown', { ...idle, inProgress: 1 }],
-      ['2026-11-01T05:00:00.000Z', 'degraded', { ...idle, completed: 1, failed: 1 }],
-      [idleHour, 'unknown', idle],
-      [latestShown, 'unknown', undefined, 'No AWS transcription activity recorded.'],
-      [nextHour, 'operational', { ...idle, completed: 1 }]
-    ].map(([start, state, transcription, issue = '']) => ({
-      start, from: start, to: start, state, issue, transcription
-    }))
+function matrixFixture(snapshot) {
+  const hour = 3_600_000;
+  const first = Date.parse('2026-11-19T18:00:00Z');
+  const starts = Array.from({ length: 7 }, (_, index) => new Date(first + index * 6 * hour).toISOString());
+  const reading = (start, state, detail = {}) => ({
+    start, from: start, to: start, state, issue: '', complete: true,
+    observedAt: new Date(Date.parse(start) + 10 * 60_000).toISOString(), ...detail
   });
-  snapshot.homeGpu = {
-    id: 'home-gpu',
-    label: 'Home GPU',
-    days: [
-      ['2026-10-30', 'outage', 'No report arrived from the PC.'],
-      ['2026-10-31', 'operational', 'The transcription worker is ready.']
-    ].map(([date, state, issue]) => ({ date, from: date + 'T12:00:00Z', to: date + 'T12:00:00Z', state, issue })),
-    hours: [
-      ['2026-11-01T06:00:00.000Z', 'degraded', 'The PC reported that the transcription worker is unavailable.'],
-      [latestShown, 'outage', 'No report arrived from the PC.'],
-      [nextHour, 'operational', 'The transcription worker is ready.']
-    ].map(([start, state, issue]) => ({ start, from: start, to: start, state, issue, complete: true,
-      observedAt: start === nextHour ? undefined : new Date(Date.parse(start) + 10 * 60 * 1000).toISOString() }))
-  };
-  for (const [id, hours] of [['tool:fixture', 'uu'], ['project:fixture', 'od'], ['game:fixture', 'oo']]) {
-    snapshot.catalogHistory.results[id] = { hours: '-'.repeat(70) + hours, days: '-'.repeat(90) };
-  }
-  const newestCatalogHour = Object.values(snapshot.catalogHistory.results).map((result) => {
-    const latest = result.hours.at(-1);
-    result.hours = result.hours.slice(0, -1) + '-';
-    return { result, latest };
+  const olderHours = Array.from({ length: 6 }, (_, i) => new Date(first + i * hour).toISOString());
+  const idle = { completed: 0, failed: 0, inProgress: 0 };
+  const transcript = (index, state, canary, issue) => reading(starts[index], state, {
+    canary, issue, previousSixHourActivity: idle
+  });
+  const gpu = (index, state, issue) => reading(starts[index], state, { issue });
+  const aws = (index) => reading(starts[index], 'operational', { issue: 'The scheduled check passed.' });
+  Object.assign(snapshot, {
+    checkedAt: '2026-11-21T06:47:00.000Z', cadenceHours: 6, cadenceStart: starts[1],
+    hourlyReadyThrough: starts[6],
+    connections: [
+      { id: 'cognito', label: 'Cognito sign-in', days: [], hours: [
+        ...olderHours.slice(1).map((time) => reading(time, 'operational')), ...[1, 2, 3, 5, 6].map(aws)
+      ] },
+      ...[['short-links', 'Short Links'], ['tracker', 'Tracker database'], ['chatbot', 'Website chatbot']]
+        .map(([id, label]) => ({ id, label, days: [], hours: [
+          reading(starts[5], 'operational', { issue: 'Recorded service probe for ' + id + '.' })
+        ] })),
+      { id: 'transcribe', label: 'File Transcriber (AWS)', days: [], hours: [
+        ...olderHours.map((time, index) => reading(time, 'unknown', { transcription: {
+          ...idle, inProgress: index < 5 ? 1 : 0
+        } })),
+        transcript(1, 'degraded', 'timeout', 'The AWS test timed out.'),
+        transcript(2, 'degraded', 'failed', 'The AWS test failed.'),
+        transcript(3, 'degraded', 'mismatch', 'The transcript differed from the expected phrase.'),
+        transcript(5, 'operational', 'passed', 'AWS returned the expected transcript.'),
+        transcript(6, 'degraded', 'mismatch', 'The newest transcript did not match.')
+      ] }
+    ],
+    homeGpu: { id: 'home-gpu', label: 'Home GPU', days: [], hours: [
+      gpu(3, 'degraded', 'The worker was unavailable.'), gpu(5, 'operational', 'The worker was ready.'),
+      gpu(6, 'outage', 'No report arrived from the PC.')
+    ] },
+    catalog: [
+      ['tool:background-remover', 'Background Remover', 'Tools'],
+      ['tool:campaign-creative-tracker', 'Campaign Creative Tracker', 'Tools'],
+      ['tool:transcribe', 'File Transcriber', 'Tools'], ['tool:short-links', 'Short Links', 'Tools'],
+      ['tool:text-compare', 'Text Compare', 'Tools'], ['project:handwritingRating', 'Fixture project', 'Projects'],
+      ['tool:job-application-tracker', 'Job Application Tracker', 'Tools'],
+      ['project:chatbotLora', 'Fixture chatbot', 'Projects'], ['game:ocean-wave-simulation', 'Fixture game', 'Games']
+    ].map(([id, label, group]) => ({ id, label, group, state: 'operational',
+      lastChecked: '2026-11-21T06:47:00.000Z', source: 'browser', issue: '' }))
   });
 
+  // Catalog history uses one character per UTC hour even after collection switches to six hours.
+  const hourStart = first - 32 * hour;
+  const offset = (time) => (Date.parse(time) - hourStart) / hour;
+  const observedAt = Array(72).fill(null);
+  const results = {};
+  for (const { id } of snapshot.catalog) {
+    const codes = Array(72).fill('-');
+    const reasons = Array(72).fill('-');
+    for (const time of [...olderHours, ...starts.slice(1)]) {
+      codes[offset(time)] = 'o';
+      observedAt[offset(time)] = new Date(Date.parse(time) + 47 * 60_000).toISOString();
+    }
+    if (id === 'tool:transcribe') {
+      codes[offset(starts[3])] = 'd';
+      reasons[offset(starts[3])] = 't';
+      codes[offset(starts[4])] = '-';
+      codes[offset(starts[6])] = 'x';
+    }
+    if (id === 'project:handwritingRating') codes[offset(olderHours[2])] = 'x';
+    results[id] = { hours: codes.join(''), days: '-'.repeat(90),
+      details: { hours: reasons.join(''), days: '-'.repeat(90) } };
+  }
+  snapshot.catalogHistory = { hourStart: new Date(hourStart).toISOString(),
+    dayStart: '2026-08-24', observedAt, results };
+  return starts;
+}
+
+async function unifiedStatusTool({ browser, context, page, base, item, catalog, snapshot, queryCount }) {
+  const starts = matrixFixture(snapshot);
+  const now = new Date('2026-11-21T11:30:00Z');
+  await page.clock.setSystemTime(now);
   const dashboard = page.locator('[data-aws-status-part="dashboard"]');
+  const transcriber = statusRow(page, 'tool:transcribe');
+  const textCompare = statusRow(page, 'tool:text-compare');
+  const openPanels = dashboard.locator('.aws-status__period-detail:visible');
+  const check = (name) => transcriber.checks.filter({ has: page.locator('.aws-status__check-name', { hasText: name }) });
   await page.evaluate(() => {
     window.fixtureRole = 'guest';
     document.dispatchEvent(new CustomEvent('tools:auth-changed'));
@@ -262,427 +292,233 @@ async function unifiedStatusTool({ browser, context, page, base, item, catalog, 
   await expect(page.locator('[data-aws-status-part="access"]')).toHaveText(
     'Sign in with an administrator account to view ' + item.title + '.', { ignoreCase: true });
   await expect(dashboard).toBeHidden();
-  await expect(dashboard.locator('.aws-status__history-row a')).toHaveCount(0);
   assert.equal(queryCount(), 0);
   await showStatusAsAdmin(page);
-  await expect(dashboard.getByRole('heading', { name: 'System status', exact: true })).toBeVisible();
-  await expect(dashboard.getByRole('tab')).toHaveCount(0);
-  await expect(period).toHaveCount(1);
-  await expect(period.locator('option')).toHaveText(['Hourly', 'Daily', 'Weekly']);
-  await expect(period).toHaveValue('hourly');
-  const axis = dashboard.locator('.aws-status__axis');
-  await expect(axis).toBeHidden();
-  await expect(dashboard.locator('.aws-status__tick')).toHaveCount(0);
-  const expectSummaries = async (labels) => {
-    for (const [index, group] of groups.entries()) {
-      await expect(group.summary).toHaveCount(1);
-      await expect(group.summary).toBeVisible();
-      await expect(group.summary).toHaveText(labels[index]);
-      await expect(group.summaryTicks).toHaveCount(0);
-    }
-  };
-  const initialSummaries = ['Degraded', 'Offline', 'Degraded', 'Operational', 'Operational'];
-  const publishedSummaries = ['Operational', 'Online', 'Unknown', 'Degraded', 'Operational'];
-  await expectSummaries(initialSummaries);
+  await expect(dashboard).toBeVisible();
+  await expect(dashboard.getByRole('combobox')).toHaveCount(0);
+  await expect(dashboard.getByText('Last 36 hours', { exact: false }).first()).toBeVisible();
+  await expect(dashboard.getByText('UTC', { exact: true }).first()).toBeVisible();
+
+  const groupNames = ['Tools', 'Projects', 'Games', 'Site & shared services'];
+  await expect(dashboard.locator('.aws-status__group')).toHaveCount(groupNames.length);
+  const tools = statusGroup(page, 'Tools');
+  const projects = statusGroup(page, 'Projects');
+  await expect(tools.toggle).toHaveAttribute('aria-expanded', 'true');
+  await expectMatrix(page, starts.slice(0, 6));
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await expectAxisMotion(aws.toggle, true);
-  await expectAxisMotion(aws.toggle, false);
-  await expect(axis).toBeHidden();
+  await expectGroupMotion(tools.toggle, false);
+  await expect(dashboard.locator('.aws-status__axis')).toBeHidden();
+  await expectGroupMotion(tools.toggle, true);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (const group of groups) {
-    await expect(group.toggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(group.rows).toHaveCount(0);
-    await group.toggle.click();
-    await expect(group.toggle).toHaveAttribute('aria-expanded', 'true');
+  for (const name of groupNames) await openStatusGroup(page, name);
+  await expectMatrix(page, starts.slice(0, 6));
+  await expect(openPanels).toHaveCount(0);
+  await expect(dashboard.locator('.aws-status__summary-status')).toHaveCount(0);
+  await expect(transcriber.dots.last()).toHaveAttribute('data-state', 'operational');
+  await expect(transcriber.dots.nth(4)).toHaveAttribute('data-state', 'unknown');
+  await expect(statusRow(page, 'project:handwritingRating').dots.first()).toHaveAttribute('data-state', 'outage');
+  await expect(statusRow(page, 'cognito').dots.first()).toHaveAttribute('data-state', 'unknown');
+
+  // Activating a dot reveals only that period's measured checks, including legacy job activity.
+  await transcriber.dots.first().press('Enter');
+  await expect(transcriber.checks).toHaveCount(3);
+  await expect(check('AWS transcription activity')).toContainText('0 queued or running at the end of this period.');
+  await transcriber.dots.first().press('Escape');
+  await expect(openPanels).toHaveCount(0);
+  await expect(transcriber.dots.first()).toBeFocused();
+  await transcriber.dots.nth(1).click();
+  await expect(check('AWS transcription')).toContainText('The AWS test timed out.');
+  await transcriber.dots.nth(2).click();
+  await expect(check('AWS transcription')).toContainText('The AWS test failed.');
+  await transcriber.dots.nth(3).press('Space');
+  await expect(transcriber.dots.nth(3)).toHaveAttribute('aria-expanded', 'true');
+  await expect(check('Browser file queue')).toContainText(/timed out/i);
+  await expect(check('AWS transcription')).toContainText(/transcript differed/i);
+  await expect(check('Home GPU readiness')).toContainText('Worker unavailable');
+  await transcriber.dots.nth(4).click();
+  await expect(transcriber.dots.nth(3)).toHaveAttribute('aria-expanded', 'false');
+  await expect(transcriber.checks.locator('.aws-status__check-result')).toHaveText(['No report', 'No report', 'No report']);
+  await transcriber.dots.last().click();
+  await expect(transcriber.checks.locator('.aws-status__check-name')).toHaveText(
+    ['Browser file queue', 'AWS transcription', 'Home GPU readiness']);
+  await expect(transcriber.panel.locator('.aws-status__period-heading')).toContainText(/Nov 21.*00:00.*06:00 UTC/);
+  await expect(transcriber.dots.last()).toHaveAttribute('aria-controls', await transcriber.panel.getAttribute('id'));
+  await expect(check('Browser file queue')).toContainText('Passed');
+  await expect(check('AWS transcription')).toContainText('AWS returned the expected transcript.');
+  await expect(check('Home GPU readiness')).toContainText(/online|ready/i);
+  await expect(openPanels).toHaveCount(1);
+  await transcriber.dots.last().click();
+  await expect(openPanels).toHaveCount(0);
+  await transcriber.dots.last().click();
+  await expect(transcriber.panel).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expectGroupMotion(tools.toggle, false, 'body');
+  await expect(openPanels).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await openStatusGroup(page, 'Tools');
+
+  for (const [id, service] of [
+    ['tool:short-links', 'short-links'], ['tool:job-application-tracker', 'tracker'], ['project:chatbotLora', 'chatbot']
+  ]) {
+    const feature = statusRow(page, id);
+    await feature.dots.last().click();
+    await expect(feature.checks).toHaveCount(2);
+    await expect(feature.panel).toContainText('Recorded service probe for ' + service + '.');
+    await expect(openPanels).toHaveCount(1);
   }
+  const chatbot = statusRow(page, 'project:chatbotLora');
+  await expect(chatbot.panel.getByRole('link')).toHaveAttribute('href', '/chatbot-demo');
+  await expect(chatbot.row.locator('h4 a')).toHaveAttribute('href', '/portfolio/chatbotLora');
+  await textCompare.dots.last().click();
+  await expect(textCompare.checks).toHaveCount(1);
+  await expect(textCompare.checks.first()).toContainText('Passed');
+  await textCompare.dots.last().press('ArrowLeft');
+  await expect(textCompare.dots.nth(4)).toBeFocused();
+  await textCompare.dots.nth(4).press('Home');
+  await expect(textCompare.dots.first()).toBeFocused();
+  await textCompare.dots.first().press('End');
+  await expect(textCompare.dots.last()).toBeFocused();
+  await textCompare.dots.last().press('Escape');
+  await expect(openPanels).toHaveCount(0);
 
-  const ticks = (group, name) => group.rows.filter({ hasText: name }).locator('.aws-status__tick');
-  const awsTicks = ticks(aws, 'Fixture connection');
-  const transcribeTicks = ticks(aws, 'File Transcriber (AWS)');
-  const homeGpuTicks = ticks(localServices, 'Home GPU');
-  const homeGpuLastCheck = dashboard.locator('[data-aws-status-part="home-gpu-last-check"]');
-  const browserTicks = ticks(tools, 'Browser-checked tool');
-  const projectTicks = ticks(projects, 'Fixture project');
-  const gameTicks = ticks(games, 'Fixture game');
-  const rowLengths = () => dashboard.locator('.aws-status__ticks').evaluateAll((rows) =>
-    rows.map((row) => row.querySelectorAll('.aws-status__tick').length));
-  await expect.poll(rowLengths).toEqual(Array(7).fill(70));
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await tools.body.evaluate((body) => {
-    window.fixtureDisclosureAnimations = [];
-    const animate = body.animate.bind(body);
-    body.animate = (keyframes, options) => {
-      window.fixtureDisclosureAnimations.push({ from: parseFloat(keyframes[0].height),
-        to: parseFloat(keyframes[1].height), duration: options.duration });
-      return animate(keyframes, options);
-    };
-  });
-  await tools.toggle.click();
-  await expect(tools.rows).toHaveCount(0);
-  await expect(tools.summary).toBeVisible();
-  await tools.toggle.press('Enter');
-  await expect(tools.rows).toHaveCount(2);
-  const motions = await page.evaluate(() => window.fixtureDisclosureAnimations);
-  expect(motions).toHaveLength(2);
-  const [collapse, expand] = motions;
-  expect(collapse.from).toBeGreaterThan(collapse.to);
-  expect(expand.from).toBeLessThan(expand.to);
-  expect(collapse.duration).toBeGreaterThan(0);
-  expect(expand.duration).toBeGreaterThan(0);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(dashboard).not.toContainText(/Browser check (passed|had issues|failed)/i);
-
-  await awsTicks.last().hover();
-  await expect(tooltip.locator('strong')).toContainText('1:00 AM MDT');
-  await expect(tooltipStatus).toHaveText('Degraded');
-  await expect(tooltipDetails).toHaveCount(0);
-  await awsTicks.last().click();
-  await expect(tooltipDetails.first()).toHaveText('First repeated hour incident. Recovery was not observed.');
-  await expect(tooltipDetails.last()).toContainText('Observed bounds');
-  await expect(tooltip.locator('time').first()).toHaveAttribute('datetime', '2026-11-01T07:05:00Z');
-  await expect(tooltip.locator('time').last()).toHaveAttribute('datetime', '2026-11-01T07:15:00Z');
-  await awsTicks.last().click();
-  await expect(tooltip).toBeHidden();
-  await expect(awsTicks.nth(-3)).toHaveAttribute('data-state', 'outage');
-  await aws.summary.hover();
-  await expect(tooltipStatus).toHaveText('Degraded');
-  await expect(tooltipDetails).toHaveCount(0);
-  await aws.summary.click();
-  await expect(tooltipDetails.first()).toContainText('Fixture connection · First repeated hour incident');
-  await aws.summary.press('Escape');
-  await expect(tooltip).toBeHidden();
-  await transcribeTicks.last().hover();
-  await expect(transcribeTicks.last()).toHaveAccessibleName(/Unknown$/);
-  await expect(tooltipStatus).toHaveText('Unknown');
-  await expect(tooltipDetails).toHaveCount(0);
-  await transcribeTicks.last().click();
-  await expect(tooltipDetails.first()).toContainText('No AWS transcription activity recorded.');
-  await expect(transcribeTicks.nth(-2)).toHaveAccessibleName(/No activity$/);
-  await transcribeTicks.nth(-3).focus();
-  await expect(tooltipStatus).toHaveText('Failed');
-  await expect(tooltipDetails).toHaveCount(0);
-  await transcribeTicks.nth(-3).press('Space');
-  await expect(tooltipDetails).toHaveText('1 failed, 1 completed');
-  await expect(dashboard.locator('[data-aws-status-part="history-announcement"]')).toHaveText('1 failed, 1 completed');
-  await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/In progress$/);
-  await transcribeTicks.nth(-4).click();
-  await expect(tooltipDetails).toHaveText('1 queued or running');
-  await transcribeTicks.nth(0).click();
-  await expect(tooltipDetails).toHaveText('No check recorded.');
-  await expect(aws.rows.filter({ hasText: 'Home GPU' })).toHaveCount(0);
-  await expect(localServices.rows.filter({ hasText: 'File Transcriber (AWS)' })).toHaveCount(0);
-  await expect(dashboard).toContainText('Offline means the PC stopped reporting.');
-  await expect(homeGpuLastCheck).toContainText(/Home GPU last check: Offline.*Stale/);
-  await expect(homeGpuLastCheck.locator('time')).toHaveAttribute('datetime', '2026-11-01T07:10:00.000Z');
-  await expect(homeGpuTicks.nth(-3)).toHaveAccessibleName(/Unknown$/);
-  await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Worker unavailable$/);
-  await homeGpuTicks.nth(-2).focus();
-  await expect(tooltipStatus).toHaveText('Worker unavailable');
-  await expect(tooltipDetails).toHaveCount(0);
-  await homeGpuTicks.nth(-2).press('Enter');
-  await expect(tooltipDetails.first()).toHaveText('The PC reported that the transcription worker is unavailable.');
-  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
-  await homeGpuTicks.last().click();
-  await expect(tooltipStatus).toHaveText('Offline');
-  await expect(tooltipDetails.first()).toHaveText('No report arrived from the PC.');
-  await expect(localServices.summary).toHaveText('Offline');
-  await localServices.summary.focus();
-  await expect(tooltipStatus).toHaveText('Offline');
-  await expect(tooltipDetails).toHaveCount(0);
-  await localServices.summary.press('Enter');
-  await expect(tooltipDetails.first()).toContainText('No report arrived from the PC.');
-  await localServices.summary.press('Escape');
-
-  // AWS starts the hour before the catalog reports arrive. A refresh with both
-  // types of data still holds the hour until the API marks it ready.
-  const freshness = dashboard.locator('[data-aws-status-part="freshness"] time');
-  assert.equal(queryCount(), 1);
-  for (const { result, latest } of newestCatalogHour) result.hours = result.hours.slice(0, -1) + latest;
-  snapshot.homeGpu.hours.push({ start: '2026-11-01T09:00:00.000Z', from: '2026-11-01T09:00:00.000Z',
-    to: '2026-11-01T09:00:00.000Z', state: 'operational', issue: '', complete: true, observedAt: '2026-11-01T09:09:00.000Z' });
-  await page.clock.fastForward(4 * 60 * 1000);
-  assert.equal(queryCount(), 1);
-  snapshot.checkedAt = '2026-11-01T09:09:00.000Z';
-  await dashboard.getByRole('button', { name: 'Refresh', exact: true }).click();
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  assert.equal(queryCount(), 2);
-  await expect.poll(rowLengths).toEqual(Array(7).fill(70));
-  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
-  await expect(homeGpuLastCheck).toContainText('Home GPU last check: Online');
-  await expect(homeGpuLastCheck.locator('time')).toHaveAttribute('datetime', '2026-11-01T09:09:00.000Z');
-  await expect(homeGpuLastCheck).not.toContainText('Stale');
-  await expectSummaries(initialSummaries);
-  await expect(awsTicks.last()).toHaveAttribute('data-state', 'degraded');
-  await expect(browserTicks.last()).toHaveAttribute('data-state', 'degraded');
-  await expect(projectTicks.last()).toHaveAttribute('data-state', 'operational');
-
-  await dashboard.evaluate((element) => {
-    window.fixtureMixedColumns = false;
-    new MutationObserver(() => {
-      const rows = [...element.querySelectorAll('.aws-status__ticks')];
-      const lengths = new Set(rows.map((row) => row.querySelectorAll('.aws-status__tick').length));
-      if (lengths.size > 1) window.fixtureMixedColumns = true;
-    }).observe(element, { childList: true, subtree: true });
-  });
-  snapshot.catalogHistory.results['project:fixture'].details = { hours: '-'.repeat(71) + 'm', days: '-'.repeat(90) };
-  await page.clock.fastForward(11 * 60 * 1000);
-  assert.equal(queryCount(), 2);
-  snapshot.hourlyReadyThrough = nextHour;
-  snapshot.checkedAt = '2026-11-01T09:21:00.000Z';
-  await projects.summary.focus();
-  await page.clock.fastForward(61 * 1000);
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  assert.equal(queryCount(), 3);
-  await expect.poll(rowLengths).toEqual(Array(7).fill(71));
-  assert.equal(await page.evaluate(() => window.fixtureMixedColumns), false);
-  await expectSummaries(publishedSummaries);
-  await expect(projects.summary).toBeFocused();
-  await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
-  await expect(transcribeTicks.last()).toHaveAccessibleName(/Completed$/);
-  await transcribeTicks.last().click();
-  await expect(tooltipStatus).toHaveText('Completed');
-  await expect(tooltipDetails).toHaveCount(0);
-  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
-  await homeGpuTicks.last().click();
-  await expect(tooltipStatus).toHaveText('Online');
-  await expect(tooltipDetails).toHaveCount(0);
-  await expect(browserTicks.last()).toHaveAttribute('data-state', 'operational');
-  await expect(projectTicks.last()).toHaveAttribute('data-state', 'degraded');
-  await projects.summary.click();
-  await expect(tooltipDetails.first()).toHaveText('Fixture project · The result differed from what the browser check expected.');
-  await expect(tooltipDetails.last()).toContainText('Last check');
-  await expect(tooltip.locator('time')).toHaveAttribute('datetime', '2026-11-01T08:35:00.000Z');
-  await projects.summary.click();
-  await expect(gameTicks.last()).toHaveAttribute('data-state', 'operational');
-  // Both versions of 1 AM belong to the same three-period Mountain date band.
-  const hourlyBands = [['2026-10-29', 20], ['2026-10-30', 24], ['2026-10-31', 24], ['2026-11-01', 3]];
-  await expectStatusAxis(dashboard, hourlyBands);
-  const marks = (ticks) => ticks.evaluateAll((elements) => elements.slice(-4).map((tick) => {
-    const { height, backgroundColor, backgroundImage, borderRadius } = getComputedStyle(tick, '::before');
-    return { state: tick.dataset.state, height, backgroundColor, backgroundImage, borderRadius };
-  }));
-  const historyMarks = await marks(homeGpuTicks);
-  expect(historyMarks.map((mark) => mark.state)).toEqual(['unknown', 'degraded', 'outage', 'operational']);
-  expect(parseFloat(historyMarks[0].height)).toBeLessThan(parseFloat(historyMarks[3].height));
-  await awsTicks.last().hover();
-  await expect(tooltip.locator('strong')).toContainText('1:00 AM MST');
-  await awsTicks.last().press('ArrowLeft');
-  await expect(awsTicks.nth(-2)).toBeFocused();
-  await expect(tooltip.locator('strong')).toContainText('1:00 AM MDT');
-  await awsTicks.nth(-2).press('Escape');
-  await expect(tooltip).toBeHidden();
-
-  await period.selectOption('daily');
-  await expect.poll(rowLengths).toEqual(Array(7).fill(89));
-  await expectSummaries(publishedSummaries);
-  const dailyBands = [
-    ['2026-08-04', 6], ['2026-08-10', 7], ['2026-08-17', 7], ['2026-08-24', 7],
-    ['2026-08-31', 7], ['2026-09-07', 7], ['2026-09-14', 7], ['2026-09-21', 7],
-    ['2026-09-28', 7], ['2026-10-05', 7], ['2026-10-12', 7], ['2026-10-19', 7], ['2026-10-26', 6]
-  ];
-  await expectStatusAxis(dashboard, dailyBands);
-  await expect(homeGpuTicks.nth(-2)).toHaveAccessibleName(/Offline$/);
-  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Online$/);
-  await transcribeTicks.last().click();
-  await expect(tooltipStatus).toHaveText('No activity');
-  await expect(tooltipDetails).toHaveText('No transcription jobs ran in the measured period.');
-  await period.selectOption('weekly');
-  await expect.poll(rowLengths).toEqual(Array(7).fill(13));
-  await expectSummaries(publishedSummaries);
-  const weeklyBands = [['2026-08-04', 5], ['2026-09-07', 4], ['2026-10-05', 4]];
-  await expectStatusAxis(dashboard, weeklyBands);
-  await expect(transcribeTicks.nth(-4)).toHaveAccessibleName(/Unknown$/);
-  await expect(transcribeTicks.nth(-3)).toHaveAccessibleName(/No activity$/);
-  await transcribeTicks.nth(-2).click();
-  await expect(tooltipStatus).toHaveText('Failed');
-  await expect(tooltipDetails).toHaveText('1 failed, 2 completed');
-  await expect(homeGpuTicks.last()).toHaveAccessibleName(/Offline$/);
-  await expect(awsTicks.nth(11)).toHaveAttribute('data-state', 'outage');
-  await awsTicks.nth(11).click();
-  await expect(tooltip.locator('strong')).toContainText(/Oct 19.*Oct 25/);
-  await expect(tooltipDetails.first()).toContainText('Known outage');
-
-  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const phoneContext = await browser.newContext({ viewport: { width: 320, height: 430 }, isMobile: true, hasTouch: true });
   try {
-    await fixtureAuth(mobile);
-    await mobile.route(base + '/api/tools/aws-status', (route) => route.fulfill({ json: snapshot }));
-    const phone = await mobile.newPage();
+    await fixtureAuth(phoneContext);
+    await phoneContext.route(base + '/api/tools/aws-status', (route) => route.fulfill({ json: snapshot }));
+    const phone = await phoneContext.newPage();
     await phone.clock.install({ time: now });
     await visit(phone, base, item.route);
-    const mobilePeriod = phone.getByRole('combobox', { name: 'Group by' });
-    const mobileDashboard = phone.locator('[data-aws-status-part="dashboard"]');
-    const mobileAws = statusGroup(phone, 'AWS Connections');
-    const mobileTools = statusGroup(phone, 'Tools');
-    const mobileLocal = statusGroup(phone, 'Local services');
-    const mobileProjects = statusGroup(phone, 'Projects');
-    const mobileTicks = ticks(mobileTools, 'Browser-checked tool');
-    const mobileTranscribe = ticks(mobileAws, 'File Transcriber (AWS)');
-    const mobileHomeGpuTicks = ticks(mobileLocal, 'Home GPU');
-    const mobileTooltip = phone.getByRole('tooltip');
-    const mobileStatus = mobileTooltip.locator('.aws-status__tooltip-status');
-    const mobileDetails = mobileTooltip.locator('.aws-status__tooltip-detail');
-    const expectSeparatedTouchTargets = async (row) => {
-      const { height, gap } = await row.evaluateAll((ticks) => {
-        const boxes = ticks.map((tick) => tick.getBoundingClientRect());
-        return {
-          height: Math.min(...boxes.map((box) => box.height)),
-          gap: Math.min(...boxes.slice(1).map((box, index) => box.left - boxes[index].right))
-        };
-      });
-      expect(gap).toBeGreaterThan(0);
-      expect(height).toBeGreaterThanOrEqual(44);
-    };
-    await expect(mobilePeriod).toHaveValue('hourly');
-    await expect(mobileDashboard.locator('.aws-status__axis')).toBeHidden();
-    await expect(mobileAws.summary).toHaveText('Operational');
-    await expect(mobileTools.summary).toHaveText('Unknown');
-    await expect(mobileLocal.summary).toHaveText('Online');
-    await mobileTools.toggle.tap();
-    await expect(mobileTicks).toHaveCount(71);
-    await expectStatusAxis(mobileDashboard, hourlyBands);
-    await expectSeparatedTouchTargets(mobileTicks);
-    await mobileTicks.nth(-2).tap();
-    await expect(mobileTooltip.locator('strong')).toContainText('1:00 AM MDT');
-    await expect(mobileStatus).toHaveText('Degraded');
-    await expect(mobileDetails.first()).toContainText('Check reported an issue.');
-    await mobileTicks.last().tap();
-    await expect(mobileTooltip.locator('strong')).toContainText('1:00 AM MST');
-    await expect(mobileStatus).toHaveText('Operational');
-    await expect(mobileDetails).toHaveCount(0);
-    await mobilePeriod.selectOption('weekly');
-    await expect(mobileTooltip).toBeHidden();
-    await expect(mobileTicks).toHaveCount(13);
-    await expectStatusAxis(mobileDashboard, weeklyBands);
-    await expectSeparatedTouchTargets(mobileTicks);
-    await expect(mobileTicks.last()).toBeInViewport();
-    await mobilePeriod.selectOption('hourly');
-    await mobileLocal.toggle.tap();
-    await expectSeparatedTouchTargets(mobileHomeGpuTicks);
-    await mobileHomeGpuTicks.nth(-2).tap();
-    await expect(mobileStatus).toHaveText('Offline');
-    await mobileHomeGpuTicks.last().tap();
-    await expect(mobileStatus).toHaveText('Online');
-    await mobileAws.toggle.tap();
-    for (const [view, preceding, last, bands] of [
-      ['hourly', 'Unknown', 'Completed', hourlyBands],
-      ['daily', 'Completed', 'No activity', dailyBands],
-      ['weekly', 'Failed', 'Completed', weeklyBands]
-    ]) {
-      await mobilePeriod.selectOption(view);
-      await expectStatusAxis(mobileDashboard, bands);
-      await expectSeparatedTouchTargets(mobileTranscribe);
-      await expect(mobileAws.summary).toHaveText('Operational');
-      await expect(mobileLocal.summary).toHaveText('Online');
-      await expect(mobileProjects.summary).toHaveText('Degraded');
-      await mobileProjects.summary.tap();
-      await expect(mobileDetails.first()).toContainText('Fixture project');
-      await mobileProjects.summary.tap();
-      await expect(mobileTooltip).toBeHidden();
-      await mobileTranscribe.nth(-2).tap();
-      await expect(mobileStatus).toHaveText(preceding);
-      await mobileTranscribe.last().tap();
-      await expect(mobileStatus).toHaveText(last);
-    }
-    const phoneHomeGpuLastCheck = phone.locator('[data-aws-status-part="home-gpu-last-check"]');
-    const { left, right, instantWidth } = await phoneHomeGpuLastCheck.evaluate((node) => {
-      const { left, right } = node.getBoundingClientRect();
-      return { left, right, instantWidth: window.innerWidth };
+    await openStatusGroup(phone, 'Tools');
+    const phoneTool = statusRow(phone, 'tool:transcribe');
+    const belowFold = statusRow(phone, 'tool:text-compare');
+    await phone.getByRole('heading', { level: 1, name: item.title }).scrollIntoViewIfNeeded();
+    await belowFold.dots.last().evaluate((dot) => dot.focus({ preventScroll: true }));
+    assert(await belowFold.dots.last().evaluate((dot) => dot.getBoundingClientRect().top >= innerHeight));
+    await phone.keyboard.press('Enter');
+    await belowFold.panel.scrollIntoViewIfNeeded();
+    await expect(belowFold.checks.first()).toContainText('Passed');
+    await phone.keyboard.press('Escape');
+    await expect(belowFold.panel).toBeHidden();
+
+    // Put a fully tappable dot at the lower edge, then use real touch with no implicit Playwright scrolling.
+    await phone.setViewportSize({ width: 390, height: 844 });
+    const tapPoint = await phoneTool.dots.last().evaluate((dot) => {
+      dot.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' });
+      const box = dot.getBoundingClientRect();
+      let bottom = innerHeight;
+      for (let ancestor = dot.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        if (/auto|scroll|hidden|clip/.test(getComputedStyle(ancestor).overflowY)) {
+          bottom = Math.min(bottom, ancestor.getBoundingClientRect().bottom);
+        }
+      }
+      const x = box.left + box.width / 2;
+      const y = box.top + box.height / 2;
+      return { x, y, gap: bottom - box.bottom, hittable: document.elementFromPoint(x, y) === dot };
     });
-    expect(left).toBeGreaterThanOrEqual(0);
-    expect(right).toBeLessThanOrEqual(instantWidth);
-    assert(await phone.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
-    for (const group of [mobileTools, mobileLocal, mobileAws]) {
-      await group.toggle.tap();
-      await expect(group.rows).toHaveCount(0);
+    expect(tapPoint.hittable).toBe(true);
+    expect(tapPoint.gap).toBeGreaterThanOrEqual(-1);
+    expect(tapPoint.gap).toBeLessThan(14);
+    await phone.touchscreen.tap(tapPoint.x, tapPoint.y);
+    await expect(phoneTool.dots.last()).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => phoneTool.panel.evaluate((panel) => {
+      let top = 0;
+      let bottom = innerHeight;
+      for (let ancestor = panel.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        if (/auto|scroll|hidden|clip/.test(getComputedStyle(ancestor).overflowY)) {
+          const bounds = ancestor.getBoundingClientRect();
+          top = Math.max(top, bounds.top);
+          bottom = Math.min(bottom, bounds.bottom);
+        }
+      }
+      const selected = panel.closest('.aws-status__history-row').querySelector('.aws-status__tick[aria-expanded="true"]');
+      const visibleItems = [selected, panel.querySelector('.aws-status__period-heading'),
+        panel.querySelector('.aws-status__check-name'), panel.querySelector('.aws-status__check-result')];
+      return visibleItems.every((item) => {
+        const bounds = item.getBoundingClientRect();
+        return bounds.top >= top - 1 && bounds.bottom <= bottom + 1;
+      });
+    })).toBe(true);
+    await phoneTool.dots.last().tap();
+    await expect(phoneTool.panel).toBeHidden();
+
+    for (const width of [320, 390]) {
+      await phone.setViewportSize({ width, height: 780 });
+      await expectMatrix(phone, starts.slice(0, 6));
+      const usable = await phoneTool.dots.evaluateAll((buttons) => {
+        const bounds = buttons.map((button) => button.getBoundingClientRect());
+        return document.documentElement.scrollWidth <= innerWidth + 1 && bounds.every((rect, index) =>
+          rect.width >= 24 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1 &&
+          (!index || rect.left >= bounds[index - 1].right - 1));
+      });
+      assert(usable, 'All six individual touch targets should fit the phone viewport');
+      await phoneTool.dots.nth(4).tap();
+      await expect(phoneTool.checks.locator('.aws-status__check-result')).toHaveText(['No report', 'No report', 'No report']);
+      await phoneTool.dots.last().tap();
+      await expect(phoneTool.panel).toContainText('AWS returned the expected transcript.');
+      expect(await phoneTool.panel.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.left >= 0 && rect.right <= innerWidth + 1 && node.scrollWidth <= node.clientWidth + 1;
+      })).toBe(true);
+      await expect(phone).toHaveURL(base + item.route);
     }
-    await expect(mobileDashboard.locator('.aws-status__axis')).toBeHidden();
-    await expect(mobileProjects.summary).toBeVisible();
-    await mobilePeriod.selectOption('hourly');
-    await mobileLocal.toggle.tap();
-    await mobileHomeGpuTicks.last().tap();
-    await expect(mobileTooltip).toBeVisible();
-    await expect(phone).toHaveURL(base + item.route);
-    const mobileHomeLink = mobileLocal.rows.getByRole('link', { name: 'Home GPU', exact: true });
-    await expect(mobileHomeLink).toHaveAttribute('href', '/tools/transcribe');
-    await mobileHomeLink.tap();
+    await phoneTool.row.getByRole('link', { name: 'File Transcriber' }).tap();
     await expect(phone).toHaveURL(base + '/tools/transcribe');
-    await expect(phone.getByRole('heading', { level: 1, name: 'File Transcriber', exact: true })).toBeVisible();
   } finally {
-    await mobile.close();
+    await phoneContext.close();
   }
 
-  await page.clock.fastForward(59 * 60 * 1000);
-  assert.equal(queryCount(), 3);
-  snapshot.checkedAt = '2026-11-01T10:21:00.000Z';
-  await page.clock.fastForward(61 * 1000);
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  assert.equal(queryCount(), 4);
+  // At noon the oldest window leaves the grid and the 06:00 report becomes eligible for display.
+  await transcriber.dots.first().click();
+  await page.clock.pauseAt(new Date('2026-11-21T11:45:00Z'));
+  await page.clock.fastForward(15 * 60_000 - 1);
+  await expectMatrix(page, starts.slice(0, 6));
+  await page.clock.runFor(1);
+  await expectMatrix(page, starts.slice(1));
+  await expect(openPanels).toHaveCount(0);
+  await expect(transcriber.dots.last()).toHaveAttribute('data-state', 'outage');
+  await projects.toggle.click();
+  await transcriber.dots.last().click();
+  await expect(check('AWS transcription')).toContainText('The newest transcript did not match.');
 
-  const newestTranscription = snapshot.connections[1].hours.at(-1);
   const refresh = dashboard.getByRole('button', { name: 'Refresh', exact: true });
-  Object.assign(newestTranscription, { state: 'unknown', transcription: idle });
-  snapshot.checkedAt = '2026-11-01T10:22:00.000Z';
-  await refresh.click();
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  await expect(aws.summary).toHaveText('Operational');
-  delete newestTranscription.transcription;
-  newestTranscription.issue = 'The transcription check could not be verified.';
-  snapshot.checkedAt = '2026-11-01T10:23:00.000Z';
-  await refresh.click();
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  await expect(aws.summary).toHaveText('Unknown');
-  await aws.summary.press('Space');
-  await expect(tooltipDetails.first()).toContainText('File Transcriber (AWS) · The transcription check could not be verified.');
+  async function refreshSnapshot() {
+    await Promise.all([page.waitForResponse((response) => response.url() === base + '/api/tools/aws-status'), refresh.click()]);
+    await expect(refresh).toBeEnabled();
+  }
+  snapshot.checkedAt = '2026-11-21T11:58:00.000Z';
+  await refreshSnapshot();
+  await expect(dashboard.locator('[data-aws-status-part="freshness"] time')).toHaveAttribute('datetime', snapshot.checkedAt);
+  await expect(projects.toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(transcriber.dots.last()).toHaveAttribute('aria-expanded', 'true');
+  await expectMatrix(page, starts.slice(1));
 
-  delete snapshot.hourlyReadyThrough;
-  delete snapshot.connections[0].hours;
+  // An unpublished window can already contain raw readings in the response.
+  snapshot.hourlyReadyThrough = starts[5];
+  await refreshSnapshot();
+  await expect(dashboard.locator('.aws-status__tick[data-latest][data-state="unknown"]')).toHaveCount(
+    await dashboard.locator('.aws-status__history-row').count());
+  await expect(transcriber.checks.locator('.aws-status__check-result')).toHaveText(
+    ['Awaiting publication', 'Awaiting publication', 'Awaiting publication']);
+  await expect(transcriber.panel).not.toContainText('The newest transcript did not match.');
+  snapshot.hourlyReadyThrough = starts[6];
   delete snapshot.catalogHistory;
+  await refreshSnapshot();
+  await expect(check('Browser file queue')).toContainText('No report');
+  await expect(check('AWS transcription')).toContainText('The newest transcript did not match.');
+  await expect(check('Home GPU readiness')).toContainText('No report arrived from the PC.');
   delete snapshot.homeGpu;
+  await refreshSnapshot();
+  await expect(transcriber.checks.locator('.aws-status__check-name')).toHaveText(['Browser file queue', 'AWS transcription']);
+  await page.evaluate(() => {
+    window.fixtureRole = 'guest';
+    document.dispatchEvent(new CustomEvent('tools:auth-changed'));
+  });
+  await expect(dashboard).toBeHidden();
+  await expect(openPanels).toHaveCount(0);
+  await expect(dashboard.locator('.aws-status__tick')).toHaveCount(0);
   await context.addInitScript(() => { window.fixtureRole = 'admin'; });
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(period).toHaveValue('hourly');
-  await expect(localServices.toggle).toHaveCount(0);
-  await expect(aws.toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(aws.summary).toHaveText('Unknown');
-  await aws.toggle.click();
-  await expect(awsTicks).toHaveCount(72);
-  await expect(awsTicks.last()).toHaveAttribute('data-state', 'unknown');
-  await period.selectOption('daily');
-  await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
-  await expect(aws.summary).toHaveText('Unknown');
-
-  // After the switch, both a successful real test and zero jobs from users can be true.
-  const cycle = '2026-11-01T06:00:00.000Z';
-  snapshot.cadenceStart = '2026-10-25T00:00:00.000Z';
-  snapshot.cadenceHours = 6;
-  snapshot.hourlyReadyThrough = cycle;
-  snapshot.checkedAt = '2026-11-01T06:52:00.000Z';
-  const canary = { start: cycle, state: 'operational', canary: 'passed', complete: true,
-    observedAt: '2026-11-01T06:12:00.000Z', from: cycle, to: cycle,
-    issue: 'AWS returned the expected transcript.', previousSixHourActivity: idle };
-  snapshot.connections[1].hours = [canary];
-  await refresh.click();
-  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
-  await expect(dashboard.locator('[data-aws-status-part="freshness"]')).not.toContainText('Stale');
-  await period.selectOption({ label: '6-hour checks' });
-  await expect(transcribeTicks).toHaveCount(12);
-  await expect(transcribeTicks.last()).toHaveAccessibleName(/scheduled check, Test passed$/);
-  await transcribeTicks.last().press('Enter');
-  await expect(tooltipStatus).toHaveText('Test passed');
-  await expect(tooltipDetails.first()).toContainText('AWS returned the expected transcript.');
-  await expect(tooltipDetails.first()).toContainText('preceding six hours: none');
-  await transcribeTicks.last().press('Escape');
-  await expect(tooltip).toBeHidden();
-  canary.state = 'degraded';
-  canary.canary = 'mismatch';
-  canary.issue = 'The transcript differed from the expected phrase.';
-  await refresh.click();
-  await expect(transcribeTicks.last()).toHaveAccessibleName(/Transcript mismatch$/);
-  await expect(aws.summary).toHaveText('Degraded');
-  await transcribeTicks.last().press('Enter');
-  await expect(tooltipDetails.first()).toContainText(canary.issue);
   await verifyStatusLinks(page, base, item, snapshot, catalog);
-  return local('Verified admin access, catalog and service links, keyboard and touch navigation, grouped refresh, and independent history controls.');
+  return local('Verified per-check period details, six closed UTC windows, rollover, refresh, mobile and keyboard input, admin access, and links.');
 }
 
 async function statusTool({ browser, context, page, base, item, catalog }) {

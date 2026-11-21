@@ -5,7 +5,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 
 const actions = {
-  'tool:aws-status': 'Load the 90-day history and catalog fixture as admin, and verify the ordinary-account gate.',
+  'tool:aws-status': 'Select individual six-hour periods, verify their recorded checks and confirm administrator access controls.',
   'tool:background-remover': 'Remove a solid-color background from a synthetic image and verify transparent PNG output.',
   'tool:campaign-creative-tracker': 'Create a synthetic campaign and verify that it survives a reload.',
   'tool:ga4-utm-performance': 'Run a bounded fixture report and verify its UTM campaign and export control.',

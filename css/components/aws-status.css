@@ -1,7 +1,7 @@
 @layer components {
   .aws-status {
     --aws-status-edge: clamp(var(--space-12), 2.5vw, var(--space-20));
-    --aws-status-label-width: clamp(10rem, 26%, 15rem);
+    --aws-status-label-width: clamp(11rem, 29%, 17rem);
     min-width: 0;
     color: var(--text-light);
   }
@@ -23,7 +23,40 @@
 
   .aws-status__toolbar {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-16);
+  }
+
+  .aws-status__heading {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: var(--space-4) var(--space-8);
+  }
+
+  .aws-status__heading h2 {
+    margin: 0;
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    line-height: 1.25;
+  }
+
+  .aws-status__heading span {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  .aws-status__heading span::before {
+    margin-inline-end: var(--space-8);
+    content: "·";
+  }
+
+  .aws-status__heading p {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
   }
 
   .aws-status__actions {
@@ -35,26 +68,12 @@
   }
 
   .aws-status__actions p:empty,
-  .aws-status__dashboard:has(.aws-status__readings[hidden]) :is(.aws-status__heading, .aws-status__history-control) {
+  .aws-status__dashboard:has(.aws-status__readings[hidden]) .aws-status__heading {
     display: none;
   }
 
   .aws-status__actions p {
     font-variant-numeric: tabular-nums;
-  }
-
-  .aws-status__history-control {
-    font-size: 0.9rem;
-  }
-
-  .aws-status__history-control select {
-    min-height: 44px;
-    padding: var(--space-6) var(--space-12);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-control);
-    background: var(--surface);
-    color: var(--text-light);
-    font: inherit;
   }
 
   .aws-status__actions p,
@@ -74,11 +93,7 @@
 
   .aws-status__group-toggle:focus-visible,
   .aws-status__item-link:focus-visible,
-  .aws-status__history-control select:focus-visible,
-  .aws-status__summary-status:focus-visible,
-  .aws-status__summary-status[aria-describedby],
-  .aws-status__tick:focus-visible,
-  .aws-status__tick[aria-describedby] {
+  .aws-status__tick:focus-visible {
     outline: 2px solid var(--brand-midnight);
     outline-offset: 1px;
   }
@@ -88,25 +103,8 @@
     background: var(--surface);
   }
 
-  .aws-status__history-scroll {
-    container-type: inline-size;
-    overflow-x: auto;
-  }
-
   .aws-status__history-grid {
-    --aws-status-history-width: 46rem;
-  }
-
-  .aws-status__history-grid[data-granularity="weekly"] {
-    --aws-status-history-width: 0rem;
-  }
-
-  .aws-status__history-grid[data-granularity="scheduled"] {
-    --aws-status-history-width: calc(15rem + var(--aws-status-check-count) * 0.5rem);
-  }
-
-  .aws-status__history-grid:has(.aws-status__group-items:not([hidden])) {
-    min-width: var(--aws-status-history-width);
+    --aws-status-columns: repeat(6, minmax(0, 1fr));
   }
 
   .aws-status__axis {
@@ -128,101 +126,49 @@
     display: grid;
     grid-template-columns: var(--aws-status-label-width) minmax(0, 1fr);
     align-items: center;
-    padding-inline-end: var(--aws-status-edge);
     border-bottom: 1px solid var(--surface-border);
-  }
-
-  .aws-status__axis-spacer {
-    position: sticky;
-    inset-inline-start: 0;
-    z-index: 1;
-    align-self: stretch;
-    background: var(--surface);
   }
 
   .aws-status__axis-bands,
+  .aws-status__axis-times,
   .aws-status__ticks {
     display: grid;
-    gap: 2px;
+    grid-template-columns: var(--aws-status-columns);
   }
 
-  .aws-status__axis-bands {
-    grid-template-columns: repeat(var(--aws-status-period-count), minmax(0, 1fr));
+  .aws-status__axis-columns {
+    padding-block: var(--space-8);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
   }
 
   .aws-status__axis-band,
-  .aws-status__tick[data-aws-status-boundary] {
-    position: relative;
-  }
-
-  .aws-status__axis-band + .aws-status__axis-band::before,
-  .aws-status__tick[data-aws-status-boundary]::after {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: -1px;
-    width: 1px;
-    background: var(--surface-border);
-    pointer-events: none;
-    content: "";
-  }
-
-  .aws-status__axis-label {
-    position: sticky;
-    inset-inline-start: var(--aws-status-label-width);
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow: hidden;
-    padding-block: var(--space-4) var(--space-8);
+  .aws-status__axis-latest {
     color: var(--text-light);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  }
+
+  .aws-status__axis-time {
+    display: grid;
+    align-content: end;
+    justify-items: center;
+    padding-top: var(--space-2);
+  }
+
+  .aws-status__axis-latest {
+    color: #17615f;
   }
 
   .aws-status__group-summary {
-    position: sticky;
-    inset-inline-start: 0;
     display: flex;
     box-sizing: border-box;
-    width: 100cqi;
     min-height: 3.75rem;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding-inline-end: var(--aws-status-edge);
     border-bottom: 1px solid var(--surface-border);
-  }
-
-  .aws-status__summary-status {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    gap: var(--space-6);
-    padding: var(--space-4) var(--space-8);
-    border: 0;
-    border-radius: var(--radius-card);
-    background: transparent;
-    color: var(--aws-status-ink);
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 700;
-    text-align: start;
-    cursor: pointer;
-  }
-
-  .aws-status__summary-status::before {
-    width: 10px;
-    height: 10px;
-    flex-shrink: 0;
-    border-radius: 2px;
-    background: var(--aws-status-fill);
-    content: "";
-  }
-
-  .aws-status__summary-status[data-state="unknown"]::before {
-    height: 4px;
   }
 
   .aws-status__group-items[data-aws-status-moving] {
@@ -230,7 +176,7 @@
   }
 
   .aws-status__history-row {
-    min-height: 2.75rem;
+    min-height: 3.25rem;
   }
 
   .aws-status__group-heading,
@@ -243,6 +189,7 @@
 
   .aws-status__group-heading {
     display: flex;
+    flex: 1;
     min-width: 0;
     font-size: clamp(0.88rem, 1.5vw, 1rem);
   }
@@ -269,8 +216,7 @@
   }
 
   @media (hover: hover) {
-    .aws-status__group-toggle:hover,
-    .aws-status__summary-status:hover {
+    .aws-status__group-toggle:hover {
       background: var(--surface-accent);
     }
   }
@@ -308,13 +254,9 @@
   }
 
   .aws-status__service {
-    position: sticky;
-    z-index: 1;
-    left: 0;
     display: grid;
     align-content: center;
     padding: var(--space-6) var(--space-12) var(--space-6) calc(var(--aws-status-edge) + var(--space-8));
-    background: var(--surface);
     font-size: clamp(0.84rem, 1.4vw, 0.95rem);
     font-weight: 600;
   }
@@ -338,7 +280,8 @@
     text-decoration: none;
   }
 
-  .aws-status__item-link::after {
+  .aws-status__item-link::after,
+  .aws-status__check-name[href]::after {
     box-sizing: border-box;
     width: 6px;
     height: 6px;
@@ -348,7 +291,8 @@
     content: "";
   }
 
-  .aws-status__item-link:is(:hover, :focus-visible) {
+  .aws-status__item-link:is(:hover, :focus-visible),
+  .aws-status__check-name[href]:is(:hover, :focus-visible) {
     background: #edf3f6;
   }
 
@@ -356,47 +300,55 @@
     outline-color: #196d83;
   }
 
-  .aws-status__ticks {
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-  }
-
   .aws-status__tick {
-    /* The shared mobile tool controls use 44px minimums. Timeline bars keep
-       that touch height while fitting separately in their period columns. */
+    /* Keep each hit area inside its column under the shared mobile button rules. */
+    display: grid;
+    place-items: center;
     min-inline-size: 0 !important;
-    min-height: 28px;
+    min-height: 44px;
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 2px;
+    border-radius: var(--radius-control);
     background: transparent;
     cursor: pointer;
-    scroll-margin-inline-start: 15rem;
+  }
+
+  .aws-status__tick:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .aws-status__tick[aria-expanded="true"]::before {
+    outline: 2px solid #137077;
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    .aws-status__tick:hover {
+      background: rgb(13 71 72 / 6%);
+    }
   }
 
   .aws-status__tick::before,
   .aws-status__legend li::before {
-    display: block;
-    border-radius: inherit;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1.5px solid var(--aws-status-marker-border, var(--aws-status-fill));
+    border-radius: 50%;
     background: var(--aws-status-fill);
-    content: "";
+    color: var(--aws-status-marker-ink, white);
+    font: 700 0.875rem / 1 var(--font-sans);
+    content: var(--aws-status-symbol) / "";
   }
 
-  .aws-status__tick::before {
-    height: 18px;
-  }
-
-  .aws-status__tick[data-state="unknown"]::before {
-    height: 4px;
-  }
-
-  .aws-status__tick[data-state="degraded"]::before {
-    background-image: linear-gradient(transparent 44%, rgb(76 33 5 / 30%) 44% 56%, transparent 56%);
-  }
-
-  .aws-status__tick[data-state="outage"]::before {
-    background-image: linear-gradient(transparent 26%, rgb(255 255 255 / 70%) 26% 38%, transparent 38% 63%, rgb(255 255 255 / 70%) 63% 75%, transparent 75%);
+  .aws-status__legend li::before {
+    width: 1rem;
+    height: 1rem;
+    font-size: 0.75rem;
   }
 
   .aws-status__legend,
@@ -423,82 +375,98 @@
     list-style: none;
   }
 
-  .aws-status__legend li::before {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-  }
-
-  .aws-status__legend li[data-state="unknown"]::before {
-    height: 4px;
-  }
-
   .aws-status [data-state="operational"] {
-    --aws-status-fill: #1c9863;
+    --aws-status-symbol: "✓";
+    --aws-status-fill: #168051;
     --aws-status-ink: var(--brand-success);
   }
 
   .aws-status [data-state="degraded"] {
-    --aws-status-fill: #e99d0a;
+    --aws-status-symbol: "!";
+    --aws-status-fill: #966000;
     --aws-status-ink: #92400e;
   }
 
   .aws-status [data-state="outage"] {
-    --aws-status-fill: #dc383d;
+    --aws-status-symbol: "×";
+    --aws-status-fill: #b9343b;
     --aws-status-ink: var(--brand-risk);
   }
 
   .aws-status [data-state="unknown"],
   .aws-status [data-state="neutral"] {
-    --aws-status-fill: #9aa5b4;
+    --aws-status-symbol: "−";
+    --aws-status-fill: transparent;
     --aws-status-ink: var(--brand-graphite);
+    --aws-status-marker-ink: #596b7c;
+    --aws-status-marker-border: #697b8c;
   }
 
-  .aws-status__tooltip {
-    position: fixed;
-    z-index: 10;
-    display: grid;
-    width: max-content;
-    max-width: min(21rem, calc(100vw - 24px));
-    gap: var(--space-2);
-    padding: var(--space-8) var(--space-12);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-card);
-    background: var(--surface);
-    box-shadow: var(--shadow-md);
-    font-size: 0.85rem;
-    line-height: 1.4;
+  .aws-status [data-state="neutral"] {
+    --aws-status-symbol: "…";
+    --aws-status-fill: #eaf0f2;
+  }
+
+  .aws-status__period-detail {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin: 0 0 var(--space-12) var(--aws-status-edge);
+    padding: var(--space-12) var(--space-16);
+    border-inline-start: 2px solid #b3cfce;
+    background: #f5f9f9;
     overflow-wrap: anywhere;
   }
 
-  .aws-status__tooltip::after {
-    position: absolute;
-    left: var(--aws-status-tip, 50%);
-    width: 9px;
-    height: 9px;
-    transform: translateX(-50%) rotate(45deg);
-    border: solid var(--border-subtle);
-    background: var(--surface);
-    content: "";
+  .aws-status__period-heading {
+    margin: 0 0 var(--space-8);
+    color: var(--text-light);
+    font-size: 0.92rem;
+    line-height: 1.4;
   }
 
-  .aws-status__tooltip[data-side="above"]::after {
-    bottom: -6px;
-    border-width: 0 1px 1px 0;
-  }
-
-  .aws-status__tooltip[data-side="below"]::after {
-    top: -6px;
-    border-width: 1px 0 0 1px;
-  }
-
-  .aws-status__tooltip-status,
-  .aws-status__tooltip-detail {
+  .aws-status__check-list {
+    display: grid;
+    gap: var(--space-8);
+    max-width: 48rem;
     margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .aws-status__tooltip-status {
+  .aws-status__check-list > li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    align-items: baseline;
+    gap: 2px var(--space-12);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .aws-status__check-result {
     color: var(--aws-status-ink);
+    font-weight: 650;
+    text-align: end;
+  }
+
+  .aws-status__check-name[href] {
+    display: inline-flex;
+    justify-self: start;
+    align-items: center;
+    gap: var(--space-8);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .aws-status__check-note,
+  .aws-status__check-time {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .aws-status__check-time {
+    font-variant-numeric: tabular-nums;
   }
 
   @media (min-width: 60rem) and (max-height: 48rem) and (pointer: fine) {
@@ -517,33 +485,8 @@
   }
 
   @media (max-width: 46rem) {
-    .aws-status {
-      --aws-status-label-width: 8.75rem;
-    }
-
     .aws-status__actions {
-      width: 100%;
       justify-content: flex-start;
-    }
-
-    .aws-status__actions p {
-      flex-basis: 100%;
-    }
-
-    .aws-status__history-grid {
-      --aws-status-history-width: 115rem;
-    }
-
-    .aws-status__history-grid[data-granularity="hourly"] {
-      --aws-status-history-width: 94rem;
-    }
-
-    .aws-status__history-grid[data-granularity="scheduled"] {
-      --aws-status-history-width: calc(10rem + var(--aws-status-check-count) * 1.5rem);
-    }
-
-    .aws-status__tick {
-      scroll-margin-inline-start: 9rem;
     }
 
     .aws-status__legend {
@@ -551,25 +494,45 @@
     }
   }
 
-  @media (max-width: 46rem) and (pointer: coarse) {
+  @media (max-width: 40rem) {
     .aws-status__history-grid {
-      --aws-status-history-width: 145rem;
+      --aws-status-label-width: 0px;
     }
 
-    .aws-status__history-grid[data-granularity="hourly"] {
-      --aws-status-history-width: 118rem;
+    .aws-status__axis-row,
+    .aws-status__history-row {
+      grid-template-columns: minmax(0, 1fr);
     }
-  }
 
-  @media (max-width: 600px) {
-    .aws-status__service:has(.aws-status__item-link) {
-      padding-inline-end: 5px;
+    .aws-status__axis-spacer {
+      display: none;
+    }
+
+    .aws-status__axis-columns {
+      font-size: 0.75rem;
+    }
+
+    .aws-status__axis-band,
+    .aws-status__axis-latest {
+      font-size: 0.7rem;
+    }
+
+    .aws-status__service {
+      padding-inline: var(--space-4);
+    }
+
+    .aws-status__service:not(:has(a)) {
+      padding-top: var(--space-12);
     }
 
     .aws-status__item-link {
-      grid-template-columns: minmax(0, 1fr) 7px;
-      column-gap: 3px;
-      padding-inline-end: 2px;
+      justify-self: start;
+      gap: var(--space-8);
+    }
+
+    .aws-status__period-detail {
+      margin-inline-start: 0;
+      padding-inline: var(--space-12);
     }
   }
 }
