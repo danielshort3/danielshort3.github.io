@@ -85,12 +85,31 @@ async function stormbreak({ page, base, item }) {
 }
 
 async function ocean({ page, base, item }) {
+  // The simulator loads deferred scripts and may compile its shaders in software.
+  page.setDefaultNavigationTimeout(30_000);
   await visit(page, base, item.route);
-  await visible(page, '#ocean-wave-canvas');
-  const before = await page.locator('#ocean-wave-scene-name').textContent();
+  const stage = page.locator('#ocean-wave-stage');
+  const canvas = page.locator('#ocean-wave-canvas');
+  await expect(canvas).toBeVisible();
+  await expect(stage).toHaveAttribute('data-ocean-renderer', /^(webgl|canvas)$/, { timeout: 30_000 });
+  await expect(page.locator('#ocean-wave-toggle')).toBeEnabled();
+  await expect(stage).toHaveAttribute('data-ocean-scene', 'ocean');
+  if (await stage.getAttribute('data-ocean-renderer') === 'canvas') {
+    await expect(page.locator('#ocean-wave-scene option[value="cove"]')).toBeDisabled();
+    const readSkyPixel = () => canvas.evaluate((element) =>
+      Array.from(element.getContext('2d').getImageData(0, 0, 1, 1).data));
+    const dawn = await readSkyPixel();
+    await page.locator('#ocean-wave-settings-toggle').click();
+    await page.locator('[data-ocean-preset="dusk"]').click();
+    await status(page, '#ocean-wave-summary', 'Open ocean, dusk.');
+    assert.notDeepEqual(await readSkyPixel(), dawn, 'The Canvas 2D sky should change at dusk.');
+    return local('Canvas 2D rendered the open ocean and changed its sky when the user selected Dusk.');
+  }
   await page.locator('#ocean-wave-scene').selectOption('cove');
-  await expect(page.locator('#ocean-wave-scene-name')).not.toHaveText(before);
-  return local('The canvas scene changed when the user selected Quiet cove.');
+  await expect(stage).toHaveAttribute('data-ocean-renderer', 'webgl');
+  await expect(stage).toHaveAttribute('data-ocean-scene', 'cove');
+  await text(page, '#ocean-wave-scene-name', 'Quiet cove');
+  return local('WebGL initialized and reported Quiet cove when the user changed location.');
 }
 
 async function chasing({ page, base, item }) {
