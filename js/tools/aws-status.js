@@ -5,12 +5,11 @@
   const STATUS_URL = '/api/tools/aws-status';
   const HISTORY_DAYS = 90;
   const HISTORY_HOURS = 72;
-  const HISTORY_ZONE = 'America/Denver';
   const HOUR_MS = 60 * 60 * 1000;
-  const CYCLE_MS = 6 * HOUR_MS;
-  const DAY_MS = 24 * HOUR_MS;
+  const CYCLE_HOURS = 6;
+  const CYCLE_MS = CYCLE_HOURS * HOUR_MS;
+  const PERIOD_COUNT = 6;
   const STALE_MS = 2 * 60 * 60 * 1000;
-  const HOME_GPU_STALE_MS = 75 * 60 * 1000;
   const REFRESH_OFFSET_MS = 21 * 60 * 1000;
   const CYCLE_GRACE_MS = 80 * 60_000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
@@ -26,14 +25,22 @@
     ['Projects', { prefix: 'project:', path: '/portfolio/' }],
     ['Games', { prefix: 'game:', path: '/games/' }]
   ]);
-  const CONNECTION_ROUTES = new Map([
-    ['cognito', '/tools'],
-    ['tracker', '/tools/job-application-tracker'],
-    ['short-links', '/tools/short-links'],
-    ['contact', '/contact#contact-modal'],
-    ['transcribe', '/tools/transcribe'],
-    ['chatbot', '/chatbot-demo'],
-    ['markdown', 'https://us-east-2.console.aws.amazon.com/sagemaker/home?region=us-east-2#/endpoints/VGJ-Markdown-Async']
+  const SHARED_GROUP = 'Site & shared services';
+  const SERVICE_CHECKS = new Map([
+    ['cognito', { label: 'Cognito discovery', route: '/tools' }],
+    ['tracker', { owner: 'tool:job-application-tracker', label: 'Tracker alarms', route: '/tools/job-application-tracker' }],
+    ['short-links', { owner: 'tool:short-links', label: 'Short-link redirect', route: '/tools/short-links' }],
+    ['contact', { label: 'Contact email alarm', route: '/contact#contact-modal' }],
+    ['transcribe', { owner: 'tool:transcribe', label: 'AWS transcription', route: '/tools/transcribe' }],
+    ['home-gpu', { owner: 'tool:transcribe', label: 'Home GPU readiness', route: '/tools/transcribe' }],
+    ['chatbot', { owner: 'project:chatbotLora', label: 'Chatbot endpoint', route: '/chatbot-demo' }],
+    ['markdown', { label: 'Markdown endpoint', route: 'https://us-east-2.console.aws.amazon.com/sagemaker/home?region=us-east-2#/endpoints/VGJ-Markdown-Async' }]
+  ]);
+  const BROWSER_CHECK_NAMES = new Map([
+    ['tool:transcribe', 'Browser file queue'],
+    ['tool:short-links', 'Links workspace'],
+    ['tool:job-application-tracker', 'Save and reload an application'],
+    ['project:chatbotLora', 'Browser chat workflow']
   ]);
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
   const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
@@ -51,32 +58,10 @@
     e: 'The browser check could not complete.',
     n: 'The browser check could not verify this item.'
   };
-  const HISTORY_VIEWS = {
-    hourly: { range: 'Last 72 hours', period: 'an hour' },
-    daily: { range: 'Last 90 days', period: 'a day' },
-    weekly: { range: 'Last 90 days', period: 'a week' }
-  };
-
-  const civilDateFormat = new Intl.DateTimeFormat('en-CA', {
-    timeZone: HISTORY_ZONE, year: 'numeric', month: '2-digit', day: '2-digit'
-  });
-  const dayFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', dateStyle: 'medium' });
-  const axisDayFormat = new Intl.DateTimeFormat(undefined, {
-    timeZone: 'UTC', month: 'short', day: 'numeric'
-  });
-  const axisMonthFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', month: 'short' });
-  const shortDayFormat = new Intl.DateTimeFormat(undefined, {
-    timeZone: HISTORY_ZONE, month: 'short', day: 'numeric'
-  });
-  const hourFormat = new Intl.DateTimeFormat(undefined, {
-    timeZone: HISTORY_ZONE, hour: 'numeric', minute: '2-digit'
-  });
-  const clockFormat = new Intl.DateTimeFormat(undefined, {
-    timeZone: HISTORY_ZONE, hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-  });
+  const axisDayFormat = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric' });
   const dateTimeFormat = new Intl.DateTimeFormat(undefined, {
-    timeZone: HISTORY_ZONE, month: 'short', day: 'numeric', year: 'numeric',
-    hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'short'
   });
 
   function element(tag, text, className) {
@@ -87,8 +72,6 @@
   }
 
   function itemRoute(group, id) {
-    if (group === 'AWS Connections') return CONNECTION_ROUTES.get(id);
-    if (group === 'Local services') return id === 'home-gpu' ? '/tools/transcribe' : undefined;
     const catalogGroup = CATALOG_GROUPS.get(group);
     if (!catalogGroup || typeof id !== 'string' || !id.startsWith(catalogGroup.prefix)) return;
     if (id === 'tool:aws-status') return '/tools/system-status';
@@ -105,130 +88,85 @@
     return data?.cadenceHours === 6 && time % CYCLE_MS === 0 ? time : Infinity;
   }
 
-  function mountainDay(time) {
-    const parts = civilDateFormat.formatToParts(time);
-    const date = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
-    return date.year + '-' + date.month + '-' + date.day;
+  function closedBoundary(now) {
+    return Math.floor(now / CYCLE_MS) * CYCLE_MS;
   }
 
-  function recentDates(time = Date.now()) {
-    // Walk civil date keys, since Mountain days can be 23 or 25 hours long.
-    const end = Date.parse(mountainDay(time) + 'T00:00:00Z');
-    return Array.from({ length: HISTORY_DAYS }, (_, index) =>
-      new Date(end - (HISTORY_DAYS - 1 - index) * DAY_MS).toISOString().slice(0, 10));
-  }
-
-  function hourPeriod(from, cadenceStart) {
-    const cycle = from >= cadenceStart;
-    const to = from + (cycle ? CYCLE_MS : HOUR_MS);
-    const label = cycle ? dateTimeFormat.format(from) + ' scheduled check' : hourLabel(from, to);
-    return { start: new Date(from).toISOString(), label, from, to };
-  }
-
-  function recentHours(time, cutoff, cadenceStart) {
-    const end = Math.floor(time / HOUR_MS) * HOUR_MS;
-    return Array.from({ length: HISTORY_HOURS }, (_, index) => end - (HISTORY_HOURS - 1 - index) * HOUR_MS)
-      .filter((from) => (cutoff === null || from <= cutoff) && (from < cadenceStart || from % CYCLE_MS === 0))
-      .map((from) => hourPeriod(from, cadenceStart));
-  }
-
-  function calendarWeeks(dates) {
-    const weeks = [];
-    for (const date of dates) {
-      const weekday = new Date(date + 'T00:00:00Z').getUTCDay();
-      if (weekday === 1 || weeks.length === 0) weeks.push([]);
-      weeks.at(-1).push(date);
-    }
-    return weeks.map((week) => {
-      const first = dateLabel(week[0]);
-      const last = dateLabel(week.at(-1));
-      return { dates: week, label: first === last ? first : first + ' – ' + last };
+  function completedPeriods(boundary) {
+    return Array.from({ length: PERIOD_COUNT }, (_, index) => {
+      const from = boundary - (PERIOD_COUNT - index) * CYCLE_MS;
+      const to = from + CYCLE_MS;
+      const start = new Date(from).toISOString();
+      const end = new Date(to).toISOString();
+      const date = start.slice(0, 10);
+      const clock = start.slice(11, 16);
+      const endDate = date === end.slice(0, 10) ? '' : axisDayFormat.format(to) + ', ';
+      const label = axisDayFormat.format(from) + ', ' + clock + ' – ' + endDate + end.slice(11, 16) + ' UTC';
+      return { from, start, date, clock, label };
     });
   }
 
-  function historyBands({ view, hours, dates, weeks }) {
-    if (view === 'daily') {
-      return calendarWeeks(dates).map(({ dates: week }) => ({ start: week[0], count: week.length }));
-    }
-    const starts = hours ? hours.map(({ from }) => mountainDay(from)) : weeks.map(({ dates: week }) => week[0]);
-    const bands = [];
-    for (const start of starts) {
-      const key = view === 'weekly' ? start.slice(0, 7) : start;
-      const previous = bands.at(-1);
-      if (previous?.key === key) previous.count++;
-      else bands.push({ key, start, count: 1 });
-    }
-    return bands;
-  }
-
-  function renderHistoryAxis(timeline, periodCount) {
+  function renderHistoryAxis(periods) {
     const axis = element('div', '', 'aws-status__axis');
     axis.setAttribute('aria-hidden', 'true');
-    const bands = element('div', '', 'aws-status__axis-bands');
-    bands.style.setProperty('--aws-status-period-count', String(periodCount));
-    const format = timeline.view === 'weekly' ? axisMonthFormat : axisDayFormat;
-    const boundaries = new Set();
-    let offset = 0;
-    for (const { start, count } of historyBands(timeline)) {
-      if (offset > 0) boundaries.add(offset);
-      offset += count;
-      const band = element('div', '', 'aws-status__axis-band');
-      band.style.gridColumn = 'span ' + count;
-      band.dataset.start = start;
-      band.dataset.periodCount = String(count);
-      const label = element('time', format.format(Date.parse(start + 'T00:00:00Z')), 'aws-status__axis-label');
-      label.dateTime = start;
-      band.append(label);
-      bands.append(band);
-    }
     const row = element('div', '', 'aws-status__axis-row');
-    row.append(element('div', '', 'aws-status__axis-spacer'), bands);
+    const columns = element('div', '', 'aws-status__axis-columns');
+    const bands = element('div', '', 'aws-status__axis-bands');
+    const times = element('div', '', 'aws-status__axis-times');
+    periods.forEach((period, index) => {
+      if (period.date !== periods[index - 1]?.date) {
+        const count = periods.filter((entry) => entry.date === period.date).length;
+        const band = element('div', '', 'aws-status__axis-band');
+        band.style.gridColumn = 'span ' + count;
+        band.dataset.start = period.date;
+        band.dataset.periodCount = String(count);
+        const label = element('time', axisDayFormat.format(period.from), 'aws-status__axis-label');
+        label.dateTime = period.date;
+        band.append(label);
+        bands.append(band);
+      }
+      const cell = element('div', '', 'aws-status__axis-time');
+      if (index === periods.length - 1) {
+        cell.dataset.latest = '';
+        cell.append(element('span', 'Latest', 'aws-status__axis-latest'));
+      }
+      const clock = element('time', period.clock);
+      clock.dateTime = period.start;
+      cell.append(clock);
+      times.append(cell);
+    });
+    columns.append(bands, times);
+    row.append(element('div', '', 'aws-status__axis-spacer'), columns);
     axis.append(row);
-    return { axis, boundaries };
+    return axis;
   }
 
-  function transcriptionWeek(days, label) {
-    const measured = days.filter((day) => day?.transcription);
-    if (!measured.length) return null;
-    const transcription = { completed: 0, failed: 0, inProgress: 0 };
-    for (const day of measured) {
-      transcription.completed += day.transcription.completed;
-      transcription.failed += day.transcription.failed;
-      transcription.inProgress += day.transcription.inProgress;
+  function legacyPeriod(hours, transcriber) {
+    const outage = hours.findLast((hour) => hour?.state === 'outage');
+    const degraded = hours.findLast((hour) => hour?.state === 'degraded');
+    if (outage) return outage;
+    if (transcriber) {
+      const measured = hours.filter((hour) => hour?.transcription);
+      if (measured.length) {
+        // Only terminal counts are additive. A running job can cross several hour boundaries.
+        const counts = { completed: 0, failed: 0, inProgress: hours.at(-1)?.transcription?.inProgress };
+        for (const { transcription } of measured) {
+          counts.completed += transcription.completed;
+          counts.failed += transcription.failed;
+        }
+        if (degraded && !counts.failed) return degraded;
+        const partial = measured.length < hours.length;
+        const state = counts.failed ? 'degraded' : !partial && counts.completed ? 'operational' : 'unknown';
+        const hadActivity = measured.some((hour) => hour.transcription.inProgress > 0);
+        return { state, transcription: counts, partial, hadActivity, observedAt: measured.at(-1).observedAt };
+      }
     }
-    const { completed, failed, inProgress } = transcription;
-    if (!completed && !failed && !inProgress && measured.length !== days.length) return null;
-    return { label, state: failed ? 'degraded' : completed ? 'operational' : 'unknown', transcription };
-  }
-
-  function weekResult({ dates, label }, byDate, includeTranscription) {
-    const days = dates.map((date) => byDate.get(date));
-    const transcription = includeTranscription ? transcriptionWeek(days, label) : null;
-    const outage = days.findLast((day) => day?.state === 'outage');
-    const degraded = days.findLast((day) => day?.state === 'degraded');
-    if (!outage && (transcription?.state === 'degraded' || (!degraded && transcription))) return transcription;
-    const incident = outage || degraded;
-    if (incident) return { ...incident, label };
-    const measured = days.filter((day) => day?.state === 'operational');
-    const complete = measured.length === days.length;
-    return {
-      label,
-      state: complete ? 'operational' : 'unknown',
-      issue: complete ? '' : measured.length ? 'Some checks missing.' : 'No check recorded.'
-    };
-  }
-
-  function dateLabel(date) {
-    return dayFormat.format(Date.parse(date + 'T00:00:00Z'));
-  }
-
-  function hourLabel(from, to) {
-    const startDay = shortDayFormat.format(from);
-    const endDay = mountainDay(from) === mountainDay(to) ? '' : shortDayFormat.format(to) + ', ';
-    const [startClock, endClock] = [from, to].map((time) =>
-      clockFormat.formatToParts(time).find((part) => part.type === 'timeZoneName')?.value);
-    const endTime = startClock === endClock ? hourFormat : clockFormat;
-    return startDay + ', ' + clockFormat.format(from) + ' – ' + endDay + endTime.format(to);
+    if (degraded) return degraded;
+    if (hours.every((hour) => hour?.state === 'operational')) return hours.at(-1);
+    const unknown = hours.findLast((hour) => hour?.state === 'unknown' && hour.issue !== 'No check recorded.');
+    if (unknown) return unknown;
+    const partial = hours.some((hour) => hour?.state === 'operational');
+    return { state: 'unknown', issue: partial ? 'Some hourly checks are missing.' : 'No check recorded.' };
   }
 
   function timeLabel(value, format = dateTimeFormat) {
@@ -237,24 +175,9 @@
     return label;
   }
 
-  function homeGpuLastCheck(hours, cadenceStart) {
-    const now = Date.now();
-    const latest = hours?.findLast((hour) => {
-      const observed = Date.parse(hour.observedAt);
-      const start = Date.parse(hour.start);
-      return hour.complete === true && hasTimestamp(hour.observedAt) && observed <= now &&
-        observed >= start && observed < start + (start >= cadenceStart ? CYCLE_MS : HOUR_MS);
-    });
-    const status = ['Home GPU last check: '];
-    if (latest) {
-      const allowedAge = now >= cadenceStart ? CYCLE_MS + CYCLE_GRACE_MS : HOME_GPU_STALE_MS;
-      const stale = now - Date.parse(latest.observedAt) >= allowedAge;
-      status.push(element('strong', HOME_GPU_STATES[latest.state]), ' · ', timeLabel(latest.observedAt));
-      if (stale) status.push(' · Stale');
-    } else {
-      status.push('Unknown');
-    }
-    return status;
+  function periodPublished(start, firstCycle, publishedThrough) {
+    const lastSlot = start >= firstCycle ? start : start + CYCLE_MS - HOUR_MS;
+    return lastSlot <= publishedThrough;
   }
 
   function validHistoryTile(tile) {
@@ -311,31 +234,22 @@
     const freshness = part('freshness');
     const notice = part('notice');
     const readings = part('readings');
-    const tooltip = root.querySelector('#aws-status-history-details');
     const historyAnnouncement = part('history-announcement');
-    const granularity = part('granularity');
     const history = part('history');
     const grid = part('history-grid');
-    const scroll = part('history-scroll');
-    const rangeLabel = part('history-range');
     const empty = part('history-empty');
-    const homeGpuDetails = part('home-gpu-details');
-    const homeGpuStatus = part('home-gpu-last-check');
     const detailsByTick = new WeakMap();
     const expandedGroups = new Set();
     let owner = '';
     let snapshot = null;
+    let displayedBoundary = null;
     let failed = false;
     let request = null;
     let staleTimer;
     let accessTimer;
     let refreshTimer;
     let nextRefreshAt = 0;
-    let tooltipTimer;
-    let tooltipFrame = null;
-    let activeTick;
-    let pinnedTick;
-    let showingDetails = false;
+    let selectedTick = null;
 
     function setNotice(message) {
       notice.textContent = message;
@@ -348,20 +262,13 @@
       readings.setAttribute('aria-busy', String(busy));
     }
 
-    function alignHistory(left) {
-      scroll.scrollLeft = left ?? scroll.scrollWidth;
-    }
-
-    function hideTooltip() {
-      clearTimeout(tooltipTimer);
-      if (tooltipFrame !== null) window.cancelAnimationFrame(tooltipFrame);
-      tooltipFrame = null;
-      activeTick?.removeAttribute('aria-describedby');
-      activeTick = null;
-      pinnedTick = null;
-      showingDetails = false;
-      tooltip.hidden = true;
-      tooltip.replaceChildren();
+    function closeDetail() {
+      if (!selectedTick) return;
+      selectedTick.setAttribute('aria-expanded', 'false');
+      const { panel } = detailsByTick.get(selectedTick);
+      panel.hidden = true;
+      panel.replaceChildren();
+      selectedTick = null;
       if (historyAnnouncement) historyAnnouncement.textContent = '';
     }
 
@@ -375,12 +282,11 @@
       nextRefreshAt = 0;
       readings.hidden = true;
       freshness.textContent = '';
-      hideTooltip();
+      closeDetail();
       grid.replaceChildren();
-      if (homeGpuDetails) homeGpuDetails.hidden = true;
-      homeGpuStatus?.replaceChildren();
-      granularity.value = 'hourly';
+      displayedBoundary = null;
       expandedGroups.clear();
+      expandedGroups.add('Tools');
       setNotice('');
       setBusy(false);
     }
@@ -406,103 +312,141 @@
       if (!stale) staleTimer = setTimeout(renderFreshness, allowedAge - age);
     }
 
-    function historyPeriods(item, timeline, catalog) {
-      const { dates, labels, weeks, hours, view } = timeline;
-      if (hours && catalog) {
-        const results = catalog.history?.results[item.id];
-        const checked = Date.parse(item.lastChecked);
-        return hours.map(({ from, to, label }) => {
-          const index = (from - catalog.hourStart) / HOUR_MS;
-          const code = results?.hours[index];
-          const detail = results?.details?.hours?.[index];
-          const observation = catalogObservation(code, detail);
-          if (code && code !== '-') observation.observedAt = catalog.history.observedAt[index];
-          if (!Object.hasOwn(CHECK_DETAILS, detail) && ['u', 'd', 'x'].includes(code) &&
-              observation.state === item.state && checked >= from && checked < to) {
-            observation.issue = item.issue || observation.issue;
-          }
-          return { label, ...observation };
-        });
+    function historyPeriods(item, periods, firstCycle, publishedThrough, catalog) {
+      const byHour = new Map((item.hours || []).map((hour) => [Date.parse(hour.start), hour]));
+      const results = catalog?.history?.results[item.id];
+      const checked = Date.parse(item.lastChecked);
+
+      function observationAt(start) {
+        if (!catalog) return byHour.get(start);
+        const index = (start - catalog.hourStart) / HOUR_MS;
+        const code = results?.hours[index];
+        if (!code || code === '-') return;
+        const detail = results?.details?.hours?.[index];
+        const observation = catalogObservation(code, detail);
+        observation.observedAt = catalog.history.observedAt[index];
+        if (!Object.hasOwn(CHECK_DETAILS, detail) && ['u', 'd', 'x'].includes(code) && item.source === 'browser' &&
+            observation.state === item.state && checked === Date.parse(observation.observedAt)) {
+          observation.issue = item.issue || observation.issue;
+        }
+        return observation;
       }
-      if (hours) {
-        const byHour = new Map((item.hours || []).map((hour) => [hour.start, hour]));
-        return hours.map(({ start, label }) => {
-          const hour = byHour.get(start);
-          return {
-            ...hour,
-            label,
-            state: hour?.state || 'unknown',
-            issue: hour?.issue || 'No check recorded.'
-          };
-        });
-      }
-      const catalogItem = catalog?.history?.results[item.id];
-      const byDate = catalog ? new Map(dates.map((date) => {
-        const index = (Date.parse(date) - catalog.dayStart) / DAY_MS;
-        const code = catalogItem?.days[index];
-        const detail = catalogItem?.details?.days?.[index];
-        const day = catalogObservation(code, detail);
-        if (code === 'u' && !Object.hasOwn(CHECK_DETAILS, detail)) day.issue = 'Missing or inconclusive checks.';
-        return [date, { date, ...day }];
-      })) : new Map(item.days.map((day) => [day.date, day]));
-      if (view === 'weekly') {
-        const firstCycle = cadenceStart(snapshot);
-        const firstCanaryDate = Number.isFinite(firstCycle) ? mountainDay(firstCycle) : null;
-        return weeks.map((week) => weekResult(week, byDate, item.id === 'transcribe' &&
-          (!firstCanaryDate || week.dates.at(-1) < firstCanaryDate)));
-      }
-      return dates.map((date) => ({
-        state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: labels.get(date)
-      }));
+
+      return periods.map(({ from, label }) => {
+        if (!periodPublished(from, firstCycle, publishedThrough)) {
+          return { state: 'unknown', issue: 'Awaiting the published period.', label };
+        }
+        const result = from >= firstCycle
+          ? observationAt(from)
+          : legacyPeriod(Array.from({ length: CYCLE_HOURS }, (_, hour) => observationAt(from + hour * HOUR_MS)), item.id === 'transcribe');
+        return { state: 'unknown', issue: 'No check recorded.', ...result, label };
+      });
     }
 
-    function renderTicks(label, periods, timeline, stateLabels) {
+    function checkOutcome(id, result) {
+      if (Object.hasOwn(CANARY_LABELS, result.canary)) return CANARY_LABELS[result.canary];
+      if (result.transcription) {
+        const { completed, failed, inProgress } = result.transcription;
+        if (failed) return 'Failed';
+        if (result.partial) return 'Partial data';
+        if (completed) return 'Completed';
+        if (inProgress) return 'In progress';
+        return result.hadActivity ? 'Activity observed' : 'No activity';
+      }
+      if (result.state === 'unknown') {
+        if (result.issue === 'Awaiting the published period.') return 'Awaiting publication';
+        if (result.issue === 'No check recorded.') return 'No report';
+        if (result.issue === 'Some hourly checks are missing.') return 'Partial data';
+        return 'Inconclusive';
+      }
+      if (id === 'home-gpu') return HOME_GPU_STATES[result.state];
+      return result.state === 'operational' ? 'Passed' : STATES[result.state];
+    }
+
+    function featureRows(periods, firstCycle, publishedThrough, catalog) {
+      const groups = new Map([...CATALOG_GROUPS.keys(), SHARED_GROUP].map((name) => [name, []]));
+      const owners = new Map();
+      function check(item, label, history) {
+        return { id: item.id, label, results: historyPeriods(item, periods, firstCycle, publishedThrough, history) };
+      }
+      for (const item of snapshot.catalog) {
+        const row = {
+          id: item.id, label: item.label, route: itemRoute(item.group, item.id),
+          checks: [check(item, BROWSER_CHECK_NAMES.get(item.id) || 'Browser workflow', catalog)]
+        };
+        groups.get(item.group).push(row);
+        owners.set(item.id, row);
+      }
+      const services = [...snapshot.connections];
+      if (snapshot.homeGpu?.id === 'home-gpu' && validConnection(snapshot.homeGpu)) services.push(snapshot.homeGpu);
+      for (const item of services) {
+        const config = SERVICE_CHECKS.get(item.id);
+        const source = check(item, config?.label || item.label);
+        const owner = owners.get(config?.owner);
+        if (owner) {
+          if (config.route !== owner.route) source.route = config.route;
+          owner.checks.push(source);
+        } else {
+          groups.get(SHARED_GROUP).push({
+            id: item.id || item.label, label: item.label, route: config?.route, checks: [source]
+          });
+        }
+      }
+      groups.get(SHARED_GROUP).sort((a, b) => a.label.localeCompare(b.label));
+      return groups;
+    }
+
+    function renderRow(row, periods, firstCycle) {
+      const node = element('div', '', 'aws-status__history-row');
+      node.dataset.itemId = row.id;
+      const heading = element('h4', '', 'aws-status__service');
+      if (row.route) {
+        const link = element('a', row.label, 'aws-status__item-link');
+        link.href = row.route;
+        heading.append(link);
+      } else {
+        heading.textContent = row.label;
+      }
+      const panel = element('section', '', 'aws-status__period-detail');
+      panel.id = 'aws-status-detail-' + encodeURIComponent(row.id);
+      panel.hidden = true;
       const ticks = element('div', '', 'aws-status__ticks');
       ticks.setAttribute('role', 'group');
-      ticks.setAttribute('aria-label', label + ' ' + (timeline.scheduled ? 'scheduled check' : timeline.view) +
-        ' history. Use left and right arrows to choose ' + timeline.period + '. Press Enter to select.');
-      periods.forEach((detail, index) => {
-        let stateLabel = stateLabels[detail.state];
-        let visualState = detail.state;
-        if (detail.transcription && !detail.service) {
-          const { completed, failed, inProgress } = detail.transcription;
-          stateLabel = failed ? 'Failed' : completed ? 'Completed' : inProgress ? 'In progress' : 'No activity';
-          if (detail.state === 'unknown') visualState = 'neutral';
-        }
-        if (Object.hasOwn(CANARY_LABELS, detail.canary) && !detail.service) {
-          stateLabel = CANARY_LABELS[detail.canary];
-          if (detail.canary === 'running') visualState = 'neutral';
-        }
+      ticks.setAttribute('aria-label', row.label + ' six-hour history. Use left and right arrows to choose a period. Press Enter to inspect its checks.');
+      periods.forEach((period, index) => {
+        const checks = row.checks.map(({ id, label, route, results }) => {
+          const result = results[index];
+          const checkLabel = id === 'transcribe' && period.from < firstCycle ? 'AWS transcription activity' : label;
+          const activityOnly = result.state === 'unknown' && result.transcription && !result.partial;
+          const visualState = activityOnly || result.canary === 'running' ? 'neutral' : result.state;
+          return { label: checkLabel, route, result, visualState, outcome: checkOutcome(id, result) };
+        });
+        // Legacy job counts with no activity do not signal that a scheduled check was missed.
+        const representative = checks.find(({ result }) => result.state === 'outage') ||
+          checks.find(({ result }) => result.state === 'degraded') ||
+          checks.find(({ result }) => result.state === 'unknown' && (!result.transcription || result.partial)) ||
+          checks.find(({ result }) => result.state === 'operational') || checks[0];
+        const { result, outcome } = representative;
+        const summary = checks.length > 1 && result.state !== 'operational' && outcome !== 'Awaiting publication'
+          ? representative.label + ': ' + outcome : outcome;
         const tick = element('button', '', 'aws-status__tick');
         tick.type = 'button';
         tick.tabIndex = index === periods.length - 1 ? 0 : -1;
-        tick.dataset.state = visualState;
-        if (timeline.boundaries.has(index)) tick.dataset.awsStatusBoundary = '';
-        tick.setAttribute('aria-label', detail.label + ', ' + stateLabel);
-        detailsByTick.set(tick, { ...detail, stateLabel, visualState, view: timeline.view });
+        tick.dataset.state = representative.visualState;
+        tick.dataset.period = period.start;
+        if (index === periods.length - 1) tick.dataset.latest = '';
+        tick.setAttribute('aria-expanded', 'false');
+        tick.setAttribute('aria-controls', panel.id);
+        tick.setAttribute('aria-label', row.label + ', ' + period.label + ', ' + summary);
+        tick.title = period.label + ' · ' + summary;
+        detailsByTick.set(tick, { panel, label: row.label, period, checks });
         ticks.append(tick);
       });
-      return ticks;
+      node.append(heading, ticks, panel);
+      return node;
     }
 
-    function groupResult(rows) {
-      const incident = rows.find(({ period }) => period.state === 'outage') ||
-        rows.find(({ period }) => period.state === 'degraded');
-      if (incident) return { ...incident.period, service: incident.label };
-      const unknown = rows.filter(({ period }) => period.state === 'unknown' && !period.transcription);
-      const source = unknown.find(({ period }) => period.issue !== 'No check recorded.') || unknown[0];
-      if (source) return { ...source.period, service: source.label };
-      return { label: rows[0].period.label, state: 'operational' };
-    }
-
-    function renderGroup(group, items, timeline, summaryHour, catalog) {
-      const rows = items.map((item) => ({
-        label: item.label, route: itemRoute(group, item.id), periods: historyPeriods(item, timeline, catalog)
-      }));
-      const summaryTimeline = { hours: [summaryHour] };
-      const latest = groupResult(items.map((item) => ({ label: item.label, period: historyPeriods(item, summaryTimeline, catalog)[0] })));
-      const homeGpu = group === 'Local services';
-      const stateLabels = homeGpu ? HOME_GPU_STATES : STATES;
+    function renderGroup(group, rows, periods, firstCycle) {
       const section = element('section', '', 'aws-status__group');
       section.dataset.group = group;
       const summary = element('div', '', 'aws-status__group-summary');
@@ -513,16 +457,10 @@
       count.setAttribute('aria-hidden', 'true');
       toggle.append(count);
       heading.append(toggle);
-      const stateLabel = stateLabels[latest.state];
-      const status = element('button', stateLabel, 'aws-status__summary-status');
-      status.type = 'button';
-      status.dataset.state = latest.state;
-      status.setAttribute('aria-label', group + ' latest status, ' + stateLabel);
-      detailsByTick.set(status, { ...latest, stateLabel, visualState: latest.state, view: 'hourly' });
-      summary.append(heading, status);
+      summary.append(heading);
       const body = element('div', '', 'aws-status__group-items');
-      body.id = 'aws-status-group-' + group.toLowerCase().replace(/ /g, '-');
-      toggle.setAttribute('aria-controls', homeGpu && homeGpuDetails ? body.id + ' ' + homeGpuDetails.id : body.id);
+      body.id = 'aws-status-group-' + group.toLowerCase().replace(/[^a-z]+/g, '-');
+      toggle.setAttribute('aria-controls', body.id);
       section.append(summary, body);
       let motion = null;
 
@@ -540,28 +478,11 @@
         motion = null;
         toggle.setAttribute('aria-expanded', String(open));
         if (!open && body.contains(document.activeElement)) toggle.focus({ preventScroll: true });
+        if (!open && body.contains(selectedTick)) closeDetail();
         body.inert = !open;
         if (open) {
           body.hidden = false;
-          if (!body.firstChild) {
-            body.replaceChildren(...rows.map(({ label, route, periods }) => {
-              const row = element('div', '', 'aws-status__history-row');
-              const heading = element('h4', '', 'aws-status__service');
-              if (route) {
-                const link = element('a', label, 'aws-status__item-link');
-                link.href = route;
-                heading.append(link);
-              } else {
-                heading.textContent = label;
-              }
-              row.append(heading, renderTicks(label, periods, timeline, stateLabels));
-              return row;
-            }));
-          }
-        }
-        if (homeGpu && homeGpuDetails && homeGpuStatus) {
-          homeGpuDetails.hidden = !open;
-          homeGpuStatus.replaceChildren(...(open ? homeGpuLastCheck(items[0].hours, cadenceStart(snapshot)) : []));
+          if (!body.firstChild) body.replaceChildren(...rows.map((row) => renderRow(row, periods, firstCycle)));
         }
         const to = animate && open ? body.getBoundingClientRect().height : 0;
         if (!animate || from === to) {
@@ -580,129 +501,68 @@
           settleItems(open);
           animation.cancel();
           motion = null;
-          if (body.isConnected) positionTooltip();
         };
       }
       toggle.addEventListener('click', () => {
-        hideTooltip();
-        const openingFirst = !expandedGroups.has(group) && !grid.querySelector('.aws-status__group-items:not([hidden])');
         if (expandedGroups.has(group)) expandedGroups.delete(group);
         else expandedGroups.add(group);
         renderItems(typeof body.animate === 'function' && window.matchMedia('(prefers-reduced-motion: no-preference)').matches);
-        if (openingFirst) alignHistory();
       });
       renderItems();
       return section;
     }
 
-    function renderHistory(left) {
-      const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
-      const now = Date.now();
+    function renderHistory() {
+      displayedBoundary = closedBoundary(Date.now());
+      const periods = completedPeriods(displayedBoundary);
       const firstCycle = cadenceStart(snapshot);
-      const sixHourly = now >= firstCycle;
-      const scheduled = view === 'hourly' && sixHourly;
-      const { range, period } = HISTORY_VIEWS[view];
-      granularity.querySelector('[value="hourly"]').textContent = sixHourly ? '6-hour checks' : 'Hourly';
-      const cutoff = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
-        ? Date.parse(snapshot.hourlyReadyThrough) : null;
-      const latest = sixHourly ? Math.floor(now / CYCLE_MS) * CYCLE_MS : Math.floor(now / HOUR_MS) * HOUR_MS - HOUR_MS;
-      const summaryHour = hourPeriod(Math.min(cutoff ?? latest, latest), firstCycle);
-      const firstUnsettledDay = cutoff === null ? null : mountainDay(Math.min(now, summaryHour.to));
-      const dates = view === 'hourly' ? [] : recentDates(now).filter((date) => !firstUnsettledDay || date < firstUnsettledDay);
-      const timeline = {
-        view, scheduled, period: scheduled ? 'a check' : period, dates,
-        labels: view === 'daily' ? new Map(dates.map((date) => [date, dateLabel(date)])) : null,
-        weeks: view === 'weekly' ? calendarWeeks(dates) : null,
-        hours: view === 'hourly' ? recentHours(now, cutoff, firstCycle) : null
-      };
-      rangeLabel.textContent = range;
-      grid.dataset.granularity = scheduled ? 'scheduled' : view;
-      const catalogData = catalogHistory(snapshot);
-      const catalog = {
-        history: catalogData, hourStart: Date.parse(catalogData?.hourStart), dayStart: Date.parse(catalogData?.dayStart)
-      };
-      const groups = [
-        ['AWS Connections', snapshot.connections],
-        ['Local services', snapshot.homeGpu?.id === 'home-gpu' && validConnection(snapshot.homeGpu) ? [snapshot.homeGpu] : []],
-        ...Array.from(CATALOG_GROUPS.keys(), (group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
-      ];
-      const periodCount = (timeline.hours || timeline.weeks || dates).length;
-      grid.style.setProperty('--aws-status-check-count', String(periodCount));
-      const { axis, boundaries } = renderHistoryAxis(timeline, periodCount);
-      timeline.boundaries = boundaries;
-      if (homeGpuDetails) homeGpuDetails.hidden = true;
-      const sections = groups.filter(([, items]) => items.length > 0 && periodCount > 0)
-        .map(([group, items, data]) => renderGroup(group, items, timeline, summaryHour, data));
-      const focus = document.activeElement?.closest('.aws-status__group');
-      const focusToggle = focus?.querySelector('.aws-status__group-toggle') === document.activeElement;
-      const focusSummary = document.activeElement?.matches('.aws-status__summary-status');
-      const focusHref = document.activeElement?.getAttribute('href');
-      const focusHistory = document.activeElement?.parentElement?.getAttribute('aria-label');
-      const focusDate = document.activeElement?.getAttribute('aria-label');
-      grid.replaceChildren(...(sections.length ? [axis, ...sections] : []));
+      const publishedThrough = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
+        ? Date.parse(snapshot.hourlyReadyThrough) : Infinity;
+      grid.dataset.granularity = 'six-hour';
+      const archive = catalogHistory(snapshot);
+      const catalog = { history: archive, hourStart: Date.parse(archive?.hourStart) };
+      const groups = featureRows(periods, firstCycle, publishedThrough, catalog);
+      const sections = [...groups].filter(([, rows]) => rows.length)
+        .map(([group, rows]) => renderGroup(group, rows, periods, firstCycle));
+
+      const active = document.activeElement;
+      const focusedGroup = active?.closest('.aws-status__group')?.dataset.group;
+      const focusedRow = active?.closest('.aws-status__history-row')?.dataset.itemId;
+      const selectedRow = selectedTick?.closest('.aws-status__history-row')?.dataset.itemId;
+      const selectedPeriod = selectedTick?.dataset.period;
+      closeDetail();
+      grid.replaceChildren(...(sections.length ? [renderHistoryAxis(periods), ...sections] : []));
       history.hidden = sections.length === 0;
       empty.hidden = sections.length > 0;
-      alignHistory(left);
-      if (!focus) return;
-      const restored = sections.find((section) => section.dataset.group === focus.dataset.group);
-      const toggle = restored?.querySelector('.aws-status__group-toggle');
-      const status = restored?.querySelector('.aws-status__summary-status');
-      const link = focusHref && [...(restored?.querySelectorAll('.aws-status__item-link') || [])]
-        .find((candidate) => candidate.getAttribute('href') === focusHref);
-      const row = [...(restored?.querySelectorAll('.aws-status__ticks') || [])]
-        .find((ticks) => ticks.getAttribute('aria-label') === focusHistory);
-      const tick = [...(row?.children || [])].find((candidate) => candidate.getAttribute('aria-label') === focusDate);
-      const nextFocus = focusToggle ? toggle : focusSummary ? status : link || tick || row?.lastElementChild || toggle;
-      nextFocus?.focus({ preventScroll: true });
+      const rows = [...grid.querySelectorAll('.aws-status__history-row')];
+      const findTick = (row, period) => [...(row?.querySelectorAll('.aws-status__tick') || [])]
+        .find((tick) => tick.dataset.period === period);
+      if (selectedRow) {
+        const tick = findTick(rows.find((row) => row.dataset.itemId === selectedRow), selectedPeriod);
+        if (tick) openDetail(tick, false);
+      }
+      if (!focusedGroup) return;
+      const row = rows.find((candidate) => candidate.dataset.itemId === focusedRow);
+      const restored = sections.find((section) => section.dataset.group === focusedGroup);
+      const nextFocus = active.matches('a') ? [...(row?.querySelectorAll('a') || [])].find((link) => link.href === active.href) :
+        findTick(row, active.dataset.period) || row?.querySelector('.aws-status__tick[data-latest]');
+      (nextFocus || restored?.querySelector('.aws-status__group-toggle'))?.focus({ preventScroll: true });
     }
 
     function renderStatus() {
-      hideTooltip();
       renderFreshness();
-      const atEnd = scroll.scrollWidth - scroll.clientWidth - scroll.scrollLeft <= 2;
-      const left = atEnd || readings.hidden ? null : scroll.scrollLeft;
       readings.hidden = false;
-      renderHistory(left);
-    }
-
-    function positionTooltip() {
-      if (!activeTick) return;
-      const tick = activeTick.getBoundingClientRect();
-      const clip = scroll.getBoundingClientRect();
-      const stickyLabel = activeTick.closest('.aws-status__ticks')?.previousElementSibling?.getBoundingClientRect();
-      if (tick.right <= (stickyLabel?.right ?? clip.left) || tick.left >= clip.right ||
-        tick.bottom <= Math.max(0, clip.top) || tick.top >= Math.min(window.innerHeight, clip.bottom)) {
-        hideTooltip();
-        return;
-      }
-      const margin = 12;
-      const gap = 8;
-      const { width, height } = tooltip.getBoundingClientRect();
-      const center = (tick.left + tick.right) / 2;
-      const left = Math.max(margin, Math.min(window.innerWidth - width - margin, center - width / 2));
-      const above = tick.top - height - gap >= margin || tick.top > window.innerHeight - tick.bottom;
-      const top = above ? tick.top - height - gap : tick.bottom + gap;
-      tooltip.style.left = left + 'px';
-      tooltip.style.top = Math.max(margin, Math.min(window.innerHeight - height - margin, top)) + 'px';
-      tooltip.style.setProperty('--aws-status-tip', Math.max(12, Math.min(width - 12, center - left)) + 'px');
-      tooltip.dataset.side = above ? 'above' : 'below';
-      // An expanding group can move the selected tick in a later row.
-      if (tooltipFrame === null && grid.querySelector('[data-aws-status-moving]')) {
-        tooltipFrame = window.requestAnimationFrame(() => {
-          tooltipFrame = null;
-          if (grid.querySelector('[data-aws-status-moving]')) positionTooltip();
-        });
-      }
+      renderHistory();
     }
 
     function selectedDetails(detail) {
       let issue = detail.issue?.trim();
       if (detail.transcription) {
         const { completed, failed, inProgress } = detail.transcription;
-        issue = [
-          failed && `${failed} failed`, completed && `${completed} completed`,
-          inProgress && `${inProgress} queued or running${detail.view === 'hourly' ? '' : ' job observations'}`
-        ].filter(Boolean).join(', ') || 'No transcription jobs ran in the measured period.';
+        issue = `Website jobs in the measured hours: ${completed} completed, ${failed} failed. `;
+        issue += inProgress === undefined ? 'The queue at the end of this period is unknown.'
+          : `${inProgress} queued or running at the end of this period.`;
+        if (detail.partial) issue += ' Some hourly observations are missing.';
       }
       if (detail.canary && detail.previousSixHourActivity) {
         const { completed, failed, inProgress } = detail.previousSixHourActivity;
@@ -710,103 +570,85 @@
           inProgress && `${inProgress} queued or running`].filter(Boolean).join(', ') || 'none';
         issue = [issue, 'Website jobs in the preceding six hours: ' + activity + '.'].filter(Boolean).join(' ');
       }
-      const reason = [detail.service, issue || 'No further details were recorded.'].filter(Boolean).join(' · ');
-      const explanation = element('p', reason, 'aws-status__tooltip-detail');
-      const observation = element('p', '', 'aws-status__tooltip-detail');
+      const notes = [];
+      if (issue && !['No check recorded.', 'Awaiting the published period.', 'The scheduled check passed.', 'Inconclusive check.'].includes(issue)) {
+        notes.push(element('p', issue, 'aws-status__check-note'));
+      }
+      const observation = element('p', '', 'aws-status__check-time');
       const incident = !detail.transcription && !detail.canary && (detail.state === 'degraded' || detail.state === 'outage');
       if (incident && hasTimestamp(detail.from) && hasTimestamp(detail.to)) {
         const span = Date.parse(detail.from) !== Date.parse(detail.to);
         observation.append(span ? 'Observed bounds ' : 'Observed ', timeLabel(detail.from));
         if (span) {
-          const format = mountainDay(Date.parse(detail.from)) === mountainDay(Date.parse(detail.to))
-            ? clockFormat : dateTimeFormat;
-          observation.append(' – ', timeLabel(detail.to, format));
+          observation.append(' – ', timeLabel(detail.to));
         }
-      } else if (!detail.transcription && hasTimestamp(detail.observedAt)) {
+      } else if (hasTimestamp(detail.observedAt)) {
         observation.append('Last check ', timeLabel(detail.observedAt));
-      } else if (incident && detail.date) {
-        observation.append('Observed ', dateLabel(detail.date));
       }
-      return observation.hasChildNodes() ? [explanation, observation] : [explanation];
+      if (observation.hasChildNodes()) notes.push(observation);
+      return notes;
     }
 
-    function showTooltip(tick) {
-      clearTimeout(tooltipTimer);
-      const detail = detailsByTick.get(tick);
-      const reveal = pinnedTick === tick && (detail.state !== 'operational' || Boolean(detail.canary));
-      if (activeTick === tick && showingDetails === reveal) {
-        positionTooltip();
-        return;
+    function openDetail(tick, userActivated = true) {
+      const { panel, label, period, checks } = detailsByTick.get(tick);
+      closeDetail();
+      selectedTick = tick;
+      setCurrentTick(tick);
+      tick.setAttribute('aria-expanded', 'true');
+      const heading = element('h5', period.label, 'aws-status__period-heading');
+      heading.id = panel.id + '-heading';
+      panel.setAttribute('aria-labelledby', heading.id);
+      const list = element('ul', '', 'aws-status__check-list');
+      for (const check of checks) {
+        const item = element('li');
+        const name = element(check.route ? 'a' : 'span', check.label, 'aws-status__check-name');
+        if (check.route) name.href = check.route;
+        const outcome = element('span', check.outcome, 'aws-status__check-result');
+        outcome.dataset.state = check.visualState;
+        item.append(name, outcome, ...selectedDetails(check.result));
+        list.append(item);
       }
-      activeTick?.removeAttribute('aria-describedby');
-      activeTick = tick;
-      showingDetails = reveal;
-      const title = element('strong', detail.label);
-      const status = element('p', detail.stateLabel, 'aws-status__tooltip-status');
-      status.dataset.state = detail.visualState;
-      const selected = reveal ? selectedDetails(detail) : [];
-      tooltip.replaceChildren(title, status, ...selected);
-      if (historyAnnouncement) historyAnnouncement.textContent = selected.map((node) => node.textContent).join(' ');
-      tooltip.hidden = false;
-      tick.setAttribute('aria-describedby', tooltip.id);
-      positionTooltip();
-    }
-
-    function queueTooltipClose(tick) {
-      if (activeTick !== tick || pinnedTick === tick || document.activeElement === tick) return;
-      clearTimeout(tooltipTimer);
-      tooltipTimer = setTimeout(hideTooltip, 150);
-    }
-
-    function statusControlFrom(event) {
-      const control = event.target.closest?.('.aws-status__tick, .aws-status__summary-status');
-      return detailsByTick.has(control) ? control : null;
+      panel.replaceChildren(heading, list);
+      panel.hidden = false;
+      if (!userActivated) return;
+      // Reveal the first outcome with the smallest scroll in the page or desktop frame.
+      list.querySelector('.aws-status__check-result').scrollIntoView({
+        block: 'nearest', inline: 'nearest',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
+      });
+      if (historyAnnouncement) {
+        const outcomes = checks.map((check) => check.label + ', ' + check.outcome);
+        historyAnnouncement.textContent = label + ', ' + period.label + '. ' + outcomes.join('. ');
+      }
     }
 
     function setCurrentTick(tick) {
-      const row = tick.closest('.aws-status__ticks');
-      if (!row) return;
-      const current = row.querySelector('[tabindex="0"]');
+      const current = tick.parentElement.querySelector('[tabindex="0"]');
       if (current) current.tabIndex = -1;
       tick.tabIndex = 0;
     }
 
     function installHistoryControls() {
-      readings.addEventListener('pointerover', (event) => {
-        const tick = statusControlFrom(event);
-        if (tick && event.pointerType !== 'touch' && !pinnedTick) showTooltip(tick);
+      grid.addEventListener('focusin', (event) => {
+        if (detailsByTick.has(event.target)) setCurrentTick(event.target);
       });
-      readings.addEventListener('pointerout', (event) => {
-        const tick = statusControlFrom(event);
-        if (tick && !tooltip.contains(event.relatedTarget)) queueTooltipClose(tick);
+      grid.addEventListener('click', (event) => {
+        const tick = event.target.closest('.aws-status__tick');
+        if (!detailsByTick.has(tick)) return;
+        if (selectedTick === tick) closeDetail();
+        else openDetail(tick);
       });
-      readings.addEventListener('focusin', (event) => {
-        const tick = statusControlFrom(event);
-        if (!tick) return;
-        setCurrentTick(tick);
-        if (pinnedTick !== tick) pinnedTick = null;
-        showTooltip(tick);
-      });
-      readings.addEventListener('focusout', (event) => {
-        const tick = statusControlFrom(event);
-        if (tick && tick === activeTick && !tooltip.contains(event.relatedTarget)) hideTooltip();
-      });
-      readings.addEventListener('click', (event) => {
-        const tick = statusControlFrom(event);
-        if (!tick) return;
-        if (pinnedTick === tick) {
-          hideTooltip();
+      grid.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && selectedTick) {
+          if (detailsByTick.get(selectedTick).panel.contains(event.target)) selectedTick.focus({ preventScroll: true });
+          closeDetail();
+          event.preventDefault();
+          event.stopPropagation();
           return;
         }
-        pinnedTick = tick;
-        setCurrentTick(tick);
-        showTooltip(tick);
-      });
-      readings.addEventListener('keydown', (event) => {
-        const tick = statusControlFrom(event);
-        const row = tick?.closest('.aws-status__ticks');
-        if (!row || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        const siblings = [...row.children];
+        const tick = event.target;
+        if (!detailsByTick.has(tick) || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const siblings = [...tick.parentElement.children];
         const index = siblings.indexOf(tick);
         const next = {
           ArrowLeft: siblings[Math.max(0, index - 1)],
@@ -816,26 +658,13 @@
         }[event.key];
         event.preventDefault();
         next.focus();
-        if (next === tick) showTooltip(tick);
       });
-      tooltip.addEventListener('pointerenter', () => clearTimeout(tooltipTimer));
-      tooltip.addEventListener('pointerleave', () => queueTooltipClose(activeTick));
-      document.addEventListener('pointerdown', (event) => {
-        if (activeTick && !statusControlFrom(event) && !tooltip.contains(event.target)) hideTooltip();
-      });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && activeTick) {
-          hideTooltip();
-          event.stopPropagation();
-        }
-      }, true);
-      window.addEventListener('resize', positionTooltip);
-      window.addEventListener('scroll', positionTooltip, { capture: true, passive: true });
     }
 
     function scheduleRefresh() {
       clearTimeout(refreshTimer);
       if (!owner || request || document.visibilityState !== 'visible') return;
+      if (snapshot && displayedBoundary !== closedBoundary(Date.now())) renderStatus();
       const delay = nextRefreshAt - Date.now();
       if (delay > 0) refreshTimer = setTimeout(scheduleRefresh, delay);
       else loadStatus();
@@ -892,7 +721,10 @@
           const sixHourly = Date.now() >= cadenceStart(snapshot);
           const interval = sixHourly ? CYCLE_MS : HOUR_MS;
           const offset = sixHourly ? CYCLE_GRACE_MS + 60_000 : REFRESH_OFFSET_MS;
-          nextRefreshAt = (Math.floor((Date.now() - offset) / interval) + 1) * interval + offset;
+          const now = Date.now();
+          const nextReport = (Math.floor((now - offset) / interval) + 1) * interval + offset;
+          nextRefreshAt = Math.min(nextReport, closedBoundary(now) + CYCLE_MS);
+          if (failed) nextRefreshAt = Math.min(nextRefreshAt, now + 5 * 60_000);
           scheduleRefresh();
         }
       }
@@ -921,11 +753,6 @@
     }
 
     installHistoryControls();
-    granularity.addEventListener('change', () => {
-      if (!snapshot) return;
-      hideTooltip();
-      renderHistory();
-    });
     refresh.addEventListener('click', () => {
       syncAccess();
       loadStatus();
