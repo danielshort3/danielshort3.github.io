@@ -1020,6 +1020,28 @@ class CollectorTests(TestCase):
     with self.assertLogs(self.writer.LOGGER, level="WARNING"):
       self.assertEqual(self.writer.canary(cycle, self.context)["canary"], "unavailable")
 
+  def test_canary_logs_only_stage_code_and_fixed_category(self):
+    cycle = self.six_hour()
+    self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": self.canary_job(cycle)}
+    bucket_error = AwsError("BadRequestException")
+    bucket_error.response["Error"]["Message"] = "Could not access output bucket https://private.example/secret"
+    role_error = AwsError("AccessDeniedException")
+    role_error.response["Error"]["Message"] = "Unable to assume role arn:private-role"
+    cases = (
+      (self.transcribe, "start_transcription_job", bucket_error, "start", "BadRequestException", "storage"),
+      (self.transcribe, "get_transcription_job", role_error, "get", "AccessDeniedException", "role"),
+      (self.writer.S3, "get_object", AwsError("private-token"), "verify", "OtherAwsError", "other"),
+      (self.writer.S3, "get_object", OSError("private URL"), "verify", "OSError", "other"),
+    )
+    for client, operation, error, stage, code, category in cases:
+      with self.subTest(stage=stage, code=code), patch.object(client, operation, side_effect=error):
+        with self.assertLogs(self.writer.LOGGER, "WARNING") as logs:
+          result = self.writer.canary(cycle, self.context, start=stage == "start")
+        self.assertEqual(result["canary"], "unavailable")
+        self.assertEqual([record.getMessage() for record in logs.records], [
+          f"System Status transcription test unavailable stage={stage} error={code} category={category}"
+        ])
+
   def test_completion_event_validates_scope_and_preserves_verified_evidence(self):
     cycle = self.six_hour()
     job = self.canary_job(cycle)
@@ -1094,6 +1116,12 @@ class CollectorTests(TestCase):
     self.assertIn("'aws:RequestedRegion': us-east-2", start_policy)
     self.assertIn("'transcribe:OutputBucketName': !Ref CanaryBucket", start_policy)
     self.assertIn("'transcribe:OutputKey': 'results/system-status-canary-*.json'", start_policy)
+    write_policies = [statement for statement in writer_role.split("- Effect: Allow") if "s3:PutObject" in statement]
+    self.assertEqual(len(write_policies), 2)
+    self.assertEqual(re.findall(r"!Sub '\$\{CanaryBucket.Arn\}/([^']+)'", "\n".join(write_policies)), [
+      "results/system-status-canary-*.json",
+      "results/.write_access_check_file.temp",
+    ])
     self.assertNotIn("home-gpu-heartbeat", reader_role)
     self.assertEqual(TEMPLATE.count("transcribe:ListTranscriptionJobs"), 1)
     self.assertIn(dedent('''\

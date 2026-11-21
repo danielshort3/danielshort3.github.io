@@ -914,6 +914,10 @@ Resources:
                 Action: [s3:GetObject, s3:PutObject]
                 Resource: !Sub '${CanaryBucket.Arn}/results/system-status-canary-*.json'
               - Effect: Allow
+                # Transcribe tests output access by writing this fixed sentinel.
+                Action: s3:PutObject
+                Resource: !Sub '${CanaryBucket.Arn}/results/.write_access_check_file.temp'
+              - Effect: Allow
                 Action: transcribe:ListTranscriptionJobs
                 Resource: '*'
                 Condition:
@@ -1380,11 +1384,30 @@ Resources:
               return "passed" if re.findall(r"[a-z0-9]+", transcript.lower()) == EXPECTED_WORDS else "mismatch"
 
 
+          def log_canary_error(stage, error):
+              code = type(error).__name__
+              category = "other"
+              if isinstance(error, ClientError):
+                  detail = error.response.get("Error", {})
+                  # Only known SDK codes and fixed labels may reach logs.
+                  known = ("AccessDenied", "AccessDeniedException", "BadRequestException", "ConflictException",
+                           "InternalFailureException", "LimitExceededException", "NoSuchBucket", "NoSuchKey",
+                           "NotFoundException", "ServiceUnavailable", "ThrottlingException", "ValidationException")
+                  code = detail.get("Code") if detail.get("Code") in known else "OtherAwsError"
+                  message = str(detail.get("Message", "")).lower()
+                  if "bucket" in message or "s3" in message:
+                      category = "storage"
+                  elif "role" in message:
+                      category = "role"
+              LOGGER.warning("System Status transcription test unavailable stage=%s error=%s category=%s", stage, code, category)
+
+
           def canary(scheduled, context, *, start=False, deadline=False):
               cycle = cycle_start(scheduled)
               if cycle < SIX_HOUR_START:
                   raise ValueError("Canary precedes cutover")
               name = CANARY_PREFIX + cycle.strftime("%Y%m%d%H")
+              stage = "start"
               try:
                   if start:
                       try:
@@ -1397,12 +1420,14 @@ Resources:
                           # AWS enforces unique job names; a repeated trigger resumes this cycle's job.
                           if error.response.get("Error", {}).get("Code") != "ConflictException":
                               raise
+                  stage = "get"
                   job = TRANSCRIBE.get_transcription_job(TranscriptionJobName=name)["TranscriptionJob"]
+                  stage = "verify"
                   result = verify_canary(job, name)
                   if deadline and result == "running":
                       result = "timeout"
-              except ERRORS + (IndexError, AttributeError, UnicodeError):
-                  LOGGER.warning("Unable to verify the System Status transcription test")
+              except ERRORS + (IndexError, AttributeError, UnicodeError) as error:
+                  log_canary_error(stage, error)
                   result = "unavailable"
               day, midnight, end, expires = day_range(cycle)
               index = str(int((cycle - midnight).total_seconds()) // 3600)
