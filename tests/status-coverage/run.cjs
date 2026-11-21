@@ -61,7 +61,7 @@ function failureCategory(error) {
   return { reasonCode: 'e', reason: 'The local feature check could not complete.' };
 }
 
-async function runItem({ browser, base, item, artifactDir }) {
+async function runItem({ browser, base, item, catalog, artifactDir }) {
   const started = Date.now();
   const isolated = isolatedBrowser(browser, base);
   let routeStatus = 'unknown';
@@ -82,7 +82,7 @@ async function runItem({ browser, base, item, artifactDir }) {
       result = unknown('This catalog item has no deterministic feature fixture yet.');
     } else {
       result = await Promise.race([
-        check({ browser: isolated, context, page, base, item, artifactDir }),
+        check({ browser: isolated, context, page, base, item, catalog, artifactDir }),
         new Promise((_, reject) => {
           deadline = setTimeout(() => reject(Object.assign(new Error('Check deadline'), { name: 'TimeoutError' })), checkTimeout);
         })
@@ -122,7 +122,7 @@ async function run({ siteRoot, only = [] }) {
     browser = await chromium.launch({ args: ['--no-proxy-server'] });
     const checks = [];
     for (const item of items) {
-      checks.push(await runItem({ browser, base: server.base, item, artifactDir }));
+      checks.push(await runItem({ browser, base: server.base, item, catalog: all, artifactDir }));
     }
     const summary = Object.fromEntries(['pass', 'fail', 'unknown'].map((status) =>
       [status, checks.filter((check) => check.status === status).length]));

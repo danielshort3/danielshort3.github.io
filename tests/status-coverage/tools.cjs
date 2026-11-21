@@ -134,7 +134,61 @@ async function expectAxisMotion(toggle, opening) {
   expect(direction * (heights.after - heights.midway)).toBeGreaterThan(1);
 }
 
-async function unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount }) {
+async function verifyStatusLinks(page, base, item, snapshot, catalog) {
+  const services = [
+    ['cognito', 'Cognito sign-in', '/tools'],
+    ['tracker', 'Tracker database', '/tools/job-application-tracker'],
+    ['short-links', 'Short Links', '/tools/short-links'],
+    ['contact', 'Contact email', '/contact#contact-modal'],
+    ['transcribe', 'File Transcriber (AWS)', '/tools/transcribe'],
+    ['chatbot', 'Website chatbot', '/chatbot-demo'],
+    ['markdown', 'SageMaker Markdown', 'https://us-east-2.console.aws.amazon.com/sagemaker/home?region=us-east-2#/endpoints/VGJ-Markdown-Async']
+  ];
+  const groups = { tool: 'Tools', project: 'Projects', game: 'Games' };
+  snapshot.connections = services.map(([id, label]) => ({ id, label, days: [], hours: [] }));
+  snapshot.homeGpu = { id: 'home-gpu', label: 'Home GPU', days: [], hours: [] };
+  snapshot.catalog = catalog.map(({ id, title, category }) => ({
+    id, label: title, group: groups[category], state: 'unknown', lastChecked: null, issue: ''
+  }));
+  await visit(page, base, item.route);
+  for (const group of ['AWS Connections', 'Local services', ...Object.values(groups)]) {
+    await statusGroup(page, group).toggle.click();
+  }
+  const expected = [
+    ...services.map(([, label, route]) => ['AWS Connections', label, route]),
+    ['Local services', 'Home GPU', '/tools/transcribe'],
+    ...catalog.map(({ category, title, route }) => [groups[category], title, route])
+  ];
+  const headingLinks = page.locator('.aws-status__history-row h4 a[href]');
+  await expect(headingLinks).toHaveCount(expected.length);
+  const destinations = await headingLinks.evaluateAll((links) => links.map((link) => [
+    link.closest('[data-group]').dataset.group, link.textContent.trim(), link.getAttribute('href')
+  ]));
+  expect(destinations).toEqual(expect.arrayContaining(expected));
+
+  const project = catalog.find(({ id }) => id === 'project:handwritingRating');
+  const row = statusGroup(page, 'Projects').rows.filter({ has: page.getByRole('heading', { name: project.title, exact: true }) });
+  const link = row.getByRole('link', { name: project.title, exact: true });
+  const hour = row.getByRole('button').last();
+  await hour.press('Enter');
+  await expect(page.getByRole('tooltip')).toContainText('No check recorded.');
+  await expect(page).toHaveURL(base + item.route);
+  await hour.press('Escape');
+  await hour.press('Shift+Tab');
+  await expect(link).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(base + project.route);
+  await expect(page.getByRole('heading', { level: 1, name: project.title, exact: true })).toBeVisible();
+
+  await visit(page, base, item.route);
+  const tools = statusGroup(page, 'Tools');
+  await tools.toggle.click();
+  await tools.rows.getByRole('link', { name: 'Text Compare', exact: true }).click();
+  await expect(page).toHaveURL(base + '/tools/text-compare');
+  await expect(page.getByRole('heading', { level: 1, name: 'Text Compare', exact: true })).toBeVisible();
+}
+
+async function unifiedStatusTool({ browser, context, page, base, item, catalog, snapshot, queryCount }) {
   const period = page.getByRole('combobox', { name: 'Group by' });
   const tooltip = page.getByRole('tooltip');
   const tooltipStatus = tooltip.locator('.aws-status__tooltip-status');
@@ -200,8 +254,16 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     return { result, latest };
   });
 
-  await showStatusAsAdmin(page);
   const dashboard = page.locator('[data-aws-status-part="dashboard"]');
+  await page.evaluate(() => {
+    window.fixtureRole = 'guest';
+    document.dispatchEvent(new CustomEvent('tools:auth-changed'));
+  });
+  await expect(page.locator('[data-aws-status-part="access"]')).toHaveText('Sign in with an administrator account to view AWS status.');
+  await expect(dashboard).toBeHidden();
+  await expect(dashboard.locator('.aws-status__history-row a')).toHaveCount(0);
+  assert.equal(queryCount(), 0);
+  await showStatusAsAdmin(page);
   await expect(dashboard.getByRole('heading', { name: 'System status', exact: true })).toBeVisible();
   await expect(dashboard.getByRole('tab')).toHaveCount(0);
   await expect(period).toHaveCount(1);
@@ -534,6 +596,16 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
     }
     await expect(mobileDashboard.locator('.aws-status__axis')).toBeHidden();
     await expect(mobileProjects.summary).toBeVisible();
+    await mobilePeriod.selectOption('hourly');
+    await mobileLocal.toggle.tap();
+    await mobileHomeGpuTicks.last().tap();
+    await expect(mobileTooltip).toBeVisible();
+    await expect(phone).toHaveURL(base + item.route);
+    const mobileHomeLink = mobileLocal.rows.getByRole('link', { name: 'Home GPU', exact: true });
+    await expect(mobileHomeLink).toHaveAttribute('href', '/tools/transcribe');
+    await mobileHomeLink.tap();
+    await expect(phone).toHaveURL(base + '/tools/transcribe');
+    await expect(phone.getByRole('heading', { level: 1, name: 'File Transcriber', exact: true })).toBeVisible();
   } finally {
     await mobile.close();
   }
@@ -577,10 +649,11 @@ async function unifiedStatusTool({ browser, context, page, base, item, snapshot,
   await period.selectOption('daily');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(aws.summary).toHaveText('Unknown');
-  return local('The fixture verified access, latest category statuses, grouped refresh, details and individual touch controls.');
+  await verifyStatusLinks(page, base, item, snapshot, catalog);
+  return local('Verified admin access, catalog and service links, keyboard and touch navigation, grouped refresh, and independent history controls.');
 }
 
-async function statusTool({ browser, context, page, base, item }) {
+async function statusTool({ browser, context, page, base, item, catalog }) {
   await fixtureAuth(context, 'ordinary');
   // After Mountain clocks fall back, the last two buckets both start at 1 a.m.
   const now = new Date('2026-11-01T08:35:00.000Z');
@@ -632,7 +705,7 @@ async function statusTool({ browser, context, page, base, item }) {
   assert.equal(queries, 0);
   if (await dashboard.locator('#aws-status-heading').count()) {
     await expect(page.locator('[data-aws-status-part="access"]')).toHaveText('This account does not have access to AWS status.');
-    return unifiedStatusTool({ browser, context, page, base, item, snapshot, queryCount: () => queries });
+    return unifiedStatusTool({ browser, context, page, base, item, catalog, snapshot, queryCount: () => queries });
   }
   if (await page.locator('#aws-status-directory-tab').count() === 0) {
     return unknown('The selected build predates the two-tab status page.');
