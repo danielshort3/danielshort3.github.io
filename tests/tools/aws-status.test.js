@@ -227,6 +227,44 @@ test('the shared hourly cutoff waits for every connection and catalog item or th
   assert.equal(cutoff(settled, catalogHistory, '2026-11-11T22:59:59.999Z'), previous);
 });
 
+test('six-hour publication preserves legacy history, joins late results, and advances once per cycle', () => {
+  const cycle = '2026-11-12T06:00:00.000Z';
+  const utc = (clock) => '2026-11-12T' + clock + ':00.000Z';
+  const catalog = [{ id: 'tool:transcribe', group: 'Tools', label: 'File Transcriber' }];
+  const ids = ['cognito', 'tracker', 'short-links', 'contact', 'transcribe', 'chatbot', 'markdown'];
+  const activity = { completed: 0, failed: 0, inProgress: 0 };
+  const tile = { start: cycle, state: 'operational', from: utc('06:10'), to: utc('06:10'), complete: true, issue: '' };
+  const legacy = { start: utc('05:00'), state: 'unknown', from: utc('05:00'), to: utc('05:59'), issue: '', transcription: activity };
+  const extra = { ...tile, start: utc('07:00'), from: utc('07:02'), to: utc('07:02') };
+  const snapshot = {
+    ...SNAPSHOT, cadenceHours: 6, cadenceStart: cycle,
+    connections: ids.map((id) => ({ id, days: [], hours: id === 'transcribe'
+      ? [legacy, { ...tile, canary: 'passed', observedAt: utc('07:02'), previousSixHourActivity: activity }, extra]
+      : [tile] })),
+    catalogHistory: { hourStart: '2026-11-09T07:00:00.000Z', dayStart: '2026-08-15',
+      observedAt: Array(71).fill(null).concat(utc('07:03')),
+      results: { 'tool:transcribe': { hours: '-'.repeat(71) + 'o', days: '-'.repeat(90) } } }
+  };
+  const read = (clock) => sanitizeSnapshot(snapshot, catalog, Date.parse(utc(clock)));
+  assert.equal(read('06:55').hourlyReadyThrough, legacy.start, 'wait for the browser result and reject future observations');
+  const settled = read('07:03');
+  assert.equal(settled.cadenceStart, cycle);
+  assert.equal(settled.cadenceHours, 6);
+  assert.equal(settled.hourlyReadyThrough, cycle);
+  const row = settled.connections.find(({ id }) => id === 'transcribe');
+  assert.equal(row.hours.length, 2, 'unscheduled intermediate hours are excluded');
+  assert.deepEqual(row.hours[0].transcription, activity);
+  assert.equal(row.hours[1].canary, 'passed');
+  assert.equal(row.hours[1].observedAt, utc('07:02'));
+  assert.deepEqual(row.hours[1].previousSixHourActivity, activity);
+  assert.equal(settled.catalogHistory.observedAt[71], utc('07:03'));
+  assert.equal(read('11:59').hourlyReadyThrough, cycle);
+  assert.equal(read('13:19').hourlyReadyThrough, cycle);
+  assert.equal(read('13:20').hourlyReadyThrough, utc('12:00'), 'missing check is published after the grace period');
+  snapshot.connections.find(({ id }) => id === 'transcribe').hours[1].canary = 'mismatch';
+  assert.equal(read('07:03').connections.find(({ id }) => id === 'transcribe').hours[1].state, 'unknown');
+});
+
 test('Home GPU history is optional, sanitized separately, and shares the hourly cutoff', () => {
   const catalog = [{ id: 'tool:transcribe' }];
   const [incident] = SNAPSHOT.connections[0].hours;
@@ -288,7 +326,7 @@ test('GitHub publishing validates full browser coverage and limits report freshn
   assert.equal(payload.checks.length, loadStatusCatalog().length);
   assert.deepEqual(payload.checks[0], {
     id: report.checks[0].id, state: 'operational', lastChecked: CHECKED_AT,
-    source: 'browser', expiresAt: '2026-11-12T02:00:00.000Z'
+    source: 'browser', expiresAt: '2026-11-12T06:00:00.000Z'
   });
   assert.deepEqual(payload.checks.slice(1, 3).map(({ state }) => state), ['degraded', 'unknown']);
   assert.deepEqual(payload.checks.slice(0, 5).map(({ reasonCode }) => reasonCode), [undefined, 't', 'n', undefined, undefined]);

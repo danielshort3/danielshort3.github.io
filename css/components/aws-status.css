@@ -101,6 +101,10 @@
     --aws-status-history-width: 0rem;
   }
 
+  .aws-status__history-grid[data-granularity="scheduled"] {
+    --aws-status-history-width: calc(15rem + var(--aws-status-check-count) * 0.5rem);
+  }
+
   .aws-status__history-grid:has(.aws-status__group-items:not([hidden])) {
     min-width: var(--aws-status-history-width);
   }
@@ -532,6 +536,10 @@
 
     .aws-status__history-grid[data-granularity="hourly"] {
       --aws-status-history-width: 94rem;
+    }
+
+    .aws-status__history-grid[data-granularity="scheduled"] {
+      --aws-status-history-width: calc(10rem + var(--aws-status-check-count) * 1.5rem);
     }
 
     .aws-status__tick {

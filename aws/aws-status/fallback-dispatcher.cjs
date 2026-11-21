@@ -8,6 +8,7 @@ const API_ROOT = 'https://api.github.com';
 const ACTIONS_PATH = '/repos/danielshort3/danielshort3.github.io/actions';
 const WORKFLOW_PATH = `${ACTIONS_PATH}/workflows/${WORKFLOW_ID}`;
 const MINUTE = 60_000;
+const CYCLE_MS = 6 * 60 * MINUTE;
 const MAX_SCHEDULE_LATENESS = 12 * MINUTE;
 const GITHUB_TIMEOUT = 5_000;
 const PENDING_STATES = new Set(['requested', 'waiting', 'pending', 'queued', 'in_progress']);
@@ -15,12 +16,12 @@ const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
 
 class DispatchError extends Error {}
 
-function utcHour(time) {
-  return new Date(time).toISOString().slice(0, 13) + ':00:00Z';
+function utcCycle(time) {
+  return new Date(Math.floor(time / CYCLE_MS) * CYCLE_MS).toISOString().replace('.000Z', 'Z');
 }
 
 function fallbackTitle(slot) {
-  return 'Hourly status fallback ' + slot;
+  return 'Six-hour System Status ' + slot;
 }
 
 function getSlot(event, now, expectedScheduleArn) {
@@ -29,11 +30,11 @@ function getSlot(event, now, expectedScheduleArn) {
     throw new DispatchError('Unexpected scheduler event.');
   }
   const time = Date.parse(scheduled);
-  if (!Number.isFinite(time) || utcHour(time).slice(0, 13) !== scheduled.slice(0, 13) ||
+  if (!Number.isFinite(time) || utcCycle(time).slice(0, 13) !== scheduled.slice(0, 13) ||
       new Date(time).getUTCMinutes() !== 47 || time > now + MINUTE || now - time > MAX_SCHEDULE_LATENESS) {
     throw new DispatchError('Scheduler event is outside its intended time window.');
   }
-  return utcHour(time);
+  return utcCycle(time);
 }
 
 function makeAppJwt(value, now) {
@@ -71,7 +72,7 @@ async function github(fetchRequest, token, path, { method = 'GET', expected = 20
         Accept: 'application/vnd.github+json',
         Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json',
-        'User-Agent': 'website-status-hourly-fallback',
+        'User-Agent': 'website-system-status-dispatcher',
         'X-GitHub-Api-Version': '2026-03-10'
       },
       redirect: 'error',
@@ -115,7 +116,7 @@ function coveredByJobs(jobs, slot) {
   return jobs.some((job) => job.name === 'check' &&
       stepSucceeded(job, 'Run the catalog browser checks', ({ completed_at }) => {
         const completed = Date.parse(completed_at);
-        return ISO_TIMESTAMP.test(completed_at) && Number.isFinite(completed) && utcHour(completed) === slot;
+        return ISO_TIMESTAMP.test(completed_at) && Number.isFinite(completed) && utcCycle(completed) === slot;
       })) &&
     jobs.some((job) => job.name === 'publish / publish' && stepSucceeded(job, 'Publish the browser outcomes'));
 }
@@ -131,7 +132,7 @@ async function priorRun(fetchRequest, token, slot) {
   const pendingFallback = runs.some((run) => PENDING_STATES.has(run.status) &&
     run.event === 'workflow_dispatch' && run.display_title === fallbackTitle(slot));
   if (pendingFallback) return 'fallback-already-pending';
-  // Only inspect completed runs whose observation could belong to this hour.
+  // Only inspect completed runs whose observation could belong to this cycle.
   const candidates = runs.filter((run) => run.status === 'completed' && Date.parse(run.updated_at) >= Date.parse(slot));
   const jobsByRun = await Promise.all(candidates.map(async (run) => {
     const result = await github(fetchRequest, token, `${ACTIONS_PATH}/runs/${run.id}/jobs?filter=latest&per_page=20`, {
@@ -140,7 +141,7 @@ async function priorRun(fetchRequest, token, slot) {
     if (!Array.isArray(result?.jobs)) throw new DispatchError('GitHub run jobs were incomplete.');
     return result.jobs;
   }));
-  return jobsByRun.some((jobs) => coveredByJobs(jobs, slot)) ? 'hour-already-published' : null;
+  return jobsByRun.some((jobs) => coveredByJobs(jobs, slot)) ? 'cycle-already-published' : null;
 }
 
 async function dispatchFallback({ event, now, expectedScheduleArn, fetchRequest, readCredential }) {
@@ -183,7 +184,7 @@ async function handler(event) {
     console.log(JSON.stringify(result));
     return result;
   } catch (error) {
-    throw new Error(error instanceof DispatchError ? error.message : 'Hourly status fallback could not complete.');
+    throw new Error(error instanceof DispatchError ? error.message : 'System Status browser dispatch could not complete.');
   }
 }
 

@@ -2,11 +2,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Private website AWS Status history, scheduled collector, and report ingestion in Ohio.
 
 Parameters:
+  SixHourStart:
+    Type: String
+    AllowedPattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T(00|06|12|18):00:00Z$'
+    Description: First six-hour UTC cycle; retain this value on subsequent deployments.
   ScheduleEnabled:
     Type: String
     Default: 'false'
     AllowedValues: ['true', 'false']
-    Description: Enable hourly connectivity probes and AWS metadata collection.
+    Description: Enable six-hour connectivity, AWS metadata, and real transcription checks.
   ProbeShortLinkSlug:
     Type: String
     Default: ''
@@ -17,13 +21,36 @@ Parameters:
     Type: String
     Default: 'false'
     AllowedValues: ['true', 'false']
-    Description: Include the device heartbeat in hourly status history.
+    Description: Include a Home GPU heartbeat in each six-hour check.
 
 Conditions:
   InOhio: !Equals [!Ref 'AWS::Region', us-east-2]
   CollectAutomatically: !Equals [!Ref ScheduleEnabled, 'true']
 
 Resources:
+  CanaryBucket:
+    Type: AWS::S3::Bucket
+    Condition: InOhio
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules: [{ObjectOwnership: BucketOwnerEnforced}]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireTestTranscripts
+            Prefix: results/
+            Status: Enabled
+            ExpirationInDays: 7
+
   History:
     Type: AWS::DynamoDB::Table
     Condition: InOhio
@@ -90,6 +117,7 @@ Resources:
       Role: !GetAtt CollectorRole.Arn
       Environment:
         Variables:
+          SIX_HOUR_START: !Ref SixHourStart
           HISTORY_TABLE: !Ref History
           HOME_GPU_MONITORING: !Ref HomeGpuMonitoring
       LoggingConfig:
@@ -111,6 +139,7 @@ Resources:
           from botocore.exceptions import BotoCoreError, ClientError
 
           REGION = "us-east-2"
+          SIX_HOUR_START = datetime.fromisoformat(os.environ["SIX_HOUR_START"])
           DAYS = 90
           HOURS = 72
           HOUR = timedelta(hours=1)
@@ -348,8 +377,82 @@ Resources:
               return item[0] == "degraded" and (not first_poll or item[2] < parse_time(first_poll))
 
 
+          CANARY_STATES = {
+              "passed": ("operational", "AWS transcribed the test recording and the words matched."),
+              "failed": ("degraded", "AWS reported that the test transcription failed."),
+              "mismatch": ("degraded", "AWS returned a transcript that did not match the test recording."),
+              "timeout": ("degraded", "The AWS test transcription exceeded its verification deadline."),
+              "unavailable": ("unknown", "The AWS transcription test result could not be verified."),
+              "running": ("unknown", "The AWS test transcription is queued or running."),
+          }
+
+
+          def cycle_hour(result, start, day, row, cadence, now, identifier):
+              if start.hour % 6:
+                  return result
+              offset = int((start - mountain_midnight(day)).total_seconds()) // cadence
+              if cadence == 300:
+                  offset += HOURLY_PROBE_OFFSET
+              index = str(offset)
+              if identifier == "transcribe":
+                  # Paid test evidence and ordinary user traffic are intentionally independent.
+                  observation = row.get("canaries", {}).get(index, {})
+                  canary = observation.get("result")
+                  if canary not in CANARY_STATES:
+                      return result
+                  checked = parse_time(observation["observed"])
+                  state, issue = CANARY_STATES[canary]
+                  result["canary"] = canary
+                  activity = transcription_sample({"transcription": row.get("previousActivity", {})}, offset)
+                  if activity is not None:
+                      result["previousSixHourActivity"] = activity
+                  complete = canary != "running"
+              else:
+                  stamp = row.get("cycleObserved", {}).get(index)
+                  code = row.get("samples", "")[offset:offset + 1]
+                  if not stamp or not code or code == "-":
+                      return result
+                  checked = parse_time(stamp)
+                  state, issue = SAMPLES[code]
+                  if code == "m":
+                      issue = alarm_issues(row, identifier, offset, 1).get(index, issue)
+                  complete = True
+              if checked > now or checked < start:
+                  return {key: value for key, value in result.items() if key not in ("canary", "previousSixHourActivity")}
+              result.update(state=state, issue=issue, observedAt=iso(checked))
+              if complete:
+                  result["complete"] = True
+              return result
+
+
+          def cycle_day(day, row, cadence, now, identifier):
+              start, end = day_bounds(day)
+              result = {"date": day.isoformat(), "state": "unknown", "from": iso(start), "to": iso(end),
+                        "issue": "No check recorded."}
+              periods = []
+              hour = start
+              while hour < min(now, end):
+                  if hour < SIX_HOUR_START or hour.hour % 6 == 0:
+                      item = hour_tile(hour, day, row, cadence, now, identifier)
+                      if item.get("complete") or item.get("canary") or now >= hour + timedelta(minutes=80):
+                          periods.append(item)
+                  hour += HOUR
+              if not periods:
+                  return result
+              # An observed failure takes priority; a missing due check prevents an all-clear day.
+              priority = {"operational": 0, "unknown": 1, "degraded": 2, "outage": 3}
+              worst = max(reversed(periods), key=lambda item: priority[item["state"]])
+              result.update({key: worst[key] for key in ("state", "issue", "canary") if key in worst})
+              seen = [item["observedAt"] for item in periods if "observedAt" in item]
+              if seen:
+                  result["observedAt"] = max(seen)
+              return result
+
+
           def tile(day, row, cadence, now, identifier=None):
               start, end = day_bounds(day)
+              if end > SIX_HOUR_START:
+                  return cycle_day(day, row, cadence, now, identifier)
               result = {"date": day.isoformat(), "state": "unknown", "from": iso(start), "to": iso(end), "issue": "No check recorded."}
               if not row:
                   return result
@@ -424,6 +527,8 @@ Resources:
               if not row:
                   return result
 
+              if start >= SIX_HOUR_START:
+                  return cycle_hour(result, start, day, row, cadence, now, identifier)
               checked = parse_time(row["checked"])
               if start <= checked < end and checked <= now:
                   result["observedAt"] = iso(checked)
@@ -587,9 +692,12 @@ Resources:
                   if not isinstance(stamp, str):
                       raise ValueError("Invalid catalog observation")
                   hour = start + index * HOUR
+                  if hour >= SIX_HOUR_START and (hour.hour % 6 or not row.get("cycles", {}).get(str(index))):
+                      stamp = ""
                   if stamp:
                       at = parse_time(stamp)
-                      if iso(at) != stamp or not hour <= at < hour + HOUR:
+                      span = 6 if hour >= SIX_HOUR_START and hour.hour % 6 == 0 else 1
+                      if iso(at) != stamp or not hour <= at < hour + span * HOUR:
                           raise ValueError("Invalid catalog observation")
                       if at > now:
                           stamp = ""
@@ -627,9 +735,12 @@ Resources:
               daily_reasons = []
               for day in dates:
                   states = by_day.get(day, {}).get(identifier, "-")
-                  state = catalog_daily_state(states)
                   reasons = reasons_by_day.get(day, {}).get(identifier)
-                  last = states.rfind(state)
+                  start = mountain_midnight(day)
+                  indices = [i for i in range(len(states))
+                             if start + i * HOUR < SIX_HOUR_START or (start + i * HOUR).hour % 6 == 0]
+                  state = catalog_daily_state("".join(states[i] for i in indices))
+                  last = next((i for i in reversed(indices) if states[i] == state), -1)
                   daily_states.append(state)
                   daily_reasons.append(reasons[last] if reasons and last >= 0 else "-")
               empty = "-" * 25
@@ -716,6 +827,8 @@ Resources:
                       seen.extend(day["observedAt"] for day in home_gpu["days"] if "observedAt" in day)
                   snapshot = {"ok": True, "checkedAt": max(seen, default=None), "region": REGION,
                               "days": DAYS, "connections": connections, "checks": checks}
+                  if now >= SIX_HOUR_START:
+                      snapshot.update(cadenceHours=6, cadenceStart=iso(SIX_HOUR_START))
                   if history is not None:
                       snapshot["catalogHistory"] = history
                   if home_gpu:
@@ -779,6 +892,28 @@ Resources:
                   StringEquals:
                     'aws:RequestedRegion': us-east-2
               - Effect: Allow
+                # Start does not support job ARNs. Pin its region, bucket, and result key instead.
+                Action: transcribe:StartTranscriptionJob
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'aws:RequestedRegion': us-east-2
+                    'transcribe:OutputBucketName': !Ref CanaryBucket
+                  StringLike:
+                    'transcribe:OutputKey': 'results/system-status-canary-*.json'
+              - Effect: Allow
+                Action: [s3:GetBucketLocation, s3:ListBucket]
+                Resource: !GetAtt CanaryBucket.Arn
+              - Effect: Allow
+                Action: transcribe:GetTranscriptionJob
+                Resource: !Sub 'arn:${AWS::Partition}:transcribe:us-east-2:${AWS::AccountId}:transcription-job/system-status-canary-*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${CanaryBucket.Arn}/fixture/status-probe.wav'
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject]
+                Resource: !Sub '${CanaryBucket.Arn}/results/system-status-canary-*.json'
+              - Effect: Allow
                 Action: transcribe:ListTranscriptionJobs
                 Resource: '*'
                 Condition:
@@ -806,7 +941,9 @@ Resources:
       Role: !GetAtt WriterRole.Arn
       Environment:
         Variables:
+          SIX_HOUR_START: !Ref SixHourStart
           HISTORY_TABLE: !Ref History
+          CANARY_BUCKET: !Ref CanaryBucket
           STACK_ACCOUNT: !Ref 'AWS::AccountId'
           SHORT_LINK_SLUG: !Ref ProbeShortLinkSlug
           HOME_GPU_MONITORING: !Ref HomeGpuMonitoring
@@ -831,6 +968,7 @@ Resources:
           from botocore.exceptions import BotoCoreError, ClientError
 
           REGION = "us-east-2"
+          SIX_HOUR_START = datetime.fromisoformat(os.environ["SIX_HOUR_START"])
           ALARM_STATES = {"OK", "ALARM", "INSUFFICIENT_DATA"}
           ALARMS = {
               "job-application-tracker-lambda-errors": ("tracker", "te"),
@@ -847,6 +985,10 @@ Resources:
           TRANSCRIBE_PREFIX = "site-transcribe-"
           TRANSCRIBE_JOB = re.compile(TRANSCRIBE_PREFIX + r"[a-f0-9]{64}")
           TRANSCRIBE_MAX_PAGES = 10
+          CANARY_BUCKET = os.environ["CANARY_BUCKET"]
+          CANARY_PREFIX = "system-status-canary-"
+          FIXTURE = "fixture/status-probe.wav"
+          EXPECTED_WORDS = "the blue river flows past the garden".split()
           HOME_HOST = "www.danielshort.me"
           COGNITO_HOST = "cognito-idp.us-east-2.amazonaws.com"
           COGNITO_ISSUER = "https://" + COGNITO_HOST + "/us-east-2_y80EG3pKd"
@@ -863,6 +1005,7 @@ Resources:
           TABLE = boto3.resource("dynamodb", region_name=REGION, config=CONFIG).Table(os.environ["HISTORY_TABLE"])
           CLOUDWATCH = boto3.client("cloudwatch", region_name=REGION, config=CONFIG)
           SAGEMAKER = boto3.client("sagemaker", region_name=REGION, config=CONFIG)
+          S3 = boto3.client("s3", region_name=REGION, config=CONFIG)
           TRANSCRIBE = boto3.client("transcribe", region_name=REGION, config=CONFIG)
 
 
@@ -925,19 +1068,27 @@ Resources:
 
 
           def sample(service, cadence, scheduled, observed, code, context, max_ms=None, transcription=None,
-                     hourly_probe=False, alarm_checks=None):
+                     hourly_probe=False, alarm_checks=None, previous_activity=None):
               day, start, end, expires = day_range(scheduled)
               slot = int((scheduled - start).total_seconds()) // cadence
               seen = iso(observed if start <= observed < end else scheduled)
+              new_cycle = scheduled >= SIX_HOUR_START
+              recorded_cycle = iso(observed)
 
               def update(row):
                   samples = row.get("samples", "")
                   if slot < len(samples) and samples[slot] != "-":
                       retry_transcription = samples[slot] == "u" and transcription is not None and str(slot) not in row.get("transcription", {})
-                      if not retry_transcription:
+                      first_cycle_observation = new_cycle and str(slot) not in row.get("cycleObserved", {})
+                      recovered_activity = previous_activity is not None and str(slot) not in row.get("previousActivity", {})
+                      if not (retry_transcription or first_cycle_observation or recovered_activity):
                           return None
                   padded = samples.ljust(slot + 1, "-")
                   row["samples"] = padded[:slot] + code + padded[slot + 1:]
+                  if new_cycle:
+                      row["cycleObserved"] = {**row.get("cycleObserved", {}), str(slot): recorded_cycle}
+                  if previous_activity is not None:
+                      row["previousActivity"] = {**row.get("previousActivity", {}), str(slot): previous_activity}
                   if hourly_probe:
                       index = slot // 12
                       markers = row.get("hourlyProbes", "").ljust(index + 1, "-")
@@ -959,7 +1110,8 @@ Resources:
 
           def homepage_sample(code, observed, context):
               seen = iso(observed)
-              expires = int((observed + timedelta(minutes=75)).timestamp())
+              lifetime = timedelta(hours=7) if observed >= SIX_HOUR_START else timedelta(minutes=75)
+              expires = int((observed + lifetime).timestamp())
               save("homepage", "latest", lambda row: (
                   {"code": code, "checked": seen, "expires": expires} if row.get("checked", "") < seen else None
               ), context)
@@ -999,8 +1151,13 @@ Resources:
               return response.status in (301, 302, 307, 308) and location == SHORT_TARGET
 
 
+          def cycle_start(at):
+              return at.replace(hour=at.hour - at.hour % 6, minute=0, second=0, microsecond=0)
+
+
           def probes(scheduled, context):
-              probe_slot = scheduled.replace(minute=10, second=0, microsecond=0)
+              anchor = cycle_start(scheduled) if scheduled >= SIX_HOUR_START else scheduled
+              probe_slot = anchor.replace(minute=10, second=0, microsecond=0)
               with ThreadPoolExecutor(max_workers=3) as executor:
                   homepage = executor.submit(https_probe, HOME_HOST, "/", "HEAD", lambda response: response.status == 200, context)
                   cognito = executor.submit(https_probe, COGNITO_HOST, COGNITO_PATH, "GET", cognito_response, context)
@@ -1064,9 +1221,10 @@ Resources:
           def metric(namespace, name, dimensions, stat, end, context):
               try:
                   guard(context)
-                  start = end - timedelta(hours=1)
+                  window = 6 if end >= SIX_HOUR_START else 1
+                  start = end - timedelta(hours=window)
                   result = CLOUDWATCH.get_metric_statistics(
-                      Namespace=namespace, MetricName=name, Dimensions=dimensions, Period=3600,
+                      Namespace=namespace, MetricName=name, Dimensions=dimensions, Period=3600 * window,
                       StartTime=start, EndTime=end, Statistics=[stat],
                   )
                   points = result["Datapoints"]
@@ -1157,10 +1315,12 @@ Resources:
 
 
           def hourly(scheduled, context):
-              end = scheduled.replace(minute=0, second=0, microsecond=0)
-              metric_hour = end - timedelta(hours=1)
+              six_hour = scheduled >= SIX_HOUR_START
+              end = cycle_start(scheduled) if six_hour else scheduled.replace(minute=0, second=0, microsecond=0)
+              metric_hour = end - timedelta(hours=6 if six_hour else 1)
+              slot = end if six_hour else scheduled
               with ThreadPoolExecutor(max_workers=7 if HOME_GPU_MONITORING else 6) as executor:
-                  home_gpu = executor.submit(read_home_gpu, scheduled, context) if HOME_GPU_MONITORING else None
+                  home_gpu = executor.submit(read_home_gpu, slot, context) if HOME_GPU_MONITORING else None
                   alarms = executor.submit(read_alarms, context)
                   transcription = executor.submit(read_transcription, metric_hour, end, context)
                   endpoints = {
@@ -1177,18 +1337,90 @@ Resources:
               for service in ("tracker", "contact"):
                   active = [code for name, (identifier, code) in ALARMS.items()
                             if identifier == service and states.get(name) == "ALARM"]
-                  sample(service, 3600, scheduled, observed, alarm_sample(service, states), context, alarm_checks=active)
+                  sample(service, 3600, slot, observed, alarm_sample(service, states), context, alarm_checks=active)
               metric_checked = min(observed, end - timedelta(milliseconds=1))
               # An older reader can read 'u' as Unknown while the reader and writer deploy separately.
-              sample("transcribe", 3600, metric_hour, metric_checked, "u", context, transcription=transcription.result())
+              if six_hour:
+                  sample("transcribe", 3600, slot, observed, "u", context, previous_activity=transcription.result())
+              else:
+                  sample("transcribe", 3600, metric_hour, metric_checked, "u", context, transcription=transcription.result())
               for service, (status, performance) in endpoints.items():
                   _, max_ms = performance.result()
                   same_day = mountain_day(metric_hour) == mountain_day(scheduled)
                   value = round(max_ms) if same_day and max_ms is not None and 0 <= max_ms <= 86400000 else None
-                  sample(service, 3600, scheduled, observed, status.result(), context, value)
+                  sample(service, 3600, slot, observed, status.result(), context, value)
               if home_gpu:
-                  sample("home-gpu", 3600, scheduled, observed, home_gpu.result(), context)
+                  sample("home-gpu", 3600, slot, observed, home_gpu.result(), context)
               return 6 if home_gpu else 5
+
+
+          def verify_canary(job, name):
+              if (job["TranscriptionJobName"] != name or job["Media"]["MediaFileUri"] != f"s3://{CANARY_BUCKET}/{FIXTURE}"
+                  or job.get("LanguageCode") != "en-US"):
+                  return "unavailable"
+              if job["TranscriptionJobStatus"] == "FAILED":
+                  return "failed"
+              if job["TranscriptionJobStatus"] in ("QUEUED", "IN_PROGRESS"):
+                  return "running"
+              if job["TranscriptionJobStatus"] != "COMPLETED":
+                  return "unavailable"
+              key = f"results/{name}.json"
+              response = S3.get_object(Bucket=CANARY_BUCKET, Key=key, ExpectedBucketOwner=STACK_ACCOUNT)
+              stream = response["Body"]
+              try:
+                  raw = stream.read(65537)
+              finally:
+                  stream.close()
+              if len(raw) > 65536:
+                  return "unavailable"
+              document = json.loads(raw)
+              if document.get("jobName") != name or document.get("status") != "COMPLETED":
+                  return "unavailable"
+              transcript = document["results"]["transcripts"][0]["transcript"]
+              return "passed" if re.findall(r"[a-z0-9]+", transcript.lower()) == EXPECTED_WORDS else "mismatch"
+
+
+          def canary(scheduled, context, *, start=False, deadline=False):
+              cycle = cycle_start(scheduled)
+              if cycle < SIX_HOUR_START:
+                  raise ValueError("Canary precedes cutover")
+              name = CANARY_PREFIX + cycle.strftime("%Y%m%d%H")
+              try:
+                  if start:
+                      try:
+                          TRANSCRIBE.start_transcription_job(
+                              TranscriptionJobName=name, LanguageCode="en-US", MediaFormat="wav",
+                              Media={"MediaFileUri": f"s3://{CANARY_BUCKET}/{FIXTURE}"},
+                              OutputBucketName=CANARY_BUCKET, OutputKey=f"results/{name}.json",
+                          )
+                      except ClientError as error:
+                          # AWS enforces unique job names; a repeated trigger resumes this cycle's job.
+                          if error.response.get("Error", {}).get("Code") != "ConflictException":
+                              raise
+                  job = TRANSCRIBE.get_transcription_job(TranscriptionJobName=name)["TranscriptionJob"]
+                  result = verify_canary(job, name)
+                  if deadline and result == "running":
+                      result = "timeout"
+              except ERRORS + (IndexError, AttributeError, UnicodeError):
+                  LOGGER.warning("Unable to verify the System Status transcription test")
+                  result = "unavailable"
+              day, midnight, end, expires = day_range(cycle)
+              index = str(int((cycle - midnight).total_seconds()) // 3600)
+              observed = datetime.now(timezone.utc)
+              def update(row):
+                  previous = row.get("canaries", {}).get(index, {})
+                  terminal = ("passed", "failed", "mismatch")
+                  if previous.get("result") in terminal or (
+                      previous.get("result") == "timeout" and result not in terminal
+                  ):
+                      return None
+                  row["canaries"] = {**row.get("canaries", {}), index: {"result": result, "observed": iso(observed)}}
+                  checked = iso(min(observed, end - timedelta(milliseconds=1)))
+                  row["checked"] = max(checked, row.get("checked", ""))
+                  row["expires"] = expires
+                  return row
+              save("transcribe", day, update, context)
+              return {"ok": result in ("running", "passed"), "canary": result, "cycleStart": iso(cycle)}
 
 
           def alarm_event(event, now, context):
@@ -1235,12 +1467,29 @@ Resources:
                       raise ValueError("Unexpected status event")
                   if event.get("source") == "aws.cloudwatch" and event.get("detail-type") == "CloudWatch Alarm State Change":
                       return {"ok": True, "collected": alarm_event(event, now, context)}
+                  if event.get("source") == "aws.transcribe":
+                      detail = event.get("detail", {})
+                      name = detail.get("TranscriptionJobName", "")
+                      if (event.get("account") != STACK_ACCOUNT or event.get("region") != REGION
+                          or event.get("detail-type") != "Transcribe Job State Change"
+                          or not re.fullmatch(CANARY_PREFIX + r"[0-9]{10}", name)
+                          or detail.get("TranscriptionJobStatus") not in ("COMPLETED", "FAILED")):
+                          raise ValueError("Unexpected transcription event")
+                      slot = datetime.strptime(name[len(CANARY_PREFIX):], "%Y%m%d%H").replace(tzinfo=timezone.utc)
+                      if slot.hour % 6 or not now - timedelta(hours=12) <= slot <= now:
+                          raise ValueError("Unexpected transcription cycle")
+                      return canary(slot, context)
                   operation = event.get("operation")
-                  if set(event) - {"operation", "scheduledAt"} or operation not in ("probes", "hourly"):
+                  if set(event) - {"operation", "scheduledAt"} or operation not in ("probes", "hourly", "canary", "canary-result"):
                       raise ValueError("Unexpected status operation")
                   scheduled = parse_time(event["scheduledAt"]) if "scheduledAt" in event else now
                   if not now - timedelta(minutes=3) <= scheduled <= now + timedelta(seconds=20):
                       raise ValueError("Unexpected scheduled time")
+                  if "scheduledAt" in event and scheduled >= SIX_HOUR_START and scheduled.hour % 6:
+                      return {"ok": True, "collected": 0}
+                  if operation in ("canary", "canary-result"):
+                      return canary(scheduled, context, start=operation == "canary",
+                                    deadline=operation == "canary-result" and bool(event.get("scheduledAt")))
                   if operation == "probes" and "scheduledAt" in event and scheduled.minute != 10:
                       return {"ok": True, "collected": 0}
                   collected = probes(scheduled, context) if operation == "probes" else hourly(scheduled, context)
@@ -1265,7 +1514,7 @@ Resources:
     Properties:
       Name: website-aws-status-probes
       State: !If [CollectAutomatically, ENABLED, DISABLED]
-      ScheduleExpression: 'cron(10 * * * ? *)'
+      ScheduleExpression: 'cron(10 0,6,12,18 * * ? *)'
       Targets:
         - Id: Writer
           Arn: !GetAtt Writer.Arn
@@ -1283,7 +1532,7 @@ Resources:
     Properties:
       Name: website-aws-status-hourly
       State: !If [CollectAutomatically, ENABLED, DISABLED]
-      ScheduleExpression: 'cron(10 * * * ? *)'
+      ScheduleExpression: 'cron(10 0,6,12,18 * * ? *)'
       Targets:
         - Id: Writer
           Arn: !GetAtt Writer.Arn
@@ -1293,6 +1542,76 @@ Resources:
           RetryPolicy:
             MaximumEventAgeInSeconds: 60
             MaximumRetryAttempts: 0
+
+  CanaryStart:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    Properties:
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      ScheduleExpression: 'cron(10 0,6,12,18 * * ? *)'
+      Targets:
+        - Id: StartTest
+          Arn: !GetAtt Writer.Arn
+          InputTransformer:
+            InputPathsMap: {scheduledAt: '$.time'}
+            InputTemplate: '{"operation":"canary","scheduledAt":<scheduledAt>}'
+
+  CanaryDeadline:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    Properties:
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      ScheduleExpression: 'cron(35 0,6,12,18 * * ? *)'
+      Targets:
+        - Id: VerifyTest
+          Arn: !GetAtt Writer.Arn
+          InputTransformer:
+            InputPathsMap: {scheduledAt: '$.time'}
+            InputTemplate: '{"operation":"canary-result","scheduledAt":<scheduledAt>}'
+
+  CanaryCompletion:
+    Type: AWS::Events::Rule
+    Condition: InOhio
+    Properties:
+      State: !If [CollectAutomatically, ENABLED, DISABLED]
+      EventPattern:
+        source: [aws.transcribe]
+        detail-type: [Transcribe Job State Change]
+        account: [!Ref 'AWS::AccountId']
+        region: [us-east-2]
+        detail:
+          TranscriptionJobName: [{prefix: 'system-status-canary-'}]
+          TranscriptionJobStatus: [COMPLETED, FAILED]
+      Targets:
+        - Id: VerifyTest
+          Arn: !GetAtt Writer.Arn
+
+  AllowCanaryStart:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CanaryStart.Arn
+
+  AllowCanaryDeadline:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CanaryDeadline.Arn
+
+  AllowCanaryCompletion:
+    Type: AWS::Lambda::Permission
+    Condition: InOhio
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Writer
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CanaryCompletion.Arn
 
   SelectedAlarmTransitions:
     Type: AWS::Events::Rule
@@ -1395,6 +1714,7 @@ Resources:
       Role: !GetAtt ReportRole.Arn
       Environment:
         Variables:
+          SIX_HOUR_START: !Ref SixHourStart
           HISTORY_TABLE: !Ref History
       LoggingConfig:
         LogFormat: JSON
@@ -1412,6 +1732,7 @@ Resources:
           from botocore.exceptions import BotoCoreError, ClientError
 
           REGION = "us-east-2"
+          SIX_HOUR_START = datetime.fromisoformat(os.environ["SIX_HOUR_START"])
           MAX_CHECKS = 70
           MAX_AGE = timedelta(days=90)
           HOUR = timedelta(hours=1)
@@ -1459,7 +1780,7 @@ Resources:
                   raise ValueError("Invalid number of checks")
               seen = set()
               groups, reasons = {}, {}
-              max_age = timedelta(hours=3) if browser_ci else MAX_AGE
+              max_age = timedelta(hours=7) if browser_ci else MAX_AGE
               for check in checks:
                   fields = set(check) if isinstance(check, dict) else set()
                   if fields != FIELDS and (not browser_ci or fields != FIELDS | {"reasonCode"}):
@@ -1490,6 +1811,8 @@ Resources:
                   raise ValueError("A browser report must have one observation time")
               checked = timestamps.pop()
               at = parse_time(checked)
+              if at >= SIX_HOUR_START:
+                  at = at.replace(hour=at.hour - at.hour % 6, minute=0, second=0, microsecond=0)
               day = at.date()
               if at < mountain_midnight(day):
                   day -= timedelta(days=1)
@@ -1539,6 +1862,11 @@ Resources:
                                  "ExpressionAttributeValues": {":expected": revision}}
                   updated = {**key, "rev": revision + 1, "results": results,
                              "observed": observed, "expires": expires}
+                  cycles = dict((item or {}).get("cycles", {}))
+                  if at >= SIX_HOUR_START:
+                      cycles[str(index)] = True
+                  if cycles:
+                      updated["cycles"] = cycles
                   if reasons:
                       updated["reasons"] = reasons
                   try:
@@ -1640,6 +1968,10 @@ Resources:
                 Resource: !GetAtt Collector.Arn
 
 Outputs:
+  SystemStatusCanaryBucketName:
+    Condition: InOhio
+    Value: !Ref CanaryBucket
+    Description: Private known-speech fixture and short-lived test transcripts.
   AwsStatusFunctionArn:
     Condition: InOhio
     Description: Production Vercel AWS_STATUS_FUNCTION_ARN

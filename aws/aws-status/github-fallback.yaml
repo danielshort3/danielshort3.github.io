@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Independent hourly trigger for the existing Projects and Tools GitHub workflow.
+Description: Six-hour UTC trigger for the System Status browser checks.
 
 Parameters:
   CodeBucket:
@@ -61,7 +61,7 @@ Resources:
     DependsOn: DispatcherLogGroup
     Properties:
       FunctionName: website-aws-status-fallback-dispatcher
-      Description: Dispatches one fallback GitHub browser check if the hour has no report.
+      Description: Dispatches a browser check when the six-hour UTC cycle has no report.
       Runtime: nodejs24.x
       Handler: fallback-dispatcher.handler
       Role: !GetAtt DispatcherRole.Arn
@@ -121,7 +121,7 @@ Resources:
     Properties:
       Name: hourly-browser-check
       GroupName: !Ref ScheduleGroup
-      ScheduleExpression: cron(47 * * * ? *)
+      ScheduleExpression: cron(47 0,6,12,18 * * ? *)
       ScheduleExpressionTimezone: UTC
       FlexibleTimeWindow: {Mode: 'OFF'}
       State: !If [Enabled, ENABLED, DISABLED]

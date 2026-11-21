@@ -650,6 +650,37 @@ async function unifiedStatusTool({ browser, context, page, base, item, catalog, 
   await period.selectOption('daily');
   await expect(awsTicks.last()).toHaveAttribute('data-state', 'operational');
   await expect(aws.summary).toHaveText('Unknown');
+
+  // After the switch, both a successful real test and zero jobs from users can be true.
+  const cycle = '2026-11-01T06:00:00.000Z';
+  snapshot.cadenceStart = '2026-10-25T00:00:00.000Z';
+  snapshot.cadenceHours = 6;
+  snapshot.hourlyReadyThrough = cycle;
+  snapshot.checkedAt = '2026-11-01T06:52:00.000Z';
+  const canary = { start: cycle, state: 'operational', canary: 'passed', complete: true,
+    observedAt: '2026-11-01T06:12:00.000Z', from: cycle, to: cycle,
+    issue: 'AWS returned the expected transcript.', previousSixHourActivity: idle };
+  snapshot.connections[1].hours = [canary];
+  await refresh.click();
+  await expect(freshness).toHaveAttribute('datetime', snapshot.checkedAt);
+  await expect(dashboard.locator('[data-aws-status-part="freshness"]')).not.toContainText('Stale');
+  await period.selectOption({ label: '6-hour checks' });
+  await expect(transcribeTicks).toHaveCount(12);
+  await expect(transcribeTicks.last()).toHaveAccessibleName(/scheduled check, Test passed$/);
+  await transcribeTicks.last().press('Enter');
+  await expect(tooltipStatus).toHaveText('Test passed');
+  await expect(tooltipDetails.first()).toContainText('AWS returned the expected transcript.');
+  await expect(tooltipDetails.first()).toContainText('preceding six hours: none');
+  await transcribeTicks.last().press('Escape');
+  await expect(tooltip).toBeHidden();
+  canary.state = 'degraded';
+  canary.canary = 'mismatch';
+  canary.issue = 'The transcript differed from the expected phrase.';
+  await refresh.click();
+  await expect(transcribeTicks.last()).toHaveAccessibleName(/Transcript mismatch$/);
+  await expect(aws.summary).toHaveText('Degraded');
+  await transcribeTicks.last().press('Enter');
+  await expect(tooltipDetails.first()).toContainText(canary.issue);
   await verifyStatusLinks(page, base, item, snapshot, catalog);
   return local('Verified admin access, catalog and service links, keyboard and touch navigation, grouped refresh, and independent history controls.');
 }
