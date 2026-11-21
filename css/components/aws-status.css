@@ -73,6 +73,7 @@
   }
 
   .aws-status__group-toggle:focus-visible,
+  .aws-status__item-link:focus-visible,
   .aws-status__history-control select:focus-visible,
   .aws-status__summary-status:focus-visible,
   .aws-status__summary-status[aria-describedby],
@@ -312,6 +313,26 @@
     background: var(--surface);
     font-size: clamp(0.84rem, 1.4vw, 0.95rem);
     font-weight: 600;
+  }
+
+  .aws-status__service:has(.aws-status__item-link) {
+    padding-block: 0;
+  }
+
+  .aws-status__item-link {
+    display: grid;
+    box-sizing: border-box;
+    min-height: 44px;
+    align-content: center;
+    justify-self: start;
+    padding-block: var(--space-6);
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .aws-status__item-link:hover {
+    text-decoration-thickness: 2px;
   }
 
   .aws-status__ticks {

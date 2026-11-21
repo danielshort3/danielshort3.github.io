@@ -15,7 +15,20 @@
   const GROUP_MOTION_MS = 220;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
   const HOME_GPU_STATES = { operational: 'Online', degraded: 'Worker unavailable', outage: 'Offline', unknown: 'Unknown' };
-  const GROUPS = ['Tools', 'Projects', 'Games'];
+  const CATALOG_GROUPS = new Map([
+    ['Tools', { prefix: 'tool:', path: '/tools/' }],
+    ['Projects', { prefix: 'project:', path: '/portfolio/' }],
+    ['Games', { prefix: 'game:', path: '/games/' }]
+  ]);
+  const CONNECTION_ROUTES = new Map([
+    ['cognito', '/tools'],
+    ['tracker', '/tools/job-application-tracker'],
+    ['short-links', '/tools/short-links'],
+    ['contact', '/contact#contact-modal'],
+    ['transcribe', '/tools/transcribe'],
+    ['chatbot', '/chatbot-demo'],
+    ['markdown', 'https://us-east-2.console.aws.amazon.com/sagemaker/home?region=us-east-2#/endpoints/VGJ-Markdown-Async']
+  ]);
   const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
   const HOUR_KEY = /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/;
   const CHECK_RESULTS = {
@@ -65,6 +78,15 @@
     if (text) node.textContent = text;
     if (className) node.className = className;
     return node;
+  }
+
+  function itemRoute(group, id) {
+    if (group === 'AWS Connections') return CONNECTION_ROUTES.get(id);
+    if (group === 'Local services') return id === 'home-gpu' ? '/tools/transcribe' : undefined;
+    const catalogGroup = CATALOG_GROUPS.get(group);
+    if (!catalogGroup || typeof id !== 'string' || !id.startsWith(catalogGroup.prefix)) return;
+    const slug = id.slice(catalogGroup.prefix.length);
+    if (/^[A-Za-z0-9][A-Za-z0-9-]{0,70}$/.test(slug)) return catalogGroup.path + slug;
   }
 
   function hasTimestamp(value) {
@@ -250,7 +272,7 @@
       (data.checkedAt === null || hasTimestamp(data.checkedAt)) &&
       Array.isArray(data.connections) && data.connections.every(validConnection) &&
       Array.isArray(data.catalog) && data.catalog.every((item) =>
-        typeof item?.label === 'string' && GROUPS.includes(item.group) && Object.hasOwn(STATES, item.state) &&
+        typeof item?.label === 'string' && CATALOG_GROUPS.has(item.group) && Object.hasOwn(STATES, item.state) &&
         (item.lastChecked === null || hasTimestamp(item.lastChecked)) && typeof item.issue === 'string');
   }
 
@@ -447,7 +469,9 @@
     }
 
     function renderGroup(group, items, timeline, summaryHour, catalog) {
-      const rows = items.map((item) => ({ label: item.label, periods: historyPeriods(item, timeline, catalog) }));
+      const rows = items.map((item) => ({
+        label: item.label, route: itemRoute(group, item.id), periods: historyPeriods(item, timeline, catalog)
+      }));
       const summaryTimeline = { hours: [summaryHour] };
       const latest = groupResult(items.map((item) => ({ label: item.label, period: historyPeriods(item, summaryTimeline, catalog)[0] })));
       const homeGpu = group === 'Local services';
@@ -493,9 +517,17 @@
         if (open) {
           body.hidden = false;
           if (!body.firstChild) {
-            body.replaceChildren(...rows.map(({ label, periods }) => {
+            body.replaceChildren(...rows.map(({ label, route, periods }) => {
               const row = element('div', '', 'aws-status__history-row');
-              row.append(element('h4', label, 'aws-status__service'), renderTicks(label, periods, timeline, stateLabels));
+              const heading = element('h4', '', 'aws-status__service');
+              if (route) {
+                const link = element('a', label, 'aws-status__item-link');
+                link.href = route;
+                heading.append(link);
+              } else {
+                heading.textContent = label;
+              }
+              row.append(heading, renderTicks(label, periods, timeline, stateLabels));
               return row;
             }));
           }
@@ -561,7 +593,7 @@
       const groups = [
         ['AWS Connections', snapshot.connections],
         ['Local services', snapshot.homeGpu?.id === 'home-gpu' && validConnection(snapshot.homeGpu) ? [snapshot.homeGpu] : []],
-        ...GROUPS.map((group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
+        ...Array.from(CATALOG_GROUPS.keys(), (group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
       ];
       const periodCount = (timeline.hours || timeline.weeks || dates).length;
       const { axis, boundaries } = renderHistoryAxis(timeline, periodCount);
@@ -572,6 +604,7 @@
       const focus = document.activeElement?.closest('.aws-status__group');
       const focusToggle = focus?.querySelector('.aws-status__group-toggle') === document.activeElement;
       const focusSummary = document.activeElement?.matches('.aws-status__summary-status');
+      const focusHref = document.activeElement?.getAttribute('href');
       const focusHistory = document.activeElement?.parentElement?.getAttribute('aria-label');
       const focusDate = document.activeElement?.getAttribute('aria-label');
       grid.replaceChildren(...(sections.length ? [axis, ...sections] : []));
@@ -582,10 +615,12 @@
       const restored = sections.find((section) => section.dataset.group === focus.dataset.group);
       const toggle = restored?.querySelector('.aws-status__group-toggle');
       const status = restored?.querySelector('.aws-status__summary-status');
+      const link = focusHref && [...(restored?.querySelectorAll('.aws-status__item-link') || [])]
+        .find((candidate) => candidate.getAttribute('href') === focusHref);
       const row = [...(restored?.querySelectorAll('.aws-status__ticks') || [])]
         .find((ticks) => ticks.getAttribute('aria-label') === focusHistory);
       const tick = [...(row?.children || [])].find((candidate) => candidate.getAttribute('aria-label') === focusDate);
-      const nextFocus = focusToggle ? toggle : focusSummary ? status : tick || row?.lastElementChild || toggle;
+      const nextFocus = focusToggle ? toggle : focusSummary ? status : link || tick || row?.lastElementChild || toggle;
       nextFocus?.focus({ preventScroll: true });
     }
 

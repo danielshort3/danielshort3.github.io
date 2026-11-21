@@ -255,7 +255,8 @@ async function website({ page, base }) {
   await visit(page, base, '/');
   await expect(page.locator('#main')).toBeVisible();
   await visit(page, base, '/tools');
-  await visible(page, 'main a[href="/tools/text-compare"]');
+  await visible(page, 'main .home-library__shortcut[href="/tools/text-compare"]');
+  await visible(page, 'main .home-library__card[href="/tools/text-compare"]');
   await visit(page, base, '/search?q=image');
   await expect(page.locator('#search-results a[href="/tools/image-optimizer"]').first()).toBeVisible();
   return local('Home and Tools loaded, and the built search returned the expected tool.');
