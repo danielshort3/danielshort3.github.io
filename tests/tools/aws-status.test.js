@@ -31,6 +31,7 @@ const SNAPSHOT = {
     }]
   }],
   checks: [
+    { id: 'tool:aws-status', state: 'operational', source: 'browser', lastChecked: CHECKED_AT },
     { id: 'tool:text-compare', state: 'operational', source: 'browser', lastChecked: CHECKED_AT, private: 'private-input' },
     { id: 'project:smartSentence', state: 'degraded', source: 'production', lastChecked: '2026-11-09T10:00:00Z' },
     { id: 'game:roulette', state: 'outage', source: 'local', lastChecked: '2026-11-11T22:00:00Z' },
@@ -69,7 +70,9 @@ const adminClaims = { sub: 'admin-test', 'cognito:groups': ['admin'] };
 test('only a verified admin can cause an AWS read, even after the cache is populated', async (t) => {
   let reads = 0;
   const request = createRequestHandler(t, { readStatus: () => { reads++; return SNAPSHOT; } });
-  assert.equal((await request()).status, 401);
+  const guest = await request();
+  assert.equal(guest.status, 401);
+  assert.equal(guest.body.error, 'Sign in to view system status.');
   assert.equal((await request({ claims: { sub: 'ordinary-test' } })).status, 403);
   assert.equal((await request({ claims: adminClaims, method: 'POST' })).status, 405);
   assert.equal((await request({ claims: adminClaims, headers: { 'sec-fetch-site': 'cross-site' } })).status, 403);
@@ -160,7 +163,7 @@ test('verified transcription counts are typed and exposed only on File Transcrib
 
 test('catalog archive exposes only valid history for current catalog IDs', () => {
   const registered = loadStatusCatalog();
-  const id = 'tool:text-compare';
+  const id = 'tool:aws-status';
   const days = '-'.repeat(89) + 'd';
   const now = Date.parse(CHECKED_AT);
   const history = {
@@ -185,6 +188,7 @@ test('catalog archive exposes only valid history for current catalog IDs', () =>
   });
   assert.deepEqual(current.catalogHistory.observedAt.slice(-2), ['2026-11-11T22:25:00.000Z', null]);
   assert.equal(current.catalog.find((item) => item.id === id).state, 'operational');
+  assert.equal(current.catalog.find((item) => item.id === id).label, 'System Status');
   assert.equal(Object.hasOwn(sanitizeSnapshot(SNAPSHOT, registered, now), 'catalogHistory'), false);
   const invalid = sanitizeSnapshot({
     ...SNAPSHOT, catalogHistory: { ...history, dayStart: '2026-02-31' }
@@ -438,5 +442,5 @@ test('invalid and failed sources never appear as all-clear status', async (t) =>
   const cookie = `${COOKIE_NAME}=${createSessionFromClaims(adminClaims).value}`;
   await missing({ method: 'GET', headers: { cookie } }, response);
   assert.equal(response.statusCode, 503);
-  assert.equal(body.error, 'AWS status is temporarily unavailable.');
+  assert.equal(body.error, 'System status is temporarily unavailable.');
 });

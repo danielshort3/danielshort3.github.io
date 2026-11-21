@@ -656,42 +656,6 @@ window.DIRECTORY_WORKBENCH = {
       "order": 14
     },
     {
-      "id": "aws-status",
-      "title": "AWS Status",
-      "subtitle": "Cloud-backed workflows",
-      "summary": "Connection and website checks",
-      "href": "tools/aws-status",
-      "type": "Browser Tool",
-      "availability": "Browser",
-      "access": "Admin",
-      "category": "Cloud-backed workflows",
-      "tags": [],
-      "tools": [],
-      "concepts": [
-        "Cloud-backed workflows"
-      ],
-      "formats": [
-        "Browser Tool"
-      ],
-      "results": [
-        "Connection and website checks"
-      ],
-      "actions": [],
-      "privacy": "AWS operational status is available to administrators only.",
-      "inputs": [
-        "Status view and history date"
-      ],
-      "outputs": [
-        "AWS connection history and project, tool, and game status"
-      ],
-      "iconImage": "img/tools/icons/aws-status.png?v=89d36525d564",
-      "iconHtml": "",
-      "visibility": "admin",
-      "hidden": true,
-      "noindex": true,
-      "order": 15
-    },
-    {
       "id": "ga4-utm-performance",
       "title": "GA4 UTM Performance (Admin)",
       "subtitle": "Cloud-backed workflows",
@@ -731,6 +695,42 @@ window.DIRECTORY_WORKBENCH = {
         "Aggregated performance table and CSV"
       ],
       "iconImage": "img/tools/icons/ga4-utm-performance.png?v=6aac71844f4b",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 15
+    },
+    {
+      "id": "aws-status",
+      "title": "System Status",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Connection and website checks",
+      "href": "tools/system-status",
+      "type": "Browser Tool",
+      "availability": "Browser",
+      "access": "Admin",
+      "category": "Cloud-backed workflows",
+      "tags": [],
+      "tools": [],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Browser Tool"
+      ],
+      "results": [
+        "Connection and website checks"
+      ],
+      "actions": [],
+      "privacy": "System status history is available to administrators only.",
+      "inputs": [
+        "Status view and history date"
+      ],
+      "outputs": [
+        "AWS connection, local service, tool, project, and game status history"
+      ],
+      "iconImage": "img/tools/icons/aws-status.png?v=89d36525d564",
       "iconHtml": "",
       "visibility": "admin",
       "hidden": true,

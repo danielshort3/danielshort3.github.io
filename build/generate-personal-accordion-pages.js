@@ -43,7 +43,7 @@ const TOOL_PAGE_IDS = Object.freeze([
 ]);
 
 const INTERNAL_TOOL_PAGE_IDS = Object.freeze([
-  'aws-status',
+  'system-status',
   'job-application-tracker',
   'short-links',
   'campaign-creative-tracker',
@@ -110,6 +110,7 @@ const GAME_PAGE_PATHS = Object.freeze({
 });
 
 const TOOL_DETAIL_METADATA = Object.freeze({
+  'system-status': Object.freeze({ catalogId: 'aws-status' }),
   'tools-dashboard': Object.freeze({
     title: 'Account',
     summary: 'Sign in to your account.',
@@ -158,7 +159,7 @@ function getHtmlAttribute(html, attribute) {
 function getToolDetailMetadata(itemId, sourceHtml) {
   const id = String(itemId || '').trim();
   const explicit = TOOL_DETAIL_METADATA[id] || {};
-  const metadataPath = path.join(toolsContentDir, `${id}.json`);
+  const metadataPath = path.join(toolsContentDir, `${explicit.catalogId || id}.json`);
   let record = {};
   if (fs.existsSync(metadataPath)) {
     record = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));

@@ -27,6 +27,9 @@ async function run() {
   }
   assert(aliases.length >= 120, 'Cover both aliases for every current canonical source document, including Android and Copilot privacy.');
   const currentAliases = aliases.length;
+  for (const source of ['/tools/aws-status', '/tools/aws-status.html', '/pages/aws-status', '/pages/aws-status.html']) {
+    aliases.push({ source, destination: '/tools/system-status' });
+  }
   for (const audience of ['analytics', 'data-science', 'tourism']) {
     for (const prefix of [`/professional/${audience}`, `/pages/professional/${audience}`]) {
       for (const suffix of ['', '.html']) {

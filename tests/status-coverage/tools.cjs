@@ -259,7 +259,8 @@ async function unifiedStatusTool({ browser, context, page, base, item, catalog, 
     window.fixtureRole = 'guest';
     document.dispatchEvent(new CustomEvent('tools:auth-changed'));
   });
-  await expect(page.locator('[data-aws-status-part="access"]')).toHaveText('Sign in with an administrator account to view AWS status.');
+  await expect(page.locator('[data-aws-status-part="access"]')).toHaveText(
+    'Sign in with an administrator account to view ' + item.title + '.', { ignoreCase: true });
   await expect(dashboard).toBeHidden();
   await expect(dashboard.locator('.aws-status__history-row a')).toHaveCount(0);
   assert.equal(queryCount(), 0);
@@ -701,10 +702,12 @@ async function statusTool({ browser, context, page, base, item, catalog }) {
   });
   await visit(page, base, item.route);
   const dashboard = page.locator('[data-aws-status-part="dashboard"]');
+  await expect(page.getByRole('heading', { level: 1, name: item.title, exact: true })).toBeVisible();
   await expect(dashboard).toBeHidden();
   assert.equal(queries, 0);
   if (await dashboard.locator('#aws-status-heading').count()) {
-    await expect(page.locator('[data-aws-status-part="access"]')).toHaveText('This account does not have access to AWS status.');
+    await expect(page.locator('[data-aws-status-part="access"]')).toHaveText(
+      'This account does not have access to ' + item.title + '.', { ignoreCase: true });
     return unifiedStatusTool({ browser, context, page, base, item, catalog, snapshot, queryCount: () => queries });
   }
   if (await page.locator('#aws-status-directory-tab').count() === 0) {

@@ -1064,7 +1064,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     return buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
       buffer.readUInt32BE(16) > 0 && buffer.readUInt32BE(20) > 0;
   }),
-  'all catalog tools should retain valid original PNG assets and AWS Status and Watermark Remover should be admin-only');
+  'all catalog tools should retain valid original PNG assets and System Status and Watermark Remover should be admin-only');
   const featuredTools = categories.find((category) => category.id === 'tools').items;
   assert(featuredTools.every((tool) => homeLibraryData.tools.items.some((item) =>
     item.id === tool.id && item.image === versionedImageUrl(`/${tool.image}`))),

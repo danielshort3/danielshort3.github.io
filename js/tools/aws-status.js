@@ -85,6 +85,7 @@
     if (group === 'Local services') return id === 'home-gpu' ? '/tools/transcribe' : undefined;
     const catalogGroup = CATALOG_GROUPS.get(group);
     if (!catalogGroup || typeof id !== 'string' || !id.startsWith(catalogGroup.prefix)) return;
+    if (id === 'tool:aws-status') return '/tools/system-status';
     const slug = id.slice(catalogGroup.prefix.length);
     if (/^[A-Za-z0-9][A-Za-z0-9-]{0,70}$/.test(slug)) return catalogGroup.path + slug;
   }
@@ -818,7 +819,7 @@
       const isCurrent = () => request === controller && getAccess().owner === currentOwner;
       request = controller;
       setBusy(true);
-      setNotice(snapshot ? 'Refreshing AWS status…' : 'Checking AWS status…');
+      setNotice(snapshot ? 'Refreshing system status…' : 'Checking system status…');
       try {
         const response = await window.ToolsAuth.fetchWithAuth(STATUS_URL, {
           cache: 'no-store',
@@ -829,8 +830,8 @@
         if (response.status === 401 || response.status === 403) {
           owner = '';
           showAccess(response.status === 401
-            ? 'Sign in again to view AWS status.'
-            : 'This account does not have access to AWS status.');
+            ? 'Sign in again to view system status.'
+            : 'This account does not have access to system status.');
           return;
         }
         if (!response.ok) throw new Error('Status unavailable');
@@ -846,8 +847,8 @@
         failed = true;
         if (snapshot) renderFreshness();
         setNotice(snapshot
-          ? 'Could not refresh AWS status. Showing the last result.'
-          : 'AWS status is unavailable. Try refreshing.');
+          ? 'Could not refresh system status. Showing the last result.'
+          : 'System status is unavailable. Try refreshing.');
       } finally {
         clearTimeout(timeout);
         if (request === controller) {
@@ -864,8 +865,8 @@
       if (!next.owner) {
         owner = '';
         showAccess(next.signedIn
-          ? 'This account does not have access to AWS status.'
-          : 'Sign in with an administrator account to view AWS status.');
+          ? 'This account does not have access to system status.'
+          : 'Sign in with an administrator account to view system status.');
         return;
       }
       if (Number.isFinite(next.expiresAt)) {
@@ -897,7 +898,7 @@
     });
     window.addEventListener('pagehide', () => {
       owner = '';
-      showAccess('Sign in with an administrator account to view AWS status.');
+      showAccess('Sign in with an administrator account to view system status.');
     });
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) syncAccess();

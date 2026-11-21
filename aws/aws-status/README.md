@@ -1,13 +1,13 @@
-# AWS Status history
+# System Status history
 
-This standalone CloudFormation stack owns the AWS Status dashboard's private Ohio history. The website's exact production Vercel OIDC subject can invoke the existing `website-aws-status` reader. The reader queries the dedicated status table and the website still requires an authenticated tools administrator. `website-aws-status-writer` handles scheduling and `website-aws-status-report` accepts authorized local and CI results. Each function uses its own execution role and 14-day log group.
+This standalone CloudFormation stack owns the private Ohio history for the [System Status dashboard](https://www.danielshort.me/tools/system-status). The website's exact production Vercel OIDC subject can invoke the existing `website-aws-status` reader. The reader queries the dedicated status table and the website still requires an authenticated tools administrator. `website-aws-status-writer` handles scheduling and `website-aws-status-report` accepts authorized local and CI results. Each function uses its own execution role and 14-day log group.
 
 ## What the checks cover
 
 | Schedule | Source | Evidence |
 | --- | --- | --- |
 | Hourly at minute 10 UTC | Fixed public homepage HEAD and Cognito OIDC discovery GET | Homepage HTTP 200 and the exact Ohio Cognito issuer and JWKS URI. Discovery does not test a user login. |
-| Hourly at minute 10 UTC when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. The slug is empty by default. |
+| Hourly at minute 10 UTC when configured | HEAD to one approved `https://dshort.me/<slug>` | The exact `https://www.danielshort.me/tools/aws-status` redirect without following it or recording a click. This existing short link targets the dashboard's legacy URL. The slug is empty by default. |
 | Hourly at minute 10 UTC | Five named Tracker and contact metric alarms | Selected alarm states. These do not prove a Tracker save or delivery of contact email. |
 | Hourly at minute 10 UTC | `VGJ-Chatbot-Async` and `VGJ-Markdown-Async` | Endpoint metadata and optional maximum processing time from the previous completed hour. Zero active instances is expected for idle endpoints in service. |
 | Hourly at minute 10 UTC | Ohio Amazon Transcribe batch job summaries | File Transcriber jobs completed or failed in the previous hour, and jobs still queued or running at the hour boundary. A successful check with no matching jobs in that hour shows No activity. |
@@ -24,7 +24,7 @@ History rows expire after 90 Mountain dates. TTL removes expired rows asynchrono
 
 The reader returns `{ok, checkedAt, region, days, connections, checks}`. For each connection, `days` contains Mountain calendar days and `hours` contains UTC buckets. The dashboard displays the hourly buckets in Mountain time and groups daily tiles into Monday–Sunday weeks for the weekly view. `checkedAt` is null until an observation is recorded. Catalog results are keyed by source so the website can keep production, browser and local evidence distinct. The homepage HEAD result is marked `method: "homepage-head"`.
 
-Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all four System status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page refreshes automatically once an hour at minute 21. Manual Refresh fetches the latest stored history.
+Hourly AWS tiles include `complete: true` when all scheduled slots contain an observation, including recorded observations with an unknown state. The website shows a closed hour across all five System Status groups once the AWS slots and archived browser report are present. A shared 20-minute grace period after the hour ends allows the last AWS check to arrive. After the grace period, the dashboard publishes the hour and shows missing evidence as unknown. The open page refreshes automatically once an hour at minute 21. Manual Refresh fetches the latest stored history.
 
 The scheduled writer lists batch jobs in Ohio with a region-restricted, read-only permission. It matches File Transcriber job names and records only hourly totals. Completion and failure count in the hour of the AWS completion timestamp. A failed or incomplete listing shows Unknown. Older observations continue to show the request-acceptance evidence they recorded. Home GPU worker health is separate.
 

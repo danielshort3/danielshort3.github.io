@@ -53,7 +53,7 @@
     "css/components/short-links.css",
     "css/components/short-links-activity.css"
   ],
-  "/tools/aws-status": [
+  "/tools/system-status": [
     "css/components/aws-status.css"
   ],
   "/tools/short-links": [

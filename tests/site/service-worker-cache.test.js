@@ -90,6 +90,8 @@ async function classification() {
     request('/tools/job-application-tracker'), request('/pages/transcribe.html'),
     request('/tools/watermark-remover', { document: true }), request('/tools/watermark-remover.html', { document: true }),
     request('/pages/watermark-remover.html', { document: true }),
+    request('/tools/system-status', { document: true }), request('/pages/system-status.html', { document: true }),
+    request('/tools/aws-status', { document: true }),
     request('/api/tools/watermark-remover', { method: 'POST' }),
     request('https://home-worker.example/home-tools/watermark/session', { method: 'POST' }),
     request('/tools/dashboard?code=fixture&state=fixture', { document: true }),

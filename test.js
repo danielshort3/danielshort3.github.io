@@ -1786,16 +1786,16 @@ try {
     assert(accountTools.length === 2, 'signed-in tools directory should include 2 account-only tools');
     assert(adminTools.length === 5 && ['aws-status', 'watermark-remover'].every((slug) =>
       adminTools.some((tool) => tool.slug === slug)),
-      'admin tools directory should include AWS Status and Watermark Remover and retain the existing admin tools');
+      'admin tools directory should include System Status and Watermark Remover and retain the existing admin tools');
     assert(toolRecords.some((tool) => tool.slug === 'transcribe' && tool.visibility === 'authed'),
       'File Transcriber should be listed as an account-only tool');
     const sitemap = readFile('sitemap.xml');
     publicTools.forEach((tool) => {
-      assert(sitemap.includes(`<loc>https://www.danielshort.me/tools/${tool.slug}</loc>`),
+      assert(sitemap.includes(`<loc>https://www.danielshort.me/${tool.href}</loc>`),
         `${tool.slug} public tool URL should remain in sitemap.xml`);
     });
     [...accountTools, ...adminTools].forEach((tool) => {
-      assert(!sitemap.includes(`<loc>https://www.danielshort.me/tools/${tool.slug}</loc>`),
+      assert(!sitemap.includes(`<loc>https://www.danielshort.me/${tool.href}</loc>`),
         `${tool.slug} restricted tool URL should stay out of sitemap.xml`);
     });
     const noindexHeaderSources = new Set(
@@ -1805,12 +1805,12 @@ try {
         .map((rule) => String(rule.source || ''))
     );
     toolRecords.filter((tool) => tool && tool.noindex).forEach((tool) => {
-      const slug = String(tool.slug || '').trim();
-      const page = readFile(`pages/${slug}.html`);
+      const route = `/${tool.href}`;
+      const page = readFile(tool.href.replace(/^tools\//, 'pages/') + '.html');
       assert(/<meta\s+[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(page),
-        `${slug} noindex tool should include static robots metadata`);
-      assert(noindexHeaderSources.has(`/tools/${slug}`), `${slug} clean route noindex header missing`);
-      assert(noindexHeaderSources.has(`/tools/${slug}.html`), `${slug} HTML route noindex header missing`);
+        `${route} noindex tool should include static robots metadata`);
+      assert(noindexHeaderSources.has(route), `${route} clean route noindex header missing`);
+      assert(noindexHeaderSources.has(route + '.html'), `${route} HTML route noindex header missing`);
     });
 
     toolRecords.forEach((tool) => {
@@ -1818,7 +1818,11 @@ try {
       const slug = String(tool.slug || '').trim();
       const href = String(tool.href || '').trim();
       assert(/^[-a-z0-9]+$/.test(slug), `${fileName} has invalid or empty slug`);
-      assert(href === `tools/${slug}`, `${fileName} href should match tools/${slug}`);
+      assert(/^tools\/[-a-z0-9]+$/.test(href), `${fileName} should declare a clean tool URL`);
+      if (href !== `tools/${slug}`) {
+        assert(vercelConfig.redirects.some((rule) => rule.source === `/tools/${slug}` &&
+          rule.destination === '/' + href && rule.permanent), `${fileName} should redirect its original URL`);
+      }
       assert(tool.iconImage === `img/tools/icons/${slug}.png`, `${fileName} should declare a generated icon image`);
       assert(fs.existsSync(tool.iconImage), `${fileName} icon image is missing`);
       const visibility = String(tool.visibility || 'public').trim().toLowerCase();
@@ -1836,7 +1840,7 @@ try {
           /\bhidden\b/.test(card[1]) && card[1].includes(`data-tools-visibility="${visibility}"`)),
           `${fileName} restricted route should be available for authorized hydration and hidden initially`);
       }
-      assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
+      assert(rewrites.some((rule) => rule.source === '/' + href && rule.destination === href.replace(/^tools\//, '/pages/')),
         `${fileName} missing clean URL rewrite`);
       assert(catalogJs.includes(`'${slug}':`), `${fileName} missing from TOOL_CATALOG`);
     });
@@ -40207,8 +40211,7 @@ try {
       .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
       .map((name) => JSON.parse(fs.readFileSync(path.join('content', 'tools', name), 'utf8')))
       .filter((tool) => ['admin', 'admins'].includes(String(tool && tool.visibility ? tool.visibility : '').trim().toLowerCase()))
-      .map((tool) => `/tools/${String(tool && tool.slug ? tool.slug : '').trim()}`)
-      .filter((toolPath) => toolPath !== '/tools/');
+      .map((tool) => '/' + tool.href);
 
     adminToolPaths.forEach((toolPath) => {
       assert(!sitemap.includes(`https://www.danielshort.me${toolPath}`), `sitemap.xml should exclude admin tool URL: ${toolPath}`);

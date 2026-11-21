@@ -69,7 +69,7 @@ function createAwsStatusHandler({ readStatus = readAwsStatus } = {}) {
       if (error.code === 'AUTH_ORIGIN_MISMATCH') {
         return sendJson(res, 403, { ok: false, error: 'Same-origin request required.' });
       }
-      return sendJson(res, 401, { ok: false, error: 'Sign in to view AWS status.' });
+      return sendJson(res, 401, { ok: false, error: 'Sign in to view system status.' });
     }
     if (!claims?.sub || !isToolsAdminClaims(claims)) {
       return sendJson(res, 403, { ok: false, error: 'Administrator access required.' });
@@ -89,7 +89,7 @@ function createAwsStatusHandler({ readStatus = readAwsStatus } = {}) {
       const snapshot = await pending;
       return sendJson(res, 200, { ...snapshot, cached: false });
     } catch {
-      return sendJson(res, 503, { ok: false, error: 'AWS status is temporarily unavailable.' });
+      return sendJson(res, 503, { ok: false, error: 'System status is temporarily unavailable.' });
     }
   };
 }
