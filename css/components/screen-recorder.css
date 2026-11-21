@@ -1497,3 +1497,196 @@
     body.screenrec-page[data-page="screen-recorder"][data-tools-layout] input[role="switch"]::after { transition: none; }
   }
 }
+
+@layer overrides {
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid[data-step] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border: 1px solid var(--screenrec-border);
+    border-radius: 10px;
+    background: white;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-controls {
+    padding: clamp(28px, 3.7vw, 54px);
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    border-radius: 9px 9px 0 0;
+    background: #f3f9f8;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome > svg {
+    width: 48px;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 11px;
+    border-radius: 10px;
+    background: #dcefed;
+    color: var(--screenrec-accent);
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome h2 {
+    margin: 20px 0 12px;
+    color: #091f3b;
+    font-size: clamp(24px, 2.25vw, 32px);
+    letter-spacing: -.035em;
+    line-height: 1.15;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome p {
+    max-width: 415px;
+    margin: 0 0 24px;
+    color: var(--screenrec-muted);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid :is(.btn-primary, .btn-secondary, .btn-ghost) {
+    min-height: 44px;
+    width: auto;
+    padding: 10px 19px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-card {
+    border: 0;
+    border-radius: 9px;
+    box-shadow: none;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-controls {
+    justify-content: center;
+    padding: clamp(24px, 2.8vw, 40px);
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid[data-step="choose"] .screenrec-controls {
+    border-top: 1px solid var(--screenrec-border);
+    border-radius: 0 0 9px 9px;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-controls h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-form, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid #screenrec-panel-audio { gap: 0; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-audio-sources { border: 0; border-radius: 0; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-audio-source + .screenrec-audio-source { border-top: 1px solid var(--screenrec-border); }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-toggle {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    min-height: 58px;
+    padding: 0;
+    gap: 12px;
+  }
+
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-toggle > svg { width: 18px; height: 18px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-toggle strong { margin: 0; font-weight: 550; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-details { padding: 4px 0 14px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-advanced-settings .screenrec-share { justify-self: start; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-more-options { padding-top: 8px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-more-options > summary, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    list-style: none;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid summary::-webkit-details-marker { display: none; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-more-options > summary::after, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-bar::after {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    margin: -3px 4px 0 auto;
+    border: solid currentColor;
+    border-width: 0 1px 1px 0;
+    transform: rotate(45deg);
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid details[open] > summary::after { transform: rotate(225deg); margin-top: 3px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-preview {
+    grid-row: 1;
+    gap: 16px;
+    width: min(100%, 900px);
+    box-sizing: border-box;
+    margin-inline: auto;
+    padding: clamp(16px, 2.1vw, 30px);
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-heading, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-actions, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-heading { justify-content: space-between; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-heading h2 { font-size: clamp(18px, 1.75vw, 24px); }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-clock { display: flex; align-items: center; gap: 4px; color: var(--screenrec-muted); font-size: .84rem; font-variant-numeric: tabular-nums; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid:is([data-step="recording"], [data-step="paused"]) .screenrec-clock::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-right: 2px;
+    border-radius: 50%;
+    background: #c93640;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid[data-step="paused"] .screenrec-clock::before { background: #9c6923; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-frame { min-width: 0; border: 1px solid var(--screenrec-border); border-radius: 6px; overflow: hidden; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-bar {
+    justify-content: start;
+    min-height: 36px;
+    padding: 0 12px;
+    background: #eef5f5;
+    color: var(--screenrec-muted);
+    font-size: .8rem;
+    cursor: pointer;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-bar > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-bar svg { flex: none; width: 16px; height: 16px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-actions { padding: 10px 12px; font-size: .8rem; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-actions > span { flex: 1 0 100%; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage { width: 100%; height: auto; min-height: 0; max-height: 55vh; aspect-ratio: 16 / 9; border: 0; border-radius: 0; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-actions .screenrec-crop-button { display: inline-flex; align-items: center; gap: 6px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-controls, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-crop-group, body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-crop-presets {
+    position: static;
+    display: grid;
+    justify-items: start;
+    min-width: 0;
+  }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-crop-presets { width: 100%; box-sizing: border-box; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-crop-presets-grid { width: 100%; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-crop-preset { min-height: 44px; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-export .screenrec-download-list { margin: 4px 0; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-export .screenrec-download-list a { color: var(--screenrec-accent-strong); text-decoration: underline; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-feedback { grid-column: 1 / -1; padding: 12px 20px; font-size: .9rem; color: var(--screenrec-muted); border-top: 1px solid var(--screenrec-border); }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-feedback:has(> [hidden] + [hidden]) { display: none; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-notice { margin: 4px 0 0; }
+  body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-heading h2:focus { outline-offset: 4px; }
+  @media (min-width: 760px) {
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid[data-step="choose"] { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome { border-radius: 9px 0 0 9px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid[data-step="choose"] .screenrec-controls { border-top: 0; border-left: 1px solid var(--screenrec-border); border-radius: 0 9px 9px 0; }
+  }
+  @media (max-width: 599px) {
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome { padding: 20px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome > svg { width: 33px; height: 33px; padding: 6px; border-radius: 7px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome h2 { margin: 12px 0 6px; font-size: 22px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-welcome p { margin-bottom: 14px; font-size: 14px; line-height: 1.5; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-controls { padding: 16px 20px 10px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-controls h2 { margin: 0; font-size: 16px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-source-toggle { min-height: 44px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-more-options { padding-top: 0; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-preview { gap: 14px; padding: 16px; }
+    body.screenrec-page[data-page="screen-recorder"][data-tools-layout] .screenrec-grid .screenrec-stage-actions { gap: 8px; }
+  }
+}

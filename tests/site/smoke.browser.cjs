@@ -628,11 +628,11 @@ async function runViewport(browser, base, settings) {
     await settle(page);
     await assertSharedStage(page, homeStage, 'Inline tools library');
     assert.deepEqual(await page.locator('#main .home-library__group:visible > h3').allTextContents(),
-      ['Start here', 'Text', 'Images', 'Links'], 'The grouped public tool library remains intact.');
-    assert.deepEqual(await page.locator('#main .home-library__group:visible').first().locator('a.home-library__card')
+      ['Start here', 'Text', 'Images & video', 'Links'], 'The grouped public tool library remains intact.');
+    assert.deepEqual(await page.locator('#main .home-library__group:visible').first().locator('a.home-library__shortcut')
       .evaluateAll(nodes => nodes.map(node => node.getAttribute('href'))),
     ['/tools/text-compare', '/tools/qr-code-generator', '/tools/screen-recorder'],
-    'The Start here group retains the three approved featured tools, including Screen Recorder.');
+    'Start here links directly to all three featured tools.');
     await resetScroll(page);
     const libraryScroll = await wheelToBottom(page, 'Tool library', homeLayout.compact ? 'document' : 'frame');
     await assertSharedStage(page, homeStage, 'Inline tools library after scrolling');

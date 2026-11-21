@@ -27,7 +27,6 @@
     audioStatus: $('[data-screenrec="audio-status"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
-    captureActions: $('[data-screenrec="capture-actions"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
     cropLabel: $('[data-screenrec="crop-label"]'),
     cropPresetsToggle: $('[data-screenrec="crop-presets-toggle"]'),
@@ -41,10 +40,19 @@
     microphoneDetails: $('[data-screenrec="microphone-details"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
+    welcome: $('[data-screenrec="welcome"]'),
+    stageTitle: $('[data-screenrec="stage-title"]'),
+    elapsed: $('[data-screenrec="elapsed"]'),
+    sourceLabel: $('[data-screenrec="source-label"]'),
+    clipFormat: $('[data-screenrec="clip-format"]'),
+    recordAgain: $('[data-screenrec="record-again"]'),
+    returnClip: $('[data-screenrec="return-clip"]'),
+    previewClip: $('[data-screenrec="preview-clip"]'),
+    cropOptions: $('[data-screenrec="crop-options"]'),
+    showSettings: $('[data-screenrec="show-settings"]'),
     grid: $('[data-screenrec="grid"]'),
     supportNotice: $('[data-screenrec="support-notice"]'),
     supportReason: $('[data-screenrec="support-reason"]'),
-    captureOnly: $$('[data-screenrec-capture-only]'),
     controlsPanel: $('[data-screenrec="controls-panel"]'),
     previewPanel: $('[data-screenrec="preview-panel"]'),
     stage: $('[data-screenrec="stage"]'),
@@ -103,6 +111,13 @@
     recording: false,
     paused: false,
     captureActive: false,
+    capturePending: false,
+    recordPending: false,
+    revisitingSetup: false,
+    editSettings: false,
+    disposed: false,
+    sourceLabel: '',
+    clipSourceLabel: '',
     timerId: null,
     timerStart: 0,
     timerPausedAt: 0,
@@ -201,6 +216,7 @@
   const setStatus = (text, tone, notice = '') => {
     if (!el.status) return;
     el.status.textContent = text;
+    el.status.hidden = ['Idle', 'Ready', 'Recording', 'Paused', 'Clip ready'].includes(text);
     if (tone) {
       el.status.dataset.tone = tone;
     } else {
@@ -553,7 +569,6 @@
       acc[ext] = (acc[ext] || 0) + 1;
       return acc;
     }, {});
-    const downloadItems = [];
     state.downloadZipName = buildFilename('zip', '', stamp);
     state.downloadFiles = files.map((file) => {
       const ext = extensionFromMime(file.mimeType);
@@ -561,14 +576,13 @@
       const suffix = file.suffix ? slugify(file.suffix) : (extCounts[ext] > 1 ? slugify(label) : '');
       const name = buildFilename(ext, suffix, stamp);
       const url = URL.createObjectURL(file.blob);
-      downloadItems.push({ label, size: formatBytes(file.blob.size) });
       return { url, name, mimeType: file.mimeType, label, blob: file.blob };
     });
     state.downloadUrls = state.downloadFiles.map((file) => file.url);
     const fileCount = state.downloadFiles.length;
     const aggregateBytes = state.downloadFiles.reduce((total, file) => total + Math.max(0, Number(file.blob?.size) || 0), 0);
     el.downloadAll.disabled = fileCount === 0;
-    el.downloadAll.textContent = fileCount > 1 ? `Download ${fileCount} formats` : 'Download format';
+    el.downloadAll.textContent = fileCount > 1 ? `Download ${fileCount} files` : 'Download clip';
     if (fileCount > 1) {
       el.downloadNote.textContent = aggregateBytes > RECORDING_LIMITS.maxZipAggregateBytes
         ? `Ready to download separately. Zip creation is disabled above ${formatBytes(RECORDING_LIMITS.maxZipAggregateBytes)} to keep memory bounded.`
@@ -578,12 +592,14 @@
     }
     if (el.downloadItems) {
       el.downloadItems.innerHTML = '';
-      downloadItems.forEach((item) => {
+      state.downloadFiles.forEach((item) => {
         const li = document.createElement('li');
-        const label = document.createElement('span');
+        const label = document.createElement('a');
+        label.href = item.url;
+        label.download = item.name;
         label.textContent = item.label;
         const size = document.createElement('span');
-        size.textContent = item.size;
+        size.textContent = formatBytes(item.blob.size);
         li.appendChild(label);
         li.appendChild(size);
         el.downloadItems.appendChild(li);
@@ -1032,9 +1048,43 @@
         ? 'This browser does not provide video recording.'
         : 'This browser does not provide screen sharing.';
     }
-    if (el.controlsPanel) el.controlsPanel.hidden = !canRecordScreen;
-    if (el.previewPanel) el.previewPanel.hidden = !canRecordScreen && !hasClip;
-    el.captureOnly.forEach((control) => { control.hidden = !canRecordScreen; });
+    const exporting = hasClip && !state.revisitingSetup && !state.recording;
+    let step = 'choose';
+    if (state.recording) step = state.recordingStopRequested ? 'finalizing' : state.paused ? 'paused' : 'recording';
+    else if (exporting) step = 'export';
+    else if (state.captureActive) step = 'sharing';
+    const choosing = step === 'choose';
+    const sharing = step === 'sharing';
+    const show = (node, visible) => { if (node) node.hidden = !visible; };
+    show(el.welcome, choosing && canRecordScreen);
+    show(el.controlsPanel, canRecordScreen && (choosing || (sharing && state.editSettings)));
+    show(el.previewPanel, !choosing);
+    show(el.startRecord, sharing);
+    show(el.cropToggle, sharing);
+    show(el.cropOptions, sharing && (state.cropSelecting || state.cropRegion));
+    show(el.showSettings, sharing);
+    show(el.stopCapture, state.captureActive && !state.recording);
+    show(el.stopRecord, state.recording);
+    show(el.pauseRecord, state.recording && !state.recordingStopRequested);
+    show(el.downloadPanel, exporting);
+    show(el.downloadAll, exporting);
+    show(el.recordAgain, exporting && canRecordScreen);
+    show(el.returnClip, choosing && hasClip);
+    show(el.previewClip, sharing && hasClip);
+    show(el.elapsed, exporting || state.recording);
+    if (el.showSettings) el.showSettings.setAttribute('aria-expanded', String(state.editSettings));
+    const titles = { sharing: 'Preview your capture', recording: 'Recording', paused: 'Recording paused', finalizing: 'Finishing your recording', export: 'Recording ready' };
+    if (el.stageTitle && !choosing) el.stageTitle.textContent = titles[step];
+    if (el.clipFormat) el.clipFormat.textContent = exporting ? ' · ' + formatLabelFromMime(state.recordedMimeType).split(' (')[0] : '';
+    if (el.sourceLabel) el.sourceLabel.textContent = (exporting ? state.clipSourceLabel : state.sourceLabel) || 'Shared screen';
+    if (el.grid && el.grid.dataset.step !== step) {
+      const previousStep = el.grid.dataset.step;
+      el.grid.dataset.step = step;
+      const resuming = previousStep === 'paused' && step === 'recording';
+      if (!state.disposed && previousStep && step !== 'paused' && !resuming) {
+        (choosing ? el.startCapture : el.stageTitle)?.focus?.({ preventScroll: true });
+      }
+    }
     if (el.grid) {
       el.grid.hidden = !canRecordScreen && !hasClip;
       el.grid.dataset.captureSupport = canRecordScreen ? 'available' : 'unavailable';
@@ -1577,6 +1627,10 @@
     const constraints = requestedId ? { deviceId: { exact: requestedId } } : true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: constraints });
+      if (state.disposed || !el.micToggle?.checked || (el.micSelect?.value || '') !== requestedId) {
+        stopTracks(stream);
+        return false;
+      }
       stopMicStream();
       state.micStream = stream;
       state.micDeviceId = requestedId;
@@ -1647,20 +1701,20 @@
   const updateButtons = () => {
     const captureLive = isCaptureLive();
     if (el.startCapture) {
-      el.startCapture.disabled = !supportsCapture || !supportsRecorder || captureLive || state.recording;
+      el.startCapture.disabled = !canRecordScreen || state.capturePending || captureLive || state.recording;
     }
     if (el.stopCapture) {
       el.stopCapture.disabled = !captureLive || state.recording;
     }
     if (el.startRecord) {
-      el.startRecord.disabled = !captureLive || state.recording;
+      el.startRecord.disabled = !captureLive || state.recording || state.recordPending || state.capturePending;
     }
     if (el.pauseRecord) {
-      el.pauseRecord.disabled = !state.recording;
+      el.pauseRecord.disabled = !state.recording || state.recordingStopRequested;
       el.pauseRecord.textContent = state.paused ? 'Resume' : 'Pause';
     }
     if (el.stopRecord) {
-      el.stopRecord.disabled = !state.recording;
+      el.stopRecord.disabled = !state.recording || state.recordingStopRequested;
     }
     if (el.audioToggle) {
       el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording;
@@ -1721,6 +1775,7 @@
     }
     updateAudioDetails();
     updateAudioMeterState();
+    setView();
   };
 
   const getActiveElapsedMs = (now = performance.now()) => {
@@ -1806,6 +1861,8 @@
     }
     state.recordedBlob = blob;
     state.recordedMimeType = mimeType || blob.type || '';
+    state.revisitingSetup = false;
+    state.clipSourceLabel = state.sourceLabel;
     state.recordedUrl = URL.createObjectURL(blob);
     el.video.srcObject = null;
     el.video.src = state.recordedUrl;
@@ -1816,7 +1873,7 @@
     setView();
 
     const handleMetadata = () => {
-      state.recordedDuration = Number.isFinite(el.video.duration) ? el.video.duration : 0;
+      if (Number.isFinite(el.video.duration) && el.video.duration > 0) state.recordedDuration = el.video.duration;
       resetTimer(state.recordedDuration * 1000);
       updateButtons();
     };
@@ -1836,6 +1893,7 @@
   };
 
   const startCapture = async () => {
+    if (state.disposed) return false;
     if (state.captureActive && (!state.stream || !state.stream.active)) {
       stopCapture('Capture ended by the browser.');
     }
@@ -1855,7 +1913,7 @@
         setStatus('Capture cancelled', 'idle');
         return false;
       }
-      if (includeAudio) {
+      if (includeAudio && !state.disposed) {
         try {
           stream = await navigator.mediaDevices.getDisplayMedia({ video: videoConstraints, audio: false });
           audioFallback = true;
@@ -1869,7 +1927,9 @@
       }
     }
 
-    if (!stream) {
+    if (state.disposed) { stopTracks(stream); return false; }
+    if (!stream || !stream.getVideoTracks().length) {
+      stopTracks(stream);
       setStatus('Capture unavailable', 'error');
       return false;
     }
@@ -1881,13 +1941,16 @@
       });
     }
 
-    clearRecordedClip();
     state.stream = stream;
+    state.sourceLabel = stream.getVideoTracks()[0].label || 'Shared screen';
     state.captureActive = true;
+    state.revisitingSetup = Boolean(state.recordedUrl);
+    state.editSettings = false;
     state.stopReason = '';
     if (el.micToggle?.checked && !streamHasAudio(state.micStream)) {
       await ensureMicStream();
     }
+    if (state.disposed || state.stream !== stream) return false;
     setLivePreview();
     setView();
     updateCaptureMeta();
@@ -2249,6 +2312,7 @@
       await ensureMicStream();
     }
 
+    if (state.disposed || !isCaptureLive()) return;
     let recordingStreamInfo;
     try {
       recordingStreamInfo = buildRecordingStream();
@@ -2293,6 +2357,7 @@
 
     let stoppedCount = 0;
     const finalizeRecording = () => {
+      state.recordedDuration = getActiveElapsedMs() / 1000;
       state.recording = false;
       state.paused = false;
       stopTimer();
@@ -2481,6 +2546,7 @@
     }
     if (state.recordingStopRequested) return;
     state.recordingStopRequested = true;
+    updateButtons();
     state.recorders.forEach((entry) => {
       if (entry.recorder.state !== 'inactive') {
         try {
@@ -2728,9 +2794,46 @@
       setMicHelp('Microphone capture is not supported in this browser.');
     }
 
-    el.startCapture?.addEventListener('click', startCapture);
+    el.startCapture?.addEventListener('click', async () => {
+      if (state.capturePending || state.disposed) return;
+      state.capturePending = true;
+      updateButtons();
+      try { await startCapture(); } finally { state.capturePending = false; updateButtons(); }
+    });
+    el.showSettings?.addEventListener('click', () => {
+      state.editSettings = !state.editSettings;
+      setView();
+      if (state.editSettings) {
+        const first = el.controlsPanel.querySelector('summary, input:not(:disabled), select:not(:disabled)');
+        first?.focus();
+      }
+    });
+    el.recordAgain?.addEventListener('click', () => {
+      state.revisitingSetup = true;
+      state.editSettings = false;
+      if (state.captureActive) setLivePreview();
+      else el.video.pause();
+      setStatus('Ready', 'ready');
+      updateButtons();
+    });
+    const returnToClip = () => {
+      state.revisitingSetup = false;
+      el.video.srcObject = null;
+      el.video.src = state.recordedUrl;
+      el.video.muted = false;
+      el.video.controls = true;
+      setStatus('Clip ready', 'ready');
+      updateButtons();
+    };
+    el.returnClip?.addEventListener('click', returnToClip);
+    el.previewClip?.addEventListener('click', returnToClip);
     el.stopCapture?.addEventListener('click', () => stopCapture());
-    el.startRecord?.addEventListener('click', startRecording);
+    el.startRecord?.addEventListener('click', async () => {
+      if (state.recordPending || state.disposed) return;
+      state.recordPending = true;
+      updateButtons();
+      try { await startRecording(); } finally { state.recordPending = false; updateButtons(); }
+    });
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
     el.cropToggle?.addEventListener('click', toggleCropSelection);
@@ -2910,6 +3013,7 @@
   });
 
   window.SiteRoutes?.addCleanup?.(() => {
+    state.disposed = true;
     stopTimer();
     const activeRecorders = state.recorders.slice();
     state.recorders = [];

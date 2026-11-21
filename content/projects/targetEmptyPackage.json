@@ -2,6 +2,7 @@
   "id": "targetEmptyPackage",
   "title": "Empty-Package Shrink Dashboard",
   "subtitle": "Locate retail shrink hotspots and compare trends over time.",
+  "outcomeIntro": "I used recovered empty packages to identify the stores and departments driving the most recorded losses.",
   "metaDescription": "Explore an anonymized retail shrink dashboard that compares empty-package incident counts, retail value, locations, and trends over time.",
   "image": "img/projects/targetEmptyPackage.png",
   "iconImage": "img/projects/icons/targetEmptyPackage.png",

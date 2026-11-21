@@ -529,6 +529,45 @@ window.DIRECTORY_WORKBENCH = {
       "order": 11
     },
     {
+      "id": "watermark-remover",
+      "title": "Watermark Remover",
+      "subtitle": "Media utilities",
+      "summary": "Process sheet music images, single songs, and orders of worship on the Home GPU.",
+      "href": "tools/watermark-remover",
+      "type": "Browser Tool",
+      "availability": "Browser",
+      "access": "Admin",
+      "category": "Media utilities",
+      "tags": [],
+      "tools": [],
+      "concepts": [
+        "Media utilities"
+      ],
+      "formats": [
+        "Browser Tool"
+      ],
+      "results": [
+        "Process sheet music images, single songs, and orders of worship on the Home GPU."
+      ],
+      "actions": [],
+      "privacy": "Files travel directly to the home computer for processing. Watermark Remover requires administrator access.",
+      "inputs": [
+        "Sheet music images",
+        "Song details",
+        "Order of worship PDF"
+      ],
+      "outputs": [
+        "Single-song or assembled PDF",
+        "Multi-song download"
+      ],
+      "iconImage": "img/tools/icons/watermark-remover.png?v=d51cdf5f9857",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 12
+    },
+    {
       "id": "job-application-tracker",
       "title": "Job Application Tracker",
       "subtitle": "Cloud-backed workflows",
@@ -570,7 +609,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "authed",
       "hidden": true,
       "noindex": true,
-      "order": 12
+      "order": 13
     },
     {
       "id": "short-links",
@@ -614,7 +653,43 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "admin",
       "hidden": true,
       "noindex": true,
-      "order": 13
+      "order": 14
+    },
+    {
+      "id": "aws-status",
+      "title": "AWS Status",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Connection and website checks",
+      "href": "tools/aws-status",
+      "type": "Browser Tool",
+      "availability": "Browser",
+      "access": "Admin",
+      "category": "Cloud-backed workflows",
+      "tags": [],
+      "tools": [],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Browser Tool"
+      ],
+      "results": [
+        "Connection and website checks"
+      ],
+      "actions": [],
+      "privacy": "AWS operational status is available to administrators only.",
+      "inputs": [
+        "Status view and history date"
+      ],
+      "outputs": [
+        "AWS connection history and project, tool, and game status"
+      ],
+      "iconImage": "img/tools/icons/aws-status.png?v=89d36525d564",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 15
     },
     {
       "id": "ga4-utm-performance",
@@ -660,13 +735,13 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "admin",
       "hidden": true,
       "noindex": true,
-      "order": 14
+      "order": 16
     },
     {
       "id": "transcribe",
       "title": "File Transcriber",
       "subtitle": "Cloud-backed workflows",
-      "summary": "Add audio or video files, or import a YouTube video with Home GPU, and download completed transcripts.",
+      "summary": "Turn audio and video files into text.",
       "href": "tools/transcribe",
       "type": "Cloud Tool",
       "availability": "Cloud",
@@ -689,13 +764,14 @@ window.DIRECTORY_WORKBENCH = {
         "Cloud Tool"
       ],
       "results": [
-        "Add audio or video files, or import a YouTube video with Home GPU, and download completed transcripts."
+        "Turn audio and video files into text."
       ],
       "actions": [],
-      "privacy": "Processes approved files with the selected service; Home GPU can also import a public YouTube video.",
+      "privacy": "Processes approved files with the selected service. Home GPU can find videos on public web pages and process the ones you select.",
       "inputs": [
         "Audio or video file",
-        "YouTube video URL (Home GPU)"
+        "YouTube video URL (Home GPU)",
+        "Web page URL (Home GPU)"
       ],
       "outputs": [
         "Completed transcript download"
@@ -705,7 +781,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "authed",
       "hidden": true,
       "noindex": true,
-      "order": 15
+      "order": 17
     }
   ]
 };

@@ -249,7 +249,7 @@ function categoryForPath(urlPath) {
 
 function stripIndexNoise(html) {
   let out = String(html || '');
-  out = out.replace(/<article\b[^>]*\bdata-tools-visibility="admin"[^>]*>[\s\S]*?<\/article>/gi, ' ');
+  out = out.replace(/<(article|li)\b[^>]*\bdata-tools-visibility="(?:admin|authed)"[^>]*>[\s\S]*?<\/\1>/gi, ' ');
   out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ');
   out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ');
   return out;
@@ -332,6 +332,35 @@ function main() {
     const prevScore = (prev.description ? prev.description.length : 0) + (prev.content ? prev.content.length : 0);
     const nextScore = (entry.description ? entry.description.length : 0) + (entry.content ? entry.content.length : 0);
     if (nextScore > prevScore) byUrl.set(urlPath, entry);
+  });
+
+  // Public game listings also participate in on-site search when their pages
+  // opt out of external search engines.
+  const library = require('../js/home/home-library-data');
+  for (const [section, catalog] of Object.entries(library)) {
+    for (const item of catalog.items) {
+      const url = toPathFromCanonical(item.href);
+      if (!url || item.external) continue;
+      const isPublicGame = section === 'games' && url.startsWith('/games/');
+      const previous = byUrl.get(url);
+      if (!previous && !isPublicGame) continue;
+      byUrl.set(url, {
+        ...previous,
+        url,
+        title: item.title,
+        description: item.summary,
+        category: isPublicGame ? 'Games' : previous.category,
+        keywords: [...new Set([...(previous?.keywords || []), previous?.title].filter(Boolean))]
+      });
+    }
+  }
+  const home = byUrl.get('/');
+  if (home) Object.assign(home, { title: 'Daniel Short', description: 'Explore my projects, tools, and games.' });
+  const games = byUrl.get('/games');
+  if (games) Object.assign(games, {
+    title: 'Game library',
+    description: 'Browse browser games and simulations.',
+    keywords: library.games.items.map((game) => game.title)
   });
 
   const pages = [...byUrl.values()];

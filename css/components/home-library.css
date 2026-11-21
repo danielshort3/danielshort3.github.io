@@ -184,6 +184,66 @@
     letter-spacing: -.015em;
   }
   .home-library__group .home-library__list { padding-top: 14px; }
+  .home-library__shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 0 0;
+    list-style: none;
+  }
+  .home-library__shortcut {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 7px 14px 7px 10px;
+    border: 1px solid #c2dade;
+    border-radius: 8px;
+    color: #173844;
+    background: #fff;
+    font-size: .9375rem;
+    font-weight: 650;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+  .home-library__shortcut-icon,
+  .home-library__shortcut-icon :is(img, picture, svg) {
+    display: block;
+    flex: none;
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+  }
+  .home-library__shortcut:is(:hover, :focus-visible) {
+    border-color: var(--panel-color);
+    color: var(--panel-color);
+  }
+  .home-library__shortcut:focus-visible {
+    outline: 3px solid var(--panel-color);
+    outline-offset: 3px;
+  }
+  @media (max-width: 520px) {
+    .home-library__shortcuts {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .home-library__shortcuts > li { display: flex; }
+    .home-library__shortcut {
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 4px;
+      width: 100%;
+      min-height: 75px;
+      padding: 8px 4px 9px;
+      font-size: .828125rem;
+      line-height: 1.22;
+      text-align: center;
+      text-wrap: balance;
+    }
+  }
   .home-library__jump-links {
     display: flex;
     flex-wrap: wrap;
@@ -218,7 +278,7 @@
   .home-library__group > :is(h2, h3) {
     scroll-margin-block-start: 16px;
   }
-  .home-library__badge { color: #526174; font-size: .6875rem; line-height: 1.4; font-weight: 600; }
+  .home-library__badge { color: #536479; font-size: .71875rem; line-height: 1.3; font-weight: 500; }
 
   .home-library__item {
     min-width: 0;
@@ -447,7 +507,7 @@
 
   .home-library__headline {
     display: grid;
-    gap: inherit;
+    gap: 2px;
     min-width: 0;
   }
 
@@ -1382,7 +1442,7 @@
       grid-column: 2;
       grid-row: 1;
       align-self: center;
-      gap: 3px;
+      gap: 2px;
     }
 
     .site-frame :is(.personal-library--projects, [data-home-library-view="projects"]) .home-library__summary {

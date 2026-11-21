@@ -447,7 +447,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
   project = versionImageContent(project);
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
-  const subtitle = normalizeWhitespace(project.subtitle || '');
+  const intro = normalizeWhitespace(project.outcomeIntro || project.subtitle || '');
   const description = toMetaDescription(project);
   const canonicalPath = `/portfolio/${encodeURIComponent(id)}`;
   const canonicalUrl = `${SITE_ORIGIN}${canonicalPath}`;
@@ -587,6 +587,8 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
     ? '  <script defer src="js/portfolio/android-app-download.js"></script>\n'
     : '';
   const dashboard = String(embed?.type || '').trim() === 'tableau';
+  const demoHeading = normalizeWhitespace(embed?.heading || '');
+  const hasSeparateDemoHeading = Boolean(demoHeading && demoHeading !== title && !drawingDemo && !dashboard);
   const dashboardBase = dashboard ? String(embed.base || '').trim() : '';
   const demoLaunchHref = dashboardBase
     ? `${dashboardBase}${dashboardBase.includes('?') ? '&' : '?'}:showVizHome=no&:embed=y&:tabs=no`
@@ -621,7 +623,7 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
           return `<a class="project-intro-action project-intro-action--${action.type}" href="${escapeHtml(action.href)}"${externalAttrs}${downloadAttrs} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="${action.type}" data-source-surface="project_intro">${escapeHtml(action.label)}</a>`;
         }).join('\n        ')}
         ${androidRelease ? `<span class="project-download-meta" data-android-release-status role="status">${escapeHtml(androidReleaseDescription(androidRelease))}</span><button class="project-download-retry" type="button" data-android-release-retry hidden>Retry check</button>` : ''}
-        ${drawingDemo || dashboard ? renderDemoInstructions() : ''}
+        ${embed && !hasSeparateDemoHeading ? renderDemoInstructions() : ''}
       </nav>`
     : '';
 
@@ -960,7 +962,6 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
     if (!embed) return '';
     const embedFit = resolveEmbedFit(embed);
     const launchHref = demoLaunchHref;
-    const demoHeading = normalizeWhitespace(embed.heading || title);
     const demoDescription = normalizeWhitespace(embed.description || project.subtitle || '');
     const headingHtml = `<h2 class="section-title project-demo-title">${escapeHtml(demoHeading)}</h2>`;
     const demoCopy = demoDescription
@@ -968,24 +969,20 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
       : headingHtml;
 
     const mobilePreviewImage = renderDemoLaunchPreview();
-    const mobilePreviewAction = embedFit === 'content' && !drawingDemo && launchHref
-      ? `<a class="project-demo-mobile-open btn-primary" href="${escapeHtml(launchHref)}"${/^https?:\/\//i.test(launchHref) ? ' target="_blank" rel="noopener noreferrer"' : ''} data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project_resource" data-resource-type="demo" data-source-surface="project_preview">Open interactive demo <span aria-hidden="true">↗</span></a>`
-      : '';
     const mobileLaunch = (embedFit === 'content' || dashboard) && launchHref && mobilePreviewImage
       ? `<div class="project-demo-mobile-launch">
           ${mobilePreviewImage}
-          ${embedFit === 'content' ? '<span class="project-demo-preview-label" aria-hidden="true">Preview image</span>' : ''}
-          ${mobilePreviewAction}
+          ${embedFit === 'content' && (drawingDemo || hasSeparateDemoHeading) ? '<span class="project-demo-preview-label" aria-hidden="true">Preview image</span>' : ''}
         </div>`
       : '';
 
     return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Project demo">
-      ${drawingDemo || dashboard ? '' : `<div class="project-demo-header">
+      ${hasSeparateDemoHeading ? `<div class="project-demo-header">
         ${demoCopy}
         <div class="project-demo-header-actions">
           ${renderDemoInstructions()}
         </div>
-      </div>`}
+      </div>` : ''}
 
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
@@ -1082,7 +1079,7 @@ ${tableauPreconnect}
     <section class="project-hero project-hero--compact">
       <div class="wrapper">
         <h1>${escapeHtml(title)}</h1>
-        ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        ${intro ? `<p class="project-subtitle">${escapeHtml(intro)}</p>` : ''}
         ${introActionsHtml}
       </div>
     </section>

@@ -2,6 +2,7 @@
   "id": "ufoDashboard",
   "title": "UFO Sightings Dashboard",
   "subtitle": "Explore where and when historical UFO reports were recorded.",
+  "outcomeIntro": "I mapped 6,334 UFO reports across 48 states to explore where and when sightings clustered in 2013.",
   "metaDescription": "Explore historical UFO report records in Tableau, with geographic, seasonal, time-of-day, and reported-shape comparisons for the contiguous U.S.",
   "image": "img/projects/ufoDashboard.png",
   "iconImage": "img/projects/icons/ufoDashboard.png",

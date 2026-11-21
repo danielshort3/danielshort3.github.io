@@ -2,6 +2,7 @@
   "id": "website",
   "title": "danielshort.me",
   "subtitle": "A home for practical tools, personal projects, and browser experiments.",
+  "outcomeIntro": "I built this site to keep my projects, tools, and games easy to find and share.",
   "metaDescription": "Explore how Daniel Short built this portfolio with practical browser tools, a searchable project library, shared navigation, and generated pages.",
   "image": "img/projects/website.png",
   "iconImage": "img/projects/icons/website.png",

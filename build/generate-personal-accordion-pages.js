@@ -12,6 +12,7 @@ const {
   HARD_NAVIGATION_PATHS,
   getPersonalLibraryPresentation,
   getPersonalToolGroup,
+  orderPersonalTools,
   preparePersonalToolDetailHtml,
   renderPersonalLibraryMain,
   replaceMainHtml,
@@ -198,8 +199,7 @@ function buildToolsLibraryItems(content) {
   const sourceTools = new Map(content.tools.map((tool) => [tool.slug, tool]));
   const personal = (content.audiences || []).find((audience) => audience.key === 'personal');
   const startHereIds = personal?.toolLibrary?.startHereToolIds || [];
-  const groups = ['Start here', 'Text', 'Images', 'Links', 'Recording', 'Account tools', 'Admin tools'];
-  return directory.items.filter((tool) => (
+  const items = directory.items.filter((tool) => (
     tool.visibility !== 'public' || (!tool.hidden && !tool.noindex)
   )).map((tool) => ({
     id: tool.id,
@@ -213,10 +213,9 @@ function buildToolsLibraryItems(content) {
     contentId: tool.id,
     resourceType: 'tool',
     visibility: tool.visibility,
-    group: startHereIds.includes(tool.id) ? 'Start here' :
-      getPersonalToolGroup({ ...sourceTools.get(tool.id), visibility: tool.visibility })
-  })).sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group) ||
-    (a.group === 'Start here' ? startHereIds.indexOf(a.id) - startHereIds.indexOf(b.id) : 0));
+    group: getPersonalToolGroup({ ...sourceTools.get(tool.id), visibility: tool.visibility })
+  }));
+  return orderPersonalTools(items, startHereIds);
 }
 
 function countMainElements(html) {

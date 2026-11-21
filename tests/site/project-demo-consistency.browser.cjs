@@ -260,10 +260,12 @@ async function runCase({ browser, base, artifactDir, demo, width, project }) {
     if (await page.locator('#pcz-reject').isVisible()) await page.locator('#pcz-reject').click();
     let embedded = project;
     if (project) {
-      const heading = page.locator('.project-demo-header');
+      const masthead = demo.id === 'nonogram';
+      const heading = page.locator(masthead ? '.project-hero' : '.project-demo-header');
       await heading.scrollIntoViewIfNeeded();
-      assert.notEqual((await heading.locator('.project-demo-title').innerText()).trim(), 'Demo', `${label} supplies one descriptive outer heading.`);
-      assert((await heading.locator('.project-demo-description').innerText()).trim().length > 15, `${label} supplies one concise outer description.`);
+      assert.notEqual((await heading.locator(masthead ? 'h1' : '.project-demo-title').innerText()).trim(), 'Demo', label + ' supplies a descriptive heading.');
+      assert((await heading.locator(masthead ? '.project-subtitle' : '.project-demo-description').innerText()).trim().length > 15, label + ' supplies a concise introduction.');
+      assert.equal(await heading.locator('.project-demo-help-trigger').count(), 1, label + ' keeps instructions beside the relevant heading.');
       if (width < 600 && await page.locator('.project-intro-action--demo').isVisible()) {
         await page.locator('.project-intro-action--demo').click();
         await page.waitForURL(`**/${demo.id}-demo`);

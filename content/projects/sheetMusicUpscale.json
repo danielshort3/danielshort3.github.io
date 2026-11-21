@@ -2,6 +2,7 @@
   "id": "sheetMusicUpscale",
   "title": "Sheet Music Watermark Removal & Upscale",
   "subtitle": "Restore sheet-music scans and make small notation easier to read.",
+  "outcomeIntro": "I restored scanned sheet music so the notes are easier to read.",
   "metaDescription": "Compare original, restored, and upscaled sheet-music scans. Explore the U-Net and VDSR workflow, project code, and evaluation limitations.",
   "image": "img/projects/sheetMusicUpscale.png",
   "iconImage": "img/projects/icons/sheetMusicUpscale.png",

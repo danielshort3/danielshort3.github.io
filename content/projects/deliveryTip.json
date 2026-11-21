@@ -2,6 +2,7 @@
   "id": "deliveryTip",
   "title": "Delivery Tip",
   "subtitle": "Compare delivery shifts and neighborhoods to plan where and when to work.",
+  "outcomeIntro": "My delivery records showed that Friday evenings tended to earn the most in tips per hour.",
   "metaDescription": "Explore an Excel analysis of delivery shifts and neighborhoods built from personal delivery records to inform where and when to work.",
   "image": "img/projects/deliveryTip.png",
   "iconImage": "img/projects/icons/deliveryTip.png",

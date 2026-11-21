@@ -2,6 +2,7 @@
   "id": "androidApp",
   "title": "Daniel Short for Android",
   "subtitle": "A mobile companion for my projects, tools, and games.",
+  "outcomeIntro": "I brought my portfolio, tools, and games into one Android app with signed updates.",
   "metaDescription": "Explore the Daniel Short Android app, including native navigation and tools, offline project summaries, and a current review APK download.",
   "image": "img/projects/androidApp.png",
   "iconImage": "img/projects/icons/androidApp.png",

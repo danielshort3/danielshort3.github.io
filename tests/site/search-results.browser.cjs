@@ -24,7 +24,7 @@ async function runSearchChecks({ browser, base, artifactDir }) {
       await page.evaluate(() => document.fonts.ready);
       const geometry = await page.evaluate(() => {
         const panel = document.querySelector('.search-card').getBoundingClientRect();
-        return [...document.querySelectorAll('.search-result, .search-input, .search-filters button')].map((node) => {
+        return [...document.querySelectorAll('.search-result, .search-input, .search-filters button:not([hidden])')].map((node) => {
           const box = node.getBoundingClientRect();
           return { left: box.left, right: box.right, width: box.width, panelLeft: panel.left, panelRight: panel.right, client: node.clientWidth, scroll: node.scrollWidth };
         });
@@ -40,7 +40,7 @@ async function runSearchChecks({ browser, base, artifactDir }) {
       assert.equal(await tools.getAttribute('aria-pressed'), 'true');
       const count = Number((await tools.getAttribute('aria-label')).match(/\d+/)[0]);
       assert.equal(await page.locator('#search-results a').count(), count);
-      assert((await page.locator('.search-badge').allTextContents()).every((value) => value === 'Tools'));
+      assert((await page.locator('.search-badge').allTextContents()).every((value) => value === 'Tool'));
       await page.locator('#search-results a').first().click();
       await page.waitForURL('**/tools/image-optimizer');
       await page.locator('#imgopt-process').waitFor();
@@ -53,6 +53,12 @@ async function runSearchChecks({ browser, base, artifactDir }) {
       await page.getByRole('button', { name: 'Show all results', exact: true }).click();
       assert.equal(await page.locator('#search-results a').first().getAttribute('href'), '/portfolio/digitGenerator');
       assert.equal(await page.locator('[data-search-category="All"]').evaluate((node) => node === document.activeElement), true);
+      await page.locator('#search-page-q').fill('starfall');
+      await page.waitForFunction(() => document.querySelector('#search-results a')?.getAttribute('href') === '/games/project-starfall');
+      assert.deepEqual(await page.locator('#search-results a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), ['/games/project-starfall', '/games', '/']);
+      await page.getByRole('button', { name: 'Games, 1 result', exact: true }).click();
+      assert.deepEqual(await page.locator('.search-badge').allTextContents(), ['Game']);
+      assert.equal(await page.locator('#search-results mark').first().innerText(), 'Starfall');
       await page.locator('#search-page-q').fill('unfindablezzq');
       await page.waitForFunction(() => document.querySelector('#search-status').textContent.includes('No results'));
       assert.equal(await page.locator('#search-filters').isVisible(), false);

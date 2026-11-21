@@ -45,7 +45,7 @@
           "contentId": "handwritingRating",
           "resourceType": "case_study",
           "group": "Start here",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "babynames",
@@ -61,7 +61,7 @@
           "contentId": "babynames",
           "resourceType": "case_study",
           "group": "Start here",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "smartSentence",
@@ -77,7 +77,7 @@
           "contentId": "smartSentence",
           "resourceType": "case_study",
           "group": "Machine learning",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "chatbotLora",
@@ -93,7 +93,7 @@
           "contentId": "chatbotLora",
           "resourceType": "case_study",
           "group": "Machine learning",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "shapeClassifier",
@@ -109,7 +109,7 @@
           "contentId": "shapeClassifier",
           "resourceType": "case_study",
           "group": "Machine learning",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "digitGenerator",
@@ -125,7 +125,7 @@
           "contentId": "digitGenerator",
           "resourceType": "case_study",
           "group": "Machine learning",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "nonogram",
@@ -141,7 +141,7 @@
           "contentId": "nonogram",
           "resourceType": "case_study",
           "group": "Machine learning",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "ufoDashboard",
@@ -157,7 +157,7 @@
           "contentId": "ufoDashboard",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "covidAnalysis",
@@ -173,7 +173,7 @@
           "contentId": "covidAnalysis",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "targetEmptyPackage",
@@ -189,7 +189,7 @@
           "contentId": "targetEmptyPackage",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "deliveryTip",
@@ -221,7 +221,7 @@
           "contentId": "retailStore",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "pizza",
@@ -237,7 +237,7 @@
           "contentId": "pizza",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "pizzaDashboard",
@@ -253,7 +253,7 @@
           "contentId": "pizzaDashboard",
           "resourceType": "case_study",
           "group": "Data stories",
-          "badge": "Interactive project"
+          "badge": ""
         },
         {
           "id": "website",
@@ -303,38 +303,9 @@
           "contentType": "tool",
           "contentId": "text-compare",
           "resourceType": "tool",
-          "group": "Start here",
-          "badge": ""
-        },
-        {
-          "id": "qr-code-generator",
-          "title": "QR Code Generator",
-          "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",
-          "href": "/tools/qr-code-generator",
-          "image": "/img/tools/icons/qr-code-generator.png?v=bd5286d7353f",
-          "imageAlt": "",
-          "iconHtml": "",
-          "external": false,
-          "contentType": "tool",
-          "contentId": "qr-code-generator",
-          "resourceType": "tool",
-          "group": "Start here",
-          "badge": ""
-        },
-        {
-          "id": "screen-recorder",
-          "title": "Screen Recorder",
-          "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
-          "href": "/tools/screen-recorder",
-          "image": "/img/tools/icons/screen-recorder.png?v=0fece3f75406",
-          "imageAlt": "",
-          "iconHtml": "",
-          "external": false,
-          "contentType": "tool",
-          "contentId": "screen-recorder",
-          "resourceType": "tool",
-          "group": "Start here",
-          "badge": ""
+          "group": "Text",
+          "badge": "",
+          "shortcutOrder": 1
         },
         {
           "id": "nbsp-cleaner",
@@ -397,6 +368,22 @@
           "badge": ""
         },
         {
+          "id": "screen-recorder",
+          "title": "Screen Recorder",
+          "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
+          "href": "/tools/screen-recorder",
+          "image": "/img/tools/icons/screen-recorder.png?v=0fece3f75406",
+          "imageAlt": "",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "tool",
+          "contentId": "screen-recorder",
+          "resourceType": "tool",
+          "group": "Images & video",
+          "badge": "",
+          "shortcutOrder": 3
+        },
+        {
           "id": "image-optimizer",
           "title": "Image Optimizer",
           "summary": "Resize, compress, and convert images on your device.",
@@ -408,7 +395,7 @@
           "contentType": "tool",
           "contentId": "image-optimizer",
           "resourceType": "tool",
-          "group": "Images",
+          "group": "Images & video",
           "badge": ""
         },
         {
@@ -423,8 +410,24 @@
           "contentType": "tool",
           "contentId": "background-remover",
           "resourceType": "tool",
-          "group": "Images",
+          "group": "Images & video",
           "badge": ""
+        },
+        {
+          "id": "qr-code-generator",
+          "title": "QR Code Generator",
+          "summary": "Create QR codes for links, text, Wi-Fi, and contacts.",
+          "href": "/tools/qr-code-generator",
+          "image": "/img/tools/icons/qr-code-generator.png?v=bd5286d7353f",
+          "imageAlt": "",
+          "iconHtml": "",
+          "external": false,
+          "contentType": "tool",
+          "contentId": "qr-code-generator",
+          "resourceType": "tool",
+          "group": "Links",
+          "badge": "",
+          "shortcutOrder": 2
         },
         {
           "id": "utm-batch-builder",
@@ -448,7 +451,7 @@
         {
           "id": "project-starfall",
           "title": "Project Starfall",
-          "summary": "Choose a class, explore side-scrolling maps, and collect gear in this work-in-progress action RPG.",
+          "summary": "Choose a class and hunt for gear in this work-in-progress RPG.",
           "href": "/games/project-starfall",
           "image": "/img/home-previews/games/project-starfall.webp",
           "imageAlt": "",
@@ -464,7 +467,7 @@
         {
           "id": "stellar-dogfight",
           "title": "Stellar Dogfight",
-          "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
+          "summary": "Duel enemy pilots and upgrade your fighter between runs.",
           "href": "/games/stellar-dogfight",
           "image": "/img/home-previews/games/stellar-dogfight.webp",
           "imageAlt": "",
@@ -480,7 +483,7 @@
         {
           "id": "ocean-wave-simulation",
           "title": "Ocean Wave Simulator",
-          "summary": "Explore a free ocean wave simulator in your browser. Adjust wind, swell, daylight, and camera, or relax with ambient wave sound.",
+          "summary": "Adjust the wind and swell, then watch the waves.",
           "href": "/games/ocean-wave-simulation",
           "image": "/img/home-previews/games/ocean-wave-simulation.webp",
           "imageAlt": "",
@@ -496,7 +499,7 @@
         {
           "id": "roulette",
           "title": "Double-Zero Roulette",
-          "summary": "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.",
+          "summary": "Place a bet and track the last spins on a double-zero wheel.",
           "href": "/games/roulette",
           "image": "/img/home-previews/games/roulette.webp",
           "imageAlt": "",
@@ -512,7 +515,7 @@
         {
           "id": "probability-engine",
           "title": "Probability Engine",
-          "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
+          "summary": "Build custom reels and test their odds over thousands of spins.",
           "href": "/games/probability-engine",
           "image": "/img/home-previews/games/probability-engine.webp",
           "imageAlt": "",
@@ -528,7 +531,7 @@
         {
           "id": "stormbreak",
           "title": "Stormbreak: Idle Olympus",
-          "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
+          "summary": "Wield Zeus’s lightning and collect loot as your power grows.",
           "href": "/games/stormbreak",
           "image": "/img/home-previews/games/stormbreak.webp",
           "imageAlt": "",
@@ -544,7 +547,7 @@
         {
           "id": "wayfarers-guild",
           "title": "Wayfarers' Guild",
-          "summary": "Follow an automatic trail, build your guild, and connect gathering, crafting, research, and expeditions.",
+          "summary": "Send your guild on expeditions and craft gear from what you gather.",
           "href": "/games/wayfarers-guild",
           "image": "/img/home-previews/games/wayfarers-guild.webp",
           "imageAlt": "",

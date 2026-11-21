@@ -6,7 +6,7 @@
   let preparedIndex = null;
   const preload = async (context = {}) => {
     if (preparedIndex) return;
-    const response = await fetch('dist/search-index.json', { cache: 'force-cache', signal: context.signal });
+    const response = await fetch('dist/search-index.json', { cache: 'no-cache', signal: context.signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     if (!context.signal?.aborted) preparedIndex = data;
@@ -55,7 +55,6 @@
 
     if (!activeForm || !activeInput || !results || !status) return;
 
-    const SITE_ORIGIN = 'https://www.danielshort.me';
     const INDEX_URL = 'dist/search-index.json';
     const MAX_RESULTS = 50;
 
@@ -129,27 +128,14 @@
     const categoryLabel = (value) => {
       const raw = String(value || '').trim().toLowerCase();
       if (raw === 'portfolio' || raw === 'projects') return 'Projects';
+      if (raw === 'games') return 'Games';
       return raw === 'tools' ? 'Tools' : 'Pages';
-    };
-
-    const toAbsoluteUrl = (relativeOrAbsolute) => {
-      const raw = String(relativeOrAbsolute || '').trim();
-      if (!raw) return '';
-      if (/^https?:\/\//i.test(raw)) return raw;
-      if (raw.startsWith('/')) return `${SITE_ORIGIN}${raw}`;
-      return `${SITE_ORIGIN}/${raw}`;
-    };
-
-    const toDisplayUrl = (relativeOrAbsolute) => {
-      const abs = toAbsoluteUrl(relativeOrAbsolute);
-      if (!abs) return '';
-      return abs.replace(/^https?:\/\//i, '');
     };
 
     let indexPromise = null;
     const loadIndex = () => {
       if (indexPromise) return indexPromise;
-      indexPromise = (preparedIndex ? Promise.resolve(preparedIndex) : fetch(INDEX_URL, { cache: 'force-cache', signal: abortController.signal })
+      indexPromise = (preparedIndex ? Promise.resolve(preparedIndex) : fetch(INDEX_URL, { cache: 'no-cache', signal: abortController.signal })
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
@@ -216,12 +202,11 @@
       const snippet = desc ? '' : buildSnippet(content, tokens);
 
       return `
-        <a class="search-result" href="${escapeHtml(url)}">
+        <a class="search-result" href="${escapeHtml(url)}" data-search-result-category="${escapeHtml(badge)}">
           <div class="search-result-head">
             <span class="search-result-title">${highlight(title, tokens)}</span>
-            <span class="search-badge">${escapeHtml(badge)}</span>
+            <span class="search-badge">${escapeHtml(badge.slice(0, -1))}</span>
           </div>
-          <div class="search-result-url">${escapeHtml(toDisplayUrl(url))}</div>
           ${desc ? `<p class="search-result-desc">${highlight(desc, tokens)}</p>` : (snippet ? `<p class="search-result-desc">${highlight(snippet, tokens)}</p>` : '')}
         </a>
       `;
@@ -233,6 +218,7 @@
       filterButtons.forEach((button) => {
         const category = button.dataset.searchCategory;
         const count = category === 'All' ? allEntries.length : allEntries.filter((entry) => categoryLabel(entry.category) === category).length;
+        button.hidden = !count && category !== selectedCategory && category !== 'All';
         button.setAttribute('aria-pressed', String(category === selectedCategory));
         button.setAttribute('aria-label', `${category}, ${count} result${count === 1 ? '' : 's'}`);
         button.innerHTML = `${escapeHtml(category)} <span class="search-filter-count" aria-hidden="true">${count}</span>`;
@@ -419,7 +405,7 @@
       const resultLinks = Array.from(results.querySelectorAll('a.search-result[href]'));
       const position = resultLinks.indexOf(result) + 1;
       if (position <= 0) return;
-      const category = String(result.querySelector('.search-badge')?.textContent || 'Pages')
+      const category = String(result.dataset.searchResultCategory || 'Pages')
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9_-]+/g, '-')

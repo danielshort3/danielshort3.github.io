@@ -2,6 +2,7 @@
   "id": "shapeClassifier",
   "title": "Shape Classifier Demo",
   "subtitle": "Draw a shape and see how a model classifies it.",
+  "outcomeIntro": "I built a classifier that recognizes five hand-drawn shapes, from circles to octagons.",
   "metaDescription": "Draw one of five shapes and try a serverless classifier trained on Quick, Draw! sketches. Explore the model, deployment, and limitations.",
   "image": "img/projects/shapeClassifier.png",
   "iconImage": "img/projects/icons/shapeClassifier.png",
