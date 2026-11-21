@@ -7,13 +7,19 @@
   const HISTORY_HOURS = 72;
   const HISTORY_ZONE = 'America/Denver';
   const HOUR_MS = 60 * 60 * 1000;
+  const CYCLE_MS = 6 * HOUR_MS;
   const DAY_MS = 24 * HOUR_MS;
   const STALE_MS = 2 * 60 * 60 * 1000;
   const HOME_GPU_STALE_MS = 75 * 60 * 1000;
   const REFRESH_OFFSET_MS = 21 * 60 * 1000;
+  const CYCLE_GRACE_MS = 80 * 60_000;
   const REQUEST_TIMEOUT_MS = 18 * 1000;
   const GROUP_MOTION_MS = 220;
   const STATES = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
+  const CANARY_LABELS = {
+    passed: 'Test passed', failed: 'Test failed', mismatch: 'Transcript mismatch',
+    timeout: 'Test timed out', unavailable: 'Test unverified', running: 'Test in progress'
+  };
   const HOME_GPU_STATES = { operational: 'Online', degraded: 'Worker unavailable', outage: 'Offline', unknown: 'Unknown' };
   const CATALOG_GROUPS = new Map([
     ['Tools', { prefix: 'tool:', path: '/tools/' }],
@@ -94,6 +100,11 @@
     return typeof value === 'string' && Number.isFinite(Date.parse(value));
   }
 
+  function cadenceStart(data) {
+    const time = Date.parse(data?.cadenceStart);
+    return data?.cadenceHours === 6 && time % CYCLE_MS === 0 ? time : Infinity;
+  }
+
   function mountainDay(time) {
     const parts = civilDateFormat.formatToParts(time);
     const date = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
@@ -107,14 +118,18 @@
       new Date(end - (HISTORY_DAYS - 1 - index) * DAY_MS).toISOString().slice(0, 10));
   }
 
-  function hourPeriod(from) {
-    const to = from + HOUR_MS;
-    return { start: new Date(from).toISOString(), label: hourLabel(from, to), from, to };
+  function hourPeriod(from, cadenceStart) {
+    const cycle = from >= cadenceStart;
+    const to = from + (cycle ? CYCLE_MS : HOUR_MS);
+    const label = cycle ? dateTimeFormat.format(from) + ' scheduled check' : hourLabel(from, to);
+    return { start: new Date(from).toISOString(), label, from, to };
   }
 
-  function recentHours(time) {
+  function recentHours(time, cutoff, cadenceStart) {
     const end = Math.floor(time / HOUR_MS) * HOUR_MS;
-    return Array.from({ length: HISTORY_HOURS }, (_, index) => hourPeriod(end - (HISTORY_HOURS - 1 - index) * HOUR_MS));
+    return Array.from({ length: HISTORY_HOURS }, (_, index) => end - (HISTORY_HOURS - 1 - index) * HOUR_MS)
+      .filter((from) => (cutoff === null || from <= cutoff) && (from < cadenceStart || from % CYCLE_MS === 0))
+      .map((from) => hourPeriod(from, cadenceStart));
   }
 
   function calendarWeeks(dates) {
@@ -222,17 +237,18 @@
     return label;
   }
 
-  function homeGpuLastCheck(hours) {
+  function homeGpuLastCheck(hours, cadenceStart) {
     const now = Date.now();
     const latest = hours?.findLast((hour) => {
       const observed = Date.parse(hour.observedAt);
       const start = Date.parse(hour.start);
       return hour.complete === true && hasTimestamp(hour.observedAt) && observed <= now &&
-        observed >= start && observed < start + HOUR_MS;
+        observed >= start && observed < start + (start >= cadenceStart ? CYCLE_MS : HOUR_MS);
     });
     const status = ['Home GPU last check: '];
     if (latest) {
-      const stale = now - Date.parse(latest.observedAt) >= HOME_GPU_STALE_MS;
+      const allowedAge = now >= cadenceStart ? CYCLE_MS + CYCLE_GRACE_MS : HOME_GPU_STALE_MS;
+      const stale = now - Date.parse(latest.observedAt) >= allowedAge;
       status.push(element('strong', HOME_GPU_STATES[latest.state]), ' · ', timeLabel(latest.observedAt));
       if (stale) status.push(' · Stale');
     } else {
@@ -384,9 +400,10 @@
         return;
       }
       const age = Math.max(0, Date.now() - Date.parse(snapshot.checkedAt));
-      const stale = failed || age >= STALE_MS;
+      const allowedAge = Date.now() >= cadenceStart(snapshot) ? CYCLE_MS + CYCLE_GRACE_MS : STALE_MS;
+      const stale = failed || age >= allowedAge;
       freshness.replaceChildren('Last checked ', timeLabel(snapshot.checkedAt), stale ? ' · Stale' : '');
-      if (!stale) staleTimer = setTimeout(renderFreshness, STALE_MS - age);
+      if (!stale) staleTimer = setTimeout(renderFreshness, allowedAge - age);
     }
 
     function historyPeriods(item, timeline, catalog) {
@@ -428,7 +445,12 @@
         if (code === 'u' && !Object.hasOwn(CHECK_DETAILS, detail)) day.issue = 'Missing or inconclusive checks.';
         return [date, { date, ...day }];
       })) : new Map(item.days.map((day) => [day.date, day]));
-      if (view === 'weekly') return weeks.map((week) => weekResult(week, byDate, item.id === 'transcribe'));
+      if (view === 'weekly') {
+        const firstCycle = cadenceStart(snapshot);
+        const firstCanaryDate = Number.isFinite(firstCycle) ? mountainDay(firstCycle) : null;
+        return weeks.map((week) => weekResult(week, byDate, item.id === 'transcribe' &&
+          (!firstCanaryDate || week.dates.at(-1) < firstCanaryDate)));
+      }
       return dates.map((date) => ({
         state: 'unknown', issue: 'No check recorded.', ...byDate.get(date), label: labels.get(date)
       }));
@@ -437,7 +459,7 @@
     function renderTicks(label, periods, timeline, stateLabels) {
       const ticks = element('div', '', 'aws-status__ticks');
       ticks.setAttribute('role', 'group');
-      ticks.setAttribute('aria-label', label + ' ' + timeline.view +
+      ticks.setAttribute('aria-label', label + ' ' + (timeline.scheduled ? 'scheduled check' : timeline.view) +
         ' history. Use left and right arrows to choose ' + timeline.period + '. Press Enter to select.');
       periods.forEach((detail, index) => {
         let stateLabel = stateLabels[detail.state];
@@ -446,6 +468,10 @@
           const { completed, failed, inProgress } = detail.transcription;
           stateLabel = failed ? 'Failed' : completed ? 'Completed' : inProgress ? 'In progress' : 'No activity';
           if (detail.state === 'unknown') visualState = 'neutral';
+        }
+        if (Object.hasOwn(CANARY_LABELS, detail.canary) && !detail.service) {
+          stateLabel = CANARY_LABELS[detail.canary];
+          if (detail.canary === 'running') visualState = 'neutral';
         }
         const tick = element('button', '', 'aws-status__tick');
         tick.type = 'button';
@@ -535,7 +561,7 @@
         }
         if (homeGpu && homeGpuDetails && homeGpuStatus) {
           homeGpuDetails.hidden = !open;
-          homeGpuStatus.replaceChildren(...(open ? homeGpuLastCheck(items[0].hours) : []));
+          homeGpuStatus.replaceChildren(...(open ? homeGpuLastCheck(items[0].hours, cadenceStart(snapshot)) : []));
         }
         const to = animate && open ? body.getBoundingClientRect().height : 0;
         if (!animate || from === to) {
@@ -571,22 +597,26 @@
 
     function renderHistory(left) {
       const view = Object.hasOwn(HISTORY_VIEWS, granularity.value) ? granularity.value : 'hourly';
-      const { range, period } = HISTORY_VIEWS[view];
       const now = Date.now();
+      const firstCycle = cadenceStart(snapshot);
+      const sixHourly = now >= firstCycle;
+      const scheduled = view === 'hourly' && sixHourly;
+      const { range, period } = HISTORY_VIEWS[view];
+      granularity.querySelector('[value="hourly"]').textContent = sixHourly ? '6-hour checks' : 'Hourly';
       const cutoff = HOUR_KEY.test(snapshot.hourlyReadyThrough) && hasTimestamp(snapshot.hourlyReadyThrough)
         ? Date.parse(snapshot.hourlyReadyThrough) : null;
-      const latestClosed = Math.floor(now / HOUR_MS) * HOUR_MS - HOUR_MS;
-      const summaryHour = hourPeriod(Math.min(cutoff ?? latestClosed, latestClosed));
-      const firstUnsettledDay = cutoff === null ? null : mountainDay(cutoff + HOUR_MS);
+      const latest = sixHourly ? Math.floor(now / CYCLE_MS) * CYCLE_MS : Math.floor(now / HOUR_MS) * HOUR_MS - HOUR_MS;
+      const summaryHour = hourPeriod(Math.min(cutoff ?? latest, latest), firstCycle);
+      const firstUnsettledDay = cutoff === null ? null : mountainDay(Math.min(now, summaryHour.to));
       const dates = view === 'hourly' ? [] : recentDates(now).filter((date) => !firstUnsettledDay || date < firstUnsettledDay);
       const timeline = {
-        view, period, dates,
+        view, scheduled, period: scheduled ? 'a check' : period, dates,
         labels: view === 'daily' ? new Map(dates.map((date) => [date, dateLabel(date)])) : null,
         weeks: view === 'weekly' ? calendarWeeks(dates) : null,
-        hours: view === 'hourly' ? recentHours(now).filter((hour) => cutoff === null || hour.from <= cutoff) : null
+        hours: view === 'hourly' ? recentHours(now, cutoff, firstCycle) : null
       };
       rangeLabel.textContent = range;
-      grid.dataset.granularity = view;
+      grid.dataset.granularity = scheduled ? 'scheduled' : view;
       const catalogData = catalogHistory(snapshot);
       const catalog = {
         history: catalogData, hourStart: Date.parse(catalogData?.hourStart), dayStart: Date.parse(catalogData?.dayStart)
@@ -597,6 +627,7 @@
         ...Array.from(CATALOG_GROUPS.keys(), (group) => [group, snapshot.catalog.filter((item) => item.group === group), catalog])
       ];
       const periodCount = (timeline.hours || timeline.weeks || dates).length;
+      grid.style.setProperty('--aws-status-check-count', String(periodCount));
       const { axis, boundaries } = renderHistoryAxis(timeline, periodCount);
       timeline.boundaries = boundaries;
       if (homeGpuDetails) homeGpuDetails.hidden = true;
@@ -673,10 +704,16 @@
           inProgress && `${inProgress} queued or running${detail.view === 'hourly' ? '' : ' job observations'}`
         ].filter(Boolean).join(', ') || 'No transcription jobs ran in the measured period.';
       }
+      if (detail.canary && detail.previousSixHourActivity) {
+        const { completed, failed, inProgress } = detail.previousSixHourActivity;
+        const activity = [completed && `${completed} completed`, failed && `${failed} failed`,
+          inProgress && `${inProgress} queued or running`].filter(Boolean).join(', ') || 'none';
+        issue = [issue, 'Website jobs in the preceding six hours: ' + activity + '.'].filter(Boolean).join(' ');
+      }
       const reason = [detail.service, issue || 'No further details were recorded.'].filter(Boolean).join(' · ');
       const explanation = element('p', reason, 'aws-status__tooltip-detail');
       const observation = element('p', '', 'aws-status__tooltip-detail');
-      const incident = !detail.transcription && (detail.state === 'degraded' || detail.state === 'outage');
+      const incident = !detail.transcription && !detail.canary && (detail.state === 'degraded' || detail.state === 'outage');
       if (incident && hasTimestamp(detail.from) && hasTimestamp(detail.to)) {
         const span = Date.parse(detail.from) !== Date.parse(detail.to);
         observation.append(span ? 'Observed bounds ' : 'Observed ', timeLabel(detail.from));
@@ -696,7 +733,7 @@
     function showTooltip(tick) {
       clearTimeout(tooltipTimer);
       const detail = detailsByTick.get(tick);
-      const reveal = pinnedTick === tick && detail.state !== 'operational';
+      const reveal = pinnedTick === tick && (detail.state !== 'operational' || Boolean(detail.canary));
       if (activeTick === tick && showingDetails === reveal) {
         positionTooltip();
         return;
@@ -812,8 +849,6 @@
       }
       if (!currentOwner || request || document.visibilityState !== 'visible') return;
       clearTimeout(refreshTimer);
-      // The shared hourly cutoff grants 20 minutes for results to arrive. Allow one more minute for cached reads.
-      nextRefreshAt = (Math.floor((Date.now() - REFRESH_OFFSET_MS) / HOUR_MS) + 1) * HOUR_MS + REFRESH_OFFSET_MS;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       const isCurrent = () => request === controller && getAccess().owner === currentOwner;
@@ -854,6 +889,10 @@
         if (request === controller) {
           request = null;
           setBusy(false);
+          const sixHourly = Date.now() >= cadenceStart(snapshot);
+          const interval = sixHourly ? CYCLE_MS : HOUR_MS;
+          const offset = sixHourly ? CYCLE_GRACE_MS + 60_000 : REFRESH_OFFSET_MS;
+          nextRefreshAt = (Math.floor((Date.now() - offset) / interval) + 1) * interval + offset;
           scheduleRefresh();
         }
       }

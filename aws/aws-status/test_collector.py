@@ -1,5 +1,6 @@
 import copy
 import http.client
+import io
 import json
 import os
 import re
@@ -85,7 +86,7 @@ def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False, transcribe=
   }
   def client(service, region_name, config):
     assert region_name == "us-east-2"
-    return {"cloudwatch": cloudwatch, "sagemaker": sagemaker, "dynamodb": table, "transcribe": transcribe}[service]
+    return {"cloudwatch": cloudwatch, "sagemaker": sagemaker, "dynamodb": table, "transcribe": transcribe, "s3": Mock()}[service]
   boto = modules["boto3"]
   boto.client = Mock(side_effect=client)
   boto.resource = Mock(return_value=Mock(Table=Mock(return_value=table)))
@@ -93,7 +94,7 @@ def load_runtime(name, table, cloudwatch, sagemaker, home_gpu=False, transcribe=
   modules["botocore.config"].Config = Mock()
   modules["botocore.exceptions"].ClientError = AwsError
   modules["botocore.exceptions"].BotoCoreError = OSError
-  environment = {"HISTORY_TABLE": "fixture", "STACK_ACCOUNT": ACCOUNT, "SHORT_LINK_SLUG": "",
+  environment = {"SIX_HOUR_START": "2099-01-01T00:00:00Z", "CANARY_BUCKET": "canary-fixture", "HISTORY_TABLE": "fixture", "STACK_ACCOUNT": ACCOUNT, "SHORT_LINK_SLUG": "",
                  "HOME_GPU_MONITORING": "true" if home_gpu else "false"}
   runtime = ModuleType(name)
   lines = []
@@ -764,22 +765,22 @@ class CollectorTests(TestCase):
 
   def test_browser_alias_rejects_non_browser_sources_and_long_expiry_before_writing(self):
     self.context.invoked_function_arn += ":browser-ci"
-    valid = sample_report("project:website", "operational", "browser", expires=NOW + timedelta(hours=3))
+    valid = sample_report("project:website", "operational", "browser", expires=NOW + timedelta(hours=7))
     invalid = [
       {"checks": [valid, sample_report("tool:transcribe", "operational", "production")]},
       {"checks": [valid, sample_report("tool:transcribe", "operational", "browser", checked=NOW - timedelta(minutes=1))]},
       {"checks": [{**valid, "source": "local"}]},
-      {"checks": [{**valid, "expiresAt": (NOW + timedelta(hours=3, milliseconds=1)).isoformat(timespec="milliseconds")}]},
+      {"checks": [{**valid, "expiresAt": (NOW + timedelta(hours=7, milliseconds=1)).isoformat(timespec="milliseconds")}]},
       {"checks": [{**valid, "lastChecked": (NOW - timedelta(minutes=1)).isoformat()}]},
       {"checks": [{**valid, "lastChecked": (NOW + timedelta(seconds=30)).isoformat(),
-                   "expiresAt": (NOW + timedelta(hours=3, seconds=30)).isoformat()}]},
+                   "expiresAt": (NOW + timedelta(hours=7, seconds=30)).isoformat()}]},
     ]
     for event in invalid:
       with self.subTest(event=event), self.assertLogs(self.report.LOGGER, "WARNING"):
         self.assertFalse(self.report.handler(event, self.context)["ok"])
     self.assertEqual(self.table.write_count, 0)
     self.assertEqual(self.report.handler({"checks": [valid]}, self.context), {"ok": True, "accepted": 1})
-    self.assertEqual(self.table.rows[("catalog", "browser")]["expires"], int((NOW + timedelta(hours=3)).timestamp()))
+    self.assertEqual(self.table.rows[("catalog", "browser")]["expires"], int((NOW + timedelta(hours=7)).timestamp()))
 
   def publish_browser(self, checked, outcomes):
     self.context.invoked_function_arn = f"arn:aws:lambda:us-east-2:{ACCOUNT}:function:website-aws-status-report:browser-ci"
@@ -959,16 +960,126 @@ class CollectorTests(TestCase):
     ])
     self.assertEqual(re.findall(r"^\s+Resource: (.+)$", role, re.M), ["!Ref BrowserReportAlias"])
 
+  def six_hour(self):
+    cycle = NOW.replace(hour=0, minute=0)
+    for runtime in (self.writer, self.reader, self.report):
+      runtime.SIX_HOUR_START = cycle - timedelta(days=2)
+    return cycle
+
+  def canary_job(self, cycle, state="COMPLETED"):
+    name = "system-status-canary-" + cycle.strftime("%Y%m%d%H")
+    return {"TranscriptionJobName": name, "TranscriptionJobStatus": state, "LanguageCode": "en-US",
+            "Media": {"MediaFileUri": "s3://canary-fixture/fixture/status-probe.wav"}}
+
+  def set_canary_words(self, job, words):
+    raw = json.dumps({"jobName": job["TranscriptionJobName"], "status": "COMPLETED",
+                      "results": {"transcripts": [{"transcript": words}]}}).encode()
+    self.writer.S3.get_object.side_effect = lambda **kwargs: {"Body": io.BytesIO(raw)}
+
+  def test_canary_first_submission_and_duplicate_verify_actual_words(self):
+    cycle = self.six_hour()
+    name = self.canary_job(cycle)["TranscriptionJobName"]
+    job = self.canary_job(cycle, "IN_PROGRESS")
+    self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": job}
+    self.assertEqual(self.writer.handler({"operation": "canary"}, self.context)["canary"], "running")
+    args = self.transcribe.start_transcription_job.call_args.kwargs
+    self.assertEqual(args["TranscriptionJobName"], name)
+    self.assertEqual(args["OutputKey"], f"results/{name}.json")
+    self.assertEqual(args["Media"], job["Media"])
+    self.transcribe.start_transcription_job.side_effect = AwsError("ConflictException")
+    job["TranscriptionJobStatus"] = "COMPLETED"
+    self.set_canary_words(job, "The blue river flows past the garden.")
+    self.assertEqual(self.writer.handler({"operation": "canary"}, self.context)["canary"], "passed")
+    self.assertEqual(self.transcribe.start_transcription_job.call_args.kwargs, args)
+    self.writer.S3.get_object.assert_called_with(Bucket="canary-fixture", Key=f"results/{name}.json",
+                                                ExpectedBucketOwner=ACCOUNT)
+    tile = self.reader.hour_tile(cycle, self.reader.mountain_day(cycle),
+                                 self.table.rows[("transcribe", self.reader.mountain_day(cycle).isoformat())],
+                                 3600, NOW, "transcribe")
+    self.assertEqual((tile["canary"], tile["state"], tile["complete"]), ("passed", "operational", True))
+    self.assertEqual(tile["observedAt"], self.reader.iso(NOW))
+    self.assertNotIn("transcription", tile)
+
+  def test_canary_failed_mismatch_unavailable_and_timeout_do_not_report_healthy(self):
+    cycle = self.six_hour()
+    for state, words, expected in (("FAILED", None, "failed"), ("COMPLETED", "unrelated words", "mismatch"),
+                                   ("IN_PROGRESS", None, "timeout"), ("unknown", None, "unavailable")):
+      with self.subTest(expected=expected):
+        self.table.rows.clear()
+        job = self.canary_job(cycle, state)
+        self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": job}
+        if words:
+          self.set_canary_words(job, words)
+        result = self.writer.canary(cycle, self.context, deadline=True)
+        self.assertEqual((result["ok"], result["canary"]), (False, expected))
+        tile = next(item for item in self.read()["connections"] if item["id"] == "transcribe")["hours"][-4]
+        self.assertEqual(tile["state"], "unknown" if expected == "unavailable" else "degraded")
+    self.transcribe.start_transcription_job.assert_not_called()
+    self.writer.S3.get_object.side_effect = OSError()
+    self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": self.canary_job(cycle)}
+    with self.assertLogs(self.writer.LOGGER, level="WARNING"):
+      self.assertEqual(self.writer.canary(cycle, self.context)["canary"], "unavailable")
+
+  def test_completion_event_validates_scope_and_preserves_verified_evidence(self):
+    cycle = self.six_hour()
+    job = self.canary_job(cycle)
+    self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": job}
+    self.set_canary_words(job, "the blue river flows past the garden")
+    event = {"source": "aws.transcribe", "detail-type": "Transcribe Job State Change",
+             "account": ACCOUNT, "region": "us-east-2",
+             "detail": {"TranscriptionJobName": job["TranscriptionJobName"], "TranscriptionJobStatus": "COMPLETED"}}
+    with self.assertLogs(self.writer.LOGGER, level="WARNING"):
+      self.assertFalse(self.writer.handler({**event, "account": "other"}, self.context)["ok"])
+    self.assertEqual(self.writer.handler(event, self.context)["canary"], "passed")
+    before = self.table.write_count
+    job["TranscriptionJobStatus"] = "IN_PROGRESS"
+    self.writer.canary(cycle, self.context)
+    self.assertEqual(self.table.write_count, before)
+    self.transcribe.start_transcription_job.assert_not_called()
+
+  def test_six_hour_slot_alignment_and_historical_daily_coverage(self):
+    cycle = self.six_hour()
+    self.writer.sample("transcribe", 3600, cycle, NOW, "u", self.context,
+                       previous_activity={"completed": 2, "failed": 1, "inProgress": 0})
+    job = self.canary_job(cycle)
+    self.transcribe.get_transcription_job.return_value = {"TranscriptionJob": job}
+    self.set_canary_words(job, "The blue river flows past the garden")
+    self.writer.canary(cycle, self.context)
+    self.writer.sample("cognito", 300, cycle + timedelta(minutes=10), NOW, "o", self.context, hourly_probe=True)
+    snapshot = self.read()
+    self.assertEqual(snapshot["cadenceHours"], 6)
+    by_id = {item["id"]: item for item in snapshot["connections"]}
+    hour = next(item for item in by_id["transcribe"]["hours"] if item["start"] == self.reader.iso(cycle))
+    self.assertEqual(hour["previousSixHourActivity"], {"completed": 2, "failed": 1, "inProgress": 0})
+    self.assertEqual(by_id["cognito"]["hours"][-4]["state"], "operational")
+    self.assertEqual(by_id["cognito"]["hours"][-1]["state"], "unknown")
+    self.assertEqual(by_id["transcribe"]["days"][-1]["state"], "unknown")  # earlier due cycles missing
+    off_slot = self.writer.handler({"operation": "canary", "scheduledAt": NOW.isoformat()}, self.context)
+    self.assertEqual(off_slot, {"ok": True, "collected": 0})
+    self.transcribe.start_transcription_job.assert_not_called()
+
+  def test_late_browser_result_stays_in_utc_cycle_across_local_midnight(self):
+    self.six_hour()
+    at = NOW.replace(hour=8, minute=2)  # 06:00 UTC cycle starts on previous Mountain date.
+    with patch.object(StubClock, "now", return_value=at):
+      self.publish_browser(at, {"tool:transcribe": "operational"})
+      snapshot = self.read()
+    hours = snapshot["catalogHistory"]
+    self.assertEqual(hours["results"]["tool:transcribe"]["hours"][-3:], "o--")
+    self.assertEqual(hours["observedAt"][-3:], [self.reader.iso(at), None, None])
+
   def test_scope_limits_in_template(self):
     # The private S3 TemplateURL allows up to 1 MB.
     self.assertLessEqual(len(TEMPLATE.encode()), 1_000_000)
     self.assertNotIn("AWS::CloudWatch::Alarm", TEMPLATE)
     probes = TEMPLATE.split("  PeriodicProbes:\n")[1].split("  HourlyMetadata:")[0]
     transitions = TEMPLATE.split("  SelectedAlarmTransitions:\n")[1].split("  AllowPeriodicProbes:")[0]
-    self.assertIn("ScheduleExpression: 'cron(10 * * * ? *)'", probes)
+    self.assertIn("ScheduleExpression: 'cron(10 0,6,12,18 * * ? *)'", probes)
     self.assertIn("State: DISABLED", transitions)
     self.assertNotIn("sagemaker:InvokeEndpoint", TEMPLATE)
-    self.assertNotIn("transcribe:StartTranscriptionJob", TEMPLATE)
+    self.assertEqual(TEMPLATE.count("transcribe:StartTranscriptionJob"), 1)
+    self.assertIn("transcription-job/system-status-canary-*", TEMPLATE)
+    self.assertNotIn("s3:DeleteObject", TEMPLATE)
     self.assertNotIn("ses:SendEmail", TEMPLATE)
     invoker = TEMPLATE.split("  WebsiteInvokerRole:\n")[1].split("\nOutputs:")[0]
     self.assertIn("project:website:environment:production", invoker)
@@ -978,6 +1089,11 @@ class CollectorTests(TestCase):
     self.assertIn("Default: 'false'", TEMPLATE)
     reader_role = TEMPLATE.split("  CollectorRole:\n")[1].split("  Collector:\n")[0]
     writer_role = TEMPLATE.split("  WriterRole:\n")[1].split("  Writer:\n")[0]
+    start_policy = writer_role.split("Action: transcribe:StartTranscriptionJob\n")[1].split("- Effect: Allow")[0]
+    self.assertIn("Resource: '*'", start_policy)
+    self.assertIn("'aws:RequestedRegion': us-east-2", start_policy)
+    self.assertIn("'transcribe:OutputBucketName': !Ref CanaryBucket", start_policy)
+    self.assertIn("'transcribe:OutputKey': 'results/system-status-canary-*.json'", start_policy)
     self.assertNotIn("home-gpu-heartbeat", reader_role)
     self.assertEqual(TEMPLATE.count("transcribe:ListTranscriptionJobs"), 1)
     self.assertIn(dedent('''\

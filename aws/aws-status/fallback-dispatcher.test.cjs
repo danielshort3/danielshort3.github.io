@@ -5,8 +5,8 @@ const { generateKeyPairSync, verify } = require('node:crypto');
 const test = require('node:test');
 const { dispatchFallback } = require('./fallback-dispatcher.cjs');
 
-const NOW = Date.parse('2026-11-14T13:47:12Z');
-const SLOT = '2026-11-14T13:00:00Z';
+const NOW = Date.parse('2026-11-14T12:47:12Z');
+const SLOT = '2026-11-14T12:00:00Z';
 const SCHEDULE = 'arn:aws:scheduler:us-east-2:123456789012:schedule/test/fallback';
 const WORKFLOW = '/repos/danielshort3/danielshort3.github.io/actions/workflows/416880337';
 const REPOSITORY_ID = 698339955;
@@ -25,7 +25,7 @@ function reply(status, value) {
 function tokenReply(overrides = {}) {
   return reply(201, {
     token: TOKEN,
-    expires_at: '2026-11-14T14:47:12Z',
+    expires_at: '2026-11-14T13:47:12Z',
     permissions: { actions: 'write', metadata: 'read' },
     repositories: [{ id: REPOSITORY_ID }],
     ...overrides
@@ -38,26 +38,26 @@ function run(overrides = {}) {
     head_branch: 'main',
     event: 'schedule',
     status: 'completed',
-    created_at: '2026-11-14T13:29:00Z',
-    updated_at: '2026-11-14T13:33:00Z',
+    created_at: '2026-11-14T12:29:00Z',
+    updated_at: '2026-11-14T12:33:00Z',
     display_title: 'Projects & Tools status',
     ...overrides
   };
 }
 
-function jobs(observed = '2026-11-14T13:32:00Z', publication = 'success') {
+function jobs(observed = '2026-11-14T12:32:00Z', publication = 'success') {
   return { jobs: [
     { name: 'check', steps: [{ name: 'Run the catalog browser checks', conclusion: 'success', completed_at: observed }] },
     { name: 'publish / publish', steps: [{ name: 'Publish the browser outcomes', conclusion: publication }] }
   ] };
 }
 
-function fixture({ responses = [], event = {}, credential = CREDENTIAL } = {}) {
+function fixture({ responses = [], event = {}, credential = CREDENTIAL, now = NOW } = {}) {
   const requests = [];
   let reads = 0;
   const execute = () => dispatchFallback({
-    event: { scheduleArn: SCHEDULE, scheduledTime: '2026-11-14T13:47:00Z', ...event },
-    now: NOW,
+    event: { scheduleArn: SCHEDULE, scheduledTime: '2026-11-14T12:47:00Z', ...event },
+    now,
     expectedScheduleArn: SCHEDULE,
     fetchRequest: async (url, options) => {
       requests.push({ url: new URL(url), ...options });
@@ -73,7 +73,7 @@ function fixture({ responses = [], event = {}, credential = CREDENTIAL } = {}) {
   return { execute, requests, credentialReads: () => reads };
 }
 
-test('requests temporary repository Actions access and dispatches the fixed workflow for an uncovered hour', async () => {
+test('requests temporary repository Actions access and dispatches the fixed workflow for an uncovered six-hour cycle', async () => {
   const { execute, requests } = fixture({ responses: [
     tokenReply(), reply(200, { workflow_runs: [] }), reply(200, { workflow_run_id: 789 })
   ] });
@@ -98,7 +98,7 @@ test('requests temporary repository Actions access and dispatches the fixed work
     repository_ids: [REPOSITORY_ID], permissions: { actions: 'write' }
   });
   assert.equal(requests[1].url.searchParams.get('branch'), 'main');
-  assert.equal(requests[1].url.searchParams.get('created'), '>=2026-11-14T12:00:00.000Z');
+  assert.equal(requests[1].url.searchParams.get('created'), '>=2026-11-14T11:00:00.000Z');
   assert.equal(requests[2].headers.Authorization, 'Bearer ' + TOKEN);
   assert.deepEqual(JSON.parse(requests[2].body), { ref: 'main', inputs: { fallback_slot: SLOT } });
 });
@@ -107,7 +107,7 @@ test('avoids dispatch after a successful sample and publication even when the wo
   const { execute, requests } = fixture({ responses: [
     tokenReply(), reply(200, { workflow_runs: [run({ conclusion: 'failure' })] }), reply(200, jobs())
   ] });
-  assert.deepEqual(await execute(), { slot: SLOT, status: 'hour-already-published' });
+  assert.deepEqual(await execute(), { slot: SLOT, status: 'cycle-already-published' });
   assert.equal(requests[2].url.pathname, '/repos/danielshort3/danielshort3.github.io/actions/runs/456/jobs');
   assert.equal(requests[2].url.searchParams.get('filter'), 'latest');
   assert.equal(requests.length, 3);
@@ -124,7 +124,7 @@ test('queues a fallback when a pending native run has yet to publish', async () 
 
 test('deduplicates against a pending fallback for the same slot', async () => {
   const { execute, requests } = fixture({ responses: [tokenReply(), reply(200, { workflow_runs: [run({
-    event: 'workflow_dispatch', display_title: 'Hourly status fallback ' + SLOT, status: 'queued'
+    event: 'workflow_dispatch', display_title: 'Six-hour System Status ' + SLOT, status: 'queued'
   })] })] });
   assert.deepEqual(await execute(), { slot: SLOT, status: 'fallback-already-pending' });
   assert.equal(requests.length, 2);
@@ -132,7 +132,7 @@ test('deduplicates against a pending fallback for the same slot', async () => {
 
 test('can recover from a completed same-slot fallback that did not publish', async () => {
   const { execute, requests } = fixture({ responses: [tokenReply(), reply(200, { workflow_runs: [run({
-    event: 'workflow_dispatch', display_title: 'Hourly status fallback ' + SLOT, conclusion: 'failure'
+    event: 'workflow_dispatch', display_title: 'Six-hour System Status ' + SLOT, conclusion: 'failure'
   })] }), reply(200, jobs(undefined, 'failure')), reply(200, { workflow_run_id: 789 })] });
   assert.deepEqual(await execute(), { slot: SLOT, status: 'dispatched', runId: 789 });
   assert.equal(requests.length, 4);
@@ -142,9 +142,9 @@ test('dispatches when a previous sample was older or publication did not complet
   const { execute, requests } = fixture({ responses: [
     tokenReply(), reply(200, { workflow_runs: [
       run({ head_branch: 'feature', status: 'in_progress' }),
-      run({ status: 'in_progress', created_at: '2026-11-14T13:06:00Z' }),
+      run({ status: 'in_progress', created_at: '2026-11-14T12:06:00Z' }),
       run({ id: 567 }), run({ id: 678 })
-    ] }), reply(200, jobs('2026-11-14T12:59:59Z')), reply(200, jobs(undefined, 'skipped')),
+    ] }), reply(200, jobs('2026-11-14T11:59:59Z')), reply(200, jobs(undefined, 'skipped')),
     reply(200, { workflow_run_id: 789 })
   ] });
   assert.deepEqual(await execute(), { slot: SLOT, status: 'dispatched', runId: 789 });
@@ -154,8 +154,8 @@ test('dispatches when a previous sample was older or publication did not complet
 test('rejects malformed, wrong-source, or stale events before accessing the credential', async () => {
   for (const event of [
     { scheduleArn: SCHEDULE + '-wrong' }, { scheduledTime: 'broken' },
-    { scheduledTime: '2026-11-14T13:46:00Z' }, { scheduledTime: '2026-11-14T12:47:00Z' },
-    { scheduledTime: '2026-11-14T14:47:00Z' }
+    { scheduledTime: '2026-11-14T12:46:00Z' }, { scheduledTime: '2026-11-14T11:47:00Z' },
+    { scheduledTime: '2026-11-14T13:47:00Z' }
   ]) {
     const { execute, credentialReads, requests } = fixture({ event });
     await assert.rejects(execute(), /scheduler event|intended time window/i);
@@ -164,12 +164,33 @@ test('rejects malformed, wrong-source, or stale events before accessing the cred
   }
 });
 
+test('only the four scheduled UTC hours can dispatch, including at midnight', async () => {
+  for (let hour = 0; hour < 24; hour++) {
+    const now = Date.UTC(2026, 10, 14, hour, 47);
+    const { execute, credentialReads } = fixture({
+      now, event: { scheduledTime: new Date(now).toISOString() },
+      responses: [
+        tokenReply({ expires_at: new Date(now + 3600_000).toISOString() }),
+        reply(200, { workflow_runs: [] }), reply(200, { workflow_run_id: 42 })
+      ]
+    });
+    if (hour % 6 === 0) {
+      const result = await execute();
+      assert.equal(result.slot, new Date(Date.UTC(2026, 10, 14, hour)).toISOString().replace('.000Z', 'Z'));
+      assert.equal(result.status, 'dispatched');
+    } else {
+      await assert.rejects(execute(), /intended time window/);
+      assert.equal(credentialReads(), 0);
+    }
+  }
+});
+
 test('rejects token responses with extra privileges, wrong repository, or unexpected token lifetime', async () => {
   for (const token of [
     tokenReply({ permissions: { actions: 'write', contents: 'write' } }),
     tokenReply({ repositories: [{ id: 1 }] }),
     tokenReply({ repositories: null }),
-    tokenReply({ expires_at: '2026-11-14T15:47:12Z' })
+    tokenReply({ expires_at: '2026-11-14T14:47:12Z' })
   ]) {
     const { execute, requests } = fixture({ responses: [token] });
     await assert.rejects(execute(), { message: 'GitHub installation token was not restricted as expected.' });

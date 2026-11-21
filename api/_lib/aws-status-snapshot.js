@@ -4,9 +4,14 @@ const HISTORY_DAYS = 90;
 const HISTORY_HOURS = 72;
 const HOUR_MS = 60 * 60_000;
 const HOURLY_GRACE_MS = 20 * 60_000;
+const CYCLE_MS = 6 * HOUR_MS;
 const REGION = 'us-east-2';
 const MAX_CHECKS = 3 * 70 + 1;
 const STATES = new Set(['operational', 'degraded', 'outage', 'unknown']);
+const CANARY_STATES = {
+  passed: 'operational', failed: 'degraded', mismatch: 'degraded', timeout: 'degraded',
+  unavailable: 'unknown', running: 'unknown'
+};
 const SOURCES = new Set(['production', 'browser', 'local']);
 const CONNECTIONS = new Map([
   ['cognito', 'Cognito sign-in'],
@@ -33,11 +38,18 @@ function canonicalTime(value, format) {
   return new Date(time).toISOString().startsWith(value) ? time : NaN;
 }
 
-function sanitizeTranscription(period) {
-  const { completed, failed, inProgress } = period.transcription || {};
+function jobCounts(value) {
+  const { completed, failed, inProgress } = value || {};
   if (![completed, failed, inProgress].every((count) => Number.isSafeInteger(count) && count >= 0)) return null;
+  return { completed, failed, inProgress };
+}
+
+function sanitizeTranscription(period) {
+  const counts = jobCounts(period.transcription);
+  if (!counts) return null;
+  const { failed, completed } = counts;
   const state = failed ? 'degraded' : completed ? 'operational' : 'unknown';
-  return period.state === state ? { completed, failed, inProgress } : null;
+  return period.state === state ? counts : null;
 }
 
 function sanitizePeriod(period, includeTranscription) {
@@ -51,8 +63,18 @@ function sanitizePeriod(period, includeTranscription) {
     issue: issueText(period.issue)
   };
   if (isTimestamp(period.observedAt)) clean.observedAt = period.observedAt;
-  const transcription = includeTranscription && sanitizeTranscription(period);
-  if (transcription) clean.transcription = transcription;
+  if (includeTranscription && Object.hasOwn(period, 'canary')) {
+    if (typeof period.canary !== 'string' || !Object.hasOwn(CANARY_STATES, period.canary) ||
+      period.state !== CANARY_STATES[period.canary]) {
+      return { ...clean, state: 'unknown', issue: 'The transcription test result could not be verified.' };
+    }
+    clean.canary = period.canary;
+    const activity = jobCounts(period.previousSixHourActivity);
+    if (activity) clean.previousSixHourActivity = activity;
+  } else if (includeTranscription) {
+    const transcription = sanitizeTranscription(period);
+    if (transcription) clean.transcription = transcription;
+  }
   return clean;
 }
 
@@ -61,15 +83,18 @@ function sanitizeDay(day, includeTranscription) {
   return period ? { date: day.date, ...period } : null;
 }
 
-function sanitizeHour(hour, includeTranscription) {
+function sanitizeHour(hour, includeTranscription, cadenceStart, now) {
   const start = canonicalTime(hour?.start, HOUR_KEY);
   if (!Number.isFinite(start)) return null;
   const period = sanitizePeriod(hour, includeTranscription);
-  const end = start + HOUR_MS;
+  const cycle = start >= cadenceStart;
+  if (cycle && start % CYCLE_MS !== 0) return null;
+  const end = start + (cycle ? CYCLE_MS : HOUR_MS);
   if (!period || Date.parse(period.from) < start || Date.parse(period.to) > end) return null;
 
   const observedAt = Date.parse(period.observedAt);
-  if (observedAt < start || observedAt >= end) delete period.observedAt;
+  if (cycle && (Date.parse(period.from) > now || observedAt > now)) return null;
+  if (observedAt < start || observedAt >= end || observedAt > now) delete period.observedAt;
   return { start: hour.start, ...period, ...(hour.complete === true ? { complete: true } : {}) };
 }
 
@@ -81,7 +106,7 @@ function sanitizeCatalogDetails(codes, states) {
   }).join('');
 }
 
-function sanitizeCatalogHistory(history, catalog, now) {
+function sanitizeCatalogHistory(history, catalog, now, cadenceStart) {
   const start = canonicalTime(history?.hourStart, HOUR_KEY);
   if (!Number.isFinite(start) || !Number.isFinite(canonicalTime(history.dayStart, DAY_KEY)) ||
     !Array.isArray(history.observedAt) || history.observedAt.length !== HISTORY_HOURS ||
@@ -90,7 +115,9 @@ function sanitizeCatalogHistory(history, catalog, now) {
   const observedAt = history.observedAt.map((value, index) => {
     const checked = Date.parse(value);
     const hour = start + index * HOUR_MS;
-    return isTimestamp(value) && checked >= hour && checked < hour + HOUR_MS && checked <= now ? value : null;
+    const cycle = hour >= cadenceStart;
+    if (cycle && hour % CYCLE_MS !== 0) return null;
+    return isTimestamp(value) && checked >= hour && checked < hour + (cycle ? CYCLE_MS : HOUR_MS) && checked <= now ? value : null;
   });
   const results = {};
   for (const { id } of catalog) {
@@ -119,21 +146,23 @@ function sanitizeHistory(periods, limit, key, sanitize, includeTranscription) {
   return [...byKey.values()].sort((left, right) => left[key].localeCompare(right[key]));
 }
 
-function sanitizeConnection(stored, id, label) {
+function sanitizeConnection(stored, id, label, cadenceStart, now) {
   const includeTranscription = id === 'transcribe';
   const days = sanitizeHistory(stored?.days, HISTORY_DAYS, 'date', sanitizeDay, includeTranscription);
   const output = { id, label, days };
   if (Array.isArray(stored?.hours) && stored.hours.length <= HISTORY_HOURS) {
-    output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start', sanitizeHour, includeTranscription);
+    output.hours = sanitizeHistory(stored.hours, HISTORY_HOURS, 'start',
+      (hour) => sanitizeHour(hour, includeTranscription, cadenceStart, now));
   }
   return output;
 }
 
-function latestPublishedHour(connections, history, catalog, now) {
+function latestPublishedHour(connections, history, catalog, now, cadenceStart) {
   const currentHour = Math.floor(now / HOUR_MS) * HOUR_MS;
-  const lastHour = currentHour - HOUR_MS;
+  const cycle = currentHour >= cadenceStart;
+  const lastHour = cycle ? Math.floor(now / CYCLE_MS) * CYCLE_MS : currentHour - HOUR_MS;
   const start = new Date(lastHour).toISOString();
-  if (now >= currentHour + HOURLY_GRACE_MS) return start;
+  if (now >= lastHour + HOUR_MS + HOURLY_GRACE_MS) return start;
 
   const index = (lastHour - Date.parse(history?.hourStart)) / HOUR_MS;
   const catalogFinished = history?.observedAt[index] && catalog.every(({ id }) => {
@@ -142,7 +171,8 @@ function latestPublishedHour(connections, history, catalog, now) {
   });
   const connectionsFinished = connections.every(({ hours }) =>
     hours?.some((hour) => hour.start === start && hour.complete));
-  return catalogFinished && connectionsFinished ? start : new Date(lastHour - HOUR_MS).toISOString();
+  const previous = lastHour - (cycle && lastHour > cadenceStart ? CYCLE_MS : HOUR_MS);
+  return catalogFinished && connectionsFinished ? start : new Date(previous).toISOString();
 }
 
 function rankCheck(check, stale) {
@@ -194,17 +224,21 @@ function sanitizeSnapshot(snapshot, catalog, now = Date.now()) {
     !Array.isArray(snapshot.checks) || snapshot.checks.length > MAX_CHECKS) {
     throw new Error('Invalid AWS history snapshot.');
   }
-  const catalogHistory = sanitizeCatalogHistory(snapshot.catalogHistory, catalog, now);
+  const firstCycle = canonicalTime(snapshot.cadenceStart, HOUR_KEY);
+  const cadenceStart = snapshot.cadenceHours === 6 && firstCycle % CYCLE_MS === 0 ? firstCycle : Infinity;
+  const catalogHistory = sanitizeCatalogHistory(snapshot.catalogHistory, catalog, now, cadenceStart);
   const byId = new Map(snapshot.connections.map((connection) => [connection?.id, connection]));
-  const connections = [...CONNECTIONS].map(([id, label]) => sanitizeConnection(byId.get(id), id, label));
-  const homeGpu = snapshot.homeGpu?.id === HOME_GPU_ID ? sanitizeConnection(snapshot.homeGpu, HOME_GPU_ID, 'Home GPU') : null;
+  const connections = [...CONNECTIONS].map(([id, label]) => sanitizeConnection(byId.get(id), id, label, cadenceStart, now));
+  const homeGpu = snapshot.homeGpu?.id === HOME_GPU_ID
+    ? sanitizeConnection(snapshot.homeGpu, HOME_GPU_ID, 'Home GPU', cadenceStart, now) : null;
   const monitored = homeGpu ? [...connections, homeGpu] : connections;
   return {
     ok: true,
     region: REGION,
     days: HISTORY_DAYS,
     checkedAt: snapshot.checkedAt,
-    hourlyReadyThrough: latestPublishedHour(monitored, catalogHistory, catalog, now),
+    ...(Number.isFinite(cadenceStart) ? { cadenceHours: 6, cadenceStart: snapshot.cadenceStart } : {}),
+    hourlyReadyThrough: latestPublishedHour(monitored, catalogHistory, catalog, now, cadenceStart),
     connections,
     ...(homeGpu ? { homeGpu } : {}),
     catalog: projectCatalog(catalog, snapshot.checks, now),

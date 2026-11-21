@@ -1,17 +1,16 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory)]
-  [ValidateSet('Request', 'Install')]
+  [ValidateSet('Request', 'Install', 'UpdateSchedule')]
   [string] $Phase,
 
-  [Parameter(Mandatory)]
   [string] $ExchangeFolder
 )
 
 $ErrorActionPreference = 'Stop'
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (!([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-  throw 'Run this one-time setup in an elevated Windows PowerShell window.'
+  throw 'Run heartbeat setup in an elevated Windows PowerShell window.'
 }
 
 $taskName = 'Daniel Short Home GPU Heartbeat'
@@ -20,6 +19,27 @@ $subject = 'CN=Daniel Short Home GPU Status'
 $certreq = Join-Path $env:windir 'System32\certreq.exe'
 $certutil = Join-Path $env:windir 'System32\certutil.exe'
 $source = Join-Path $PSScriptRoot 'home-gpu-heartbeat.ps1'
+
+function New-HeartbeatTrigger {
+  $now = [datetime]::UtcNow
+  $start = $now.Date.AddHours([Math]::Floor($now.Hour / 6) * 6).AddMinutes(2)
+  if ($start -le $now) { $start = $start.AddHours(6) }
+  $trigger = New-ScheduledTaskTrigger -Once -At $start -RepetitionInterval (New-TimeSpan -Hours 6)
+  # An explicit UTC boundary keeps the heartbeat aligned when local daylight saving time changes.
+  $trigger.StartBoundary = $start.ToString("yyyy-MM-ddTHH:mm:ss'Z'", [Globalization.CultureInfo]::InvariantCulture)
+  return $trigger
+}
+
+if ($Phase -eq 'UpdateSchedule') {
+  $previous = Export-ScheduledTask -TaskPath '\' -TaskName $taskName
+  $backup = Join-Path $folder ('task-before-update-' + [datetime]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '.xml')
+  $previous | Set-Content -LiteralPath $backup -Encoding Unicode
+  Set-ScheduledTask -TaskPath '\' -TaskName $taskName -Trigger (New-HeartbeatTrigger) | Out-Null
+  Get-ScheduledTaskInfo -TaskPath '\' -TaskName $taskName | Select-Object TaskName, NextRunTime
+  return
+}
+
+if (!$ExchangeFolder) { throw 'Supply -ExchangeFolder for device enrollment.' }
 $workspace = (Resolve-Path -LiteralPath $ExchangeFolder).Path
 
 if ($Phase -eq 'Request') {
@@ -85,13 +105,11 @@ Copy-Item -LiteralPath $source -Destination $scriptPath
 $powerShell = Join-Path $env:windir 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $arguments = '-NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}" -Endpoint {1} -CertificateThumbprint {2}' -f $scriptPath,$configuration.endpoint,$configuration.thumbprint
 $action = New-ScheduledTaskAction -Execute $powerShell -Argument $arguments -WorkingDirectory $folder
-$now = [datetime]::Now
-$start = $now.Date.AddHours($now.Hour).AddHours(1).AddMinutes(2)
-$trigger = New-ScheduledTaskTrigger -Once -At $start -RepetitionInterval (New-TimeSpan -Hours 1)
+$trigger = New-HeartbeatTrigger
 $principal = New-ScheduledTaskPrincipal -UserId 'NT AUTHORITY\LOCAL SERVICE' -LogonType ServiceAccount -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
   -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 1) `
   -RestartCount 2 -RestartInterval (New-TimeSpan -Minutes 1)
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
-  -Description 'Reports the hourly Home GPU loopback health result to AWS. It does not start or change the transcription worker.' | Out-Null
+  -Description 'Reports Home GPU loopback health to AWS every six hours.' | Out-Null
 Start-ScheduledTask -TaskName $taskName
