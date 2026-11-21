@@ -323,16 +323,33 @@
     display: grid;
     box-sizing: border-box;
     min-height: 44px;
+    grid-template-columns: minmax(0, 1fr) 8px;
     align-content: center;
-    justify-self: start;
+    align-items: center;
+    column-gap: 7px;
     padding-block: var(--space-6);
-    color: var(--link);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    padding-inline-end: 4px;
+    border-radius: 5px;
+    color: #172f46;
+    text-decoration: none;
   }
 
-  .aws-status__item-link:hover {
-    text-decoration-thickness: 2px;
+  .aws-status__item-link::after {
+    box-sizing: border-box;
+    width: 6px;
+    height: 6px;
+    border: solid #627888;
+    border-width: 1.6px 1.6px 0 0;
+    transform: rotate(45deg);
+    content: "";
+  }
+
+  .aws-status__item-link:is(:hover, :focus-visible) {
+    background: #edf3f6;
+  }
+
+  .aws-status__item-link:focus-visible {
+    outline-color: #196d83;
   }
 
   .aws-status__ticks {
@@ -535,6 +552,18 @@
       --aws-status-history-width: 118rem;
     }
   }
+
+  @media (max-width: 600px) {
+    .aws-status__service:has(.aws-status__item-link) {
+      padding-inline-end: 5px;
+    }
+
+    .aws-status__item-link {
+      grid-template-columns: minmax(0, 1fr) 7px;
+      column-gap: 3px;
+      padding-inline-end: 2px;
+    }
+  }
 }
 
 @layer overrides {
@@ -544,40 +573,40 @@
     font-family: var(--font-sans);
   }
 
-  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"][data-page-masthead] {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="system-status"][data-page-masthead] {
     --masthead-title-size: clamp(1.75rem, 3vw, 2.75rem);
     border-bottom-color: var(--panel-color);
   }
 
-  [data-personal-tool-header="aws-status"] .personal-tool-header__summary {
+  [data-personal-tool-header="system-status"] .personal-tool-header__summary {
     display: none;
   }
 
-  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"] [data-page-masthead-parent] {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="system-status"] [data-page-masthead-parent] {
     padding-inline: 0 var(--space-24);
     border-color: transparent;
   }
 
-  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"] [data-page-masthead-parent]:hover {
+  body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="system-status"] [data-page-masthead-parent]:hover {
     border-color: transparent;
     color: var(--panel-color);
     background: transparent;
     text-decoration: underline;
   }
 
-  [data-personal-tool-header="aws-status"] .tools-account-bar .tools-account-signout {
+  [data-personal-tool-header="system-status"] .tools-account-bar .tools-account-signout {
     border-color: transparent;
     background: var(--surface);
     color: var(--text-muted);
   }
 
-  [data-personal-tool-header="aws-status"] .tools-account-bar .tools-account-signout:hover {
+  [data-personal-tool-header="system-status"] .tools-account-bar .tools-account-signout:hover {
     background: var(--surface-accent);
     color: var(--text-light);
   }
 
   @media (min-width: 60rem) and (max-height: 48rem) and (pointer: fine) {
-    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="aws-status"][data-page-masthead] {
+    body[data-audience="personal"] .site-frame[data-frame-audience="personal"] [data-site-route-body] [data-personal-tool-header="system-status"][data-page-masthead] {
       --masthead-padding-start: var(--space-20);
       --masthead-padding-end: var(--space-16);
       --page-content-gap: var(--space-16);

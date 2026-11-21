@@ -333,7 +333,10 @@ function loadNonpublicCatalogRoutes() {
   loadJsonRecords('content/tools').forEach((record) => {
     const tool = record.data;
     const slug = normalizeWhitespace(tool.slug || path.basename(record.relPath, '.json'));
-    if (slug && !isPublicTool({ ...tool, slug })) routes.add(`/tools/${slug}`);
+    if (!slug || isPublicTool({ ...tool, slug })) return;
+    routes.add(`/tools/${slug}`);
+    const canonicalPath = toPathFromCanonical(tool.href);
+    if (canonicalPath) routes.add(canonicalPath);
   });
   nonpublicCatalogRoutesCache = routes;
   return routes;

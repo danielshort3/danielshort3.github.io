@@ -19,7 +19,7 @@
     'screen-recorder': { name: 'Screen Recorder', href: '/tools/screen-recorder' },
     'job-application-tracker': { name: 'Job Application Tracker', href: '/tools/job-application-tracker' },
     'short-links': { name: 'Links & QR codes', href: '/tools/short-links' },
-    'aws-status': { name: 'AWS Status', href: '/tools/aws-status' },
+    'aws-status': { name: 'System Status', href: '/tools/system-status' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
     'campaign-creative-tracker': { name: 'Campaign Creative Tracker', href: '/tools/campaign-creative-tracker' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },

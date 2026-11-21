@@ -24,8 +24,8 @@
     "CHATBOT_BEDROCK_EMBED_DIMENSIONS": "512"
   },
   "rewrites": [
-    {"source":"/tools/aws-status","destination":"/pages/aws-status"},
-    {"source":"/tools/aws-status.html","destination":"/pages/aws-status"},
+    {"source":"/tools/system-status","destination":"/pages/system-status"},
+    {"source":"/tools/system-status.html","destination":"/pages/system-status"},
     {"source":"/tools/watermark-remover","destination":"/pages/watermark-remover"},
     {"source":"/tools/watermark-remover.html","destination":"/pages/watermark-remover"},
     { "source": "/api/demos/covid-outbreak/state/:state", "destination": "/api/demos/covid-outbreak%2Fstate%2F:state" },
@@ -156,8 +156,12 @@
     { "source": "/retail-loss-sales-demo.html", "destination": "/pages/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
-    {"source":"/pages/aws-status","destination":"/tools/aws-status","permanent":true},
-    {"source":"/pages/aws-status.html","destination":"/tools/aws-status","permanent":true},
+    {"source":"/tools/aws-status","destination":"/tools/system-status","permanent":true},
+    {"source":"/tools/aws-status.html","destination":"/tools/system-status","permanent":true},
+    {"source":"/pages/aws-status","destination":"/tools/system-status","permanent":true},
+    {"source":"/pages/aws-status.html","destination":"/tools/system-status","permanent":true},
+    {"source":"/pages/system-status","destination":"/tools/system-status","permanent":true},
+    {"source":"/pages/system-status.html","destination":"/tools/system-status","permanent":true},
     {"source":"/pages/watermark-remover","destination":"/tools/watermark-remover","permanent":true},
     {"source":"/pages/watermark-remover.html","destination":"/tools/watermark-remover","permanent":true},
     { "source": "/sitemap-pretty", "destination": "/sitemap", "permanent": true },
@@ -302,8 +306,8 @@
     { "source": "/contributions.html", "destination": "/tourism", "permanent": true }
   ],
   "headers": [
-    {"source":"/tools/aws-status","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
-    {"source":"/tools/aws-status.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+    {"source":"/tools/system-status","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+    {"source":"/tools/system-status.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
     {
       "source": "/app-updates/:channel/latest.json",
       "headers": [

@@ -49,6 +49,16 @@ assert.equal(api.buildToolStructuredPage({ data: { ...tool, hidden: true }, relP
 assert.equal(api.buildToolStructuredPage({ data: { ...tool, noindex: true }, relPath: 'content/tools/text-compare.json' }, new Map()), null);
 assert.equal(api.buildToolStructuredPage({ data: { ...tool, visibility: 'admin' }, relPath: 'content/tools/text-compare.json' }, new Map()), null);
 
+const linkedDigest = api.buildDigestPage({
+  ...options,
+  structuredPage,
+  html: '<main><a href="/tools/system-status">System Status</a>' +
+    '<a href="/tools/aws-status.html">Status bookmark</a>' +
+    '<a href="/tools/text-compare">Text Compare</a></main>'
+});
+assert.deepEqual(Array.from(linkedDigest.links, (link) => new URL(link.url).pathname), ['/tools/text-compare'],
+  'Public digests should omit both the current and former route of the private status tool.');
+
 const hiddenStatusHtml = '<main><p>Visible guide with useful instructions for the public visitor.</p>' +
   '<section hidden><h2>Message sent</h2><p>This should only appear after submitting the form.</p></section>' +
   '<section inert><p>INERT_PRIVATE_STATE</p></section>' +
