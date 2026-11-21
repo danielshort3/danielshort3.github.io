@@ -44,7 +44,7 @@ const actions = {
   'game:roulette': 'Place a synthetic wager, spin, and verify the displayed settlement.',
   'game:probability-engine': 'Spin a seeded scenario and verify the displayed result.',
   'game:stormbreak': 'Earn a synthetic battle reward and verify the saved progress after reload.',
-  'game:ocean-wave-simulation': 'Change the simulation location and verify the renderer reports the new scene.',
+  'game:ocean-wave-simulation': 'Visit Quiet cove in WebGL or change the open-ocean sky to Dusk in Canvas 2D.',
   'game:chasing-light': 'Fire a pulse in the guided mission and verify the displayed speed measurement.',
   'game:wayfarers-guild': 'Acknowledge the first guild tutorial lesson and verify the next step survives a reload.'
 };
