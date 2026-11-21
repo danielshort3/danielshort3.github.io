@@ -58,6 +58,8 @@ After the initial deployment, use the admin session to invoke the reader with `{
 
 To verify the transcription during a cycle, invoke the writer with `{"operation":"canary"}` and then `{"operation":"canary-result"}`. Both operations use the current UTC cycle. The terminal result `passed` requires the expected transcript content. Confirm the same result in the reader and in the AWS Connections row of System Status.
 
+For an unavailable transcription test, the writer warnings identify the failing stage (`start`, `get`, or `verify`), an error code or exception class, and a fixed diagnostic category. Transcribe validates output access by writing `results/.write_access_check_file.temp` in the private bucket. The writer grants object writes to that exact key and the named canary transcripts.
+
 ## Submit local or CI results
 
 The stack outputs `AwsStatusReportFunctionArn` and an unattached `AwsStatusReportInvokePolicyArn`. The managed policy grants only invocation of the report function. Attach it only to a separately reviewed temporary-access role authorized to submit check results. The website role is for reading. The report handler has no collection or probe operation.
