@@ -30,6 +30,8 @@ function runProjectContentClarityTests({ assert }) {
     const nextId = projectOrder[(projectOrder.indexOf(project.id) + 1) % projectOrder.length];
     const nextProject = byId.get(nextId);
     const html = renderProjectPage(project, { nextProject });
+    assert(project.outcomeIntro && html.includes('<p class="project-subtitle">' + escape(project.outcomeIntro) + '</p>'),
+      project.id + ' opens with an authored outcome.');
     assert(JSON.stringify(descriptions(html)) === JSON.stringify(Array(3).fill(escape(project.metaDescription))),
       `${project.id} should use the same authored description in search, Open Graph, and Twitter metadata`);
     const structured = JSON.parse(html.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/)[1]);
@@ -72,8 +74,10 @@ function runProjectContentClarityTests({ assert }) {
   assert(visited.size === projects.length && currentId === projectOrder[0],
     'Explore next must visit every published project once before returning to its start');
 
-  const fixture = { ...byId.get('handwritingRating'), metaDescription: undefined, subtitle: 'One clear sentence.', problem: 'This should remain in the case study.' };
+  const fixture = { ...byId.get('handwritingRating'), metaDescription: undefined, outcomeIntro: undefined, subtitle: 'One clear sentence.', problem: 'This should remain in the case study.' };
   assert(descriptions(renderProjectPage(fixture))[0] === 'One clear sentence.', 'Metadata fallback should choose one clear source instead of joining complete sentences with a colon');
+  assert(renderProjectPage(fixture).includes('<p class="project-subtitle">One clear sentence.</p>'),
+    'A project without a separate outcome retains its subtitle.');
   const literal = { ...fixture, metaDescription: 'A <literal> & "quoted" description.' };
   assert(descriptions(renderProjectPage(literal))[0] === escape(literal.metaDescription), 'Authored metadata should be escaped without changing its meaning');
   const homeProjects = personal.page.sections.find((section) => section.type === 'home-accordion').props.categories.find((category) => category.id === 'projects');

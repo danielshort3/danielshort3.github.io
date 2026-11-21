@@ -174,7 +174,8 @@ function run() {
   const h = createHarness();
   assert.strictEqual(h.get('support-notice').hidden, true);
   assert.strictEqual(h.get('controls-panel').hidden, false);
-  assert.strictEqual(h.get('preview-panel').hidden, false);
+  assert.strictEqual(h.get('preview-panel').hidden, true);
+  assert.strictEqual(h.get('grid').dataset.step, 'choose');
   assert.strictEqual(h.get('settings-summary').textContent, '15 fps · Small quality · 75% scale');
   assert.strictEqual(h.get('output-summary').textContent, 'Output: Auto');
   assert.strictEqual(h.get('system-audio-details').hidden, true);

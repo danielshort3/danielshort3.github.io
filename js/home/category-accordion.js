@@ -35,6 +35,8 @@
 
   function appendLibraryGroups(fragment, entries, categoryId, createCard) {
     const groups = new Map();
+    const shortcuts = entries.filter((entry) => entry.shortcutOrder).sort((a, b) => a.shortcutOrder - b.shortcutOrder);
+    if (categoryId === 'tools' && shortcuts.length) groups.set('Start here', shortcuts);
     entries.forEach((entry) => {
       const label = entry.group || '';
       if (!groups.has(label)) groups.set(label, []);
@@ -72,13 +74,24 @@
         section.append(heading);
       }
       const list = document.createElement('ul');
-      list.className = 'home-library__list';
+      list.className = items === shortcuts ? 'home-library__shortcuts' : 'home-library__list';
       list.setAttribute('aria-label', label || categoryId);
-      items.forEach((entry) => list.append(createCard(entry)));
+      items.forEach((entry) => list.append(createCard(entry, items === shortcuts)));
       section.append(list);
       fragment.append(section);
     });
   }
+  function renderShortcut(item, link, media, title) {
+    link.className = 'home-library__shortcut';
+    media.className = 'home-library__shortcut-icon';
+    media.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    label.textContent = title || 'Explore';
+    link.append(media, label);
+    item.append(link);
+    return item;
+  }
+
   function notifyRouteComplete() {
     const url = window.location.href;
     const previousUrl = lastCompletedUrl;
@@ -112,7 +125,7 @@
       const data = window.HOME_LIBRARY_DATA?.[id]?.items || [];
       const fragment = document.createDocumentFragment();
       const href = (value) => /^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(value || '') ? value : `/${value || ''}`;
-      appendLibraryGroups(fragment, data, id, (entry) => {
+      appendLibraryGroups(fragment, data, id, (entry, shortcut) => {
         const item = document.createElement('li');
         item.className = 'home-library__item';
         const link = document.createElement('a');
@@ -149,6 +162,7 @@
             if (categoryIcon) media.append(categoryIcon.cloneNode(true));
           }
         }
+        if (shortcut) return renderShortcut(item, link, media, entry.title);
         const copy = document.createElement('span');
         copy.className = 'home-library__copy';
         const headline = id === 'projects' ? document.createElement('span') : copy;
@@ -158,13 +172,13 @@
         const summary = document.createElement('span');
         summary.textContent = entry.summary || '';
         if (id === 'projects') summary.className = 'home-library__summary';
+        headline.append(title);
         if (entry.badge) {
           const badge = document.createElement('small');
           badge.className = 'home-library__badge';
           badge.textContent = entry.badge;
           headline.append(badge);
         }
-        headline.append(title);
         if (headline !== copy) copy.append(headline);
         copy.append(summary);
         const arrow = document.createElement('span');
@@ -586,7 +600,7 @@
     return media;
   }
 
-  function createLibraryCard(item, categoryId) {
+  function createLibraryCard(item, categoryId, shortcut) {
     const listItem = document.createElement('li');
     listItem.className = 'home-library__item';
     const link = document.createElement('a');
@@ -607,19 +621,21 @@
       link.dataset.sourceSurface = 'home_library';
     }
 
+    const media = createLibraryMedia(item, categoryId);
+    if (shortcut) return renderShortcut(listItem, link, media, item.title);
     const copy = document.createElement('span');
     copy.className = 'home-library__copy';
     const headline = categoryId === 'projects' ? document.createElement('span') : copy;
     if (categoryId === 'projects') headline.className = 'home-library__headline';
     const title = document.createElement('strong');
     title.textContent = String(item.title || 'Explore');
+    headline.append(title);
     if (item.badge) {
       const badge = document.createElement('small');
       badge.className = 'home-library__badge';
       badge.textContent = item.badge;
       headline.append(badge);
     }
-    headline.append(title);
     if (headline !== copy) copy.append(headline);
     if (item.summary) {
       const summary = document.createElement('span');
@@ -628,7 +644,7 @@
       copy.append(summary);
     }
 
-    link.append(createLibraryMedia(item, categoryId), copy, createLibraryArrow(categoryId));
+    link.append(media, copy, createLibraryArrow(categoryId));
     listItem.append(link);
     return listItem;
   }
@@ -641,7 +657,7 @@
     const data = getLibraryData(id);
     const itemsForLibrary = data?.items || [];
     const fragment = document.createDocumentFragment();
-    appendLibraryGroups(fragment, itemsForLibrary, id, (item) => createLibraryCard(item, id));
+    appendLibraryGroups(fragment, itemsForLibrary, id, (item, shortcut) => createLibraryCard(item, id, shortcut));
     list.replaceChildren(fragment);
     const count = view.querySelector('[data-home-library-count]');
     if (count) { count.textContent = String(itemsForLibrary.length); count.parentElement.hidden = false; }

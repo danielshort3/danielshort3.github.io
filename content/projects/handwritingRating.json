@@ -2,6 +2,7 @@
   "id": "handwritingRating",
   "title": "Handwriting Legibility Scoring",
   "subtitle": "Explore how confidently a model recognizes your handwritten digits.",
+  "outcomeIntro": "The model recognized 76% of my handwritten digit samples.",
   "metaDescription": "Try a handwritten-digit recognition demo and compare MNIST results with a small personal handwriting sample. Review the methods and limitations.",
   "image": "img/projects/handwritingRating.png",
   "iconImage": "img/projects/icons/handwritingRating.png",

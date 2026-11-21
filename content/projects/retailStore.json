@@ -2,6 +2,7 @@
   "id": "retailStore",
   "title": "Store-Level Loss & Sales ETL",
   "subtitle": "Bring store data together to spot unusual loss and sales patterns.",
+  "outcomeIntro": "I combined sales and loss records so investigators could narrow their review to a few store-level hotspots.",
   "metaDescription": "Explore a retail loss and sales data pipeline with an interactive dashboard for comparing stores, spotting unusual patterns, and planning investigations.",
   "image": "img/projects/retailStore.png",
   "iconImage": "img/projects/icons/retailStore.png",

@@ -57,27 +57,16 @@ function installSyntheticCapture() {
   }
 }
 
-async function checkStatusLayout(page, viewport, stage) {
-  const layout = await page.evaluate(() => {
-    const status = document.querySelector('[data-screenrec="status"]');
-    const panel = document.querySelector('[data-screenrec="preview-panel"]');
-    const videoStage = document.querySelector('[data-screenrec="stage"]');
-    const box = status.getBoundingClientRect();
-    const panelBox = panel.getBoundingClientRect();
-    return {
-      text: status.textContent.trim(), width: box.width, height: box.height,
-      left: box.left, right: box.right, bottom: box.bottom,
-      panelLeft: panelBox.left, panelRight: panelBox.right,
-      videoTop: videoStage.getBoundingClientRect().top,
-      overflow: document.documentElement.scrollWidth - innerWidth
-    };
-  });
-  assert(layout.text.length > 0 && layout.text.length <= 70, `${stage}: status above preview should be short`);
-  assert(!/Auto-stops|Limit:|Stop capture when you are done/i.test(layout.text), `${stage}: lengthy recording guidance should not occupy the status badge`);
-  assert(layout.height <= 60, `${stage}: status should stay compact at ${viewport.width}px`);
-  assert(layout.left >= layout.panelLeft - 1 && layout.right <= layout.panelRight + 1, `${stage}: status should stay inside its preview panel`);
-  assert(layout.bottom <= layout.videoTop + 1, `${stage}: status should sit above the preview`);
-  assert(layout.overflow <= 1, `${stage}: recorder should not overflow horizontally`);
+async function checkStage(page, viewport, expected) {
+  const control = key => page.locator(`[data-screenrec="${key}"]`);
+  assert.equal(await control('grid').getAttribute('data-step'), expected);
+  assert.equal(await control('preview-panel').isVisible(), expected !== 'choose');
+  assert.equal(await control('start-record').isVisible(), expected === 'sharing');
+  assert.equal(await control('pause-record').isVisible(), ['recording', 'paused'].includes(expected));
+  assert.equal(await control('download-all').isVisible(), expected === 'export');
+  assert.equal(await control('download-panel').isVisible(), expected === 'export');
+  assert.equal(await control('welcome').isVisible(), expected === 'choose');
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), expected + ' should fit ' + viewport.width + 'px');
 }
 
 async function checkViewport({ browser, base, artifactDir }, viewport) {
@@ -102,14 +91,14 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert.equal(await page.evaluate(() => window.__screenRecorderTest.captureCalls), 0, 'Loading the tool must not start screen capture');
     assert(await control('audio-toggle').isVisible(), 'Common audio controls stay visible.');
     assert(await control('fps-select').isHidden(), 'Advanced video controls start collapsed.');
-    await page.locator('.screenrec-more-options > summary').click();
+    await page.locator('.screenrec-controls .screenrec-more-options > summary').click();
     await control('fps-select').selectOption('30');
     assert(await control('format-options').isVisible(), 'Video and download settings are available together.');
-    await page.locator('.screenrec-more-options > summary').click();
-    assert.match(await control('settings-summary').innerText(), /30 fps/, 'Collapsed options retain a concise settings summary.');
+    await page.locator('.screenrec-controls .screenrec-more-options > summary').click();
+    assert.match(await control('settings-summary').textContent(), /30 fps/, 'Chosen settings survive closing the disclosure.');
     assert.equal(await page.evaluate(() => window.__screenRecorderTest.captureCalls), 0, 'Editing options must not start capture.');
     await control('start-capture').scrollIntoViewIfNeeded();
-    await checkStatusLayout(page, viewport, stage);
+    await checkStage(page, viewport, 'choose');
 
     stage = 'permission cancellation';
     await control('start-capture').click();
@@ -119,7 +108,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(await control('stop-capture').isDisabled(), 'Permission cancellation must not leave an active capture');
     assert(await control('support-notice').isHidden(), 'Cancelling sharing does not mark the browser unsupported.');
     assert(await control('controls-panel').isVisible(), 'Capture settings remain available after cancellation.');
-    await checkStatusLayout(page, viewport, stage);
+    await checkStage(page, viewport, 'choose');
 
     stage = 'capture';
     await control('start-capture').click();
@@ -128,8 +117,14 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
       return video.srcObject instanceof MediaStream && video.videoWidth > 0 && !document.querySelector('[data-screenrec="start-record"]').disabled;
     });
     assert.equal(await page.evaluate(() => window.__screenRecorderTest.captureCalls), 2);
-    await checkStatusLayout(page, viewport, stage);
-    await control('status').scrollIntoViewIfNeeded();
+    await checkStage(page, viewport, 'sharing');
+    await control('crop-toggle').click();
+    await control('crop-presets-toggle').click();
+    await page.getByRole('button', { name: '1:1 (1080x1080)' }).click();
+    assert.equal(await control('crop-presets-label').innerText(), '1:1');
+    await control('crop-toggle').click();
+    assert(await control('crop-options').isHidden());
+    await control('stage-title').scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(artifactDir, `screen-recorder-${name}-capture.png`) });
 
     stage = 'recording';
@@ -137,7 +132,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await page.waitForFunction(() => window.__screenRecorderTest.recorders.some(recorder => recorder.state === 'recording'));
     await page.waitForFunction(() => window.__screenRecorderTest.bytes > 0);
     assert(await control('start-record').isDisabled(), 'A second recording cannot start while recording');
-    await checkStatusLayout(page, viewport, stage);
+    await checkStage(page, viewport, 'recording');
 
     stage = 'pause and resume';
     await control('pause-record').click();
@@ -146,17 +141,20 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     const pausedTimer = await control('timer').innerText();
     await page.waitForTimeout(350);
     assert.equal(await control('timer').innerText(), pausedTimer, 'Pause freezes the recording timer');
-    await checkStatusLayout(page, viewport, 'paused');
+    await checkStage(page, viewport, 'paused');
     await control('pause-record').click();
     await page.waitForFunction(() => window.__screenRecorderTest.recorders.every(recorder => recorder.state === 'recording'));
     assert.match(await control('pause-record').innerText(), /Pause/i);
-    await checkStatusLayout(page, viewport, 'resumed');
+    await checkStage(page, viewport, 'recording');
 
     stage = 'stop and download';
     await control('stop-record').click();
     await page.waitForFunction(() => !document.querySelector('[data-screenrec="download-all"]').disabled);
     assert(await control('pause-record').isDisabled(), 'Pause is disabled after finalizing');
     assert(await control('stop-record').isDisabled(), 'Stop recording is disabled after finalizing');
+    assert(await control('download-items').isHidden(), 'Format details start collapsed.');
+    await control('download-panel').locator('summary').click();
+    assert(await control('download-items').getByRole('link').first().isVisible());
     assert((await control('download-items').innerText()).trim().length > 0, 'Completed download shows its format and size');
     const session = await page.evaluate(() => {
       const payload = {};
@@ -168,7 +166,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert.equal(session.inputs.FPS, '30 fps');
     assert(await control('preview-panel').isVisible(), 'Applying settings retains an existing clip preview.');
     assert(await control('download-all').isEnabled(), 'Applying settings retains the existing download.');
-    await checkStatusLayout(page, viewport, 'clip ready');
+    await checkStage(page, viewport, 'export');
     const downloadEvent = page.waitForEvent('download');
     await control('download-all').click();
     const download = await downloadEvent;
@@ -178,6 +176,11 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     assert(fs.statSync(downloadedFile).size > 100, 'The real encoder must produce a nonempty downloadable recording');
     await control('download-panel').scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(artifactDir, `screen-recorder-${name}-download.png`) });
+    await control('record-again').click();
+    await checkStage(page, viewport, 'sharing');
+    await control('preview-clip').click();
+    await checkStage(page, viewport, 'export');
+    await page.locator('.screenrec-source-bar').click();
     await control('stop-capture').click();
     await page.waitForFunction(() => window.__screenRecorderTest.streams.every(stream => stream.getTracks().every(track => track.readyState === 'ended')));
     const capture = await page.evaluate(() => ({ microphoneCalls: window.__screenRecorderTest.microphoneCalls, calls: window.__screenRecorderTest.calls }));
@@ -231,7 +234,7 @@ async function checkUnavailable({ browser, base, artifactDir }, viewport, missin
     }
     const layout = await notice.evaluate(node => {
       const rect = node.getBoundingClientRect();
-      const hero = document.querySelector('.tools-hero').getBoundingClientRect();
+      const hero = document.querySelector('.personal-tool-header').getBoundingClientRect();
       return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, heroBottom: hero.bottom, overflow: document.documentElement.scrollWidth - innerWidth };
     });
     assert(layout.left >= 0 && layout.right <= viewport.width + 1 && layout.overflow <= 1, `${label}: the support notice fits without horizontal clipping.`);

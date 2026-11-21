@@ -374,10 +374,19 @@ function getPersonalLibraryPresentation(categoryValue, itemCount = 0) {
 function getPersonalToolGroup(tool = {}) {
   if (tool.visibility === 'admin') return 'Admin tools';
   if (tool.visibility === 'authed') return 'Account tools';
-  if ((tool.slug || tool.id) === 'screen-recorder') return 'Recording';
   if (tool.categoryId === 'tools-writing') return 'Text';
   if (tool.categoryId === 'tools-marketing') return 'Links';
-  return 'Images';
+  return 'Images & video';
+}
+
+function orderPersonalTools(items, startHereIds) {
+  const groups = ['Text', 'Images & video', 'Links', 'Account tools', 'Admin tools'];
+  for (const item of items) {
+    const position = startHereIds.indexOf(item.id);
+    if (position >= 0 && (!item.visibility || item.visibility === 'public')) item.shortcutOrder = position + 1;
+  }
+  return items.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group) ||
+    (a.shortcutOrder || Number.MAX_SAFE_INTEGER) - (b.shortcutOrder || Number.MAX_SAFE_INTEGER));
 }
 
 function renderPersonalLibraryHeader(options = {}) {
@@ -882,7 +891,7 @@ function replaceMainHtml(html, mainHtml) {
   return cleanHtml.slice(0, main.start) + String(mainHtml || '').trim() + boundary + suffix;
 }
 
-function renderLibraryCard(item, categoryId) {
+function renderLibraryCard(item, categoryId, shortcut) {
   const isProject = categoryId === 'projects';
   const href = String(item && item.href || '').trim();
   const title = String(item && item.title || 'Explore').trim();
@@ -903,19 +912,26 @@ function renderLibraryCard(item, categoryId) {
   const visibilityAttributes = visibility !== 'public'
     ? ` data-tools-visibility="${escapeHtml(visibility)}" hidden aria-hidden="true"`
     : '';
-  return [
-    `      <li class="home-library__item"${visibilityAttributes}>`,
-    `        <a class="home-library__card${iconImage ? ' home-library__card--icon' : ''}" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
+  const linkClass = shortcut ? 'home-library__shortcut' : `home-library__card${iconImage ? ' home-library__card--icon' : ''}`;
+  const body = shortcut ? [
+    `          <span class="home-library__shortcut-icon" aria-hidden="true">${media}</span>`,
+    `          <span>${escapeHtml(title)}</span>`
+  ] : [
     `          <span class="home-library__media home-library__media--${mediaType}" aria-hidden="${imageAlt ? 'false' : 'true'}">${media}</span>`,
     '          <span class="home-library__copy">',
     isProject ? '            <span class="home-library__headline">' : '',
-    item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     `            <strong>${escapeHtml(title)}</strong>`,
+    item.badge ? `            <small class="home-library__badge">${escapeHtml(item.badge)}</small>` : '',
     isProject ? '            </span>' : '',
     visibility === 'admin' ? `            <span class="home-library__access">${renderIcon(ACCESS_KEY)}Admin access</span>` : '',
     summary ? `            <span${isProject ? ' class="home-library__summary"' : ''}>${escapeHtml(summary)}</span>` : '',
     '          </span>',
-    `          <span class="home-library__arrow" aria-hidden="true">${renderSectionArrow(categoryId, 'right')}</span>`,
+    `          <span class="home-library__arrow" aria-hidden="true">${renderSectionArrow(categoryId, 'right')}</span>`
+  ];
+  return [
+    `      <li class="home-library__item"${visibilityAttributes}>`,
+    `        <a class="${linkClass}" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="personal_library_page">`,
+    ...body,
     '        </a>',
     '      </li>'
   ].filter(Boolean).join('\n');
@@ -923,6 +939,8 @@ function renderLibraryCard(item, categoryId) {
 
 function renderPersonalLibraryGroups(items, categoryId) {
   const groups = new Map();
+  const shortcuts = items.filter((item) => item.shortcutOrder).sort((a, b) => a.shortcutOrder - b.shortcutOrder);
+  if (categoryId === 'tools' && shortcuts.length) groups.set('Start here', shortcuts);
   items.forEach((item) => {
     const group = String(item.group || '');
     if (!groups.has(group)) groups.set(group, []);
@@ -942,8 +960,8 @@ function renderPersonalLibraryGroups(items, categoryId) {
   const sections = groupedEntries.map(({ label, entries, headingId }) => [
     `    <section class="home-library__group"${label ? ` aria-label="${escapeHtml(label)}"` : ''}>`,
     label ? `      <h2 id="${headingId}" tabindex="-1">${escapeHtml(label)}</h2>` : '',
-    `      <ul class="home-library__list" aria-label="${escapeHtml(label || CATEGORY_CONFIG[categoryId].label)}">`,
-    entries.map((item) => renderLibraryCard(item, categoryId)).join('\n'),
+    `      <ul class="${entries === shortcuts ? 'home-library__shortcuts' : 'home-library__list'}" aria-label="${escapeHtml(label || CATEGORY_CONFIG[categoryId].label)}">`,
+    entries.map((item) => renderLibraryCard(item, categoryId, entries === shortcuts)).join('\n'),
     '      </ul>',
     '    </section>'
   ].filter(Boolean).join('\n')).join('\n');
@@ -1000,6 +1018,7 @@ module.exports = {
   findMainRange,
   getPersonalLibraryPresentation,
   getPersonalToolGroup,
+  orderPersonalTools,
   markHardNavigationLinks,
   normalizeSkipLinkHrefs,
   preparePersonalToolDetailHtml,

@@ -2,6 +2,7 @@
   "id": "pizzaDashboard",
   "title": "Pizza Delivery Dashboard",
   "subtitle": "Explore recorded tips, city comparisons, and monthly delivery history.",
+  "outcomeIntro": "I tracked $8,933.49 in delivery tips to see which shifts paid best.",
   "metaDescription": "Explore 1,251 historical pizza delivery records in Tableau, with tip summaries, city comparisons, a tip distribution, and monthly delivery counts.",
   "image": "img/projects/pizzaDashboard.png",
   "iconImage": "img/projects/icons/pizzaDashboard.png",

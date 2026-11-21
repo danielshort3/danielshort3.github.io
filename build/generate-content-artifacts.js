@@ -18,7 +18,7 @@ const {
   renderToolsDirectoryBody
 } = require('./lib/site-renderers');
 const { renderVisualPageBody } = require('./lib/section-renderers');
-const { getPersonalToolGroup } = require('./lib/personal-accordion-shell');
+const { getPersonalToolGroup, orderPersonalTools } = require('./lib/personal-accordion-shell');
 
 const root = path.resolve(__dirname, '..');
 
@@ -112,7 +112,7 @@ function buildHomeLibraryData(content) {
       group: startHereIds.includes(project.id) ? 'Start here' :
         (project.concepts || []).includes('Analytics') ? 'Data stories' :
           (project.concepts || []).includes('Machine Learning') ? 'Machine learning' : 'Practical applications',
-      badge: ['iframe', 'tableau'].includes(project.embed?.type) ? 'Interactive project' : 'Case study'
+      badge: ['iframe', 'tableau'].includes(project.embed?.type) ? '' : 'Case study'
     }))
     .sort((a, b) => projectGroups.indexOf(a.group) - projectGroups.indexOf(b.group) ||
       (a.group === 'Start here' ? startHereIds.indexOf(a.id) - startHereIds.indexOf(b.id) : 0));
@@ -121,7 +121,6 @@ function buildHomeLibraryData(content) {
   const startHereToolIds = Array.isArray(personal?.toolLibrary?.startHereToolIds)
     ? personal.toolLibrary.startHereToolIds
     : [];
-  const toolGroups = ['Start here', 'Text', 'Images', 'Links', 'Recording'];
   const toolCategoryIds = new Map(content.tools.map((tool) => [tool.slug, tool.categoryId]));
   const toolsDirectory = toolsPage
     ? buildToolsDirectoryWorkbenchData(toolsPage, content.tools)
@@ -141,13 +140,11 @@ function buildHomeLibraryData(content) {
       contentType: 'tool',
       contentId: tool.id,
       resourceType: 'tool',
-      group: startHereToolIds.includes(tool.id) ? 'Start here' :
-        getPersonalToolGroup({ id: tool.id, categoryId: toolCategoryIds.get(tool.id) })
-    }))
-    .sort((a, b) => toolGroups.indexOf(a.group) - toolGroups.indexOf(b.group) ||
-      (a.group === 'Start here' ? startHereToolIds.indexOf(a.id) - startHereToolIds.indexOf(b.id) : 0));
+      group: getPersonalToolGroup({ categoryId: toolCategoryIds.get(tool.id) })
+    }));
 
   const gamesPage = content.pagesById && content.pagesById.games;
+  const gameLibrarySummaries = new Map((gamesPage?.games || []).map((game) => [game.id, game.librarySummary]));
   const gamesDirectory = gamesPage
     ? buildGamesDirectoryWorkbenchData(gamesPage)
     : { items: [] };
@@ -156,7 +153,7 @@ function buildHomeLibraryData(content) {
     .map((game) => homeLibraryItem({
       id: String(game.id).trim(),
       title: String(game.title || 'Game').trim(),
-      summary: String(game.summary || '').trim(),
+      summary: String(gameLibrarySummaries.get(game.id) || game.summary || '').trim(),
       href: game.href,
       image: homeLibraryPreviewAsset('games', game.id),
       imageAlt: '',
@@ -169,7 +166,7 @@ function buildHomeLibraryData(content) {
 
   return {
     projects: { items: projects },
-    tools: { items: tools },
+    tools: { items: orderPersonalTools(tools, startHereToolIds) },
     games: { items: games }
   };
 }

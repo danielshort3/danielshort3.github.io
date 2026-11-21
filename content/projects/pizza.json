@@ -2,6 +2,7 @@
   "id": "pizza",
   "title": "Pizza Tips Regression Modeling",
   "subtitle": "Explore which delivery and weather factors are associated with larger tips.",
+  "outcomeIntro": "Order value was the strongest predictor of tip size in my pizza delivery records.",
   "metaDescription": "Explore regression models of delivery tips using delivery records and weather data, with methods, findings, and limits on interpretation.",
   "image": "img/projects/pizza.png",
   "iconImage": "img/projects/icons/pizza.png",

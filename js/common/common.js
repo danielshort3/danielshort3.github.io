@@ -322,10 +322,15 @@
         if (group.heading.getBoundingClientRect().top <= selectionLine) current = group;
       });
       if (atEnd) {
-        const last = groups[groups.length - 1];
-        const currentHeadingTop = current.heading.getBoundingClientRect().top;
-        if (document.activeElement === last.heading || currentHeadingTop < rail.getBoundingClientRect().bottom - 8) {
-          current = last;
+        const railBottom = rail.getBoundingClientRect().bottom;
+        const viewportBottom = frameScrolls ? frame.getBoundingClientRect().bottom : window.innerHeight;
+        const focused = groups.find((group) => group.heading === document.activeElement);
+        const focusedTop = focused?.heading.getBoundingClientRect().top;
+        // Near the bottom, several jump targets can share one clamped scroll position.
+        if (focused && focusedTop >= railBottom - 8 && focusedTop < viewportBottom) {
+          current = focused;
+        } else if (current.heading.getBoundingClientRect().top < railBottom - 8) {
+          current = groups[groups.length - 1];
         }
       }
       setCurrentProjectGroup(rail, current.link);

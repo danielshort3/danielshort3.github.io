@@ -2,6 +2,7 @@
   "id": "nonogram",
   "title": "Nonogram Solver",
   "subtitle": "Watch a trained agent work through a five-by-five picture puzzle.",
+  "outcomeIntro": "I trained an agent to solve 5 × 5 picture puzzles one move at a time.",
   "metaDescription": "Watch a trained agent solve five-by-five Nonogram puzzles and explore the reinforcement-learning approach, demo, and evaluation limitations.",
   "image": "img/projects/nonogram.png",
   "iconImage": "img/projects/icons/nonogram.png",

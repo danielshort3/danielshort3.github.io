@@ -155,9 +155,7 @@ async function runCase({ browser, base, artifactDir, fixtures, width, project })
       assert.equal(await heading.locator('.project-demo-description').innerText(), 'Choose a digit and generate a collection of handwritten variations.');
       assert(await page.locator('.project-intro-action--demo').isVisible(), `${label} keeps one full-demo link in the page masthead.`);
       assert.equal(await page.locator('.project-demo-open').count(), 0, `${label} avoids a second desktop demo-header action.`);
-      const previewLaunch = page.locator('.project-demo-mobile-open');
-      assert.equal(await previewLaunch.count(), 1, `${label} provides a full-demo action beside the static preview.`);
-      assert.equal(await previewLaunch.isVisible(), width < 600, `${label} shows the preview action only at mobile width.`);
+      assert.equal(await page.locator('a[data-resource-type="demo"]').count(), 1, label + ' keeps a single launch action across viewport sizes.');
       const headingBox = await heading.locator('.project-demo-heading').boundingBox();
       const actionsBox = await heading.locator('.project-demo-header-actions').boundingBox();
       assert(actionsBox.y < headingBox.y + headingBox.height, `${label} keeps heading actions beside the copy instead of creating an empty row.`);

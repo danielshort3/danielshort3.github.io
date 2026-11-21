@@ -27,13 +27,12 @@ function runProjectPrivacyLayoutTests({ assert }) {
   'Intro actions enter existing content-click measurement as resources rather than counting another project view.');
   assert(babyNames.includes('class="project-demo-shell"') && babyNames.includes('project-link-label">Notebook'),
     'Promoting two actions preserves the embedded demo and supporting resources.');
-  assert(!babyNames.includes('class="project-demo-open"') && !babyNames.includes('class="project-demo-launch-copy"')
-    && babyNames.includes('class="project-demo-preview-label"')
-    && babyNames.includes('class="project-demo-mobile-open btn-primary"'),
-  'The mobile image is labeled as a preview with a nearby full-demo action.');
-  assert(babyNames.includes('data-source-surface="project_preview"')
-    && babyNames.includes('>Open interactive demo <span aria-hidden="true">↗</span></a>'),
-  'The preview launch uses the existing resource measurement with its own source surface.');
+  assert(!babyNames.includes('class="project-demo-header"') && babyIntro.includes('aria-label="Demo instructions"')
+    && babyNames.includes('class="project-demo-launch-image"') && !babyNames.includes('class="project-demo-preview-label"'),
+  'Baby Names keeps one heading and accessible help with the masthead actions above a quiet phone preview.');
+  assert((babyNames.match(/data-resource-type="demo"/g) || []).length === 1
+    && !babyNames.includes('project-demo-mobile-open'),
+  'Desktop and phone share the same measured full-demo launch in the masthead.');
   assert(babyNames.includes('style="--project-preview-aspect: 1280 / 800;"'),
     'The project preview reserves its supplied aspect ratio before a lazy image has loaded.');
   assert(babyNames.includes('<nav class="project-next-steps" aria-label="Continue exploring">')

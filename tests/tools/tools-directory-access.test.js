@@ -30,9 +30,9 @@ async function run() {
   const html = renderPersonalLibraryMain({ category: 'tools', items });
   const expectedGroups = {
     'Start here': ['text-compare', 'qr-code-generator', 'screen-recorder'],
-    Text: ['nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
-    Images: ['image-optimizer', 'background-remover'],
-    Links: ['utm-batch-builder'],
+    Text: ['text-compare', 'nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
+    'Images &amp; video': ['screen-recorder', 'image-optimizer', 'background-remover'],
+    Links: ['qr-code-generator', 'utm-batch-builder'],
     'Account tools': ['job-application-tracker', 'transcribe'],
     'Admin tools': ['short-links', 'campaign-creative-tracker', 'ga4-utm-performance', 'aws-status', 'watermark-remover']
   };
@@ -44,8 +44,9 @@ async function run() {
     }));
   check(groups.map((group) => group.name).join('|') === Object.keys(expectedGroups).join('|'),
     'Dedicated tools should lead with the selected public tools, followed by subject groups, account tools, and admin tools.');
-  check(JSON.stringify(items.slice(0, 3).map((item) => item.id)) === JSON.stringify(expectedGroups['Start here']),
-    'The first three tools must be Text Compare, QR Code Generator, and Screen Recorder in that order.');
+  check(JSON.stringify(groups[0].cards.map((match) => /data-content-id="([^"]+)"/.exec(match[2])?.[1])) === JSON.stringify(expectedGroups['Start here']) &&
+    groups[0].cards.every((match) => match[2].includes('class="home-library__shortcut"') && !match[2].includes('home-library__copy')),
+    'Start here must show exactly three succinct shortcuts in their selected order.');
   groups.forEach((group) => {
     const cardIds = group.cards.map((match) => /data-content-id="([^"]+)"/.exec(match[2])?.[1]);
     check(JSON.stringify([...cardIds].sort()) === JSON.stringify([...expectedGroups[group.name]].sort()),

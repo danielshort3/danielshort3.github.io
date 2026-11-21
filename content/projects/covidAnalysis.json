@@ -2,6 +2,7 @@
   "id": "covidAnalysis",
   "title": "COVID-19 Outbreak Drivers",
   "subtitle": "Explore early warning signals for ICU strain and the factors behind them.",
+  "outcomeIntro": "I estimated each state’s risk of exceeding 90% ICU occupancy within the next seven days.",
   "metaDescription": "Explore historical ICU strain signals in HHS data with an interactive state-level risk demo, XGBoost methods, and documented evaluation limitations.",
   "image": "img/projects/covidAnalysis.png",
   "iconImage": "img/projects/icons/covidAnalysis.png",

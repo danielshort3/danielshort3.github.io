@@ -950,15 +950,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     JSON.stringify(homeLibraryData.projects.items.filter((item) => item.group === 'Start here').map((item) => item.id)) === JSON.stringify(startHereProjectIds),
   'Project discovery should lead with the three selected projects and retain distinct subject groups');
   const expectedToolGroups = {
-    'Start here': ['text-compare', 'qr-code-generator', 'screen-recorder'],
-    Text: ['nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
-    Images: ['image-optimizer', 'background-remover'],
-    Links: ['utm-batch-builder']
+    Text: ['text-compare', 'nbsp-cleaner', 'oxford-comma-checker', 'point-of-view-checker', 'word-frequency'],
+    'Images & video': ['screen-recorder', 'image-optimizer', 'background-remover'],
+    Links: ['qr-code-generator', 'utm-batch-builder']
   };
   assert(JSON.stringify([...new Set(homeLibraryData.tools.items.map((item) => item.group))]) === JSON.stringify(Object.keys(expectedToolGroups)),
-    'Tool library should lead with Start here and retain the remaining subject groups');
-  assert(JSON.stringify(homeLibraryData.tools.items.slice(0, 3).map((item) => item.id)) ===
-    JSON.stringify(expectedToolGroups['Start here']), 'Tool library should match the selected homepage order');
+    'Tool library should have one canonical record per public tool in its subject group');
+  const shortcutIds = homeLibraryData.tools.items.filter((item) => item.shortcutOrder)
+    .sort((a, b) => a.shortcutOrder - b.shortcutOrder).map((item) => item.id);
+  assert(JSON.stringify(shortcutIds) === JSON.stringify(['text-compare', 'qr-code-generator', 'screen-recorder']),
+    'Tool shortcuts should follow the selected homepage order');
   assert(JSON.stringify(homeLibraryData.games.items.slice(0, 3).map((item) => item.id)) ===
     JSON.stringify(expectedItemIds.games), 'Game library should match the selected homepage order');
   Object.entries(expectedToolGroups).forEach(([group, toolIds]) => {
@@ -1004,6 +1005,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       .every((group, index) => group.children[0].id === `home-library-projects-group-${index + 1}` && group.children[0].tabIndex === -1),
   'Homepage category jumps should target focusable group headings and opt out of route transitions');
   const singleGroupFragment = groupDocument.createElement('fragment');
+  const toolsFragment = groupDocument.createElement('fragment');
+  dynamicGroups.appendLibraryGroups(toolsFragment, homeLibraryData.tools.items, 'tools',
+    (entry, shortcut) => ({ id: entry.id, shortcut }));
+  const toolLists = toolsFragment.children.filter((node) => node.tagName === 'section')
+    .map((node) => node.children.find((child) => child.tagName === 'ul'));
+  assert(toolLists[0].className === 'home-library__shortcuts' && toolLists[0].children.every((item) => item.shortcut) &&
+    JSON.stringify(toolLists[0].children.map((item) => item.id)) === JSON.stringify(shortcutIds) &&
+    toolLists.slice(1).every((list) => list.children.every((item) => !item.shortcut)) &&
+    new Set(toolLists.slice(1).flatMap((list) => list.children.map((item) => item.id))).size === expectedLibraryCounts.tools,
+  'The inline Tools library should render three shortcuts and one full-sized card per public tool');
   dynamicGroups.appendLibraryGroups(singleGroupFragment, [{ id: 'game' }], 'games', (entry) => ({ tagName: 'li', id: entry.id }));
   assert(!singleGroupFragment.children.some((child) => child.tagName === 'nav'),
     'A short ungrouped catalog should not add category navigation');

@@ -1618,8 +1618,10 @@ try {
       !toolsHtml.includes('tool-card-details'),
       'tools page should remove the old rail, rationale panel, and hover-card directory');
     const toolsLibraryLists = [...toolsLibraryHtml.matchAll(/<ul\b[^>]*class="home-library__list"[^>]*>([\s\S]*?)<\/ul>/g)];
-    assert(toolsLibraryLists.length === 6,
-      'tools page should retain four public group lists plus separate account and admin group lists');
+    assert(toolsLibraryLists.length === 5,
+      'tools page should retain three public subjects plus separate account and admin lists');
+    assert((toolsLibraryHtml.match(/class="home-library__shortcuts"/g) || []).length === 1,
+      'tools page should render a single shortcut list before the subject lists');
     const renderedToolCards = toolsLibraryLists.flatMap((list) => [...list[1].matchAll(/<li\b([^>]*)>([\s\S]*?)<\/li>/g)])
       .filter((card) => card[2].includes('class="home-library__card"'));
     const cardsForTool = (tool) => renderedToolCards.filter((card) =>
@@ -1826,10 +1828,7 @@ try {
         assert(libraryItem && toolsLibraryHtml.includes(`src="${libraryItem.image}"`),
           `${fileName} branded preview image missing from the personal library`);
         assert(toolsLibraryHtml.includes(`href="${canonicalHref}"`), `${fileName} crawlable link missing from personal library`);
-        const hrefIndex = toolsLibraryHtml.indexOf(`href="${canonicalHref}"`);
-        const cardStart = toolsLibraryHtml.lastIndexOf('<a class="home-library__card', hrefIndex);
-        const cardEnd = toolsLibraryHtml.indexOf('</a>', hrefIndex);
-        const staticCard = toolsLibraryHtml.slice(cardStart, cardEnd);
+        const staticCard = cardsForTool(tool)[0][2];
         assert(staticCard.includes(`data-content-id="${slug}"`) && staticCard.includes('data-content-type="tool"'),
           `${fileName} personal-library content identity is missing`);
       } else {
@@ -40071,7 +40070,7 @@ try {
         `${file} should omit legacy navigation, metadata, notes, evaluation, and related-project sections`);
       if (project && project.embed) {
         const drawingProject = ['handwritingRating', 'shapeClassifier'].includes(project.id);
-        const mastheadDemo = drawingProject || project.embed.type === 'tableau';
+        const mastheadDemo = drawingProject || project.embed.type === 'tableau' || !project.embed.heading || project.embed.heading === project.title;
         assert(mastheadDemo ? !html.includes('class="project-demo-header"') : html.includes('class="project-demo-header"'), `${file} should show the demo first without repeating masthead headings`);
         if (drawingProject) assert(html.includes('project-main--drawing'), `${file} should retain its drawing layout`);
         const expectedDemoHeading = project.embed.heading || project.title;
@@ -41900,6 +41899,10 @@ try {
     assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
     assert(parsed.pages.length >= 10, 'search index has too few entries');
     const urls = new Set(parsed.pages.map((entry) => String(entry && entry.url || '').trim()));
+    assert(urls.size === parsed.pages.length, 'search results have unique canonical paths');
+    for (const game of require('./js/home/home-library-data').games.items) {
+      assert(parsed.pages.some((entry) => entry.url === game.href && entry.category === 'Games'), game.title + ' should have a direct public game result');
+    }
     assert(urls.has('/'), 'search index should include personal homepage');
     assert(urls.has('/portfolio'), 'search index should include portfolio page');
     assert(urls.has('/contact'), 'search index should include contact page');
