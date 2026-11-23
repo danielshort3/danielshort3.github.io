@@ -45,11 +45,11 @@ jobs:
         run: npm ci
       - name: Build website and publication indexes
         run: npm run build
-      - name: Test cryptography, shared clock and unlisted publication
-        run: node --test tests/tools/ad-verification.test.js
+      - name: Test regional attribution, receipt cryptography and unlisted publication
+        run: node --test tests/tools/ad-verification.test.js tests/tools/ad-verification-regional.test.js
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Verify native animations frame by frame
+      - name: Verify regional attribution and receipt playback in Chromium
         run: node tests/tools/ad-verification.browser.cjs
         env:
           BROWSER_ARTIFACT_DIR: ${{ runner.temp }}/ad-verification

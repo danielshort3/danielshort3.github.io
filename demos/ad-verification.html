@@ -6,21 +6,94 @@
   <base href="/">
   <title>Campaign Attribution Lab | Daniel Short</title>
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <meta name="description" content="See how advertisers, agencies, and measurement partners can check the same fictional campaign report and trace later corrections in a shared record.">
+  <meta name="description" content="Follow a signed in-app ad view to a later regional visit, inspect the private evidence and check the aggregate blockchain proof in a fictional campaign.">
   <meta name="theme-color" content="#ffffff">
   <link rel="canonical" href="https://www.danielshort.me/demos/ad-verification">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/components/ad-verification.css?v=5.2">
+  <link rel="stylesheet" href="css/components/ad-verification.css?v=6.0">
   <script defer src="dist/site-consent.a6d261d1.js"></script>
   <script defer src="js/demos/ad-verification-core.js?v=5.2"></script>
   <script defer src="js/demos/ad-verification-player.js?v=5.2"></script>
-  <script defer src="js/demos/ad-verification.js?v=5.2"></script>
+  <script defer src="js/demos/ad-verification-regional.js?v=6.0"></script>
+  <script defer src="js/demos/ad-verification-regional-ui.js?v=6.0"></script>
+  <script defer src="js/demos/ad-verification.js?v=6.0"></script>
 </head>
 <body class="av-page">
   <a class="skip-link av-skip" href="#main">Skip to campaign</a>
   <header class="av-header"><a class="av-back" href="/portfolio">← Projects</a><span class="av-byline">Daniel Short · Unlisted preview</span></header>
   <main id="main" class="av-main" data-blocks="0" data-running="false">
+    <div class="rg-lab" data-region-root data-phase="loading" data-completed-batches="0">
+      <section class="rg-hero" aria-labelledby="rg-title">
+        <div class="rg-intro">
+          <p class="rg-kicker">Campaign Attribution Lab</p>
+          <h1 id="rg-title">From ad view to regional visit</h1>
+          <p class="rg-deck">First, the receiving app signs a receipt showing that it displayed the ad. Later, a participating regional gateway signs an encounter. See which devices an independent verifier can connect to both.</p>
+          <div class="rg-controls" aria-label="Regional campaign controls">
+            <button type="button" class="av-button av-primary rg-run" data-region-run disabled>Run campaign</button>
+            <button type="button" class="av-button av-secondary" data-region-next disabled>Next batch</button>
+            <button type="button" class="rg-text-button" data-region-reset disabled>Reset</button>
+          </div>
+          <p class="rg-progress" data-region-progress role="status">Preparing the local simulation…</p>
+        </div>
+        <figure class="rg-region">
+          <figcaption>High Country region</figcaption>
+          <div class="rg-map" aria-hidden="true">
+            <svg viewBox="0 0 360 116" preserveAspectRatio="none" focusable="false"><path d="M22 79 C60 91 70 44 116 46 S159 18 185 30 S218 101 255 83 S285 54 319 53"/></svg>
+            <span class="rg-pin" data-region-pin="0"><i></i><span>Downtown district</span></span>
+            <span class="rg-pin" data-region-pin="1"><i></i><span>Regional trailhead</span></span>
+            <span class="rg-pin" data-region-pin="2"><i></i><span>Lodging district</span></span>
+          </div>
+          <p data-region-map-caption>Follow the three-stop traveler as signed observations arrive.</p>
+        </figure>
+      </section>
+      <section class="rg-totals" aria-label="Cumulative regional campaign totals">
+        <div class="rg-total"><strong data-region-total="views">0</strong><div><h2>App-confirmed ad views</h2><p>The receiving app signs each qualifying display.</p></div></div>
+        <div class="rg-total"><strong data-region-total="observations">0</strong><div><h2>Regional observations</h2><p>Participating partners sign activity at their own stops.</p></div></div>
+        <div class="rg-total"><strong data-region-total="matched">0</strong><div><h2>Matched visiting devices</h2><p>The verifier counts each eligible device once.</p></div></div>
+      </section>
+      <div class="rg-workspace">
+        <section class="rg-panel" aria-labelledby="rg-journeys-title">
+          <header class="rg-panel-heading"><h2 id="rg-journeys-title">Private journey evidence</h2><p>Open a fictional case to see the app receipts, regional stops and attribution decision.</p></header>
+          <ul class="rg-journeys" data-region-journeys aria-label="Fictional campaign cases"></ul>
+          <p class="rg-private-note">At a covered stop, a permitted app detects the partner’s beacon and presents an already authorized campaign credential. The gateway signs the encounter automatically.</p>
+        </section>
+        <section class="rg-panel rg-public" aria-labelledby="rg-ledger-title">
+          <header class="rg-panel-heading"><h2 id="rg-ledger-title">Regional blockchain</h2><p>Each signed block publishes cumulative totals, a fingerprint of the private evidence and a link to the previous block.</p></header>
+          <ol class="rg-ledger" data-region-ledger aria-label="Published regional batches"></ol>
+          <div class="rg-empty" data-region-empty><strong>Waiting for the first block</strong><p>Run the campaign or advance one batch to see what the partners can share.</p></div>
+          <div class="rg-proof-actions">
+            <button type="button" class="av-button av-secondary" data-region-verify disabled>Verify public proof</button>
+            <button type="button" class="rg-text-button" data-region-export disabled>Export proof (JSON)</button>
+          </div>
+          <p class="rg-feedback" data-region-verify-result role="status" hidden></p>
+        </section>
+      </div>
+      <section class="rg-claim" aria-labelledby="rg-claim-title">
+        <div><h2 id="rg-claim-title">Check an agency claim</h2><p>Compare the agency’s reported number of visiting devices with an independent recount of the signed private evidence.</p></div>
+        <form data-region-claim novalidate>
+          <label for="rg-claim-value">Agency’s claimed visiting devices</label>
+          <div class="rg-claim-controls"><input type="text" id="rg-claim-value" data-region-claim-value inputmode="numeric" autocomplete="off" placeholder="Enter a total" aria-describedby="rg-claim-result" disabled><button type="submit" class="av-button av-primary" data-region-claim-submit disabled>Check claim</button></div>
+          <button type="button" class="rg-text-button rg-example" data-region-example disabled>Try an inflated claim</button>
+          <p class="rg-feedback" id="rg-claim-result" data-region-claim-result role="status">Complete the campaign to audit a claim.</p>
+        </form>
+      </section>
+      <details class="rg-method">
+        <summary>How the match works and what the proof establishes</summary>
+        <p><strong>The receiving app establishes delivery.</strong> The receipt identifies the placement and creative. This demo requires the app to sign both received and viewable flags and report at least 50% of the ad visible for one continuous second. Display is measurable. A person’s attention is outside that measurement.</p>
+        <p><strong>Regional partners observe visits.</strong> The simulated app detects a signed destination beacon and presents a previously authorized campaign credential to the local gateway. The gateway signs that encounter. Visitors can continue their trip without checking in. Coverage extends only to participating stops.</p>
+        <p><strong>Matching requires permission.</strong> A keyed hash ties the private matching token to this campaign. The independent verifier checks each source signature and looks for an eligible regional stop after a signed view, within 30 days. One device can visit several stops and still counts once.</p>
+        <p><strong>The public proof checks the signed account.</strong> The export contains aggregate batches and evidence fingerprints. An authorized auditor needs the private receipts to repeat the count. A signer could still make a false observation, and a later visit alone cannot establish that the ad caused the trip.</p>
+        <p>All participants run in this browser. The observations and locations are fictional, and each new session generates its own signing keys. Reloading or resetting starts a new session.</p>
+      </details>
+      <nav class="rg-other" aria-label="Related lab"><a href="/demos/ad-verification?lab=receipts">Open the original receipt and correction lab <span aria-hidden="true">→</span></a></nav>
+      <dialog class="av-dialog rg-dialog" data-region-inspector aria-labelledby="rg-detail-title">
+        <div class="av-dialog-head"><h2 id="rg-detail-title" data-region-detail-title></h2><button type="button" class="av-close" data-region-close aria-label="Close details">×</button></div>
+        <div data-region-detail-body></div>
+      </dialog>
+    </div>
+    <div data-receipt-root hidden>
     <section class="av-intro" aria-labelledby="av-title"><h1 id="av-title">Campaign Attribution Lab</h1><p>An advertiser, its agency, and a measurement partner need to agree on campaign results. Follow a fictional campaign to see what each can check when a number changes.</p></section>
+    <a class="rg-return" href="/demos/ad-verification">← Regional campaign lab</a>
     <section class="av-controls" aria-label="Campaign controls">
       <div class="av-playback">
         <button type="button" class="av-button av-primary" data-play disabled>Start campaign</button>
@@ -72,8 +145,9 @@
     </div></details>
     <footer class="av-footer">Unlisted preview · Fictional observations · Real record verification</footer>
     <p class="av-sr-only" data-announcement role="status" aria-live="polite" aria-atomic="true"></p>
+    <dialog class="av-dialog" data-dialog aria-labelledby="av-dialog-title"><div class="av-dialog-head"><h2 id="av-dialog-title">Inspect the evidence</h2><button type="button" class="av-close" data-close aria-label="Close details">×</button></div><div data-dialog-body></div></dialog>
+    </div>
     <noscript><p class="av-warning">JavaScript is required to create and verify the example records. No campaign is running.</p></noscript>
   </main>
-  <dialog class="av-dialog" data-dialog aria-labelledby="av-dialog-title"><div class="av-dialog-head"><h2 id="av-dialog-title">Inspect the evidence</h2><button type="button" class="av-close" data-close aria-label="Close details">×</button></div><div data-dialog-body></div></dialog>
 </body>
 </html>

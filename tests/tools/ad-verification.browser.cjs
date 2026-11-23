@@ -5,6 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const { chromium } = require('playwright');
+const runRegionalChecks = require('./ad-verification-regional.browser.cjs');
 const core = require('../../js/demos/ad-verification-core');
 const repository = path.resolve(__dirname, '../..');
 const root = fs.existsSync(path.join(repository, 'public/demos/ad-verification.html')) ? path.join(repository, 'public') : repository;
@@ -110,9 +111,12 @@ function installAudit() {
   try {
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
-    const url = origin + '/demos/ad-verification';
+    const regionalUrl = origin + '/demos/ad-verification';
+    const url = regionalUrl + '?lab=receipts';
     fs.mkdirSync(output, { recursive: true });
     browser = await chromium.launch({ headless: true });
+    await runRegionalChecks({ browser, url: regionalUrl, output });
+    if (process.argv.includes('--regional-only')) return;
     const context = await browser.newContext({ viewport: { width: 1500, height: 1050 }, reducedMotion: 'no-preference' });
     await context.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     await context.addInitScript(installAudit);
