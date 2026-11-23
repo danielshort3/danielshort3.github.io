@@ -1585,8 +1585,8 @@ window.PROJECTS = [
     "noindex": true,
     "visibility": "unlisted",
     "title": "Campaign Attribution Lab",
-    "subtitle": "An interactive campaign audit demo with a checkable history.",
-    "metaDescription": "A fictional campaign audit layer demonstrates batched signed receipts, provider evidence checks, local ledger copies, report discrepancies and traceable corrections.",
+    "subtitle": "See how a receiving app and a destination network can verify a regional campaign total.",
+    "metaDescription": "Follow a fictional campaign from signed in-app ad views to regional visits. Inspect private matches, challenge an agency total and verify the signed blockchain report.",
     "image": "img/projects/ad-verification-landscape.webp",
     "imageAlt": "Illustrative landscape for a generic fictional campaign example",
     "imageWidth": 224,
@@ -1621,18 +1621,18 @@ window.PROJECTS = [
         "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/docs/ad-verification-demo.md"
       }
     ],
-    "problem": "Campaign partners need a checkable history of reported outcomes, evidence and corrections without sharing raw visitor data on a ledger.",
-    "task": "Demonstrate a realistic audit role for blockchain while keeping five overlapping traveler illustrations and a simple two-panel interface.",
+    "problem": "An advertiser wants to know how many devices with a confirmed ad view later appeared in the destination. One device can appear at several places, and an agency can claim more visits than the evidence supports.",
+    "task": "Show how an independent verifier could match signed evidence privately and publish an auditable total for the whole region.",
     "actions": [
-      "Separated provider evidence from signed public audit receipts and batched several receipts per block.",
-      "Added three independently checked local copies and distinction between record verification and evidence reproduction.",
-      "Made reporting discrepancies and authorized append-only corrections interactive."
+      "Modeled receiving apps that sign view measurements and participating destination gateways that sign local presence observations.",
+      "Matched authorized device tokens within one campaign and credited each qualifying device once across the region within 30 days of an app-confirmed view.",
+      "Published signed aggregate batches linked by hashes, then let the reader test an agency claim against the private receipts."
     ],
     "results": [
-      "Missing evidence does not invalidate a signed receipt, but prevents independently reproducing the attribution calculation.",
-      "Corrections preserve earlier reports while updating the current total exactly once."
+      "Six signed app views and eight regional observations support two unique matched devices in the example.",
+      "A device observed at three regional stops earns one credit. Readers can inspect the excluded examples and verify the downloadable aggregate proof."
     ],
-    "notes": "Browser-local educational simulation, not an independent network or production attribution service. All source observations and participants are fictional. No real tourism destination is represented. Shared receipts contain no synthetic traveler IDs or raw provider records. All sessions are transient; unlisted is not access control.",
+    "notes": "All participants, permissions and observations are simulated in the browser. The regional export contains aggregate counts, signatures and batch commitments. Device tokens and individual observations stay in session memory. The earlier receipt and correction exercise remains available from the demo.",
     "order": 999
   }
 ];

@@ -264,13 +264,17 @@ test('unlisted and no-tracking source contracts', () => {
   const html = fs.readFileSync(path.join(root, 'demos/ad-verification.html'), 'utf8');
   assert.match(html, /noindex, nofollow, noarchive/); assert.match(html, /<main id="main"/); assert.match(html, /skip-link/);
   assert.doesNotMatch(html, /data-group|tamper-proof|Visit Grand Junction/);
-  for (const file of ['ad-verification-core.js', 'ad-verification-player.js', 'ad-verification.js']) assert.doesNotMatch(fs.readFileSync(path.join(root, 'js/demos', file), 'utf8'), /\bfetch\s*\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage|navigator\.geolocation/);
+  for (const file of ['ad-verification-core.js', 'ad-verification-player.js', 'ad-verification.js', 'ad-verification-regional.js', 'ad-verification-regional-ui.js']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(root, 'js/demos', file), 'utf8'), /\bfetch\s*\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage|navigator\.geolocation/);
+  }
   const metadata = JSON.parse(fs.readFileSync(path.join(root, 'content/projects/adVerification.json'), 'utf8'));
   assert.equal(metadata.published, false); assert.equal(metadata.hidden, true); assert.equal(metadata.noindex, true);
 });
 test('built publication excludes the unlisted project from discovery', (t) => {
   const pub = path.join(root, 'public'); if (!fs.existsSync(pub)) { t.skip('Run the full site build for publication checks.'); return; }
   assert.match(fs.readFileSync(path.join(pub, 'demos/ad-verification.html'), 'utf8'), /noindex, nofollow, noarchive/);
-  for (const file of ['js/demos/ad-verification-core.js', 'js/demos/ad-verification-player.js', 'js/demos/ad-verification.js', 'css/components/ad-verification.css']) assert.ok(fs.statSync(path.join(pub, file)).size > 0);
+  for (const file of ['js/demos/ad-verification-core.js', 'js/demos/ad-verification-player.js', 'js/demos/ad-verification.js', 'js/demos/ad-verification-regional.js', 'js/demos/ad-verification-regional-ui.js', 'css/components/ad-verification.css']) {
+    assert.ok(fs.statSync(path.join(pub, file)).size > 0);
+  }
   for (const file of ['sitemap.xml', 'dist/search-index.json', 'app-content/v1/catalog.json']) if (fs.existsSync(path.join(pub, file))) assert.doesNotMatch(fs.readFileSync(path.join(pub, file), 'utf8'), /adVerification|demos\/ad-verification|Cedar Valley/);
 });

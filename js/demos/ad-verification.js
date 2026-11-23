@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const main = document.querySelector('#main[data-blocks]');
-  if (!main) return;
+  if (!main || !main.querySelector('[data-receipt-root]:not([hidden])')) return;
   const one = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
   const core = window.AdVerificationCore;

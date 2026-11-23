@@ -1,8 +1,43 @@
 # Campaign Attribution Lab
 
-Unlisted entry: `/demos/ad-verification`. This is an educational **campaign-attribution audit layer**, not a visitor-tracking service. All travelers, observations and participants are fictional. The campaign ID is `EXAMPLE-CAMPAIGN`; provider evidence uses the literal placeholder `Example destination`. No named tourism destination or destination logo appears in the demo. The browser performs real ECDSA, SHA-256, Merkle-root and checkpoint checks.
+Open `/demos/ad-verification` and choose **Run campaign** to follow an ad from its receiving app to a later visit in the fictional High Country region. **Next batch** lets you inspect each stage. Every participant and observation is simulated locally. Resetting or refreshing creates a fresh campaign.
 
-## Interface and layout contract
+## How a regional visit earns credit
+
+1. **The receiving app signs a view.** This demo requires the app to attest that it received the ad and displayed at least 50% of it for one continuous second. The private receipt identifies the creative, placement, example day, visible percentage and duration. Human attention is outside this display measurement.
+2. **A destination partner signs a local observation.** The example assumes a participating app and gateway can automatically recognize a previously authorized encounter at a covered site. One possible encounter is a nearby partner beacon followed by a credential exchange with the gateway. The visitor makes no campaign check-in. The browser generates synthetic receipts in place of a radio exchange or an outside location feed.
+3. **An independent verifier matches the receipts privately.** A previously authorized shared device credential can produce the same keyed, campaign-specific token on both sides. The verifier checks the signatures against the expected source for each receipt, matches tokens within this campaign and region, and looks for an eligible stop from the time of a confirmed view through exactly 30 days afterward. A qualifying device earns one credit across all apps, stops and batches. An interchange pass-through is ineligible. An observation without permission to link has no matching token.
+4. **The network publishes an aggregate batch.** Each block contains cumulative view, observation and matched-device counts, a SHA-256 fingerprint of that batch's signed private receipts and the previous block's hash. The network and reviewer each sign the block. A signed checkpoint identifies the head covered by the report.
+
+### Worked campaign
+
+| After batch | Confirmed app views | Regional observations | Distinct matched devices |
+| --- | ---: | ---: | ---: |
+| 1. Apps report views | 6 | 0 | 0 |
+| 2. Gateways report encounters | 6 | 5 | 1 |
+| 3. Remaining receipts arrive | 6 | 8 | 2 |
+
+The **Three-stop traveler** has a confirmed view in two apps and visits the downtown district, regional trailhead and lodging district. Together those stops earn one credit. The **Day-30 arrival** earns the second credit. The other cases show a missing receiving-app receipt, a transit-only observation, a late arrival and an encounter without permission to link. A re-delivered gateway receipt is counted only once.
+
+### What an auditor can check
+
+**Verify public proof** checks the hashes, both signatures per block, cumulative totals' format and the final checkpoint. **Export proof (JSON)** downloads `regional-campaign-proof.json`. Its scope, counts, signatures, public keys and batch fingerprints can be checked offline. The export omits device tokens, private signing keys and individual view or visit records.
+
+To check a downloaded file independently, run this command from the repository root with Node 22. A valid file prints `{ valid: true }`.
+
+```sh
+node -e "const lab = require('./js/demos/ad-verification-regional'); const file = require('node:fs').readFileSync(process.argv[1], 'utf8'); lab.verifyProof(JSON.parse(file)).then(console.log);" regional-campaign-proof.json
+```
+
+**Check an agency claim** uses a different check. The simulated independent verifier revalidates the source receipts, recomputes the eligibility and deduplication rules, and compares each private batch with the corresponding public commitment. Entering `3` after the final batch disputes the agency's claim. Entering `2` reproduces its count. Someone with only the downloaded file can verify its integrity and the included signers' statements. Recounting the devices requires access to the committed private evidence.
+
+The participant keys are created in one browser session. An independent deployment would need separately trusted source and validator identities, permission to use the shared credential, and an actual participating destination network. A signed observation can still be false at its source. Coverage ends at the participating gateways, and a later visit alone cannot establish that the ad caused a trip. The example's small totals illustrate the calculation and provide no anonymity guarantee.
+
+## Original receipt and correction lab
+
+The **original receipt and correction lab** is available at `/demos/ad-verification?lab=receipts`. It uses campaign `EXAMPLE-CAMPAIGN` and the literal placeholder `Example destination`. Its v5 signed receipts, optional provider evidence, editable report and three simulated ledger copies use their original format.
+
+### Interface and layout contract
 
 The demo follows the site's simple project format: a Projects return link, one Inter/navy heading, a short description and divider, compact controls, two work panels and a results band. A short, plain-language explanation before the panels frames the advertiser, agency and measurement partner's shared problem: an original report, a challenged total and a visible correction. On phones, the five journeys become readable cards and a report shortcut follows them before the ledger. Technical record and evidence details stay in the dialogs and lower disclosure. The relevant style references are `css/components/page-masthead.css`, `css/components/project-demo-layout.css`, and the authored `demos/pizza-tips-demo.html` header. This unlisted standalone page does not change the shared project generator or public navigation.
 
@@ -12,7 +47,7 @@ The left panel determines the desktop workspace height. Fixed-height traveler ro
 
 New records scroll only the inner ledger, not the document. Selecting an earlier expanded block keeps it accessible inside that viewport. The region is keyboard-focusable for Page Up/Down navigation. All five traveler lanes remain visible without nested traveler scrolling. The metrics row must stay at the same document position during playback, different batch sizes, block selection, copy status changes and report/correction appends. Resizing the viewport or changing text scale may intentionally reflow the layout.
 
-## Parallel people, batched records
+### Parallel people, batched records
 
 Five lanes use one simulation clock with independent event schedules. Source work is ordered within each fictional journey, but does not wait for the blockchain writer: people may continue to a website or destination while earlier receipts await recording. Blue denotes an observed/reported event; green denotes a committed signed receipt.
 
@@ -20,13 +55,13 @@ Completed source receipts enter a buffer. Up to four join a block, or a smaller 
 
 Pause freezes visible clocks, queue admission, commits and fades even when cryptography finishes in the background. Reset retires stale callbacks and signing material. Reduced motion removes movement and fades. The optional continuous checkbox allows completed travelers to be replaced until capacity is reached; it is off by default. Admission reserves each traveler's entire future receipt cost and leaves 12 of the 192 receipt slots for reporting/correction exercises; old history is never silently discarded.
 
-## Provider evidence versus shared receipts
+### Provider evidence versus shared receipts
 
 A separate in-memory provider store contains salted example evidence packets, including synthetic traveler associations, occurrence days and page/place detail. Shared receipts contain version/chain/campaign identity, opaque receipt IDs, registered source roles, evidence fingerprints, prerequisite receipt references, small summaries/decisions and provider signatures. The public export `campaign-audit-proof.json` contains the signed blockchain, public keys and original checkpoint, not the evidence map, salts, traveler IDs, page paths, location histories or private keys. The visible traveler labels are teaching annotations.
 
 This separation is not access control: every component runs in the same browser. The unavailability toggle models a provider failing to supply evidence, not secure deletion or retention compliance. Opaque IDs and salted hashes do not eliminate sensitivity in timing, relationship metadata or reported outcomes. Production would need an authorized matching arrangement, access/retention controls and a threat model.
 
-## Two verification levels
+### Two verification levels
 
 `verifyProof` checks provider signatures, roles, schema, unique IDs, prerequisite receipt types, known rule version, no reuse of a visit for second credit, valid correction targets, report totals, Merkle roots, prior-block links, three distinct local approvals and the original checkpoint.
 
@@ -34,13 +69,13 @@ This separation is not access control: every component runs in the same browser.
 
 The example `demo-window-v1` matches the same synthetic traveler and campaign within 0–30 example days of ad exposure, inclusive. A website visit is optional. Late visits may be faithfully reported but not credited. Authored occurrence days, accelerated receipt time and the browser's recording timestamp are distinct and none is independently certified. The mix is not an estimate of real conversion rates.
 
-## Reports and corrections
+### Reports and corrections
 
 Check a campaign report pauses playback and safely requeues an uncommitted candidate before appending a signed snapshot through the current block. Pending measurements appear only in later reports. Its coverage height, head hash and totals are reproducible from the historical prefix.
 
 The edit exercise changes only a copy. A changed total or receipt fails real proof validation; the original history and totals remain unchanged. Entering the original value correctly passes. An authorized example correction appends a signed withdrawal that references a credited attribution. Current totals change once while prior decisions/reports stay byte-identical. An updated report can then capture the corrected total. The duplicate explanation is itself a provider claim; this is not a general accounting/dispute system.
 
-## Three local ledger copies
+### Three local ledger copies
 
 Advertiser, Agency and Measurement partner keep distinct in-memory histories. Their copies are verified before updates. A valid prefix is **Behind**, not corrupted or current; changed history is **Mismatch**; a valid current head is **Up to date**. Pause delivery, alter a copy and restore verified history demonstrate these differences. A changed copy is not silently healed by the next append. Revision guards reject candidates prepared before a copy mutation.
 
@@ -48,31 +83,30 @@ All identities, keys, copies and approvals share one browser owner. This is not 
 
 ## Source ownership and publication
 
-- `demos/ad-verification.html`: authoritative page, controls and ledger viewport.
-- `js/demos/ad-verification-core.js`: v5 schemas, separate evidence, receipts, batches, reports/corrections and copy checks.
-- `js/demos/ad-verification-player.js`: parallel scheduling, batching, synchronous commits and cancellation.
-- `js/demos/ad-verification.js`: persistent lanes, inner-ledger scrolling, inspection, reports and export.
-- `css/components/ad-verification.css`: isolated project styling and stable-height layout.
-- `content/projects/adVerification.json`: unlisted metadata.
+- `demos/ad-verification.html` owns the two experiences at the same unlisted route.
+- `js/demos/ad-verification-regional.js` issues and verifies source receipts, privately matches devices, signs aggregate blocks and verifies exports.
+- `js/demos/ad-verification-regional-ui.js` drives regional playback, private inspection, public verification, claim checks and export.
+- `js/demos/ad-verification-core.js` owns the v5 proof format and shared canonical encoding and hashing helpers.
+- `js/demos/ad-verification-player.js` and `js/demos/ad-verification.js` drive the original simulation, receipt inspector, reports and corrections.
+- `css/components/ad-verification.css` owns both layouts. `content/projects/adVerification.json` owns the unlisted project metadata.
 
-Existing static copying and clean URLs publish the same entry point. Shared site bundles, dependencies, settings and original illustration files are untouched; the old destination logo is no longer referenced. Cache-versioned demo URLs avoid mixing the changed markup and script. The v5 proof schema remains unchanged; renaming this fictional campaign does not invalidate older v5 proofs. No migration is needed because sessions are not persisted.
+The site's static copier publishes the authored demo at its existing clean URL. The two labs use distinct proof formats and export filenames. Their campaign sessions exist only in memory.
 
 The page remains `noindex, nofollow, noarchive`, with `published: false`, `hidden: true`, `noindex: true` and `visibility: "unlisted"`. Anyone with the URL can access it and the repository is public; these are not access controls. Site-wide consent components are preserved. No advertising/location request, account, wallet, token, payment or persistent campaign storage is added.
 
 ## Validation
 
-Using the existing Node 22 dependencies:
+Run these checks with the repository's Node 22 dependencies.
 
 ```sh
-node --test tests/tools/ad-verification.test.js
 npm run build
-node --test tests/tools/ad-verification.test.js
+node --test tests/tools/ad-verification.test.js tests/tools/ad-verification-regional.test.js
 npx playwright install chromium
 node tests/tools/ad-verification.browser.cjs
 ```
 
-The existing Node suite keeps all individual scenario, batching, cryptography, evidence, false-claim, report/correction, replica, capacity, pause/reset and publication tests. Only mixed outcomes are exposed by the page.
+The regional suites cover source signatures, timing, authorization, cross-stop deduplication, private recounts and the aggregate-only public export. Use `node tests/tools/ad-verification.browser.cjs --regional-only` to run just the regional browser exercise. The v5 Node suite also covers the earlier scenarios, batching, evidence, false claims, report corrections, replica checks, capacity, pause/reset and publication.
 
-Native Chromium independently samples both panel heights and the results band's document position throughout real playback and audit interactions. The browser suite checks default mixed totals at 1x/2x/4x, no scenario dropdown, adjacent Speed/Start/Resume geometry, generic identity even in private evidence and exports, variable batch sizes, different selected blocks, long wrapped receipts, keyboard ledger scrolling, and eight widths (1500/1280/1024/901/900/768/390/320). Existing evidence unavailability, rejected report edits, corrections, copied-history checks, slow native verification, reset, reduced-motion and no-JavaScript/error flows remain covered.
+For the original lab, Chromium samples both panel heights and the results band's document position throughout playback and audit interactions. It exercises mixed totals at 1x/2x/4x, receipt expansion and wrapping, keyboard ledger scrolling, eight screen widths, unavailable evidence, rejected edits, corrections, copied history, slow verification, reset, reduced motion and no-JavaScript/error states.
 
-The scoped CI workflow builds the actual website before testing. Screenshots, bounds and `animation-sync-evidence.json` are artifacts outside tracked source. Browser-plugin absence permits Playwright fallback; blocked local navigation must not be represented as native integration success. Tests use loopback and do not submit production forms.
+The feature CI workflow builds the website before testing. Set `BROWSER_ARTIFACT_DIR` to choose where Chromium writes screenshots and verification evidence. The test site runs on loopback.
