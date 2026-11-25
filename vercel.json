@@ -24,6 +24,12 @@
     "CHATBOT_BEDROCK_EMBED_DIMENSIONS": "512"
   },
   "rewrites": [
+    {
+      "source": "/demos/ad-verification",
+      "has": [{ "type": "query", "key": "lab", "value": "^(?:regional|receipts)$" }],
+      "destination": "/demos/ad-verification-lab"
+    },
+    { "source": "/demos/ad-verification", "destination": "/demos/ad-verification-hotspots" },
     {"source":"/tools/system-status","destination":"/pages/system-status"},
     {"source":"/tools/system-status.html","destination":"/pages/system-status"},
     {"source":"/tools/watermark-remover","destination":"/pages/watermark-remover"},
@@ -156,6 +162,7 @@
     { "source": "/retail-loss-sales-demo.html", "destination": "/pages/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
+    { "source": "/demos/ad-verification.html", "destination": "/demos/ad-verification", "permanent": true },
     {"source":"/tools/aws-status","destination":"/tools/system-status","permanent":true},
     {"source":"/tools/aws-status.html","destination":"/tools/system-status","permanent":true},
     {"source":"/pages/aws-status","destination":"/tools/system-status","permanent":true},
@@ -306,6 +313,14 @@
     { "source": "/contributions.html", "destination": "/tourism", "permanent": true }
   ],
   "headers": [
+    { "source": "/demos/ad-verification", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }] },
+    {
+      "source": "/demos/data/ad-verification-hotspots-03c20afc.mp4",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
     {"source":"/tools/system-status","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
     {"source":"/tools/system-status.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
     {

@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { createHash } = require('node:crypto');
 const path = require('node:path');
 const core = require('../../js/demos/ad-verification-core');
 const { createPlayer, HOLD_MS } = require('../../js/demos/ad-verification-player');
@@ -260,21 +261,62 @@ test('candidate tickets use private verified bytes and cannot append twice or af
   const next = await session.prepare([await session.observe('ad', 'T002', 4)]);
   await session.manageCopy(1, 'pause'); assert.throws(() => session.commit(next)); session.dispose();
 });
+const filmPage = 'demos/ad-verification-hotspots.html';
+const labPage = 'demos/ad-verification-lab.html';
+const film = 'demos/data/ad-verification-hotspots-03c20afc.mp4';
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const approvedFilmHash = '03c20afce94dd088182832e6c3a912be1e416e0d649676089a3e2907578060d3';
+
 test('unlisted and no-tracking source contracts', () => {
-  const html = fs.readFileSync(path.join(root, 'demos/ad-verification.html'), 'utf8');
-  assert.match(html, /noindex, nofollow, noarchive/); assert.match(html, /<main id="main"/); assert.match(html, /skip-link/);
-  assert.doesNotMatch(html, /data-group|tamper-proof|Visit Grand Junction/);
+  for (const source of [filmPage, labPage]) {
+    const html = fs.readFileSync(path.join(root, source), 'utf8');
+    assert.match(html, /noindex, nofollow, noarchive/);
+    assert.match(html, /<main\b[^>]*\bid="main"/);
+    assert.ok(/href="(?:\/demos\/ad-verification)?#main"/.test(html), source + ' must link to its campaign landmark');
+  }
+  const lab = fs.readFileSync(path.join(root, labPage), 'utf8');
+  assert.doesNotMatch(lab, /data-group|tamper-proof|Visit Grand Junction/);
   for (const file of ['ad-verification-core.js', 'ad-verification-player.js', 'ad-verification.js', 'ad-verification-regional.js', 'ad-verification-regional-ui.js']) {
     assert.doesNotMatch(fs.readFileSync(path.join(root, 'js/demos', file), 'utf8'), /\bfetch\s*\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage|navigator\.geolocation/);
   }
   const metadata = JSON.parse(fs.readFileSync(path.join(root, 'content/projects/adVerification.json'), 'utf8'));
   assert.equal(metadata.published, false); assert.equal(metadata.hidden, true); assert.equal(metadata.noindex, true);
 });
+test('the approved film and clickable areas reproduce all 800 stops at their campaign frames', () => {
+  const html = fs.readFileSync(path.join(root, filmPage), 'utf8');
+  assert.ok(html.includes('/' + film));
+  assert.equal(sha256(fs.readFileSync(path.join(root, film))), approvedFilmHash);
+  const script = html.match(/<script\b[^>]*\bid="campaign-data"[^>]*>([\s\S]*?)<\/script>/i);
+  assert.ok(script, 'The film must include its synchronized map data');
+  const data = JSON.parse(script[1]);
+  const totals = Object.fromEntries(data.areas.map((area) => [area.id, area.points.length]));
+  assert.deepEqual(totals, { downtown: 272, horizon: 224, mesa: 120, colonias: 104, lincoln: 80 });
+  const approvedLocationsAndTimes = data.areas.map(({ id, points }) => [id, points]);
+  assert.equal(sha256(JSON.stringify(approvedLocationsAndTimes)), '85c22e17c973e267f2048e591c8a14b50d7f14ecc579e0813083878a4aed68e6');
+  const arrivalsPerFrame = new Array(data.frames).fill(0);
+  for (const { points } of data.areas) {
+    for (const [, , frame] of points) {
+      assert.ok(Number.isInteger(frame) && frame >= 0 && frame < data.frames);
+      arrivalsPerFrame[frame] += 1;
+    }
+  }
+  let visited = 0;
+  const totalsByFrame = arrivalsPerFrame.map((arrivals) => (visited += arrivals));
+  assert.deepEqual(totalsByFrame, data.visits);
+  assert.equal(data.ads.at(-1), 10000);
+  assert.equal(visited, 800);
+});
 test('built publication excludes the unlisted project from discovery', (t) => {
   const pub = path.join(root, 'public'); if (!fs.existsSync(pub)) { t.skip('Run the full site build for publication checks.'); return; }
-  assert.match(fs.readFileSync(path.join(pub, 'demos/ad-verification.html'), 'utf8'), /noindex, nofollow, noarchive/);
+  assert.equal(fs.existsSync(path.join(pub, 'demos/ad-verification.html')), false, 'A physical page would shadow the public query rewrites');
+  for (const file of [filmPage, labPage]) {
+    assert.match(fs.readFileSync(path.join(pub, file), 'utf8'), /noindex, nofollow, noarchive/);
+  }
+  assert.equal(sha256(fs.readFileSync(path.join(pub, film))), approvedFilmHash);
   for (const file of ['js/demos/ad-verification-core.js', 'js/demos/ad-verification-player.js', 'js/demos/ad-verification.js', 'js/demos/ad-verification-regional.js', 'js/demos/ad-verification-regional-ui.js', 'css/components/ad-verification.css']) {
     assert.ok(fs.statSync(path.join(pub, file)).size > 0);
   }
-  for (const file of ['sitemap.xml', 'dist/search-index.json', 'app-content/v1/catalog.json']) if (fs.existsSync(path.join(pub, file))) assert.doesNotMatch(fs.readFileSync(path.join(pub, file), 'utf8'), /adVerification|demos\/ad-verification|Cedar Valley/);
+  for (const file of ['sitemap.xml', 'dist/search-index.json', 'app-content/v1/catalog.json']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(pub, file), 'utf8'), /adVerification|demos\/(?:data\/)?ad-verification|Cedar Valley/);
+  }
 });

@@ -68,6 +68,7 @@ module.exports = async function runRegionalChecks({ browser, url, output }) {
     page.on('response', (response) => { if (response.status() >= 400) failed.push(response.url()); });
     await page.goto(url);
     await ready(page);
+    assert.equal(new URL(page.url()).searchParams.get('lab'), 'regional');
     assert.equal(await page.locator('h1:visible').count(), 1);
     assert.match(await page.locator('h1:visible').innerText(), /ad view.*regional visit/i);
     assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex/);
@@ -168,6 +169,7 @@ module.exports = async function runRegionalChecks({ browser, url, output }) {
     assert.equal(new URL(page.url()).searchParams.get('lab'), 'receipts');
     await page.getByRole('link', { name: /regional campaign lab/i }).click();
     await ready(page);
+    assert.equal(new URL(page.url()).searchParams.get('lab'), 'regional');
     assert.deepEqual(await totals(page), [0, 0, 0]);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
