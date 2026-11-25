@@ -3,23 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const http = require('node:http');
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { createLocalServer } = require('../../build/dev');
+const runHotspotChecks = require('./ad-verification-hotspots.browser.cjs');
 const runRegionalChecks = require('./ad-verification-regional.browser.cjs');
 const core = require('../../js/demos/ad-verification-core');
-const repository = path.resolve(__dirname, '../..');
-const root = fs.existsSync(path.join(repository, 'public/demos/ad-verification.html')) ? path.join(repository, 'public') : repository;
 const output = process.env.BROWSER_ARTIFACT_DIR || path.join(os.tmpdir(), 'campaign-audit-browser');
-const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.woff2': 'font/woff2', '.json': 'application/json' };
-const server = http.createServer((request, response) => {
-  try {
-    let file = path.resolve(root, '.' + decodeURIComponent(new URL(request.url, 'http://localhost').pathname));
-    if (!file.startsWith(root + path.sep)) { response.writeHead(403).end(); return; }
-    if (!path.extname(file)) file += '.html';
-    const bytes = fs.readFileSync(file);
-    response.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' }); response.end(bytes);
-  } catch (_) { response.writeHead(404).end('Not found'); }
-});
+const server = createLocalServer();
 // Independent rendered-frame audit: many receipts can commit in one block.
 function installAudit() {
   const audit = window.__audit = { frames: 0, overlapping: 0, mixedStages: 0, peak: 0, blocks: 0, receipts: 0, multiReceiptBlocks: 0, replacements: 0, layoutFrames: 0, maxHeightDelta: 0, maxResultsDelta: 0, failures: [] };
@@ -111,11 +101,13 @@ function installAudit() {
   try {
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const origin = `http://127.0.0.1:${server.address().port}`;
-    const regionalUrl = origin + '/demos/ad-verification';
-    const url = regionalUrl + '?lab=receipts';
+    const campaignUrl = origin + '/demos/ad-verification';
+    const url = campaignUrl + '?lab=receipts';
     fs.mkdirSync(output, { recursive: true });
-    browser = await chromium.launch({ headless: true });
-    await runRegionalChecks({ browser, url: regionalUrl, output });
+    browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE_PATH ? { executablePath: process.env.BROWSER_EXECUTABLE_PATH } : {}) });
+    if (!process.argv.includes('--regional-only')) await runHotspotChecks({ browser, url: campaignUrl, output });
+    if (process.argv.includes('--hotspots-only')) return;
+    await runRegionalChecks({ browser, url: campaignUrl + '?lab=regional', output });
     if (process.argv.includes('--regional-only')) return;
     const context = await browser.newContext({ viewport: { width: 1500, height: 1050 }, reducedMotion: 'no-preference' });
     await context.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());

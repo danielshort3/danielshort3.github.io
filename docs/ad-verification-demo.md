@@ -1,6 +1,10 @@
 # Campaign Attribution Lab
 
-Open `/demos/ad-verification` and choose **Run campaign** to follow an ad from its receiving app to a later visit in the fictional High Country region. **Next batch** lets you inspect each stage. Every participant and observation is simulated locally. Resetting or refreshing creates a fresh campaign.
+Open `/demos/ad-verification` to watch a simulated Grand Junction campaign. The map shows where 10,000 phones displayed an ad and where 800 of those phones later made a visit. Select a place label or **Explore visit areas** for a street map. The close-up follows the same playback clock when you pause, seek or replay.
+
+The illustrative distribution assigns 272 visits to Downtown Main Street, 224 to the Horizon Drive hotel corridor, 120 to the Mesa Mall area, 104 to the Las Colonias riverfront and 80 to Lincoln Park. Each visiting phone contributes one generated stop. The campaign film and street maps use a fixed example dataset. Each close-up links to a local source about the area.
+
+For the signing and verification exercise, open **Verification lab** or `/demos/ad-verification?lab=regional`. Choose **Run campaign** to follow an ad from its receiving app to a later visit in the fictional High Country region. **Next batch** steps through that example. Resetting or refreshing creates a fresh verification session.
 
 ## How a regional visit earns credit
 
@@ -83,7 +87,8 @@ All identities, keys, copies and approvals share one browser owner. This is not 
 
 ## Source ownership and publication
 
-- `demos/ad-verification.html` owns the two experiences at the same unlisted route.
+- `demos/ad-verification-hotspots.html` contains the campaign player and its district geometry. The first-party MP4 in `demos/data/` supplies the playback clock for the individual stops. Playback and street-map controls live in `js/demos/ad-verification-hotspots.js` and `js/demos/ad-verification-hotspots-areas.js`.
+- `demos/ad-verification-lab.html` owns the regional and receipt verification exercises. Their query URLs share the unlisted campaign link through `vercel.json`.
 - `js/demos/ad-verification-regional.js` issues and verifies source receipts, privately matches devices, signs aggregate blocks and verifies exports.
 - `js/demos/ad-verification-regional-ui.js` drives regional playback, private inspection, public verification, claim checks and export.
 - `js/demos/ad-verification-core.js` owns the v5 proof format and shared canonical encoding and hashing helpers.

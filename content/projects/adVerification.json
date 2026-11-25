@@ -5,8 +5,8 @@
   "noindex": true,
   "visibility": "unlisted",
   "title": "Campaign Attribution Lab",
-  "subtitle": "See how a receiving app and a destination network can verify a regional campaign total.",
-  "metaDescription": "Follow a fictional campaign from signed in-app ad views to regional visits. Inspect private matches, challenge an agency total and verify the signed blockchain report.",
+  "subtitle": "Follow simulated ad displays across the U.S. to five Grand Junction visitor areas.",
+  "metaDescription": "Watch a Grand Junction campaign, explore individual stops on five street maps and open the verification lab to inspect signed evidence.",
   "image": "img/projects/ad-verification-landscape.webp",
   "imageAlt": "Illustrative landscape for a generic fictional campaign example",
   "imageWidth": 224,
@@ -27,9 +27,10 @@
     "Published signed aggregate batches linked by hashes, then let the reader test an agency claim against the private receipts."
   ],
   "results": [
-    "Six signed app views and eight regional observations support two unique matched devices in the example.",
+    "The Grand Junction map illustrates 10,000 phones shown an ad and 800 later visits, with one stop per visiting phone.",
+    "In the regional verification exercise, six signed app views and eight regional observations support two unique matched devices.",
     "A device observed at three regional stops earns one credit. Readers can inspect the excluded examples and verify the downloadable aggregate proof."
   ],
-  "notes": "All participants, permissions and observations are simulated in the browser. The regional export contains aggregate counts, signatures and batch commitments. Device tokens and individual observations stay in session memory. The earlier receipt and correction exercise remains available from the demo.",
+  "notes": "The mapped campaign uses simulated visits. The separate regional lab generates evidence locally and exports aggregate counts, signatures and batch commitments. Its device tokens and observations stay in session memory. The receipt and correction exercise is also available from the verification lab.",
   "order": 999
 }
