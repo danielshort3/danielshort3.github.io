@@ -1,6 +1,6 @@
 # Campaign Attribution Lab
 
-Open `/demos/ad-verification` to watch a simulated Grand Junction campaign. The map shows where 10,000 phones displayed an ad and where 800 of those phones later made a visit. Select a place label or **Explore visit areas** for a street map. The close-up follows the same playback clock when you pause, seek or replay.
+Open `/demos/ad-verification` to watch a simulated Grand Junction campaign. The map shows where 10,000 phones displayed an ad and where 800 of those phones later made a visit. Select a place label or **Explore visit areas** for a street map. Select a visit dot to see where and when its simulated phone was shown the ad, when it visited that area and the elapsed campaign time. The close-up follows the same playback clock when you pause, seek or replay.
 
 The illustrative distribution assigns 272 visits to Downtown Main Street, 224 to the Horizon Drive hotel corridor, 120 to the Mesa Mall area, 104 to the Las Colonias riverfront and 80 to Lincoln Park. Each visiting phone contributes one generated stop. The campaign film and street maps use a fixed example dataset. Each close-up links to a local source about the area.
 

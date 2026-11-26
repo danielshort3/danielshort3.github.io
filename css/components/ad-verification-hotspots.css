@@ -83,6 +83,22 @@ video { display: block; width: 100%; height: auto; }
 .scale-label { font-size: 14px; }
 .district-marks { fill: #137c55; stroke: white; stroke-width: .85; }
 .district-pulse { fill: none; stroke: #137c55; stroke-width: 2; }
+.district-pulse, .road-label, .scale-bar, .scale-label { pointer-events: none; }
+.district-marks circle { cursor: pointer; }
+.district-marks circle[aria-pressed="true"], .district-marks circle:focus-visible {
+  fill: var(--action); stroke: #102f54; stroke-width: 2; outline: 2px solid white; outline-offset: 2px;
+}
+.visit-hint { margin: 10px 0 0; color: var(--quiet); font-size: 13px; }
+.visit-timeline { margin: 0 0 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: #f7faff; }
+.visit-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 14px; }
+.visit-heading button { min-width: 44px; min-height: 44px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--action); font-size: 18px; cursor: pointer; }
+.visit-heading button:disabled { color: #71829a; background: #f3f6fa; cursor: default; }
+.visit-events { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+.visit-events > div { border-inline-start: 3px solid var(--ad); padding-inline-start: 9px; }
+.visit-events > div + div { border-color: var(--visit); }
+.visit-events dt, .visit-events dd span { color: var(--quiet); font-size: 12px; }
+.visit-events dd { display: grid; gap: 2px; margin: 2px 0 0; font-size: 14px; }
+#visit-elapsed { margin: 10px 0 0; font-size: 14px; font-weight: 650; color: var(--visit); }
 .detail-dialog .transport { margin: 0; }
 @media (max-width: 700px) {
   header, main { padding-inline: 16px; }

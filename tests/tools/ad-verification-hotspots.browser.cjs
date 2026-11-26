@@ -32,7 +32,32 @@ async function areaDots(dialog) {
   });
 }
 
+function campaignTime(minute) {
+  const hours = Math.floor(minute / 60) % 24;
+  const minutes = String(minute % 60).padStart(2, '0');
+  return 'Day ' + Math.floor(minute / 1440) + ' · ' + (hours % 12 || 12) + ':' + minutes + (hours < 12 ? ' AM' : ' PM');
+}
+
+async function checkVisit(dialog, index, record, destination) {
+  const [phone, origin, shown, arrived] = record;
+  const days = (arrived - shown) / 1440;
+  await dialog.locator('#visit-timeline').waitFor();
+  assert.equal(await dialog.locator('.district-marks [aria-pressed="true"]').getAttribute('data-visit-index'), String(index));
+  assert.equal(await dialog.locator('#visit-phone').innerText(), 'Simulated phone ' + (phone + 1));
+  assert.equal(await dialog.locator('#visit-origin').innerText(), origin);
+  assert.equal(await dialog.locator('#visit-destination').innerText(), destination);
+  assert.equal(await dialog.locator('#visit-shown').innerText(), campaignTime(shown));
+  assert.equal(await dialog.locator('#visit-arrived').innerText(), campaignTime(arrived));
+  assert.equal(await dialog.locator('#visit-elapsed').innerText(), days + (days === 1 ? ' day later' : ' days later'));
+}
+
 async function checkLabels(page, mobile, output) {
+  const records = require('../../demos/data/ad-verification-journeys.json');
+  const days = Object.values(records).flat().map(([, , shown, arrived]) => (arrived - shown) / 1440);
+  assert.equal(days.length, 800);
+  assert.equal(new Set(Object.values(records).flat().map(([phone]) => phone)).size, 800);
+  assert.equal(Math.min(...days), 1);
+  assert.equal(Math.max(...days), 30);
   const map = page.locator(mobile ? '#mobile-areas' : '#desktop-areas');
   const dialog = page.getByRole('dialog', { name: 'Visit area' });
   assert.equal(await map.getByRole('button').count(), 5);
@@ -46,6 +71,34 @@ async function checkLabels(page, mobile, output) {
     assert.equal(await dialog.locator('#area-count').textContent(), String(count));
     assert.deepEqual(await areaDots(dialog), { count, distinct: count, inView: true, streets: true });
     assert.match(await dialog.locator('#area-source').getAttribute('href'), /^https:\/\//);
+    const destination = await dialog.getByRole('combobox').locator('option:checked').innerText();
+    await dialog.locator('#visit-timeline').waitFor({ state: 'hidden' });
+    const visits = records[id];
+    assert.equal(visits.length, count);
+    const indices = new Set([Math.floor(count / 2)]);
+    if (id === 'downtown') {
+      assert.deepEqual(visits[30], [100, 'Dallas, TX', 2040, 9240], 'The original Dallas-to-Downtown example must remain joined to its dot');
+      indices.add(30);
+    }
+    for (const days of [1, 30]) {
+      const index = visits.findIndex(([, , shown, arrived]) => arrived - shown === days * 1440);
+      if (index >= 0) indices.add(index);
+    }
+    const dots = dialog.locator('.district-marks circle[data-visit-index]');
+    for (const index of indices) {
+      const dot = dots.nth(index);
+      if (mobile) await dot.tap();
+      else await dot.click();
+      await checkVisit(dialog, index, visits[index], destination);
+    }
+    const index = Math.floor(count / 2);
+    await dots.nth(index).focus();
+    await page.keyboard.press('Enter');
+    await checkVisit(dialog, index, visits[index], destination);
+    await page.keyboard.press('ArrowRight');
+    await checkVisit(dialog, index + 1, visits[index + 1], destination);
+    await dialog.locator('#visit-prev').click();
+    await checkVisit(dialog, index, visits[index], destination);
     if (id === 'downtown') {
       await dialog.screenshot({ path: path.join(output, 'hotspot-detail-' + (mobile ? 'phone' : 'desktop') + '.png') });
     }
@@ -56,10 +109,16 @@ async function checkLabels(page, mobile, output) {
   }
   await page.getByRole('button', { name: 'Explore visit areas' }).click();
   await dialog.getByRole('combobox').selectOption('horizon');
+  await dialog.locator('#visit-timeline').waitFor({ state: 'hidden' });
+  const lastDot = dialog.locator('.district-marks circle[data-visit-index]').last();
+  await lastDot.focus();
+  await page.keyboard.press('Space');
+  await dialog.locator('#visit-timeline').waitFor();
   const slider = dialog.getByRole('slider', { name: 'Campaign playback position' });
   await slider.press('Home');
   await page.waitForFunction(() => document.getElementById('area-count').textContent === '0');
   assert.equal((await areaDots(dialog)).count, 0);
+  await dialog.locator('#visit-timeline').waitFor({ state: 'hidden' });
   await seek(page, .56);
   await page.waitForFunction(() => {
     const movie = document.getElementById('movie');

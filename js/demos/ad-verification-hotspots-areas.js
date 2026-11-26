@@ -14,6 +14,110 @@ export function setupAreaDetail(data) {
   let visible = 0;
   let frame = 0;
   let opener = launch;
+  const timeline = document.getElementById('visit-timeline');
+  const status = document.getElementById('visit-status');
+  const previous = document.getElementById('visit-prev');
+  const next = document.getElementById('visit-next');
+  let journeys;
+  let request;
+  let selected = -1;
+
+  function campaignTime(minute) {
+    const hour = Math.floor(minute / 60) % 24;
+    return 'Day ' + Math.floor(minute / 1440) + ' · ' + (hour % 12 || 12) + ':' +
+      String(minute % 60).padStart(2, '0') + (hour < 12 ? ' AM' : ' PM');
+  }
+
+  function showTimeline() {
+    if (selected < 0 || !journeys) return;
+    const [phone, origin, shown, arrived] = journeys[active.id][selected];
+    const days = (arrived - shown) / 1440;
+    document.getElementById('visit-phone').textContent = 'Simulated phone ' + (phone + 1);
+    document.getElementById('visit-origin').textContent = origin;
+    document.getElementById('visit-shown').textContent = campaignTime(shown);
+    document.getElementById('visit-destination').textContent = active.name;
+    document.getElementById('visit-arrived').textContent = campaignTime(arrived);
+    document.getElementById('visit-elapsed').textContent = days + (days === 1 ? ' day later' : ' days later');
+    previous.disabled = selected === 0;
+    next.disabled = selected === visible - 1;
+    status.hidden = true;
+    timeline.hidden = false;
+  }
+
+  async function loadJourneys() {
+    try {
+      const response = await fetch('/demos/data/ad-verification-journeys.json');
+      if (!response.ok) throw new Error('Timeline data unavailable');
+      const rows = await response.json();
+      if (!data.areas.every(area => rows[area.id]?.length === area.points.length)) throw new Error('Incomplete timeline data');
+      journeys = rows;
+      showTimeline();
+    } catch {
+      if (selected >= 0) {
+        status.textContent = 'Timeline unavailable. Select the dot again to retry.';
+        status.hidden = false;
+      }
+    } finally {
+      request = null;
+    }
+  }
+
+  function selectVisit(index, focus = false) {
+    if (selected >= 0) {
+      circles[selected].setAttribute('aria-pressed', 'false');
+      circles[selected].setAttribute('tabindex', '-1');
+    }
+    selected = index;
+    if (circles.length) circles[0].setAttribute('tabindex', selected <= 0 ? '0' : '-1');
+    if (index < 0) {
+      timeline.hidden = true;
+      status.hidden = true;
+      return;
+    }
+    const dot = circles[index];
+    dot.setAttribute('aria-pressed', 'true');
+    dot.setAttribute('tabindex', '0');
+    if (focus) dot.focus({preventScroll: true});
+    if (journeys) showTimeline();
+    else {
+      status.textContent = 'Loading timeline…';
+      status.hidden = false;
+      request ??= loadJourneys();
+    }
+  }
+
+  previous.addEventListener('click', () => selectVisit(selected - 1));
+  next.addEventListener('click', () => selectVisit(selected + 1));
+  svg.addEventListener('keydown', event => {
+    if (!event.target.hasAttribute('data-visit-index')) return;
+    const index = Number(event.target.dataset.visitIndex);
+    const keys = {Enter: index, ' ': index, ArrowRight: index + 1, ArrowDown: index + 1, ArrowLeft: index - 1, ArrowUp: index - 1, Home: 0, End: visible - 1};
+    if (!Object.hasOwn(keys, event.key)) return;
+    event.preventDefault();
+    selectVisit(Math.max(0, Math.min(visible - 1, keys[event.key])), true);
+  });
+  svg.addEventListener('click', event => {
+    if (!visible) return;
+    if (event.target.hasAttribute('data-visit-index')) {
+      selectVisit(Number(event.target.dataset.visitIndex));
+      return;
+    }
+    // Select the nearest visible center within a finger-sized target in screen pixels.
+    const transform = svg.getScreenCTM();
+    if (!transform) return;
+    const tap = new DOMPoint(event.clientX, event.clientY).matrixTransform(transform.inverse());
+    let nearest = -1;
+    let distance = (22 / transform.a) ** 2;
+    for (let i = 0; i < visible; i++) {
+      const [x, y] = active.points[i];
+      const squared = (tap.x - x) ** 2 + (tap.y - y) ** 2;
+      if (squared < distance) {
+        nearest = i;
+        distance = squared;
+      }
+    }
+    if (nearest >= 0) selectVisit(nearest);
+  });
 
   function element(tag, attributes = {}, message) {
     const node = document.createElementNS(ns, tag);
@@ -23,6 +127,7 @@ export function setupAreaDetail(data) {
   }
 
   function choose(id) {
+    selectVisit(-1);
     active = catalog.get(id);
     select.value = id;
     source.href = active.infoUrl;
@@ -35,8 +140,9 @@ export function setupAreaDetail(data) {
       svg.append(element('text', {class: 'road-label', transform: 'translate(' + x + ' ' + y + ') rotate(' + angle + ')', y: -4, 'text-anchor': 'middle'}, street));
     }
     const marks = element('g', {class: 'district-marks'});
-    circles = active.points.map(([x, y]) => {
-      const dot = element('circle', {cx: x, cy: y, r: active.radius, display: 'none'});
+    circles = active.points.map(([x, y], index) => {
+      const dot = element('circle', {cx: x, cy: y, r: active.radius, display: 'none', role: 'button',
+        tabindex: index === 0 ? 0 : -1, 'data-visit-index': index, 'aria-label': 'Visit ' + (index + 1) + ' in ' + active.name, 'aria-pressed': 'false'});
       marks.append(dot);
       return dot;
     });
@@ -57,6 +163,8 @@ export function setupAreaDetail(data) {
     const points = active.points;
     while (visible && points[visible-1][2] > frame) circles[--visible].setAttribute('display', 'none');
     while (visible < points.length && points[visible][2] <= frame) circles[visible++].removeAttribute('display');
+    if (selected >= visible) selectVisit(-1);
+    if (selected >= 0) next.disabled = selected === visible - 1;
     const value = String(visible);
     if (amount.textContent !== value || svg.dataset.area !== active.id) {
       amount.textContent = value;
