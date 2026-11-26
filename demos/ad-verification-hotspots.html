@@ -41,8 +41,23 @@
     <button class="area-launch" id="explore-areas" type="button" aria-haspopup="dialog"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.7"/><path d="M13 13l4 4M6 8.5h5m-2.5-2.5v5"/></svg>Explore visit areas</button>
     <dialog class="detail-dialog" id="area-dialog" aria-labelledby="area-title">
       <div class="detail-heading"><div><label for="area-select" id="area-title">Visit area</label><select id="area-select"></select></div><button type="button" class="close-detail" id="close-detail" aria-label="Back to city map">×</button></div>
-      <div class="detail-figure"><svg id="detail-map" class="detail-map" viewBox="0 0 640 400" role="img"></svg></div>
+      <p id="visit-hint" class="visit-hint">Select a dot to see where and when the ad was shown to that phone.</p>
+      <div class="detail-figure"><svg id="detail-map" class="detail-map" viewBox="0 0 640 400" role="group" aria-describedby="visit-hint"></svg></div>
       <div class="detail-meta"><span><strong id="area-count">0</strong> <span id="area-unit">simulated visits</span></span><a id="area-source" class="detail-source" target="_blank" rel="noopener noreferrer">About this area ↗</a></div>
+      <p id="visit-status" class="visit-hint" role="status" hidden></p>
+      <section id="visit-timeline" class="visit-timeline" aria-label="Selected phone timeline" hidden>
+        <div class="visit-heading"><strong id="visit-phone"></strong><div>
+          <button type="button" id="visit-prev" aria-label="Previous visiting phone">←</button>
+          <button type="button" id="visit-next" aria-label="Next visiting phone">→</button>
+        </div></div>
+        <div aria-live="polite" aria-atomic="true">
+          <dl class="visit-events">
+            <div><dt>Ad shown</dt><dd><strong id="visit-origin"></strong><span id="visit-shown"></span></dd></div>
+            <div><dt>Visited Grand Junction</dt><dd><strong id="visit-destination"></strong><span id="visit-arrived"></span></dd></div>
+          </dl>
+          <p id="visit-elapsed"></p>
+        </div>
+      </section>
       <div id="detail-playback"></div>
     </dialog>
     <div id="error" class="error" hidden>
