@@ -329,6 +329,11 @@ window.PROJECTS = [
     ],
     "resources": [
       {
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/build/tableau/rebuild-ufo.py",
+        "label": "Tableau workbook build script on GitHub"
+      },
+      {
         "icon": "img/icons/tableau-icon.png",
         "url": "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
         "label": "Interactive Dashboard"
@@ -519,6 +524,11 @@ window.PROJECTS = [
       "analytics"
     ],
     "resources": [
+      {
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/aws/target-empty-package/precompute.py",
+        "label": "Dashboard data preparation on GitHub"
+      },
       {
         "icon": "img/icons/pdf-icon.png",
         "url": "documents/Project_7.pdf",
@@ -1124,6 +1134,11 @@ window.PROJECTS = [
     ],
     "resources": [
       {
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/build/build-pizza-tips-model.js",
+        "label": "Demo estimator training code on GitHub"
+      },
+      {
         "icon": "img/icons/website-icon.png?v=8dd14621da4e",
         "url": "https://www.danielshort.me/pizza-tips-demo",
         "label": "Live Demo"
@@ -1283,6 +1298,11 @@ window.PROJECTS = [
       "tourism"
     ],
     "resources": [
+      {
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/build/tableau/rebuild-pizza.py",
+        "label": "Tableau workbook build script on GitHub"
+      },
       {
         "icon": "img/icons/tableau-icon.png",
         "url": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
