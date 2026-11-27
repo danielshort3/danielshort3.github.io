@@ -984,6 +984,11 @@ window.PROJECTS = [
         "icon": "img/icons/excel-icon.png",
         "url": "/documents/Project_11.xlsx",
         "label": "Excel"
+      },
+      {
+        "icon": "img/icons/github-icon.png?v=16ea8b5855c8",
+        "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/documents/Project_11.xlsx",
+        "label": "Workbook source on GitHub"
       }
     ],
     "problem": "I wanted to know which shifts and neighborhoods lead to better tips.",
