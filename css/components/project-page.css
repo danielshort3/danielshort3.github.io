@@ -22,6 +22,8 @@
     max-width: 100%;
     padding: 9px 12px;
     overflow-wrap: anywhere;
+    text-decoration: none;
+    text-underline-offset: auto;
   }
   .project-demo-header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0; }
   .project-demo-heading { display: grid; gap: 6px; min-width: 0; }
