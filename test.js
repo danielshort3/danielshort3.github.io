@@ -40049,6 +40049,13 @@ try {
       const html = fs.readFileSync(file, 'utf8');
       checkFileContains(file, '<base href="/">');
       checkFileContains(file, 'data-page="project"');
+      const source = (project.resources || []).find(({ label, url }) =>
+        /\b(?:GitHub|source code)\b/i.test(label) &&
+        /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(?:[/?#]|$)/i.test(url)
+      );
+      assert(source, 'Published case ' + id + ' needs a GitHub implementation link in its resources');
+      const sourceHref = source.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      assert(html.includes('href="' + sourceHref + '"'), 'Source link is missing from ' + file);
       checkFileContains(file, '<meta property="og:type" content="article">');
       assert(!html.includes('Back to Portfolio'), `${file} should not render the legacy portfolio return control`);
       checkFileContains(file, `<link rel="canonical" href="https://www.danielshort.me/portfolio/${id}">`);

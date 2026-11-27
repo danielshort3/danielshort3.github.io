@@ -23,6 +23,11 @@
   ],
   "resources": [
     {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/build/build-pizza-tips-model.js",
+      "label": "Demo estimator training code on GitHub"
+    },
+    {
       "icon": "img/icons/website-icon.png",
       "url": "https://www.danielshort.me/pizza-tips-demo",
       "label": "Live Demo"

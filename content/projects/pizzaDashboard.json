@@ -21,6 +21,11 @@
   ],
   "resources": [
     {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/build/tableau/rebuild-pizza.py",
+      "label": "Tableau workbook build script on GitHub"
+    },
+    {
       "icon": "img/icons/tableau-icon.png",
       "url": "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
       "label": "Interactive Dashboard"

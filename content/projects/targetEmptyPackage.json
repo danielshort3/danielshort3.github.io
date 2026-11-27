@@ -24,6 +24,11 @@
   ],
   "resources": [
     {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/danielshort3.github.io/blob/main/aws/target-empty-package/precompute.py",
+      "label": "Dashboard data preparation on GitHub"
+    },
+    {
       "icon": "img/icons/pdf-icon.png",
       "url": "documents/Project_7.pdf",
       "label": "PDF"
