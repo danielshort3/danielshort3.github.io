@@ -190,9 +190,11 @@ async function exercise(frame, demo, label, page, requests) {
     assert.notEqual(await frame.locator('#tip-amount').innerText(), previous, `${label}: estimate reflects new input.`);
     assert(await frame.locator('#scenario-form > details').evaluate(element => element.getBoundingClientRect().top >= document.querySelector('#scenario-form > .actions').getBoundingClientRect().bottom), `${label}: advanced estimate settings follow the primary action.`);
     assert.equal(await frame.locator('#location-details').getAttribute('open'), null, `${label}: map starts collapsed.`);
-    await frame.locator('#location-details > summary').click();
+    await Promise.all([
+      page.waitForRequest('**/*.tile.openstreetmap.org/**'),
+      frame.locator('#location-details > summary').click()
+    ]);
     await frame.locator('#map .leaflet-tile').first().waitFor({ state: 'attached' });
-    assert(requests.some(url => url.includes('tile.openstreetmap.org')), `${label}: opening the map loads tiles.`);
     await frame.locator('#location-details > summary').click();
   }
 }
