@@ -665,7 +665,8 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
 
   const hasResources = supportingResources.length > 0;
 
-  const renderResourceCards = (list) => `<div class="project-links" role="list">
+  // Safari can suppress list semantics when CSS removes the markers.
+  const renderResourceCards = (list) => `<ul class="project-links" role="list">
         ${list.map((r) => {
           const href = String(r.url || '').trim();
           const label = formatResourceLabel(r);
@@ -679,9 +680,9 @@ function renderProjectPage(project, { nextProject: nextProjectCandidate } = {}) 
           const iconMarkup = icon
             ? `<img class="project-link-icon" src="${escapeHtml(iconSource)}" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20">`
             : '';
-          return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${iconMarkup}<span class="project-link-label">${escapeHtml(label)}</span></a>`;
+          return `<li><a class="project-link" href="${escapeHtml(href)}"${attrs}>${iconMarkup}<span class="project-link-label">${escapeHtml(label)}</span></a></li>`;
         }).join('\n        ')}
-      </div>`;
+      </ul>`;
 
   const safeResources = hasResources
     ? `<section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-links-title">

@@ -36,6 +36,20 @@ async function checkEvidenceAbsent(page) {
   assert(layout.overflow <= 1, 'Project content must not create horizontal page overflow');
 }
 
+async function checkResourceLinks(page) {
+  const labels = await page.locator('#links .project-link-label:visible').allTextContents();
+  assert(labels.length > 0, 'Published project cases must show resource links');
+  const list = page.getByRole('region', { name: 'Links', exact: true }).getByRole('list');
+  assert.equal(await list.count(), 1, 'Project resources must share a list under Links');
+  const items = list.getByRole('listitem');
+  assert.equal(await items.count(), labels.length, 'Each project resource must occupy one list item');
+  for (const [index, label] of labels.entries()) {
+    assert(label.trim(), 'Each project resource must have a visible name');
+    assert.equal(await items.nth(index).getByRole('link', { name: label, exact: true }).count(), 1,
+      `Resource "${label}" must be exposed as a link in its list item`);
+  }
+}
+
 async function checkViewport({ browser, base, artifactDir }, viewport) {
   const name = viewport.width < 600 ? 'mobile' : 'desktop';
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
@@ -65,6 +79,9 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
     await settle(page);
     assert.equal(await page.locator('body').getAttribute('data-audience'), 'personal',
       'Project case studies use the canonical personal site.');
+
+    stage = 'resource link semantics';
+    await checkResourceLinks(page);
 
     stage = 'disabled evidence';
     await checkEvidenceAbsent(page);
@@ -110,6 +127,7 @@ async function checkViewport({ browser, base, artifactDir }, viewport) {
       for (const [index, project] of projects.entries()) {
         assert.equal(new URL(page.url()).pathname, `/portfolio/${project.id}`);
         assert.equal(await page.locator('h1:visible').innerText(), project.title);
+        await checkResourceLinks(page);
         visited.add(project.id);
         const destination = projects[(index + 1) % projects.length];
         await page.locator('.project-next-link').click();
