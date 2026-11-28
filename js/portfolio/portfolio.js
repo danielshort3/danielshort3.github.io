@@ -1652,8 +1652,8 @@ function buildPortfolioWorkbench(routeRoot = document, options = {}) {
     analytics: [
       { value: '99%', label: 'faster reporting' },
       { value: '200+', label: 'hours saved annually' },
-      { value: '24%', label: 'inventory loss reduction' },
-      { value: '57.6%', label: 'reporting lift' }
+      { value: '24%', label: 'reduction in inventory loss at work' },
+      { value: '57.6%', label: 'improvement in theft reporting at work' }
     ],
     'data-science': [
       { value: '95%', label: 'workflow time cut' },
